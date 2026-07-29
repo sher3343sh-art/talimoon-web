@@ -11,8 +11,8 @@ const NAV_LINKS = [
   { label: "FAQ", href: "#faq" },
 ] as const;
 
-// Mobile menu shows a shorter, deliberately curated list (no FAQ) per
-// the mobile nav spec — kept as its own array rather than filtering
+// Drawer shows a shorter, deliberately curated list (no FAQ) per the
+// mobile nav spec — kept as its own array rather than filtering
 // NAV_LINKS so the desktop list can change independently in future
 // without silently affecting mobile.
 const MOBILE_NAV_LINKS = [
@@ -24,11 +24,14 @@ const MOBILE_NAV_LINKS = [
 
 const SCROLL_THRESHOLD = 24;
 
-// How long the mobile menu's exit transition runs, in ms. Kept as a
-// constant because it's referenced in two places: the Tailwind
-// duration-300 classes on the overlay, and the setTimeout that
-// unmounts the overlay after that transition finishes.
+// How long the drawer + backdrop's exit transition runs, in ms.
+// Referenced in two places: the Tailwind duration classes on the
+// drawer/backdrop, and the setTimeout that unmounts them afterward.
 const MOBILE_MENU_EXIT_MS = 300;
+
+// Premium "expo-out" easing — decelerates smoothly with no bounce,
+// the same easing family used in Apple's own sheet/drawer motion.
+const DRAWER_EASING = "ease-[cubic-bezier(0.16,1,0.3,1)]";
 
 /**
  * ---------------------------------------------------------------
@@ -90,18 +93,17 @@ export default function Navbar() {
   /**
    * ---------------------------------------------------------------
    * MOBILE NAVIGATION (< lg only) — everything below this comment
-   * block and inside the "MOBILE NAV" JSX section is new. Nothing
-   * above this point, and nothing in the desktop <nav> further down,
-   * was changed to support it.
+   * block and inside the "MOBILE NAV" / "MOBILE DRAWER" JSX sections
+   * is new. Nothing above this point, and nothing in the desktop
+   * <nav> further down, was changed to support it.
    *
    * mobileOpen    — the logical target state (open or closed), used
    *                 for aria-expanded, the hamburger icon animation,
    *                 and body scroll locking.
-   * menuMounted   — whether the full-screen overlay exists in the
-   *                 DOM at all. Kept separate from mobileOpen so the
-   *                 overlay can play its closing transition (opacity/
-   *                 translate) before being removed, instead of
-   *                 disappearing instantly.
+   * menuMounted   — whether the drawer + backdrop exist in the DOM
+   *                 at all. Kept separate from mobileOpen so they
+   *                 can play their closing transition before being
+   *                 removed, instead of disappearing instantly.
    * menuVisible   — the animation-state class toggle. Flipped a
    *                 frame after mount (via requestAnimationFrame) so
    *                 the browser has a "closed" frame to transition
@@ -113,14 +115,14 @@ export default function Navbar() {
   const [menuMounted, setMenuMounted] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
 
-  const menuRef = useRef<HTMLDivElement>(null);
+  const drawerRef = useRef<HTMLDivElement>(null);
   const toggleButtonRef = useRef<HTMLButtonElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const wasOpenRef = useRef(false);
 
   const closeMenu = () => setMobileOpen(false);
 
-  // Mount/animate the overlay in, or animate it out then unmount.
+  // Mount/animate the drawer in, or animate it out then unmount.
   useEffect(() => {
     if (mobileOpen) {
       setMenuMounted(true);
@@ -133,9 +135,9 @@ export default function Navbar() {
     return () => clearTimeout(timeout);
   }, [mobileOpen]);
 
-  // Focus management: move focus into the menu on open, and back to
-  // the hamburger trigger on close (but not on initial mount, when
-  // the menu was never open in the first place).
+  // Focus management: move focus into the drawer on open, and back
+  // to the hamburger trigger on close (but not on initial mount,
+  // when the drawer was never open in the first place).
   useEffect(() => {
     if (mobileOpen) {
       wasOpenRef.current = true;
@@ -145,19 +147,27 @@ export default function Navbar() {
     }
   }, [mobileOpen]);
 
-  // Lock body scroll while the menu is open.
+  // Lock body scroll while the drawer is open, and flag it via a
+  // body class/data-attribute so any OTHER mobile-only UI on the
+  // page (e.g. a persistent sticky CTA bar) can hide itself while
+  // the drawer is open just by keying off body[data-tm-menu-open],
+  // without this file needing to know that component exists.
   useEffect(() => {
     if (!mobileOpen) return;
 
     const original = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    document.body.setAttribute("data-tm-menu-open", "true");
 
     return () => {
       document.body.style.overflow = original;
+      document.body.removeAttribute("data-tm-menu-open");
     };
   }, [mobileOpen]);
 
-  // ESC closes the menu; Tab/Shift+Tab is trapped inside it while open.
+  // ESC closes the drawer; Tab/Shift+Tab is trapped inside it while
+  // open. The backdrop itself has no focusable elements, so trapping
+  // against drawerRef alone is sufficient.
   useEffect(() => {
     if (!mobileOpen) return;
 
@@ -167,9 +177,9 @@ export default function Navbar() {
         return;
       }
 
-      if (event.key !== "Tab" || !menuRef.current) return;
+      if (event.key !== "Tab" || !drawerRef.current) return;
 
-      const focusable = menuRef.current.querySelectorAll<HTMLElement>(
+      const focusable = drawerRef.current.querySelectorAll<HTMLElement>(
         'a[href], button:not([disabled])'
       );
       if (focusable.length === 0) return;
@@ -210,10 +220,14 @@ export default function Navbar() {
     scrolled ? "bg-[var(--text-primary,#2A241D)]" : "bg-white",
   ].join(" ");
 
-  // Hamburger bar color follows the same scrolled/rest logic as the
-  // desktop nav links, so it stays legible over both the dark hero
-  // and the translucent scrolled background.
-  const hamburgerBarColor = scrolled ? "bg-[var(--text-primary,#2A241D)]" : "bg-white";
+  // Hamburger stroke color: white over the dark/hero navbar, dark
+  // navy (the same navy the navbar itself uses at rest) once
+  // scrolled — matches the "white on dark / dark-blue on translucent
+  // white" spec exactly, reusing the existing --nav-rest-bg token
+  // instead of introducing a new color.
+  const hamburgerBarColor = scrolled
+    ? "bg-[var(--nav-rest-bg,#1C2A3A)]"
+    : "bg-white";
 
   return (
     <header
@@ -354,7 +368,7 @@ export default function Navbar() {
       {/* ============================================================
           DESKTOP NAV (lg and above) — UNCHANGED except for the single
           "hidden ... lg:grid" swap in place of the old bare "grid",
-          so this nav renders only at lg+ and the new mobile bar takes
+          so this nav renders only at lg+ and the mobile bar takes
           over below it. Every other class, all children, and all
           logic in this block are untouched.
       ============================================================ */}
@@ -429,8 +443,8 @@ export default function Navbar() {
       </nav>
 
       {/* ============================================================
-          MOBILE NAV (< lg only) — new. Logo left, hamburger right,
-          64px bar height, 20px horizontal padding, reusing the same
+          MOBILE NAV (< lg only) — logo left, hamburger right, 64px
+          bar height, 20px horizontal padding, reusing the same
           scrolled/rest background+blur+border the header already
           applies (no separate background system introduced).
       ============================================================ */}
@@ -467,7 +481,7 @@ export default function Navbar() {
           type="button"
           aria-label={mobileOpen ? "Close menu" : "Open menu"}
           aria-expanded={mobileOpen}
-          aria-controls="tm-mobile-menu"
+          aria-controls="tm-mobile-drawer"
           onClick={() => setMobileOpen((open) => !open)}
           className={[
             "relative flex h-6 w-6 shrink-0 items-center justify-center",
@@ -479,21 +493,21 @@ export default function Navbar() {
           <span aria-hidden="true" className="relative flex h-4 w-6 flex-col justify-between">
             <span
               className={[
-                "h-[2px] w-6 rounded-full transition-transform duration-300 ease-out",
+                "h-[1.5px] w-6 rounded-full transition-transform duration-300 ease-out",
                 hamburgerBarColor,
                 mobileOpen ? "translate-y-[7px] rotate-45" : "",
               ].join(" ")}
             />
             <span
               className={[
-                "h-[2px] w-6 rounded-full transition-opacity duration-200 ease-out",
+                "h-[1.5px] w-6 rounded-full transition-opacity duration-200 ease-out",
                 hamburgerBarColor,
                 mobileOpen ? "opacity-0" : "opacity-100",
               ].join(" ")}
             />
             <span
               className={[
-                "h-[2px] w-6 rounded-full transition-transform duration-300 ease-out",
+                "h-[1.5px] w-6 rounded-full transition-transform duration-300 ease-out",
                 hamburgerBarColor,
                 mobileOpen ? "-translate-y-[7px] -rotate-45" : "",
               ].join(" ")}
@@ -503,96 +517,117 @@ export default function Navbar() {
       </div>
 
       {/* ============================================================
-          MOBILE MENU OVERLAY — full-screen, only mounted while
-          mobileOpen (plus its short closing-transition window).
+          MOBILE DRAWER — floating sheet anchored just below the
+          navbar, capped at ~60% viewport height, NOT full-screen.
+          A blurred/dimmed backdrop sits behind it (and above the
+          hero) so the hero stays visible and un-interactable while
+          the drawer is open. Both are only mounted while mobileOpen
+          (plus the short closing-transition window).
       ============================================================ */}
       {menuMounted && (
-        <div
-          id="tm-mobile-menu"
-          ref={menuRef}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Mobile navigation"
-          className={[
-            "fixed inset-0 z-[60] flex flex-col",
-            "bg-[var(--surface-warm-100,#F7F2EA)]",
-            "transition-all duration-300 ease-out lg:hidden",
-            menuVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4",
-          ].join(" ")}
-        >
-          <div className="flex h-16 shrink-0 items-center justify-between px-5">
-            <Link
-              href="/"
-              aria-label="Talimoon Home"
-              onClick={closeMenu}
-              className="flex h-8 w-auto items-center"
-            >
-              <img
-                src="/logo/talimoon-logo-color.svg"
-                alt="Talimoon"
-                draggable={false}
-                className="h-8 w-auto"
-              />
-            </Link>
+        <>
+          <div
+            aria-hidden="true"
+            onClick={closeMenu}
+            className={[
+              "fixed inset-0 z-[55] bg-black/40 backdrop-blur-sm lg:hidden",
+              `transition-opacity duration-300 ${DRAWER_EASING}`,
+              menuVisible ? "opacity-100" : "opacity-0",
+            ].join(" ")}
+          />
 
-            <button
-              ref={closeButtonRef}
-              type="button"
-              aria-label="Close menu"
-              onClick={closeMenu}
-              className={[
-                "flex h-6 w-6 items-center justify-center",
-                "text-[var(--text-primary,#2A241D)]",
-                "focus-visible:outline focus-visible:outline-2",
-                "focus-visible:outline-offset-2",
-                "focus-visible:outline-[var(--accent-primary,#B5764B)]",
-              ].join(" ")}
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={1.75}
-                strokeLinecap="round"
-                aria-hidden="true"
-                className="h-6 w-6"
+          <div
+            id="tm-mobile-drawer"
+            ref={drawerRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Mobile navigation"
+            className={[
+              "fixed left-3 right-3 top-[72px] z-[60] lg:hidden",
+              "flex max-h-[60vh] flex-col overflow-hidden rounded-3xl",
+              "bg-[var(--surface-warm-100,#F7F2EA)]",
+              "shadow-[0_24px_60px_-12px_rgba(42,36,29,0.35)]",
+              "ring-1 ring-[var(--border-subtle,rgba(42,36,29,0.12))]",
+              `origin-top transition-[opacity,transform] duration-300 ${DRAWER_EASING}`,
+              menuVisible
+                ? "opacity-100 translate-y-0 scale-100"
+                : "opacity-0 -translate-y-2 scale-[0.98]",
+            ].join(" ")}
+          >
+            <div className="flex shrink-0 items-center justify-between border-b border-[var(--border-subtle,rgba(42,36,29,0.12))] px-5 py-3">
+              <Link
+                href="/"
+                aria-label="Talimoon Home"
+                onClick={closeMenu}
+                className="flex h-7 w-auto items-center"
               >
-                <path d="M6 6l12 12M18 6 6 18" />
-              </svg>
-            </button>
-          </div>
+                <img
+                  src="/logo/talimoon-logo-color.svg"
+                  alt="Talimoon"
+                  draggable={false}
+                  className="h-7 w-auto"
+                />
+              </Link>
 
-          <nav aria-label="Mobile" className="flex-1 overflow-y-auto px-5 pt-6">
-            <ul className="flex flex-col divide-y divide-[var(--border-subtle,rgba(42,36,29,0.12))]">
-              {MOBILE_NAV_LINKS.map((link) => (
-                <li key={link.href}>
-                  <a
-                    href={link.href}
-                    onClick={closeMenu}
-                    className="block py-5 font-serif text-[1.5rem] font-medium leading-[1.3] text-[var(--text-primary,#2A241D)]"
-                  >
-                    {link.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </nav>
+              <button
+                ref={closeButtonRef}
+                type="button"
+                aria-label="Close menu"
+                onClick={closeMenu}
+                className={[
+                  "flex h-6 w-6 items-center justify-center",
+                  "text-[var(--text-primary,#2A241D)]",
+                  "focus-visible:outline focus-visible:outline-2",
+                  "focus-visible:outline-offset-2",
+                  "focus-visible:outline-[var(--accent-primary,#B5764B)]",
+                ].join(" ")}
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                  strokeLinecap="round"
+                  aria-hidden="true"
+                  className="h-5 w-5"
+                >
+                  <path d="M6 6l12 12M18 6 6 18" />
+                </svg>
+              </button>
+            </div>
 
-          <div className="shrink-0 px-5 pb-8 pt-4">
-            <a
-              href="#begin"
-              onClick={closeMenu}
-              style={GOLD_TOKENS}
-              className={[
-                "tm-cta-gold",
-                "flex h-12 w-full items-center justify-center",
-                "text-[14px] font-medium tracking-[0.02em]",
-              ].join(" ")}
-            >
-              Begin the Story
-            </a>
+            <nav aria-label="Mobile" className="min-h-0 flex-1 overflow-y-auto px-5">
+              <ul className="flex flex-col divide-y divide-[var(--border-subtle,rgba(42,36,29,0.12))]">
+                {MOBILE_NAV_LINKS.map((link) => (
+                  <li key={link.href}>
+                    <a
+                      href={link.href}
+                      onClick={closeMenu}
+                      className="block py-3.5 font-serif text-[1.0625rem] font-medium leading-[1.3] text-[var(--text-primary,#2A241D)]"
+                    >
+                      {link.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+
+            <div className="shrink-0 border-t border-[var(--border-subtle,rgba(42,36,29,0.12))] px-5 py-4">
+              <a
+                href="#begin"
+                onClick={closeMenu}
+                style={GOLD_TOKENS}
+                className={[
+                  "tm-cta-gold",
+                  "flex h-12 w-full items-center justify-center",
+                  "text-[14px] font-medium tracking-[0.02em]",
+                ].join(" ")}
+              >
+                Begin the Story
+              </a>
+            </div>
           </div>
-        </div>
+        </>
       )}
     </header>
   );
