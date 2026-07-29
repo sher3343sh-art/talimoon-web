@@ -40,28 +40,29 @@ import Image from "next/image";
  * grid-skeleton + icon placeholder entirely.
  *
  * Size-parity fix (this version):
- * - The image container previously used its own bespoke sizing
- *   (max-w-[900px] lg:max-w-[1000px] aspect-[16/10], plus a
- *   scale-110 crop hack) that had nothing in common with
- *   BookShowcase's box. That meant the two sections could never
- *   read as the same system, and depending on viewport the two
- *   images landed at very different rendered sizes.
- * - Container classes are now IDENTICAL to BookShowcase's:
- *   `relative mx-auto w-full max-w-md aspect-[3/4]`. Same width cap,
- *   same aspect ratio, same centering — so at every breakpoint this
- *   box is pixel-for-pixel the same size as BookShowcase's.
- * - scale-110 removed — it was cropping the image against its own
- *   frame to fake a tighter fit; not needed now that the box itself
- *   is sized deliberately rather than being backed into.
- * - object-contain kept (not object-cover): the source photo is
- *   landscape while the shared box is portrait, so contain keeps the
- *   whole photograph visible, uncropped and undistorted, centered in
- *   the box with matting above/below rather than losing its left/
- *   right edges. Switch to object-cover only if a full-bleed fill is
- *   preferred over showing the complete photo.
- * - sizes updated to 50vw (matches BookShowcase, since the box is
- *   now the same max-width) so the browser requests the right
- *   resolution at each breakpoint.
+ * - The image is now wrapped in the SAME two-layer structure as
+ *   BookShowcase, not just a matching outer aspect box:
+ *     outer:  relative mx-auto aspect-[3/4] w-full max-w-md
+ *     inner:  relative h-full w-full overflow-hidden rounded-sm
+ *             shadow-[0_20px_50px_rgba(42,36,29,0.18)]
+ *   Matching only the outer box wasn't enough — BookShowcase also
+ *   uses object-cover inside a clipped inner card, while this file
+ *   used object-contain directly on the outer box. object-contain
+ *   shrinks a landscape photo to fit inside a portrait frame with
+ *   empty matting above/below, so even with identical outer
+ *   dimensions the photo itself rendered visibly smaller than
+ *   BookShowcase's cover. Switching to the same inner-card +
+ *   object-cover pattern makes both photos fill their identical
+ *   boxes edge-to-edge, so the two now read as the same size.
+ * - Trade-off (by design, matches BookShowcase's own approach):
+ *   object-cover on a landscape photo inside a portrait box crops
+ *   the left/right edges of the room in the background; the book
+ *   itself stays centered and fully visible. If the cropped edges
+ *   are ever unwanted, object-contain is the fix, but then the two
+ *   sections stop matching in visual size — the two can't both be
+ *   true at once given the source photo's aspect ratio.
+ * - sizes updated to 448px (matches BookShowcase's max-w-md at
+ *   desktop) instead of a vw-based value.
  * - unoptimized kept: source is an Inkscape-exported SVG, same
  *   reasoning as Trust Strip / BookShowcase.
  */
@@ -197,16 +198,20 @@ export default function InsideBook() {
           </ul>
         </div>
 
-        <div className="relative mx-auto w-full max-w-md aspect-[3/4]">
-          <Image
-            src="/images/inside-book/talimoon-open-book.svg"
-            alt="Open TALIMOON personalized storybook"
-            fill
-            priority
-            unoptimized
-            sizes="(min-width:1024px) 50vw, 100vw"
-            className="object-contain drop-shadow-[0_40px_70px_rgba(0,0,0,0.18)]"
-          />
+        <div>
+          <div className="relative mx-auto aspect-[3/4] w-full max-w-md">
+            <div className="relative h-full w-full overflow-hidden rounded-sm shadow-[0_20px_50px_rgba(42,36,29,0.18)]">
+              <Image
+                src="/images/inside-book/talimoon-open-book.svg"
+                alt="Open TALIMOON personalized storybook"
+                fill
+                priority
+                unoptimized
+                sizes="(min-width:1024px) 448px, 100vw"
+                className="object-cover"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </section>
