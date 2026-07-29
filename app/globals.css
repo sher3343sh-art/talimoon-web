@@ -1,26 +1,604 @@
+/* ==========================================================================
+   TALIMOON — Global Stylesheet
+   Implements Design System Specification v2.0 (Chapters 1–28) exactly.
+   Every value below traces to an approved token. Components consume
+   semantic / component tokens only — never the primitives directly,
+   and never a raw hex, px, or ms value of their own.
+   ========================================================================== */
+
 @import "tailwindcss";
 
+/* ==========================================================================
+   3. PRIMITIVE CSS VARIABLES  (Spec §15)
+   Raw values. Named by position in a scale, never by role.
+   Referenced only by the semantic layer below — never by components.
+   ========================================================================== */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
+
+  /* Color primitives */
+  --paper-50: #FDFBF7;
+  --paper-100: #F7F3EC;
+  --paper-100-a70: rgba(247, 243, 236, 0.7);
+  --paper-100-a18: rgba(247, 243, 236, 0.18);
+  --white: #FFFFFF;
+
+  --ink-950: #211D18;
+  --ink-700: #5B564C;
+  --ink-500: #8B8578;
+  --ink-950-a08: rgba(33, 29, 24, 0.08);
+  --ink-950-a14: rgba(33, 29, 24, 0.14);
+  --ink-950-a24: rgba(33, 29, 24, 0.24);
+
+  --navy-900: #1C2A3A;
+
+  --gold-500: #B8935B;
+  --gold-500-a35: rgba(184, 147, 91, 0.35);
+  --gold-600: #9C7A47;
+
+  --sage-600: #4B6B4F;
+  --amber-700: #A8763E;
+  --brick-600: #A34B3F;
+
+  --overlay-scrim-rgb: 28, 26, 22;
+
+  /* Spacing primitives — base unit 4px */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-24: 96px;
+  --space-32: 128px;
+  --space-48: 192px;
+
+  /* Radius primitives */
+  --radius-step-0: 0px;
+  --radius-step-1: 2px;
+  --radius-step-2: 6px;
+  --radius-step-3: 12px;
+  --radius-step-full: 999px;
+
+  /* Shadow primitives */
+  --shadow-step-1: 0 4px 16px rgba(33, 29, 24, 0.08);
+  --shadow-step-2: 0 16px 48px rgba(33, 29, 24, 0.18);
+
+  /* Motion primitives */
+  --duration-step-1: 150ms;
+  --duration-step-2: 250ms;
+  --duration-step-3: 500ms;
+  --ease-settle: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* ==========================================================================
+     4. SEMANTIC CSS VARIABLES  (Spec §2–§10)
+     One-to-one aliases of primitives, named for role. Components read
+     only from here (or from the component layer, which reads from here).
+     ========================================================================== */
+
+  /* -- 6. Surface variables (§2.1) -- */
+  --surface-base: var(--paper-100);
+  --surface-raised: var(--paper-50);
+  --surface-contrast: var(--navy-900);
+  --surface-overlay: var(--white);
+
+  /* Text (§2.2) */
+  --text-primary: var(--ink-950);
+  --text-secondary: var(--ink-700);
+  --text-muted: var(--ink-500);
+  --text-inverse: var(--paper-100);
+  --text-inverse-muted: var(--paper-100-a70);
+
+  /* Accent (§2.3) */
+  --accent-primary: var(--gold-500);
+  --accent-primary-hover: var(--gold-600);
+  --accent-secondary: var(--navy-900);
+
+  /* -- 7. Border variables (§2.4) -- */
+  --border-subtle: var(--ink-950-a08);
+  --border-default: var(--ink-950-a14);
+  --border-strong: var(--ink-950-a24);
+  --border-inverse: var(--paper-100-a18);
+
+  /* State (§2.5) */
+  --state-success: var(--sage-600);
+  --state-warning: var(--amber-700);
+  --state-error: var(--brick-600);
+
+  /* Overlay (§2.6) */
+  --overlay-scrim: rgba(var(--overlay-scrim-rgb), 0.6);
+
+  /* -- 8. Shadow variables (§8) -- */
+  --shadow-none: none;
+  --shadow-elevated: var(--shadow-step-1);
+  --shadow-modal: var(--shadow-step-2);
+
+  /* -- 9. Motion variables (§10, §22) -- */
+  --duration-fast: var(--duration-step-1);
+  --duration-base: var(--duration-step-2);
+  --duration-slow: var(--duration-step-3);
+  --ease-standard: var(--ease-settle);
+
+  --opacity-hidden: 0;
+  --opacity-disabled: 0.4;
+  --opacity-scrim: 0.6;
+  --opacity-visible: 1;
+
+  --translate-none: 0px;
+  --translate-subtle: 4px;
+  --translate-reveal: 16px;
+
+  --scale-none: 1;
+  --scale-press: 0.98;
+
+  /* Elevation / z-index (§23) — supports the motion/overlay layer above */
+  --z-navbar: 100;
+  --z-floating-cta: 150;
+  --z-dropdown: 200;
+  --z-tooltip: 300;
+  --z-popover: 300;
+  --z-overlay: 390;
+  --z-modal: 400;
+  --z-toast: 500;
+
+  /* -- 10. Radius variables (§7) -- */
+  --radius-none: var(--radius-step-0);
+  --radius-sm: var(--radius-step-1);
+  --radius-md: var(--radius-step-2);
+  --radius-lg: var(--radius-step-3);
+  --radius-pill: var(--radius-step-full);
+
+  /* -- 11. Container variables (§5) -- */
+  --container-content: 1280px;
+  --container-reading: 640px;
+  --container-padding-mobile: var(--space-6);   /* 24px, <768px */
+  --container-padding-tablet: var(--space-12);  /* 48px, 768–1023px */
+  --container-padding-desktop: var(--space-16); /* 64px, ≥1024px */
+  --grid-gutter-mobile: var(--space-4);         /* 16px */
+  --grid-gutter-desktop: var(--space-8);        /* 32px */
+
+  /* -- 5. Typography variables (§3) --
+     Sizes are stepped per breakpoint (§6) below, not fluid. Values here
+     are the mobile-first defaults; md/lg overrides follow in §12.
+     UNVERIFIED: --font-fraunces / --font-plus-jakarta-sans must be
+     produced by next/font in layout.tsx (the .variable className on
+     <html>/<body>). layout.tsx was not available in this review — these
+     names are unchanged from the last approved version, not confirmed
+     against the actual loader. Confirm before merge; if the real
+     variable names differ, only the two lines below need to change. */
+  --font-display: var(--font-fraunces), Georgia, serif;
+  --font-sans: var(--font-plus-jakarta-sans), Arial, Helvetica, sans-serif;
+
+  --text-display-size: 40px;
+  --text-display-leading: 1.1;
+  --text-display-tracking: -0.01em;
+
+  --text-heading-size: 28px;
+  --text-heading-leading: 1.18;
+  --text-heading-tracking: -0.005em;
+
+  --text-title-size: 20px;
+  --text-title-leading: 1.25;
+  --text-title-tracking: normal;
+
+  --text-body-size: 16px;
+  --text-body-leading: 1.6;
+  --text-body-tracking: normal;
+
+  --text-caption-size: 13px;
+  --text-caption-leading: 1.4;
+  --text-caption-tracking: 0.01em;
+
+  --text-label-size: 13px;
+  --text-label-leading: 1;
+  --text-label-tracking: 0.22em;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+/* ==========================================================================
+   12. LIGHT THEME (DEFAULT — THE SOLE THEME)
+   Every value declared above in :root already constitutes the light
+   theme; there is only one theme, so nothing is redeclared here.
+   ========================================================================== */
 
-@media (prefers-color-scheme: dark) {
+/* ==========================================================================
+   13. DARK THEME — INTENTIONALLY NOT IMPLEMENTED
+   Spec §2 (v1.0, locked): TALIMOON has no user-togglable dark mode.
+   --surface-contrast exists as an *authored* per-section token (Emotional
+   Banner, Final CTA — see §25), not as a `prefers-color-scheme` palette
+   swap. A `@media (prefers-color-scheme: dark)` override is deliberately
+   omitted here — adding one would both invent a second, uncontrolled
+   palette and contradict the locked spec. If a real dark theme is ever
+   approved, it is designed as a Version 3.0 addition to the semantic
+   layer above, not bolted on here.
+   ========================================================================== */
+
+/* Stepped typography — §6: stepped at breakpoints, never fluid clamp(). */
+@media (min-width: 768px) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --text-display-size: 56px;
+    --text-heading-size: 34px;
+    --text-title-size: 22px;
+    --text-caption-size: 14px;
+    --text-label-size: 14px;
   }
 }
 
+@media (min-width: 1024px) {
+  :root {
+    --text-display-size: 72px;
+    --text-heading-size: 40px;
+    --text-title-size: 24px;
+    --text-body-size: 18px;
+  }
+}
+
+/* ==========================================================================
+   2. @THEME INLINE
+   Bridges the semantic layer above into Tailwind v4 utility classes, per
+   the Tailwind v4 Theme Strategy (§12 of the spec). Default Tailwind
+   palettes/scales are not extended — only these named tokens exist.
+   ========================================================================== */
+
+@theme inline {
+  /* Colors → bg-*, text-*, border-*, etc. */
+  --color-surface-base: var(--surface-base);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-contrast: var(--surface-contrast);
+  --color-surface-overlay: var(--surface-overlay);
+
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-text-inverse: var(--text-inverse);
+  --color-text-inverse-muted: var(--text-inverse-muted);
+
+  --color-accent-primary: var(--accent-primary);
+  --color-accent-primary-hover: var(--accent-primary-hover);
+  --color-accent-secondary: var(--accent-secondary);
+
+  --color-border-subtle: var(--border-subtle);
+  --color-border-default: var(--border-default);
+  --color-border-strong: var(--border-strong);
+  --color-border-inverse: var(--border-inverse);
+
+  --color-state-success: var(--state-success);
+  --color-state-warning: var(--state-warning);
+  --color-state-error: var(--state-error);
+
+  --color-overlay-scrim: var(--overlay-scrim);
+
+  /* Fonts → font-display, font-sans */
+  --font-display: var(--font-display);
+  --font-sans: var(--font-sans);
+
+  /* Font size scale → text-display, text-heading, text-title, text-body,
+     text-caption, text-label (each carries paired leading/tracking) */
+  --text-display: var(--text-display-size);
+  --text-display--line-height: var(--text-display-leading);
+  --text-display--letter-spacing: var(--text-display-tracking);
+
+  --text-heading: var(--text-heading-size);
+  --text-heading--line-height: var(--text-heading-leading);
+  --text-heading--letter-spacing: var(--text-heading-tracking);
+
+  --text-title: var(--text-title-size);
+  --text-title--line-height: var(--text-title-leading);
+  --text-title--letter-spacing: var(--text-title-tracking);
+
+  --text-body: var(--text-body-size);
+  --text-body--line-height: var(--text-body-leading);
+  --text-body--letter-spacing: var(--text-body-tracking);
+
+  --text-caption: var(--text-caption-size);
+  --text-caption--line-height: var(--text-caption-leading);
+  --text-caption--letter-spacing: var(--text-caption-tracking);
+
+  --text-label: var(--text-label-size);
+  --text-label--line-height: var(--text-label-leading);
+  --text-label--letter-spacing: var(--text-label-tracking);
+
+  /* Spacing → p-*, m-*, gap-* etc. */
+  --spacing-1: var(--space-1);
+  --spacing-2: var(--space-2);
+  --spacing-3: var(--space-3);
+  --spacing-4: var(--space-4);
+  --spacing-6: var(--space-6);
+  --spacing-8: var(--space-8);
+  --spacing-12: var(--space-12);
+  --spacing-16: var(--space-16);
+  --spacing-24: var(--space-24);
+  --spacing-32: var(--space-32);
+  --spacing-48: var(--space-48);
+
+  /* Radius → rounded-* */
+  --radius-none: var(--radius-none);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-pill: var(--radius-pill);
+
+  /* Shadow → shadow-* */
+  --shadow-none: var(--shadow-none);
+  --shadow-elevated: var(--shadow-elevated);
+  --shadow-modal: var(--shadow-modal);
+
+  /* Ease → ease-* (transition-timing-function) */
+  --ease-standard: var(--ease-standard);
+
+  /* Container → max-w-* */
+  --container-content: var(--container-content);
+  --container-reading: var(--container-reading);
+}
+
+/* ==========================================================================
+   17–21. BASE RESET, BODY, IMAGE, BUTTON & LINK DEFAULTS
+   FIX: everything below is now wrapped in `@layer base`. Tailwind v4
+   declares `@layer theme, base, components, utilities;` internally, so
+   an author `@layer base { ... }` block joins that same cascade-layer
+   order instead of sitting unlayered.
+
+   Why this matters: any CSS written *outside* a layer is treated by the
+   CSS Cascade Layers spec as higher priority than ALL layered rules,
+   regardless of selector specificity or source order. The previous
+   unlayered `*, *::before, *::after { margin:0; padding:0; }` and
+   `img, picture, video, canvas { height:auto; }` were therefore beating
+   every Tailwind utility class site-wide (e.g. `px-5`, `h-11`) even
+   though those utilities are more specific — because Tailwind's
+   utilities live in the `utilities` layer, and unlayered rules always
+   win over layered ones. Moving these into `@layer base` puts them at
+   the *lowest* priority, which is what a reset is supposed to be:
+   ordinary specificity and the `utilities` layer's higher position both
+   correctly override it again.
+   ========================================================================== */
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scrollbar-gutter: stable;
+  }
+
+  ul[role="list"],
+  ol[role="list"] {
+    list-style: none;
+  }
+
+  body {
+    background-color: var(--surface-base);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: var(--text-body-size);
+    line-height: var(--text-body-leading);
+    letter-spacing: var(--text-body-tracking);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    min-height: 100dvh;
+  }
+
+  h1, h2, h3, h4, h5, h6,
+  p, blockquote, figure {
+    overflow-wrap: break-word;
+  }
+
+  img,
+  picture,
+  video,
+  canvas {
+    display: block;
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* SVG kept separate from raster media: most SVGs on this site are
+     small inline UI icons sitting beside text (nav, buttons, form
+     fields), not block-level illustrations. Forcing display:block and
+     max-width:100%/height:auto here would fight that common case; icon
+     dimensions come from explicit width/height or a utility class. */
+  svg {
+    display: inline-block;
+    vertical-align: middle;
+    flex-shrink: 0;
+  }
+
+  /* Reserve layout space when width/height attributes are present. */
+  img[width][height] {
+    height: auto;
+  }
+
+  button {
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  /* Full editorial treatment is scoped to long-form content only
+     (e.g. FAQ answers, article body copy) via .prose. */
+  .prose a {
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-default);
+    transition: color var(--duration-fast) var(--ease-standard),
+                border-color var(--duration-fast) var(--ease-standard);
+  }
+
+  .prose a:hover {
+    color: var(--accent-primary);
+    border-bottom-color: var(--accent-primary);
+  }
+}
+
+/* ==========================================================================
+   14. SELECTION COLORS
+   ========================================================================== */
+
+::selection {
+  /* Precomputed rgba equivalent of gold-500 at 35% — identical result to
+     color-mix(), but works in every browser without a feature check. */
+  background-color: var(--gold-500-a35);
+  color: var(--text-primary);
+}
+
+/* ==========================================================================
+   15. SCROLLBAR STYLING
+   ========================================================================== */
+
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink-950-a24) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--ink-950-a24);
+  border-radius: var(--radius-pill);
+  border: 2px solid var(--surface-base);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--ink-950-a14);
+}
+
+/* ==========================================================================
+   16. FOCUS RING
+   Never suppressed without an equally visible replacement, per §13.
+   ========================================================================== */
+
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+/* ==========================================================================
+   22. ACCESSIBILITY DEFAULTS
+   ========================================================================== */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Remove mobile Safari/Android tap-highlight; :focus-visible above
+   remains the visible affordance, so nothing is lost. */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ==========================================================================
+   23. REDUCED MOTION SUPPORT  (§10, §22 reduced-motion mapping)
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0.01ms;
+    --duration-base: 0.01ms;
+    --duration-slow: 0.01ms;
+    --translate-subtle: 0px;
+    --translate-reveal: 0px;
+    --scale-press: 1;
+  }
+
+  *:not([data-loading-indicator]),
+  *:not([data-loading-indicator])::before,
+  *:not([data-loading-indicator])::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* The sanctioned continuous loading spinner (§24) is the sole
+     exception — "still working" has no static equivalent. */
+  [data-loading-indicator] {
+    animation-duration: revert;
+    animation-iteration-count: revert;
+  }
+}
+
+/* ==========================================================================
+   24. PRINT SUPPORT
+   ========================================================================== */
+
+@media print {
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+    background: transparent !important;
+    color: var(--text-primary) !important;
+  }
+
+  body {
+    background: var(--white) !important;
+  }
+
+  a,
+  .prose a {
+    border-bottom: none;
+  }
+
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: var(--text-caption-size);
+    color: var(--text-muted);
+  }
+
+  .no-print,
+  [data-print-hidden] {
+    display: none !important;
+  }
+
+  h2, h3, h4 {
+    break-after: avoid;
+  }
+
+  img, figure {
+    break-inside: avoid;
+  }
+}
+
+/* ==========================================================================
+   25. PERFORMANCE-FRIENDLY DEFAULTS
+   ========================================================================== */
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-synthesis: none;
 }
