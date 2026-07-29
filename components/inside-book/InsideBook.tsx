@@ -38,6 +38,32 @@ import Image from "next/image";
  * Right column now renders the real photograph (previously a
  * skeleton/placeholder mockup) via next/image, replacing the old
  * grid-skeleton + icon placeholder entirely.
+ *
+ * Size-parity fix (this version):
+ * - The image container previously used its own bespoke sizing
+ *   (max-w-[900px] lg:max-w-[1000px] aspect-[16/10], plus a
+ *   scale-110 crop hack) that had nothing in common with
+ *   BookShowcase's box. That meant the two sections could never
+ *   read as the same system, and depending on viewport the two
+ *   images landed at very different rendered sizes.
+ * - Container classes are now IDENTICAL to BookShowcase's:
+ *   `relative mx-auto w-full max-w-md aspect-[3/4]`. Same width cap,
+ *   same aspect ratio, same centering — so at every breakpoint this
+ *   box is pixel-for-pixel the same size as BookShowcase's.
+ * - scale-110 removed — it was cropping the image against its own
+ *   frame to fake a tighter fit; not needed now that the box itself
+ *   is sized deliberately rather than being backed into.
+ * - object-contain kept (not object-cover): the source photo is
+ *   landscape while the shared box is portrait, so contain keeps the
+ *   whole photograph visible, uncropped and undistorted, centered in
+ *   the box with matting above/below rather than losing its left/
+ *   right edges. Switch to object-cover only if a full-bleed fill is
+ *   preferred over showing the complete photo.
+ * - sizes updated to 50vw (matches BookShowcase, since the box is
+ *   now the same max-width) so the browser requests the right
+ *   resolution at each breakpoint.
+ * - unoptimized kept: source is an Inkscape-exported SVG, same
+ *   reasoning as Trust Strip / BookShowcase.
  */
 
 interface StoryElement {
@@ -171,7 +197,7 @@ export default function InsideBook() {
           </ul>
         </div>
 
-        <div className="relative aspect-[16/10] w-full">
+        <div className="relative mx-auto w-full max-w-md aspect-[3/4]">
           <Image
             src="/images/inside-book/talimoon-open-book.svg"
             alt="Open TALIMOON personalized storybook"
