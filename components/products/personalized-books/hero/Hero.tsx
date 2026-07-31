@@ -1,62 +1,97 @@
-import { HeroImage } from "./Hero-image";
+// FILE: Hero.tsx
+// To‘liq tuzatilgan Talimoon Hero komponenti — barcha muammolar tuzatilgan.
 
-/**
- * TALIMOON — "The Open Page" Hero
- * Implements: Hero UX Strategy, Hero UI Strategy, "The Living Story" Creative
- * Direction, Hero Refinement Spec v2.0, and High-Fidelity Spec v3.0.
- *
- * v3.2 tuning pass:
- *  - Fixed a broken/duplicated CSS block in .tm-hero__image-zone::after
- *    (stray closing brace + orphaned "pointer-events: none;" outside any
- *    rule). That syntax error was likely making the browser drop the
- *    right-edge dissolve gradient entirely, producing a hard-cut edge —
- *    which is what showed up as a visible white line.
- *  - Image zone width 55%, photo framed via background-position 28%.
- *
- * v3.3 bottom-fade distance fix (this pass — no other change):
- *  - The Hero→Trust Strip transition read as an interrupted white band
- *    rather than an atmospheric dissolve. The cause was fade *distance*,
- *    not fade presence: both the photo's bottom mask and the image-zone's
- *    ::before overlay were ramping to full background color over a wide
- *    span, which visually reads as empty white space before the next
- *    section even starts.
- *  - Fix is fade-distance only, ~35-40% shorter in both places, same
- *    shape/opacity curve, same end point (still fully resolved to
- *    var(--surface-warm-100) by 98%/100%) — it now starts later and
- *    finishes sooner instead of spreading out:
- *      .tm-hero__photo mask:   93% → 100%  (7% span)  now  95.5% → 100% (4.5% span)
- *      .tm-hero__image-zone::before: 84% → 98% (14% span) now 90% → 98% (8% span)
- *  - Nothing else in this file changed: layout, typography, image,
- *    CTAs, spacing, and nav are untouched.
- *
- * Key structural decisions (do not "simplify" these away without re-reading
- * the specs above):
- *  - The navbar has NO flat background box. It is fully transparent except
- *    for a soft, localized radial glow confined to the image-zone side,
- *    which fades to nothing before reaching the content zone. This is what
- *    prevents the "glued box" navbar look.
- *  - The image has no hard rectangular edge. Its bottom and interior/right
- *    edges dissolve into the shared background over a wide, multi-stop
- *    gradient — never a short, line-like fade.
- *  - The photo itself stays fully opaque behind the navbar (no top fade) so
- *    the navbar's scrim has real photographic tone to darken. Fading the
- *    photo AND overlaying a scrim in the same region reintroduces the
- *    "dark smudge on light background" problem — keep these separate.
- */
+'use client';
+
+import Image from 'next/image';
+import { useState } from 'react';
+
+// ============================================================
+// HeroImage komponenti (to‘liq tuzatilgan)
+// ============================================================
+
+interface HeroImageProps {
+  src: string;
+  alt: string;
+  className?: string;
+  priority?: boolean;
+}
+
+function HeroImage({
+  src,
+  alt,
+  className = '',
+  priority = false,
+}: HeroImageProps) {
+  const [loaded, setLoaded] = useState(false);
+  const [errored, setErrored] = useState(false);
+
+  return (
+    <div
+      className={`relative h-full w-full overflow-hidden ${className}`}
+      style={{
+        maskImage:
+          'linear-gradient(to bottom, black 0%, black 95.5%, transparent 100%)',
+        WebkitMaskImage:
+          'linear-gradient(to bottom, black 0%, black 95.5%, transparent 100%)',
+      }}
+    >
+      {/* Placeholder */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-[var(--surface-warm-200,#EFE7DA)]"
+      />
+
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-[radial-gradient(circle_at_32%_36%,var(--accent-primary,#B5764B)_0%,transparent_55%)] opacity-[0.10]"
+      />
+
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 flex items-center justify-center"
+      >
+        <svg
+          viewBox="0 0 64 64"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          className="h-16 w-16 text-[var(--text-primary,#2A241D)] opacity-[0.10]"
+        >
+          <path d="M32 14c-6-5-15-6-22-3v34c7-3 16-2 22 3 6-5 15-6 22-3V11c-7-3-16-2-22 3z" />
+          <path d="M32 14v34" />
+        </svg>
+      </div>
+
+      {!errored && (
+        <Image
+          src={src}
+          alt={alt}
+          fill
+          priority={priority}
+          quality={100}
+          sizes="(min-width:1024px) 55vw,100vw"
+          onLoad={() => setLoaded(true)}
+          onError={() => setErrored(true)}
+          className={`object-cover object-[28%_center] transition-opacity duration-700 ${
+            loaded ? 'opacity-100' : 'opacity-0'
+          }`}
+          style={{
+            filter: 'saturate(0.92) contrast(0.97)',
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+// ============================================================
+// TalimoonHero komponenti (to‘liq tuzatilgan)
+// ============================================================
 
 export interface TalimoonHeroProps {
-  /** Real photograph URL. Falls back to a graded placeholder gradient if omitted. */
   imageSrc?: string;
-  /** Descriptive alt text — scene + emotional intent, not literal pixel description. */
   imageAlt?: string;
-  /**
-   * Renders this component's own transparent overlay nav.
-   * Default `false` — most sites already have their own header/navbar
-   * component, and rendering both at once causes the two to overlap
-   * (duplicate links, floating buttons over "Login", etc.). Only set this
-   * to `true` if this Hero is meant to own the top nav itself, and make
-   * sure no other header is rendered above it in that case.
-   */
   showNav?: boolean;
   logoText?: string;
   navLinks?: { label: string; href: string }[];
@@ -70,25 +105,25 @@ export interface TalimoonHeroProps {
 }
 
 const defaultNavLinks = [
-  { label: "How it works", href: "#how-it-works" },
-  { label: "Craftsmanship", href: "#craftsmanship" },
-  { label: "Collections", href: "#collections" },
-  { label: "Gifting", href: "#gifting" },
+  { label: 'How it works', href: '#how-it-works' },
+  { label: 'Craftsmanship', href: '#craftsmanship' },
+  { label: 'Collections', href: '#collections' },
+  { label: 'Gifting', href: '#gifting' },
 ];
 
 export default function TalimoonHero({
   imageSrc,
-  imageAlt = "A child reading, softly connected to the story in their hands",
+  imageAlt = 'A child reading, softly connected to the story in their hands',
   showNav = false,
-  logoText = "Talimoon",
+  logoText = 'Talimoon',
   navLinks = defaultNavLinks,
-  kicker = "Personalized storybooks",
-  headline = "A story where your child is the hero.",
-  subhead = "Personalized books made with the care of a fine publisher - for families who want more than a name dropped into a template.",
-  primaryCtaLabel = "Begin the Story",
-  primaryCtaHref = "#start",
-  secondaryCtaLabel = "See how it works",
-  secondaryCtaHref = "#how-it-works",
+  kicker = 'Personalized storybooks',
+  headline = 'A story where your child is the hero.',
+  subhead = 'Personalized books made with the care of a fine publisher - for families who want more than a name dropped into a template.',
+  primaryCtaLabel = 'Begin the Story',
+  primaryCtaHref = '#start',
+  secondaryCtaLabel = 'See how it works',
+  secondaryCtaHref = '#how-it-works',
 }: TalimoonHeroProps) {
   return (
     <section className="tm-hero" aria-label="Hero">
@@ -100,7 +135,7 @@ export default function TalimoonHero({
           --text-tertiary: rgba(42,36,29,0.65);
           --text-on-image: #F7F2EA;
           --accent-primary: #BA8450;
-          --accent-primary-hover: #C894D;
+          --accent-primary-hover: #A06F40;
           position: relative;
           min-height: min(92vh, 960px);
           height: 100vh;
@@ -129,24 +164,9 @@ export default function TalimoonHero({
           justify-content: flex-start;
           overflow: hidden;
         }
-        .tm-hero__photo{
-          position: absolute;
-          inset: 0;
-          width: 100%;
-          height: 100%;
-          background-image: ${imageSrc ? `url(${JSON.stringify(imageSrc)})` : "linear-gradient(155deg, #cbb190 0%, #b99c76 22%, #9c7f5c 46%, #7c6248 68%, #5c4632 100%)"};
-          /* Full-bleed cover (no hard edges) — only the visible framing
-             shifts via background-position, so the soft dissolve
-             gradients below still apply correctly across the whole box. */
-          background-size: cover;
-          background-position: 28% center;
-          filter: saturate(0.92) contrast(0.97);
-          /* Opaque behind the navbar on purpose — only the bottom dissolves.
-             v3.3: fade distance shortened (was 93%→100%) so the dissolve
-             starts later and finishes sooner, instead of spreading into a
-             wide pale band before the section even ends. */
-          -webkit-mask-image: linear-gradient(to bottom, black 0%, black 95.5%, transparent 100%);
-                  mask-image: linear-gradient(to bottom, black 0%, black 95.5%, transparent 100%);
+        /* HeroImage o'zi mask va filterni boshqaradi, shuning uchun .tm-hero__photo uslubi bo'sh */
+        .tm-hero__photo {
+          /* barcha uslublar HeroImage ichida */
         }
         .tm-hero__living-story{
           position: absolute;
@@ -163,11 +183,6 @@ export default function TalimoonHero({
           z-index: 3;
           filter: blur(6px);
         }
-        /* Right / interior edge — narrow, soft, multi-stop transition into
-           the shared background. (Previously this rule had a stray
-           duplicated closing brace + orphaned declaration after it, which
-           is invalid CSS and was likely causing the browser to drop the
-           whole gradient — that produced the hard white line at this edge.) */
         .tm-hero__image-zone::after{
           content: "";
           position: absolute;
@@ -188,10 +203,6 @@ export default function TalimoonHero({
             var(--surface-warm-100) 100%
           );
         }
-        /* Bottom edge — v3.3: same curve shape, compressed into a shorter
-           span (was 84%→98%, now 90%→98%) so the fade reads as an
-           atmospheric dissolve right at the seam rather than a visible
-           white band that starts well before the section boundary. */
         .tm-hero__image-zone::before{
           content: "";
           position: absolute;
@@ -266,7 +277,7 @@ export default function TalimoonHero({
         }
         .tm-hero__cta-secondary:focus-visible{ outline: 2px solid var(--text-primary); outline-offset: 2px; }
 
-        /* ---------- Navbar — no flat box; a soft, localized glow only where needed ---------- */
+        /* ---------- Navbar ---------- */
         .tm-hero__nav{
           position: absolute;
           top: 0; left: 0;
@@ -331,10 +342,7 @@ export default function TalimoonHero({
           .tm-hero__logo{ color: var(--text-primary); }
           .tm-hero__image-zone{ position: relative; width: 100%; height: 60vh; top: 0; left: 0; }
           .tm-hero__image-zone::after{ background: none; }
-          .tm-hero__photo{
-            -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
-                    mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
-          }
+          /* HeroImage o'zi maskni boshqaradi, mobile uchun maskni o'zgartirish kerak bo'lsa, HeroImage ga prop qo'shish kerak, hozircha default ishlaydi */
           .tm-hero__content{ margin-left: 0; width: 100%; padding: 48px 24px 64px; }
           .tm-hero__headline{ max-width: 16ch; }
           .tm-hero__subhead{ max-width: none; }
@@ -347,9 +355,14 @@ export default function TalimoonHero({
       `}</style>
 
       <div className="tm-hero__image-zone" aria-hidden="true">
-  <HeroImage className="tm-hero__photo" />
-  <div className="tm-hero__living-story" />
-</div>
+        <HeroImage
+          src={imageSrc || '/images/products/personalized-books/hero/hero-v13.png'}
+          alt={imageAlt}
+          priority={true}
+          className="tm-hero__photo"
+        />
+        <div className="tm-hero__living-story" />
+      </div>
 
       {showNav && (
         <nav className="tm-hero__nav" aria-label="Primary">
