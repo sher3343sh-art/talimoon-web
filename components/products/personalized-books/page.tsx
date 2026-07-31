@@ -1,5 +1,5 @@
 import Navbar from "@/components/layout/Navbar";
-import Hero from "@/components/products/personalized-books/hero/hero-v13.png";
+import Hero from "@/components/products/personalized-books/hero/Hero";
 
 export default function PersonalizedBooksPage() {
   return (

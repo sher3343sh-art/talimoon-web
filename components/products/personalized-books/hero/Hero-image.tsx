@@ -4,20 +4,29 @@ import Image from "next/image";
 import { useState } from "react";
 
 interface HeroImageProps {
+  src: string;           // Endi majburiy
+  alt: string;           // Endi majburiy
   className?: string;
+  priority?: boolean;
 }
 
-const HERO_IMAGE_SRC = "/images/products/personalized-books/hero/hero-v13.png";
-const HERO_IMAGE_ALT =
-  "A child reading a magical storybook in a warm premium library";
-
-export function HeroImage({ className = "" }: HeroImageProps) {
+export function HeroImage({
+  src,
+  alt,
+  className = "",
+  priority = false,
+}: HeroImageProps) {
   const [loaded, setLoaded] = useState(false);
   const [errored, setErrored] = useState(false);
 
   return (
     <div
       className={`relative h-full w-full overflow-hidden ${className}`}
+      style={{
+        // Pastki so‘nish (mask) – dizayn spetsifikatsiyasiga mos
+        maskImage: "linear-gradient(to bottom, black 0%, black 95.5%, transparent 100%)",
+        WebkitMaskImage: "linear-gradient(to bottom, black 0%, black 95.5%, transparent 100%)",
+      }}
     >
       {/* Placeholder */}
       <div
@@ -48,15 +57,20 @@ export function HeroImage({ className = "" }: HeroImageProps) {
 
       {!errored && (
         <Image
-          src={HERO_IMAGE_SRC}
-          alt={HERO_IMAGE_ALT}
+          src={src}
+          alt={alt}
           fill
-          priority
+          priority={priority}
           quality={100}
           sizes="(min-width:1024px) 55vw,100vw"
-          className={`object-contain object-left transition-opacity duration-700 ${
-           loaded ? "opacity-100" : "opacity-0"
+          onLoad={() => setLoaded(true)}
+          onError={() => setErrored(true)}
+          className={`object-cover object-[28%_center] transition-opacity duration-700 ${
+            loaded ? "opacity-100" : "opacity-0"
           }`}
+          style={{
+            filter: "saturate(0.92) contrast(0.97)", // Dizayn filtriga mos
+          }}
         />
       )}
     </div>

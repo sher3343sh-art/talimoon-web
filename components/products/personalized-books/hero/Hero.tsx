@@ -1,4 +1,4 @@
-import React from "react";
+import { HeroImage } from "./Hero-image";
 
 /**
  * TALIMOON — "The Open Page" Hero
@@ -347,9 +347,9 @@ export default function TalimoonHero({
       `}</style>
 
       <div className="tm-hero__image-zone" aria-hidden="true">
-        <div className="tm-hero__photo" role="img" aria-label={imageAlt} />
-        <div className="tm-hero__living-story" />
-      </div>
+  <HeroImage className="tm-hero__photo" />
+  <div className="tm-hero__living-story" />
+</div>
 
       {showNav && (
         <nav className="tm-hero__nav" aria-label="Primary">
