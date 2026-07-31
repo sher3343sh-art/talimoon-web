@@ -4,8 +4,8 @@ import Image from "next/image";
 import { useState } from "react";
 
 interface HeroImageProps {
-  src: string;           // Endi majburiy
-  alt: string;           // Endi majburiy
+  src: string;
+  alt: string;
   className?: string;
   priority?: boolean;
 }
@@ -23,7 +23,6 @@ export function HeroImage({
     <div
       className={`relative h-full w-full overflow-hidden ${className}`}
       style={{
-        // Pastki so‘nish (mask) – dizayn spetsifikatsiyasiga mos
         maskImage: "linear-gradient(to bottom, black 0%, black 95.5%, transparent 100%)",
         WebkitMaskImage: "linear-gradient(to bottom, black 0%, black 95.5%, transparent 100%)",
       }}
@@ -69,7 +68,7 @@ export function HeroImage({
             loaded ? "opacity-100" : "opacity-0"
           }`}
           style={{
-            filter: "saturate(0.92) contrast(0.97)", // Dizayn filtriga mos
+            filter: "saturate(0.92) contrast(0.97)",
           }}
         />
       )}
