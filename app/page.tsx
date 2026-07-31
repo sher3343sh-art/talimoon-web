@@ -1,5 +1,5 @@
 import Navbar from "@/components/layout/Navbar";
-import Hero from "@/components/hero/Hero";
+import { HeroSlider } from "@/components/hero/Hero";
 import TrustStrip from "@/components/trust/TrustStrip";
 import HowItWorks from "@/components/how-it-works/HowItWorks";
 import BookShowcase from "@/components/showcase/BookShowcase";
@@ -13,7 +13,7 @@ export default function Home() {
       <Navbar />
 
       <main>
-        <Hero imageSrc="/images/hero/hero-v13.png" />
+        <HeroSlider />
         <TrustStrip />
         <HowItWorks />
         <Examples />

@@ -1,0 +1,32 @@
+import Navbar from "@/components/products/personalized-books/layout/Navbar";
+import Hero from "@/components/products/personalized-books/hero/Hero";
+import TrustStrip from "@/components/products/personalized-books/trust/TrustStrip";
+import HowItWorks from "@/components/products/personalized-books/how-it-works/HowItWorks";
+import BookShowcase from "@/components/products/personalized-books/showcase/BookShowcase";
+import InsideBook from "@/components/products/personalized-books/inside-book/InsideBook";
+import EmotionalBanner from "@/components/products/personalized-books/emotional-banner/EmotionalBanner";
+import Footer from "@/components/products/personalized-books/layout/Footer";
+
+export default function PersonalizedBooksPage() {
+  return (
+    <>
+      <Navbar />
+
+      <main>
+        <Hero imageSrc="/products/personalized-books/images/hero/hero-v13.png" />
+
+        <TrustStrip />
+
+        <HowItWorks />
+
+        <BookShowcase />
+
+        <InsideBook />
+
+        <EmotionalBanner />
+      </main>
+
+      <Footer />
+    </>
+  );
+}
