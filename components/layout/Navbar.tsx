@@ -1,32 +1,85 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
-const NAV_LINKS = [
+
+// Desktop primary nav. "Product" renders as a dropdown trigger (see
+// PRODUCT_MENU below) instead of a plain link — everything else is
+// a direct link, same as before.
+type NavItem = { label: string; href: string } | { label: string; dropdown: "product" };
+
+const DESKTOP_NAV_ITEMS: NavItem[] = [
+  { label: "Home", href: "/" },
+  { label: "Product", dropdown: "product" },
+  { label: "News", href: "/news" },
+  { label: "Story Library", href: "/story-library" },
   { label: "About", href: "#about" },
-  { label: "How it Works", href: "#how-it-works" },
-  { label: "Examples", href: "#examples" },
-  { label: "Pricing", href: "#pricing" },
-  { label: "FAQ", href: "#faq" },
+];
+
+// Product dropdown contents — exactly the three entries in the spec,
+// no icons/descriptions/badges. "Yusuf & Yasmina" carries a small
+// secondary "Story Series" caption directly beneath it (lower
+// emphasis, tighter line-height) rather than being its own row.
+const PRODUCT_MENU = [
+  { label: "Personalized Books", href: "/products/personalized-books" },
+  {
+    label: "Yusuf & Yasmina",
+    href: "/products/yusuf-and-yasmina",
+    caption: "Story Series",
+  },
+  { label: "Talimoon Toys", href: "/products/talimoon-toys" },
 ] as const;
 
-// Drawer shows a shorter, deliberately curated list (no FAQ) per the
-// mobile nav spec — kept as its own array rather than filtering
-// NAV_LINKS so the desktop list can change independently in future
-// without silently affecting mobile.
-const MOBILE_NAV_LINKS = [
-  { label: "About", href: "#about" },
-  { label: "How It Works", href: "#how-it-works" },
-  { label: "Examples", href: "#examples" },
-  { label: "Pricing", href: "#pricing" },
+const LANGUAGES = [
+  { code: "UZ", name: "O'zbekcha" },
+  { code: "EN", name: "English" },
+  { code: "RU", name: "Русский" },
+  { code: "AR", name: "العربية" },
 ] as const;
+
+// Social links with brand-colored icon paths
+const SOCIAL_LINKS = [
+  { 
+    name: "instagram" as const, 
+    label: "Instagram", 
+    href: "https://instagram.com/talimoon",
+  },
+  { 
+    name: "telegram" as const, 
+    label: "Telegram", 
+    href: "https://t.me/talimoon",
+  },
+  { 
+    name: "youtube" as const, 
+    label: "YouTube", 
+    href: "https://youtube.com/@talimoon",
+  },
+] as const;
+const SOCIAL_ICON_PATHS = {
+  instagram: "/icons/instagram.png",
+  telegram: "/icons/telegram.png",
+  youtube: "/icons/youtube.png",
+} as const;
+// Drawer now mirrors the desktop information architecture exactly
+// (Home / Product / News / Story Library / About). "Product" opens
+// as an inline accordion using PRODUCT_MENU's existing content
+// rather than a separate hardcoded list, so desktop and mobile can
+// never drift out of sync.
+type MobileNavItem = { label: string; href: string } | { label: string; accordion: "product" };
+
+const MOBILE_NAV_LINKS: MobileNavItem[] = [
+  { label: "Home", href: "/" },
+  { label: "Product", accordion: "product" },
+  { label: "News", href: "/news" },
+  { label: "Story Library", href: "/story-library" },
+  { label: "About", href: "#about" },
+];
 
 const SCROLL_THRESHOLD = 24;
 
 // How long the drawer + backdrop's exit transition runs, in ms.
-// Referenced in two places: the Tailwind duration classes on the
-// drawer/backdrop, and the setTimeout that unmounts them afterward.
 const MOBILE_MENU_EXIT_MS = 300;
 
 // Premium "expo-out" easing — decelerates smoothly with no bounce,
@@ -38,9 +91,6 @@ const DRAWER_EASING = "ease-[cubic-bezier(0.16,1,0.3,1)]";
  * COLOR CONTROLS — edit these to restyle the navbar by hand.
  * ---------------------------------------------------------------
  */
-// Matches the site's --surface-contrast / --navy-900 token, same
-// navy used at the bottom of the page (EmotionalBanner), so the top
-// and bottom of the page read as the same deliberate dark tone.
 const REST_BG = "#1C2A3A";
 const REST_BORDER = "rgba(255,255,255,0.10)";
 
@@ -49,23 +99,7 @@ const SCROLLED_BORDER = "rgba(42,36,29,0.10)";
 
 /**
  * ---------------------------------------------------------------
- * GOLD DESIGN TOKEN SYSTEM — reusable across the site wherever a
- * premium metallic-gold surface is needed (CTA buttons, badges,
- * dividers, etc). Defined once, scoped to .tm-gold-scope so they
- * don't leak into global CSS.
- *
- * Palette logic (brushed anodized gold, not glossy yellow plastic):
- *  --gold-shadow     deep warm bronze — the metal's core shadow tone
- *  --gold-base       muted bronze — the resting, unlit metal tone
- *  --gold-mid        the "body" gold — most of the surface reads as this
- *  --gold-highlight  champagne — a light catch, kept warm and soft,
- *                     never white, never a hard specular dot. Widened
- *                     from a single knife-edge point to a short
- *                     plateau (47%–53%) so the beam itself reads as
- *                     a streak of light rather than a thin line.
- *  --gold-border     hairline edge tone — barely-there, defines the
- *                     shape without drawing attention to itself
- *  --gold-text       ink used on top of the gold (kept from original)
+ * GOLD DESIGN TOKEN SYSTEM
  * ---------------------------------------------------------------
  */
 const GOLD_TOKENS = {
@@ -82,38 +116,76 @@ export default function Navbar() {
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > SCROLL_THRESHOLD);
-
     onScroll();
-
     window.addEventListener("scroll", onScroll, { passive: true });
-
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   /**
    * ---------------------------------------------------------------
-   * MOBILE NAVIGATION (< lg only) — everything below this comment
-   * block and inside the "MOBILE NAV" / "MOBILE DRAWER" JSX sections
-   * is new. Nothing above this point, and nothing in the desktop
-   * <nav> further down, was changed to support it.
-   *
-   * mobileOpen    — the logical target state (open or closed), used
-   *                 for aria-expanded, the hamburger icon animation,
-   *                 and body scroll locking.
-   * menuMounted   — whether the drawer + backdrop exist in the DOM
-   *                 at all. Kept separate from mobileOpen so they
-   *                 can play their closing transition before being
-   *                 removed, instead of disappearing instantly.
-   * menuVisible   — the animation-state class toggle. Flipped a
-   *                 frame after mount (via requestAnimationFrame) so
-   *                 the browser has a "closed" frame to transition
-   *                 away from, giving a real enter animation instead
-   *                 of appearing already-open.
+   * DESKTOP DROPDOWNS (Product, Language) — only one open at a time.
+   * ---------------------------------------------------------------
+   */
+  const [openDropdown, setOpenDropdown] = useState<"product" | "language" | null>(null);
+  const [language, setLanguage] = useState<(typeof LANGUAGES)[number]["code"]>("UZ");
+
+  const productContainerRef = useRef<HTMLLIElement>(null);
+  const languageContainerRef = useRef<HTMLDivElement>(null);
+  const productTriggerRef = useRef<HTMLButtonElement>(null);
+  const languageTriggerRef = useRef<HTMLButtonElement>(null);
+  const productFirstItemRef = useRef<HTMLAnchorElement>(null);
+
+  const toggleDropdown = (name: "product" | "language") =>
+    setOpenDropdown((current) => (current === name ? null : name));
+
+  const closeDropdowns = () => setOpenDropdown(null);
+
+  // Focus the first menu item once the Product dropdown opens
+  useEffect(() => {
+    if (openDropdown === "product") {
+      productFirstItemRef.current?.focus();
+    }
+  }, [openDropdown]);
+
+  // Click outside either dropdown closes whichever is open
+  useEffect(() => {
+    if (!openDropdown) return;
+
+    function onPointerDown(event: MouseEvent) {
+      const target = event.target as Node;
+      const withinProduct = productContainerRef.current?.contains(target);
+      const withinLanguage = languageContainerRef.current?.contains(target);
+      if (!withinProduct && !withinLanguage) closeDropdowns();
+    }
+
+    document.addEventListener("mousedown", onPointerDown);
+    return () => document.removeEventListener("mousedown", onPointerDown);
+  }, [openDropdown]);
+
+  // Escape closes the open dropdown and returns focus to its trigger
+  useEffect(() => {
+    if (!openDropdown) return;
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key !== "Escape") return;
+      const trigger = openDropdown === "product" ? productTriggerRef : languageTriggerRef;
+      closeDropdowns();
+      trigger.current?.focus();
+    }
+
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [openDropdown]);
+
+  /**
+   * ---------------------------------------------------------------
+   * MOBILE NAVIGATION (< lg only)
    * ---------------------------------------------------------------
    */
   const [mobileOpen, setMobileOpen] = useState(false);
   const [menuMounted, setMenuMounted] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
+  const [mobileProductOpen, setMobileProductOpen] = useState(false);
 
   const drawerRef = useRef<HTMLDivElement>(null);
   const toggleButtonRef = useRef<HTMLButtonElement>(null);
@@ -122,7 +194,12 @@ export default function Navbar() {
 
   const closeMenu = () => setMobileOpen(false);
 
-  // Mount/animate the drawer in, or animate it out then unmount.
+  // Collapse the Product accordion whenever the drawer itself closes
+  useEffect(() => {
+    if (!mobileOpen) setMobileProductOpen(false);
+  }, [mobileOpen]);
+
+  // Mount/animate the drawer in, or animate it out then unmount
   useEffect(() => {
     if (mobileOpen) {
       setMenuMounted(true);
@@ -135,9 +212,7 @@ export default function Navbar() {
     return () => clearTimeout(timeout);
   }, [mobileOpen]);
 
-  // Focus management: move focus into the drawer on open, and back
-  // to the hamburger trigger on close (but not on initial mount,
-  // when the drawer was never open in the first place).
+  // Focus management: move focus into the drawer on open, back to hamburger on close
   useEffect(() => {
     if (mobileOpen) {
       wasOpenRef.current = true;
@@ -147,11 +222,7 @@ export default function Navbar() {
     }
   }, [mobileOpen]);
 
-  // Lock body scroll while the drawer is open, and flag it via a
-  // body class/data-attribute so any OTHER mobile-only UI on the
-  // page (e.g. a persistent sticky CTA bar) can hide itself while
-  // the drawer is open just by keying off body[data-tm-menu-open],
-  // without this file needing to know that component exists.
+  // Lock body scroll while the drawer is open
   useEffect(() => {
     if (!mobileOpen) return;
 
@@ -165,9 +236,7 @@ export default function Navbar() {
     };
   }, [mobileOpen]);
 
-  // ESC closes the drawer; Tab/Shift+Tab is trapped inside it while
-  // open. The backdrop itself has no focusable elements, so trapping
-  // against drawerRef alone is sufficient.
+  // ESC closes the drawer; Tab/Shift+Tab is trapped inside it while open
   useEffect(() => {
     if (!mobileOpen) return;
 
@@ -220,11 +289,207 @@ export default function Navbar() {
     scrolled ? "bg-[var(--text-primary,#2A241D)]" : "bg-white",
   ].join(" ");
 
-  // Hamburger stroke color: white over the dark/hero navbar, dark
-  // navy (the same navy the navbar itself uses at rest) once
-  // scrolled — matches the "white on dark / dark-blue on translucent
-  // white" spec exactly, reusing the existing --nav-rest-bg token
-  // instead of introducing a new color.
+  // Dropdown trigger (Product / Language)
+  const dropdownTriggerClass = (isOpen: boolean) =>
+    [
+      "group relative inline-flex items-center gap-1.5 py-2",
+      "whitespace-nowrap font-sans text-[14px] font-medium tracking-[0.01em]",
+      "transition-colors duration-200",
+      "focus-visible:outline focus-visible:outline-2",
+      "focus-visible:outline-offset-2",
+      "focus-visible:outline-[var(--accent-primary,#B5764B)]",
+      scrolled
+        ? "text-[var(--text-secondary,#49433C)] hover:text-[var(--text-primary,#2A241D)]"
+        : "text-white/85 hover:text-white",
+      isOpen ? (scrolled ? "text-[var(--text-primary,#2A241D)]" : "text-white") : "",
+    ].join(" ");
+
+  const dropdownPanelClass = (isOpen: boolean, align: "left" | "right" = "left") =>
+    [
+      "absolute top-full z-[60] mt-2",
+      align === "left" ? "left-0 origin-top-left" : "right-0 origin-top-right",
+      "rounded-[3px] backdrop-blur-[8px]",
+      scrolled
+        ? "bg-[var(--nav-scrolled-bg)] border border-[var(--nav-scrolled-border)]"
+        : "bg-[var(--nav-rest-bg)]/[0.92] border border-[var(--nav-rest-border)]",
+      "shadow-[0_10px_24px_-10px_rgba(0,0,0,0.28)]",
+      "p-1.5",
+      "transition-[opacity,transform] duration-[160ms] ease-out",
+      isOpen
+        ? "pointer-events-auto translate-y-0 opacity-100"
+        : "pointer-events-none -translate-y-1 opacity-0",
+    ].join(" ");
+
+  const dropdownItemClass =
+    [
+      "block whitespace-nowrap rounded-[2px] px-4 py-2.5 font-sans text-[14px] font-medium leading-[1.3]",
+      "transition-colors duration-150",
+      scrolled
+        ? "text-[var(--text-primary,#2A241D)] hover:bg-black/[0.05]"
+        : "text-white/90 hover:bg-white/[0.08]",
+      "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--accent-primary,#B5764B)]",
+    ].join(" ");
+
+  const dropdownCaptionClass = scrolled
+    ? "text-[var(--text-tertiary,#726C65)]"
+    : "text-white/50";
+
+  const languageTriggerClass = (isOpen: boolean) =>
+  [
+    "group relative inline-flex h-10 shrink-0 items-center gap-1",
+    "px-1.5",
+    "whitespace-nowrap font-sans text-[12px] font-medium tracking-[0.01em]",
+    "transition-colors duration-200",
+    "focus-visible:outline focus-visible:outline-2",
+    "focus-visible:outline-offset-2",
+    "focus-visible:outline-[var(--accent-primary,#B5764B)]",
+    scrolled
+      ? "text-[var(--text-secondary,#49433C)] hover:text-[var(--text-primary,#2A241D)]"
+      : "text-white/85 hover:text-white",
+    isOpen
+      ? scrolled
+        ? "text-[var(--text-primary,#2A241D)]"
+        : "text-white"
+      : "",
+  ].join(" ");
+
+  const chevronClass = (isOpen: boolean) =>
+    [
+      "h-3 w-3 shrink-0 transition-transform duration-200 ease-out",
+      isOpen ? "rotate-180" : "rotate-0",
+    ].join(" ");
+
+  const ChevronIcon = () => (
+    <svg
+      viewBox="0 0 12 12"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className="h-full w-full"
+    >
+      <path d="M2.5 4.5 6 8l3.5-3.5" />
+    </svg>
+  );
+
+  // Flag icon component
+  const FlagIcon = ({ code }: { code: (typeof LANGUAGES)[number]["code"] }) => (
+    <svg
+      viewBox="0 0 20 20"
+      width={18}
+      height={18}
+      aria-hidden="true"
+      className="shrink-0 overflow-hidden rounded-[4px] ring-1 ring-inset ring-black/10"
+    >
+      {code === "UZ" && (
+        <>
+          <rect width="20" height="20" fill="#0099B5" />
+          <rect y="7.4" width="20" height="1" fill="#CE1126" />
+          <rect y="8.4" width="20" height="3.2" fill="#FFFFFF" />
+          <rect y="11.6" width="20" height="1" fill="#CE1126" />
+          <rect y="12.6" width="20" height="7.4" fill="#1EB53A" />
+          <circle cx="4.3" cy="3.7" r="2" fill="#FFFFFF" />
+          <circle cx="5.1" cy="3.7" r="1.7" fill="#0099B5" />
+        </>
+      )}
+      {code === "EN" && (
+        <>
+          <rect width="20" height="20" fill="#00247D" />
+          <path d="M0 0 20 20M20 0 0 20" stroke="#FFFFFF" strokeWidth="3.6" />
+          <path d="M0 0 20 20M20 0 0 20" stroke="#CF142B" strokeWidth="1.4" />
+          <path d="M10 0V20M0 10H20" stroke="#FFFFFF" strokeWidth="5.6" />
+          <path d="M10 0V20M0 10H20" stroke="#CF142B" strokeWidth="2.6" />
+        </>
+      )}
+      {code === "RU" && (
+        <>
+          <rect width="20" height="6.67" fill="#FFFFFF" />
+          <rect y="6.67" width="20" height="6.67" fill="#0039A6" />
+          <rect y="13.33" width="20" height="6.67" fill="#D52B1E" />
+        </>
+      )}
+      {code === "AR" && (
+        <>
+          <rect width="20" height="20" fill="#006C35" />
+          <rect x="3.5" y="8.1" width="13" height="1.5" rx="0.75" fill="#FFFFFF" />
+          <rect x="3.5" y="10.8" width="13" height="1.1" rx="0.55" fill="#FFFFFF" />
+        </>
+      )}
+    </svg>
+  );
+
+  // Globe icon for language trigger
+  const GlobeIcon = () => (
+    <svg
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.3}
+      strokeLinecap="round"
+      aria-hidden="true"
+      className="h-[15px] w-[15px] shrink-0"
+    >
+      <circle cx="8" cy="8" r="6.25" />
+      <ellipse cx="8" cy="8" rx="2.5" ry="6.25" />
+      <path d="M1.9 5.8h12.2M1.9 10.2h12.2" />
+    </svg>
+  );
+
+  // Social icon component — outline when not scrolled, brand-colored when scrolled
+  const SocialIcon = ({ 
+    name, 
+    scrolled 
+  }: { 
+    name: (typeof SOCIAL_LINKS)[number]["name"];
+    scrolled: boolean;
+  }) => {
+    if (scrolled) {
+      const iconPath = SOCIAL_ICON_PATHS[name];
+      
+      return (
+       <img
+  src={iconPath}
+  alt=""
+  aria-hidden
+  draggable={false}
+  className="h-full  w-full object-contain"
+/>
+      );
+    }
+
+    return (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={1.6}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+        className="h-full w-full"
+      >
+        {name === "instagram" && (
+          <>
+            <rect x="3" y="3" width="18" height="18" rx="5" />
+            <circle cx="12" cy="12" r="4.2" />
+            <circle cx="17.2" cy="6.8" r="0.6" fill="currentColor" stroke="none" />
+          </>
+        )}
+        {name === "telegram" && (
+          <path d="M21 3 3 10.5l6 2 2 6 3-4.5 4.5 3L21 3ZM9 12.5 18 6" />
+        )}
+        {name === "youtube" && (
+          <>
+            <rect x="3" y="6" width="18" height="12" rx="4" />
+            <path d="M10.5 9.7 15 12l-4.5 2.3V9.7Z" fill="currentColor" stroke="none" />
+          </>
+        )}
+      </svg>
+    );
+  };
+
   const hamburgerBarColor = scrolled
     ? "bg-[var(--nav-rest-bg,#1C2A3A)]"
     : "bg-white";
@@ -248,15 +513,7 @@ export default function Navbar() {
           : "border-b border-[var(--nav-rest-border)] bg-[var(--nav-rest-bg)]",
       ].join(" ")}
     >
-      {/*
-        Gold CTA surface system. Scoped styles rather than Tailwind
-        arbitrary-value strings because the brushed-metal look needs
-        precise multi-stop gradients + layered inset/outer shadows
-        that are impractical to express cleanly as utility classes.
-        Layout (size, spacing, radius footprint) stays driven by the
-        Tailwind classes on the <a> itself — this block only owns the
-        *surface* (fill, border, shadow, hover/active behavior).
-      */}
+      {/* Gold CTA surface system */}
       <style jsx>{`
         .tm-cta-gold {
           position: relative;
@@ -278,11 +535,8 @@ export default function Navbar() {
           background-position: 15% 0%;
 
           box-shadow:
-            /* inner top sheen — a hairline catch of light, not a glow */
             inset 0 1px 0 rgba(255, 255, 255, 0.22),
-            /* inner bottom edge — gives the surface a subtle bevel/depth */
             inset 0 -1px 0 rgba(0, 0, 0, 0.14),
-            /* outer elevation — warm-tinted, soft, low offset */
             0 1px 2px rgba(60, 45, 20, 0.18),
             0 8px 20px -10px rgba(120, 90, 40, 0.45);
 
@@ -318,14 +572,6 @@ export default function Navbar() {
           outline-offset: 2px;
         }
 
-        /*
-          Logo shimmer — a slow, narrow pale-gold light sweep clipped
-          to the logo's own silhouette. Uses a light champagne-gold
-          tone rather than white, so it reads as "the gold itself
-          catching light" instead of a white wash sitting on top of
-          it. The loop has no held/paused frame — background-position
-          moves the full distance every cycle, so motion never stops.
-        */
         .tm-logo-shine {
           -webkit-mask-image: url("/logo/talimoon-logo-gold.svg");
           mask-image: url("/logo/talimoon-logo-gold.svg");
@@ -366,11 +612,7 @@ export default function Navbar() {
       `}</style>
 
       {/* ============================================================
-          DESKTOP NAV (lg and above) — UNCHANGED except for the single
-          "hidden ... lg:grid" swap in place of the old bare "grid",
-          so this nav renders only at lg+ and the mobile bar takes
-          over below it. Every other class, all children, and all
-          logic in this block are untouched.
+          DESKTOP NAV (lg and above)
       ============================================================ */}
       <nav
         aria-label="Primary"
@@ -381,7 +623,6 @@ export default function Navbar() {
           aria-label="Talimoon Home"
           className="relative flex h-[45px] w-auto shrink-0 items-center"
         >
-          {/* Full-color logo — fades in once the navbar reaches its solid, scrolled background. */}
           <img
             src="/logo/talimoon-logo-color.svg"
             alt="Talimoon"
@@ -389,7 +630,6 @@ export default function Navbar() {
             className="h-[45px] w-auto transition-opacity duration-300"
             style={{ opacity: scrolled ? 1 : 0 }}
           />
-          {/* Gold logo — visible at rest, over the dark navy bar / hero photo. */}
           <img
             src="/logo/talimoon-logo-gold.svg"
             alt=""
@@ -398,11 +638,6 @@ export default function Navbar() {
             className="absolute inset-0 h-[45px] w-auto transition-opacity duration-300"
             style={{ opacity: scrolled ? 0 : 1 }}
           />
-          {/*
-            Continuous white light sweep, masked to the gold logo's
-            silhouette — fades in/out together with the gold logo
-            itself, so it never shows over the color logo.
-          */}
           <span
             aria-hidden="true"
             className="tm-logo-shine pointer-events-none absolute inset-0 h-[45px] w-auto transition-opacity duration-300"
@@ -410,19 +645,82 @@ export default function Navbar() {
           />
         </Link>
 
-        <ul className="flex shrink-0 items-center gap-10">
-          {NAV_LINKS.map((link) => (
-            <li key={link.href}>
-              <a href={link.href} className={linkClass}>
-                {link.label}
-                <span aria-hidden="true" className={underlineClass} />
-              </a>
-            </li>
-          ))}
+        <ul className="flex shrink-0 items-center gap-11">
+          {DESKTOP_NAV_ITEMS.map((item) => {
+            if ("dropdown" in item) {
+              const isOpen = openDropdown === "product";
+              return (
+                <li key={item.label} ref={productContainerRef} className="relative">
+                  <button
+                    ref={productTriggerRef}
+                    type="button"
+                    aria-haspopup="menu"
+                    aria-expanded={isOpen}
+                    aria-controls="tm-product-menu"
+                    onClick={() => toggleDropdown("product")}
+                    className={dropdownTriggerClass(isOpen)}
+                  >
+                    {item.label}
+                    <span aria-hidden="true" className={underlineClass} />
+                  </button>
+
+                  <div
+                    id="tm-product-menu"
+                    role="menu"
+                    aria-label="Product"
+                    className={dropdownPanelClass(isOpen)}
+                  >
+                    {PRODUCT_MENU.map((product, index) => (
+                      <a
+                        key={product.href}
+                        ref={index === 0 ? productFirstItemRef : undefined}
+                        href={product.href}
+                        role="menuitem"
+                        tabIndex={isOpen ? 0 : -1}
+                        onClick={closeDropdowns}
+                        className={dropdownItemClass}
+                      >
+                        {product.label}
+                        {"caption" in product && (
+                          <span
+                            className={[
+                              "mt-0.5 block font-sans text-[11px] font-normal uppercase tracking-[0.08em]",
+                              dropdownCaptionClass,
+                            ].join(" ")}
+                          >
+                            {product.caption}
+                          </span>
+                        )}
+                      </a>
+                    ))}
+                  </div>
+                </li>
+              );
+            }
+
+            const isHashAnchor = item.href.startsWith("#");
+            return (
+              <li key={item.label}>
+                {isHashAnchor ? (
+                  <a href={item.href} className={linkClass}>
+                    {item.label}
+                    <span aria-hidden="true" className={underlineClass} />
+                  </a>
+                ) : (
+                  <Link href={item.href} className={linkClass}>
+                    {item.label}
+                    <span aria-hidden="true" className={underlineClass} />
+                  </Link>
+                )}
+              </li>
+            );
+          })}
         </ul>
 
-        <div className="flex shrink-0 items-center justify-end gap-6">
-          <Link href="/login" className={linkClass}>
+        <div className="flex shrink-0 items-center justify-end gap-6 ">
+          <span aria-hidden="true" className="w-1 shrink-0" />
+
+          <Link href="/login" className={`${linkClass} ml-8`}>
             Log in
             <span aria-hidden="true" className={underlineClass} />
           </Link>
@@ -432,21 +730,109 @@ export default function Navbar() {
             style={GOLD_TOKENS}
             className={[
               "tm-cta-gold",
-              "inline-flex h-12 shrink-0 items-center justify-center",
-              "whitespace-nowrap px-8",
-              "text-[14px] font-medium tracking-[0.02em]",
+              "inline-flex h-11 shrink-0 items-center justify-center",
+              "whitespace-nowrap px-4",
+              "text-[13px] font-medium tracking-[0.015em]",
             ].join(" ")}
           >
             Begin the Story
           </a>
+
+          <div ref={languageContainerRef} className="relative -ml-2">
+            <button
+              ref={languageTriggerRef}
+              type="button"
+              aria-haspopup="menu"
+              aria-expanded={openDropdown === "language"}
+              aria-controls="tm-language-menu"
+              aria-label={`Language: ${LANGUAGES.find((l) => l.code === language)?.name ?? language}`}
+              onClick={() => toggleDropdown("language")}
+              className={languageTriggerClass(openDropdown === "language")}
+            >
+              <GlobeIcon />
+              <span>{language}</span>
+              <span className={chevronClass(openDropdown === "language")}>
+                <ChevronIcon />
+              </span>
+            </button>
+
+            <div
+              id="tm-language-menu"
+              role="menu"
+              aria-label="Language"
+              className={[
+                dropdownPanelClass(openDropdown === "language", "left"),
+                "flex w-max flex-col gap-0.5",
+              ].join(" ")}
+            >
+              {LANGUAGES.map((lang) => (
+                <button
+                  key={lang.code}
+                  type="button"
+                  role="menuitemradio"
+                  aria-checked={language === lang.code}
+                  aria-label={lang.name}
+                  tabIndex={openDropdown === "language" ? 0 : -1}
+                  onClick={() => {
+                    setLanguage(lang.code);
+                    closeDropdowns();
+                    languageTriggerRef.current?.focus();
+                  }}
+                  className={[
+                    "flex items-center gap-2 rounded px-2.5 py-2",
+                    "font-sans text-[14px] font-medium",
+                    "transition-colors duration-150",
+                    "focus-visible:outline focus-visible:outline-2",
+                    "focus-visible:outline-offset-[-2px]",
+                    "focus-visible:outline-[var(--accent-primary,#B5764B)]",
+                    scrolled ? "text-[var(--text-primary,#2A241D)]" : "text-white/90",
+                    language === lang.code
+                      ? scrolled
+                        ? "bg-black/[0.05]"
+                        : "bg-white/[0.08]"
+                      : scrolled
+                        ? "hover:bg-black/[0.05]"
+                        : "hover:bg-white/[0.08]",
+                  ].join(" ")}
+                >
+                  <FlagIcon code={lang.code} />
+                  <span>{lang.code}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Social links — updated to pass scrolled prop */}
+          <div className="ml-0 flex shrink-0 items-center gap-3">
+            {SOCIAL_LINKS.map((social) => (
+              <a
+                key={social.name}
+                href={social.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={social.label}
+                className={[
+                  social.name === "youtube"
+                    ? "flex h-[30px] w-[30px] shrink-0 items-center justify-center"
+                    : "flex h-[26px] w-[26px] shrink-0 items-center justify-center",
+                  "transition-colors duration-200 ease-out",
+                  scrolled
+                    ? "text-[var(--text-tertiary,#726C65)] hover:text-[var(--text-primary,#2A241D)]"
+                    : "text-white/70 hover:text-white",
+                  "focus-visible:outline focus-visible:outline-2",
+                  "focus-visible:outline-offset-2",
+                  "focus-visible:outline-[var(--accent-primary,#B5764B)]",
+                ].join(" ")}
+              >
+                <SocialIcon name={social.name} scrolled={scrolled} />
+              </a>
+            ))}
+          </div>
         </div>
       </nav>
 
       {/* ============================================================
-          MOBILE NAV (< lg only) — logo left, hamburger right, 64px
-          bar height, 20px horizontal padding, reusing the same
-          scrolled/rest background+blur+border the header already
-          applies (no separate background system introduced).
+          MOBILE NAV (< lg only)
       ============================================================ */}
       <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between px-5 lg:hidden">
         <Link
@@ -517,12 +903,7 @@ export default function Navbar() {
       </div>
 
       {/* ============================================================
-          MOBILE DRAWER — floating sheet anchored just below the
-          navbar, capped at ~60% viewport height, NOT full-screen.
-          A blurred/dimmed backdrop sits behind it (and above the
-          hero) so the hero stays visible and un-interactable while
-          the drawer is open. Both are only mounted while mobileOpen
-          (plus the short closing-transition window).
+          MOBILE DRAWER
       ============================================================ */}
       {menuMounted && (
         <>
@@ -598,17 +979,98 @@ export default function Navbar() {
 
             <nav aria-label="Mobile" className="min-h-0 flex-1 overflow-y-auto px-5">
               <ul className="flex flex-col divide-y divide-[var(--border-subtle,rgba(42,36,29,0.12))]">
-                {MOBILE_NAV_LINKS.map((link) => (
-                  <li key={link.href}>
-                    <a
-                      href={link.href}
-                      onClick={closeMenu}
-                      className="block py-3.5 font-serif text-[1.0625rem] font-medium leading-[1.3] text-[var(--text-primary,#2A241D)]"
-                    >
-                      {link.label}
-                    </a>
-                  </li>
-                ))}
+                {MOBILE_NAV_LINKS.map((item) => {
+                  if ("accordion" in item) {
+                    return (
+                      <li key={item.label}>
+                        <button
+                          type="button"
+                          aria-expanded={mobileProductOpen}
+                          aria-controls="tm-mobile-product-panel"
+                          onClick={() => setMobileProductOpen((open) => !open)}
+                          className={[
+                            "flex min-h-[52px] w-full items-center justify-between",
+                            "py-4 text-left font-serif text-[1.0625rem] font-medium leading-[1.3]",
+                            "text-[var(--text-primary,#2A241D)]",
+                            "transition-colors duration-200 ease-out active:text-[var(--accent-primary,#B5764B)]",
+                            "focus-visible:outline focus-visible:outline-2",
+                            "focus-visible:outline-offset-2",
+                            "focus-visible:outline-[var(--accent-primary,#B5764B)]",
+                          ].join(" ")}
+                        >
+                          {item.label}
+                          <span
+                            className={[
+                              "h-3 w-3 shrink-0 text-[var(--text-tertiary,#726C65)]",
+                              "transition-transform duration-300 ease-out",
+                              mobileProductOpen ? "rotate-180" : "rotate-0",
+                            ].join(" ")}
+                          >
+                            <ChevronIcon />
+                          </span>
+                        </button>
+
+                        <div
+                          id="tm-mobile-product-panel"
+                          className={[
+                            "grid overflow-hidden",
+                            `transition-[grid-template-rows] duration-300 ${DRAWER_EASING}`,
+                            mobileProductOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+                          ].join(" ")}
+                        >
+                          <ul className="min-h-0 flex flex-col gap-1 pb-4 pl-4">
+                            {PRODUCT_MENU.map((product) => (
+                              <li key={product.href}>
+                                <a
+                                  href={product.href}
+                                  onClick={closeMenu}
+                                  tabIndex={mobileProductOpen ? 0 : -1}
+                                  className={[
+                                    "flex min-h-[44px] flex-col justify-center rounded-lg px-2",
+                                    "font-sans text-[15px] font-medium leading-[1.3]",
+                                    "text-[var(--text-secondary,#49433C)]",
+                                    "transition-colors duration-200 ease-out",
+                                    "active:text-[var(--text-primary,#2A241D)]",
+                                    "focus-visible:outline focus-visible:outline-2",
+                                    "focus-visible:outline-offset-2",
+                                    "focus-visible:outline-[var(--accent-primary,#B5764B)]",
+                                  ].join(" ")}
+                                >
+                                  {product.label}
+                                  {"caption" in product && (
+                                    <span className="mt-0.5 font-sans text-[11px] font-normal uppercase tracking-[0.08em] text-[var(--text-tertiary,#726C65)]">
+                                      {product.caption}
+                                    </span>
+                                  )}
+                                </a>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </li>
+                    );
+                  }
+
+                  return (
+                    <li key={item.label}>
+                      <a
+                        href={item.href}
+                        onClick={closeMenu}
+                        className={[
+                          "flex min-h-[52px] items-center py-4",
+                          "font-serif text-[1.0625rem] font-medium leading-[1.3]",
+                          "text-[var(--text-primary,#2A241D)]",
+                          "transition-colors duration-200 ease-out active:text-[var(--accent-primary,#B5764B)]",
+                          "focus-visible:outline focus-visible:outline-2",
+                          "focus-visible:outline-offset-2",
+                          "focus-visible:outline-[var(--accent-primary,#B5764B)]",
+                        ].join(" ")}
+                      >
+                        {item.label}
+                      </a>
+                    </li>
+                  );
+                })}
               </ul>
             </nav>
 
