@@ -13,7 +13,7 @@ export default function PersonalizedBooksPage() {
       <Navbar />
 
       <main>
-        <Hero imageSrc="/products/personalized-books/images/hero/hero-v13.png" />
+        <Hero imageSrc="/images/products/personalized-books/hero/hero-v13.png" />
 
         <TrustStrip />
 
