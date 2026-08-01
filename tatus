@@ -1,0 +1,21 @@
+[33mcommit 569ec4f8554edda616f7513f8016ab8e240c60c5[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m
+Author: Zayd207 <zayd207@example.com>
+Date:   Sat Aug 1 23:31:38 2026 +0300
+
+    Refine hero typography, readability and image polish
+
+ app/products/personalized-books/page.tsx           |   4 [32m+[m[31m-[m
+ components/hero/Hero.tsx                           | 580 [32m++++++++[m[31m-------------[m
+ .../personalized-books/hero/Hero-image.tsx         |  77 [31m---[m
+ .../products/personalized-books/hero/Hero.tsx      | 374 [31m-------------[m
+ .../personalized-books/hero/LivingStoryGlow.tsx    |  80 [31m---[m
+ components/products/personalized-books/page.tsx    |  14 [31m-[m
+ public/images/hero/22.webp                         | Bin [31m0[m -> [32m754370[m bytes
+ public/images/hero/d.webp                          | Bin [31m0[m -> [32m652526[m bytes
+ public/images/hero/s.webp                          | Bin [31m0[m -> [32m656128[m bytes
+ public/images/hero/slide-ecosystem.webp            | Bin [31m652526[m -> [32m633446[m bytes
+ public/images/hero/slide-personalized-books.webp   | Bin [31m408586[m -> [32m407344[m bytes
+ public/images/hero/slide-personalized-books1.webp  | Bin [31m0[m -> [32m326738[m bytes
+ public/images/hero/slide-talimoon-toys.webp        | Bin [31m631694[m -> [32m668680[m bytes
+ public/images/hero/slide-yusuf-yasmina.webp        | Bin [31m656128[m -> [32m712102[m bytes
+ 14 files changed, 206 insertions(+), 923 deletions(-)
