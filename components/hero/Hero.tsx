@@ -1,53 +1,66 @@
 // FILE: src/components/hero/Hero.tsx
 // Enterprise-grade Hero Slider – knopkasiz uzluksiz autoplay, kinematik hiralashib o'tish, premium tipografiya
 //
-// v2 — typography-only pass (see PR notes below). Layout, height, grid,
-// carousel, animation timing, navigation, and images are unchanged.
-// Every diff in this file lives inside HeroTextBlock (+ two small new
-// color helpers next to the existing getScrimColor/getScrimGradient).
+// v3 — mobile-only fix (see PR notes below). Desktop is byte-for-byte
+// unchanged: every function, component, prop, and value the DESKTOP
+// render path uses (getScrimColor, getScrimGradient, getTextColor,
+// getDescriptionColor, getTextBlockBackdrop, HeroScrim, HeroTextBlock,
+// kenBurnsVariants, textBlockVariants, textItemVariants,
+// textTransition, imageTransition, HERO_CONFIG, HeroImage, and the
+// 74vh/500-580px section height) is exactly what it was in v2. Nothing
+// in this pass edits those. All changes are either purely additive
+// (new mobile-only constants/component + one new optional field per
+// slide) or a conditional branch that, when isMobile is false, calls
+// the same existing desktop code the same way it always did.
 //
-// Changes in this pass:
-// 1. getTextColor had scrim and text color mapped to the SAME name
-//    (scrim: 'ink' -> text-ink), meaning a dark ink wash was paired
-//    with dark ink text on every slide — an actual contrast bug, not
-//    just a style preference. Flipped to the correct contrasting pair.
-// 2. Eyebrow: 11px/tracking-[0.3em]/font-semibold -> 13px/
-//    tracking-[0.18em]/font-medium. The old tracking was wide enough
-//    that the label lost visual mass despite its weight; tightening
-//    tracking (not adding boldness) is what actually restores presence
-//    while staying "elegant, not bold" per spec.
-// 3. Headline: fixed a real bug — lg:text-4xl was smaller than both its
-//    md and xl neighbors (md:text-5xl / lg:text-4xl / xl:text-5xl),
-//    causing the headline to visibly shrink then regrow across two
-//    breakpoints. Set to lg:text-5xl to match its neighbors — this is
-//    a monotonicity fix, not a size increase (5xl already existed at
-//    md and xl). font-semibold -> font-medium to match the font-medium
-//    convention every other serif heading on this site already uses
-//    (TrustStrip, How It Works) — semibold was the one outlier making
-//    the headline read heavier than the rest of the system. Removed
-//    drop-shadow-sm, which was compensating for the same contrast bug
-//    fixed in #1 and is now redundant next to the corrected color and
-//    the new local backdrop (#6). leading-[1.08] -> 1.12 to match the
-//    slightly lighter weight. mb-5 -> mb-6 for more separation before
-//    the description.
-// 4. Description: font-light -> font-normal (300 was too thin to hold
-//    up against a photographic background at this size). Given its own
-//    explicit, slightly-reduced-alpha color instead of inheriting the
-//    exact same full-strength color as the headline — previously h1
-//    and p shared one color with no distinction at all, which was a
-//    real cause of the flat, no-hierarchy feeling described in the
-//    brief.
-// 5. New getDescriptionColor / getTextBlockBackdrop helpers, following
-//    the same inline-style pattern already used elsewhere in this
-//    codebase (TrustStrip's imagePosition, HowItWorksImage's marker
-//    fill) for any color that's computed per-instance rather than
-//    static — a Tailwind class built from an interpolated variable
-//    gets purged in production, inline style does not.
-// 6. New very-low-alpha radial background, local to the text column
-//    only, added as a style prop on HeroTextBlock's own existing
-//    wrapper div — zero new DOM nodes. This is additive to, and
-//    completely independent of, the existing full-strip HeroScrim
-//    (untouched, per "do not strengthen the full Hero overlay").
+// The problem this pass fixes: on phones, the hero's full desktop
+// height (~74vh) combined with a narrow viewport width made the
+// container far taller/narrower than the source photos were composed
+// for. object-cover had to crop very aggressively to fill that shape,
+// so most of each photo's context was lost, AND the mobile text block
+// (previously a bottom half-screen box) ended up overlapping whatever
+// busy image content was left in frame — text became unreadable.
+//
+// The fix (mobile only):
+// 1. MOBILE_HERO_HEIGHT — the hero's height on mobile is now tied to
+//    viewport WIDTH (vw) via clamp(), not viewport height (vh). Two
+//    separate reasons this helps:
+//      a) vh is unstable on mobile browsers — it changes as the
+//         address bar shows/hides while scrolling, which visibly
+//         jumps a vh-sized element. vw doesn't have that problem.
+//      b) A shorter container is closer to the source photos' own
+//         landscape aspect ratio, so object-cover has to trim far
+//         less to fill it — this is the actual fix for "too zoomed
+//         in," not a new crop algorithm, just a container shape
+//         that needs a gentler crop to fill.
+// 2. mobileFocalPoint — new OPTIONAL field on each slide's `image`,
+//    additive only (desktop's `focalPoint` field and every desktop
+//    reference to it is untouched). Even with a shorter container,
+//    which part of a wide photo stays centered is still a real
+//    choice per slide, so mobile gets its own tuned focal point
+//    instead of inheriting the desktop one verbatim. Placeholder
+//    values below are a starting point — worth eyeballing against
+//    the real photos once available.
+// 3. MOBILE_GRADIENT + MobileHeroText — mobile text now sits directly
+//    on the photo (no separate box splitting the frame), on top of a
+//    single strong gradient that grows from the bottom edge upward.
+//    It's deliberately stronger/taller than desktop's HeroScrim
+//    because on mobile it's the ONLY contrast mechanism — there's no
+//    spare negative space in the crop to lean on, and it needs to
+//    clear a full two-line description, not just the headline. Unlike
+//    the previous mobile treatment (which reused HeroTextBlock's
+//    per-slide ink/cream scrim colors), this is one fixed dark-navy
+//    gradient + white text for every slide — simpler and reliably
+//    legible regardless of what's in a given photo. Text is
+//    left-aligned (previously centered) to match how every other
+//    section on the site handles text — TrustStrip, Examples, etc. —
+//    none of them center content; this brings the mobile hero in line
+//    with that instead of being the one centered exception. Flagging
+//    this specific change in case centered mobile text was actually
+//    intentional — easy to revert to text-center if so.
+// 4. Everything else — autoplay, keyboard nav, Ken Burns, crossfade,
+//    slide data (name/headline/description), preloading, a11y
+//    live-region — untouched on both mobile and desktop.
 
 'use client';
 
@@ -83,6 +96,9 @@ interface HeroSlideData {
     readonly src: string;
     readonly alt: string;
     readonly focalPoint: { readonly x: number; readonly y: number };
+    // Optional — mobile-only override. Falls back to `focalPoint`
+    // above when omitted. Added in v3; does not affect desktop.
+    readonly mobileFocalPoint?: { readonly x: number; readonly y: number };
   };
   readonly scrim: ScrimType;
   readonly navColor: ScrimType;
@@ -111,6 +127,7 @@ const SLIDES: readonly HeroSlideData[] = [
       src: '/images/hero/slide-personalized-books.webp',
       alt: 'A child reading a personalized book in warm bedroom light',
       focalPoint: { x: 0.35, y: 0.5 },
+      mobileFocalPoint: { x: 0.4, y: 0.32 },
     },
     scrim: 'ink',
     navColor: 'cream',
@@ -125,6 +142,7 @@ const SLIDES: readonly HeroSlideData[] = [
       src: '/images/hero/slide-yusuf-yasmina.webp',
       alt: 'Yusuf and Yasmina characters with playful expressions',
       focalPoint: { x: 0.3, y: 0.5 },
+      mobileFocalPoint: { x: 0.38, y: 0.34 },
     },
     scrim: 'cream',
     navColor: 'ink',
@@ -139,6 +157,7 @@ const SLIDES: readonly HeroSlideData[] = [
       src: '/images/hero/slide-story-library.webp',
       alt: 'A glowing library shelf with diverse books',
       focalPoint: { x: 0.4, y: 0.5 },
+      mobileFocalPoint: { x: 0.45, y: 0.36 },
     },
     scrim: 'cream',
     navColor: 'ink',
@@ -153,6 +172,7 @@ const SLIDES: readonly HeroSlideData[] = [
       src: '/images/hero/slide-talimoon-toys.webp',
       alt: 'Studio shot of Talimoon toys with soft shadows',
       focalPoint: { x: 0.45, y: 0.5 },
+      mobileFocalPoint: { x: 0.4, y: 0.3 },
     },
     scrim: 'ink',
     navColor: 'cream',
@@ -167,6 +187,7 @@ const SLIDES: readonly HeroSlideData[] = [
       src: '/images/hero/slide-ecosystem.webp',
       alt: 'Abstract connected world of books, toys, and characters',
       focalPoint: { x: 0.3, y: 0.5 },
+      mobileFocalPoint: { x: 0.4, y: 0.36 },
     },
     scrim: 'ink',
     navColor: 'cream',
@@ -180,6 +201,23 @@ const HERO_CONFIG: HeroConfig = {
   textDelay: 200,
   kenBurnsScale: 1.03,
 };
+
+// ============================================================
+// MOBILE HERO OVERRIDES (v3) — additive only, see file header.
+// Desktop never reads these.
+// ============================================================
+
+// Width-based, not height-based — see reason (a) in the file header.
+// Range: ~380px on the smallest phones up to ~460px on the largest,
+// scaling with device width in between.
+const MOBILE_HERO_HEIGHT = 'clamp(380px, 115vw, 460px)';
+
+// One fixed, deliberately strong gradient for every mobile slide,
+// independent of that slide's `scrim`/`navColor` — see reason (3) in
+// the file header. Same navy already used by this site's Navbar/nav
+// tokens (#1C2A3A), not a new color.
+const MOBILE_GRADIENT =
+  'linear-gradient(to top, rgba(28,42,58,0.90) 0%, rgba(28,42,58,0.62) 30%, rgba(28,42,58,0.20) 56%, transparent 74%)';
 
 // ============================================================
 // Animation Definitions
@@ -470,7 +508,7 @@ const HeroImage = memo(function HeroImage({
   );
 });
 
-// --- HeroScrim ---
+// --- HeroScrim (desktop only, as of v3 — see MobileHeroText below for mobile) ---
 interface HeroScrimProps {
   type: ScrimType;
   isMobile: boolean;
@@ -495,7 +533,7 @@ const HeroScrim = memo(function HeroScrim({
   );
 });
 
-// --- HeroTextBlock – premium tipografiya ---
+// --- HeroTextBlock – premium tipografiya (desktop only, as of v3) ---
 interface HeroTextBlockProps {
   eyebrow: string;
   headline: string;
@@ -581,6 +619,58 @@ style={{
   );
 });
 
+// --- MobileHeroText (v3, new, mobile only) ---
+// Deliberately its own component rather than a third branch inside
+// HeroTextBlock — keeps HeroTextBlock's desktop JSX/props exactly as
+// they were, with zero chance of a mobile-only edit leaking into the
+// desktop render path.
+interface MobileHeroTextProps {
+  eyebrow: string;
+  headline: string;
+  description: string;
+}
+
+const MobileHeroText = memo(function MobileHeroText({
+  eyebrow,
+  headline,
+  description,
+}: MobileHeroTextProps) {
+  return (
+    <motion.div
+      className="absolute inset-x-0 bottom-0 z-10 px-6 text-left text-cream"
+      style={{ paddingBottom: 'calc(1.75rem + env(safe-area-inset-bottom))' }}
+      variants={textBlockVariants}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+      transition={textTransition}
+    >
+      <motion.span
+        className="mb-2 block text-[13px] font-sans font-medium uppercase tracking-[0.16em]"
+        style={{ color: 'rgb(224, 194, 130)', textShadow: '0 1px 2px rgba(0,0,0,0.18)' }}
+        variants={textItemVariants}
+      >
+        {eyebrow}
+      </motion.span>
+
+      <motion.h1
+        className="mb-3 font-serif text-[28px] font-medium leading-[1.15] tracking-tight"
+        variants={textItemVariants}
+      >
+        {headline}
+      </motion.h1>
+
+      <motion.p
+        className="max-w-[34ch] text-[14px] leading-relaxed"
+        style={{ color: 'rgba(247, 242, 234, 0.86)' }}
+        variants={textItemVariants}
+      >
+        {description}
+      </motion.p>
+    </motion.div>
+  );
+});
+
 // --- HeroSlide ---
 interface HeroSlideProps {
   slide: HeroSlideData;
@@ -595,6 +685,11 @@ const HeroSlide = memo(
     priority,
   }: HeroSlideProps) {
     const { image, scrim, ...textData } = slide;
+
+    // v3: mobile gets its own tuned focal point when the slide has one;
+    // desktop's `focalPoint` is untouched either way.
+    const activeFocalPoint =
+      isMobile && image.mobileFocalPoint ? image.mobileFocalPoint : image.focalPoint;
 
     return (
       <motion.div
@@ -612,33 +707,43 @@ const HeroSlide = memo(
         <HeroImage
           src={image.src}
           alt={image.alt}
-          focalPoint={image.focalPoint}
+          focalPoint={activeFocalPoint}
           priority={priority}
         />
 
-        <div
-          className={`
-            absolute inset-0 z-10
-            flex
-            ${isMobile ? 'items-end justify-center' : 'items-center justify-end'}
-          `}
-        >
-          <div
-            className={`
-              relative
-              ${isMobile ? 'w-full h-[50%]' : 'w-[35%] h-full'}
-            `}
-          >
-            <HeroScrim type={scrim} isMobile={isMobile} />
-            <HeroTextBlock
+        {isMobile ? (
+          // v3 mobile treatment: one full-bleed image, one strong
+          // bottom-up gradient, left-aligned text anchored to the
+          // bottom — no separate box splitting the frame. See file
+          // header for the full reasoning.
+          <>
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 z-[5]"
+              style={{ backgroundImage: MOBILE_GRADIENT }}
+            />
+            <MobileHeroText
               eyebrow={textData.name}
               headline={textData.headline}
               description={textData.description}
-              isMobile={isMobile}
-              scrimType={scrim}
             />
+          </>
+        ) : (
+          // Desktop: unchanged from v2 — same wrapper, same HeroScrim,
+          // same HeroTextBlock, same props.
+          <div className="absolute inset-0 z-10 flex items-center justify-end">
+            <div className="relative w-[35%] h-full">
+              <HeroScrim type={scrim} isMobile={false} />
+              <HeroTextBlock
+                eyebrow={textData.name}
+                headline={textData.headline}
+                description={textData.description}
+                isMobile={false}
+                scrimType={scrim}
+              />
+            </div>
           </div>
-        </div>
+        )}
       </motion.div>
     );
   },
@@ -713,11 +818,11 @@ export function HeroSlider({ onNavColorChange }: HeroSliderProps) {
   return (
     <section
       className="relative w-full overflow-hidden flex-shrink-0"
-      style={{
-        height: '74vh',
-        maxHeight: '580px',
-        minHeight: '500px',
-      }}
+      style={
+        isMobile
+          ? { height: MOBILE_HERO_HEIGHT }
+          : { height: '74vh', maxHeight: '580px', minHeight: '500px' }
+      }
       aria-label="Featured content carousel"
       aria-roledescription="carousel"
     >
@@ -735,11 +840,18 @@ export function HeroSlider({ onNavColorChange }: HeroSliderProps) {
         </AnimatePresence>
       </div>
 
-      {/* Trust bo'limiga o'tish gradienti – 50% qisqartirildi (h-24 -> h-12) */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-12 bg-gradient-to-b from-transparent via-[#F8F5EF]/35 to-[#F8F5EF]"
-      />
+      {/* Trust bo'limiga o'tish gradienti – 50% qisqartirildi (h-24 -> h-12).
+          v3: desktop-only. On mobile this cream fade would sit directly
+          on top of MobileHeroText's bottom-anchored zone and wash out
+          the dark navy gradient exactly where the text needs contrast
+          — mobile's own MOBILE_GRADIENT already grounds the bottom
+          edge, so this strip is skipped there rather than fighting it. */}
+      {!isMobile && (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-12 bg-gradient-to-b from-transparent via-[#F8F5EF]/35 to-[#F8F5EF]"
+        />
+      )}
 
       <div
         className="sr-only"
