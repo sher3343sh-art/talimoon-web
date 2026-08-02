@@ -645,8 +645,11 @@ const MobileHeroText = memo(function MobileHeroText({
 }: MobileHeroTextProps) {
   return (
     <motion.div
-      className="absolute inset-x-0 bottom-0 z-10 px-6 text-left text-cream"
-      style={{ paddingBottom: 'calc(1.75rem + env(safe-area-inset-bottom))' }}
+      className="absolute inset-x-0 bottom-0 z-10 px-6 text-left"
+      style={{
+        paddingBottom: 'calc(1.75rem + env(safe-area-inset-bottom))',
+        color: '#F7F2EA',
+      }}
       variants={textBlockVariants}
       initial="hidden"
       animate="visible"
@@ -868,6 +871,21 @@ export function HeroSlider({ onNavColorChange }: HeroSliderProps) {
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-12 bg-gradient-to-b from-transparent via-[#F8F5EF]/35 to-[#F8F5EF]"
+        />
+      )}
+
+      {/* Mobile equivalent — much thinner (16px vs desktop's 48px) and
+          sits comfortably inside MobileHeroText's own bottom padding
+          reserve (1.75rem + safe-area ≈ 28px+), so it never touches a
+          glyph. Layered above MOBILE_GRADIENT (z-[5]) so the navy
+          darkening still owns the text zone; this strip only softens
+          the Hero's very last few pixels into the cream section below,
+          fixing the hard navy/cream cut instead of fighting the
+          contrast gradient that guards the text. */}
+      {isMobile && (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-[6] h-4 bg-gradient-to-b from-transparent to-[#F8F5EF]"
         />
       )}
 
