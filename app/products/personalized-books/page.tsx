@@ -1,5 +1,5 @@
 import Navbar from "@/components/products/personalized-books/layout/Navbar";
-import Hero from "@/components/products/personalized-books/hero/Hero";
+import Hero from "@/components/products/personalized-books/hero/hero";
 import TrustStrip from "@/components/products/personalized-books/trust/TrustStrip";
 import HowItWorks from "@/components/products/personalized-books/how-it-works/HowItWorks";
 import BookShowcase from "@/components/products/personalized-books/showcase/BookShowcase";
