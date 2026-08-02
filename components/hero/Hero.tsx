@@ -496,7 +496,7 @@ const HeroImage = memo(function HeroImage({
       style={{ ['--hero-focal' as string]: focalOrigin }}
     >
       <motion.div
-        className="absolute inset-0 origin-left md:[transform-origin:var(--hero-focal)]"
+        className="absolute inset-0 origin-[25%_center] md:[transform-origin:var(--hero-focal)]"
         variants={variants}
         initial="initial"
         animate="animate"
@@ -509,14 +509,13 @@ const HeroImage = memo(function HeroImage({
           fill
           priority={priority}
           sizes="100vw"
-          // Below md: the image anchors flush to the left edge
-          // (object-position: left) so cropping only ever eats into
-          // the right side of the frame, regardless of how narrow the
-          // viewport is — this is what keeps the left-side composition
-          // intact instead of drifting as the crop ratio changes. At
-          // md: and above this reverts to the exact per-slide focal
-          // percentage used previously, so desktop is unchanged.
-          className="object-cover object-left md:[object-position:var(--hero-focal)]"
+          // Below md: anchored at 25% from the left (not flush 0%) —
+          // still strongly left-biased so cropping mostly eats into the
+          // right side, but pulled back toward center so the subject
+          // isn't pressed against the edge. At md: and above this
+          // reverts to the exact per-slide focal percentage used
+          // previously, so desktop is unchanged.
+          className="object-cover object-[25%_center] md:[object-position:var(--hero-focal)]"
         />
       </motion.div>
     </div>
