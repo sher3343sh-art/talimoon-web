@@ -935,6 +935,7 @@ export default function Navbar() {
                 : "opacity-0 -translate-y-2 scale-[0.98]",
             ].join(" ")}
           >
+            {/* Header: logo, then social icons right after it, then close button */}
             <div className="flex shrink-0 items-center justify-between border-b border-[var(--border-subtle,rgba(42,36,29,0.12))] px-5 py-3">
               <Link
                 href="/"
@@ -950,31 +951,96 @@ export default function Navbar() {
                 />
               </Link>
 
-              <button
-                ref={closeButtonRef}
-                type="button"
-                aria-label="Close menu"
-                onClick={closeMenu}
-                className={[
-                  "flex h-6 w-6 items-center justify-center",
-                  "text-[var(--text-primary,#2A241D)]",
-                  "focus-visible:outline focus-visible:outline-2",
-                  "focus-visible:outline-offset-2",
-                  "focus-visible:outline-[var(--accent-primary,#B5764B)]",
-                ].join(" ")}
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={1.5}
-                  strokeLinecap="round"
+              <div className="flex shrink-0 items-center gap-4">
+                <div className="flex shrink-0 items-center gap-3">
+                  {SOCIAL_LINKS.map((social) => (
+                    <a
+                      key={social.name}
+                      href={social.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={social.label}
+                      className={[
+                        "flex h-5 w-5 shrink-0 items-center justify-center",
+                        "text-[var(--text-tertiary,#726C65)]",
+                        "transition-colors duration-200 ease-out",
+                        "hover:text-[var(--text-primary,#2A241D)]",
+                        "focus-visible:outline focus-visible:outline-2",
+                        "focus-visible:outline-offset-2",
+                        "focus-visible:outline-[var(--accent-primary,#B5764B)]",
+                      ].join(" ")}
+                    >
+                      <SocialIcon name={social.name} scrolled={true} />
+                    </a>
+                  ))}
+                </div>
+
+                <span
                   aria-hidden="true"
-                  className="h-5 w-5"
+                  className="h-4 w-px shrink-0 bg-[var(--border-subtle,rgba(42,36,29,0.14))]"
+                />
+
+                <button
+                  ref={closeButtonRef}
+                  type="button"
+                  aria-label="Close menu"
+                  onClick={closeMenu}
+                  className={[
+                    "flex h-6 w-6 shrink-0 items-center justify-center",
+                    "text-[var(--text-primary,#2A241D)]",
+                    "focus-visible:outline focus-visible:outline-2",
+                    "focus-visible:outline-offset-2",
+                    "focus-visible:outline-[var(--accent-primary,#B5764B)]",
+                  ].join(" ")}
                 >
-                  <path d="M6 6l12 12M18 6 6 18" />
-                </svg>
-              </button>
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={1.5}
+                    strokeLinecap="round"
+                    aria-hidden="true"
+                    className="h-5 w-5"
+                  >
+                    <path d="M6 6l12 12M18 6 6 18" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Language: compact selectable chips, placed before the Product dropdown/nav list */}
+            <div
+              role="radiogroup"
+              aria-label="Language"
+              className="flex shrink-0 items-center gap-2 overflow-x-auto border-b border-[var(--border-subtle,rgba(42,36,29,0.12))] px-5 py-3"
+            >
+              {LANGUAGES.map((lang) => {
+                const isSelected = language === lang.code;
+                return (
+                  <button
+                    key={lang.code}
+                    type="button"
+                    role="radio"
+                    aria-checked={isSelected}
+                    aria-label={lang.name}
+                    onClick={() => setLanguage(lang.code)}
+                    className={[
+                      "flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5",
+                      "font-sans text-[12px] font-medium",
+                      "transition-colors duration-150",
+                      "focus-visible:outline focus-visible:outline-2",
+                      "focus-visible:outline-offset-2",
+                      "focus-visible:outline-[var(--accent-primary,#B5764B)]",
+                      isSelected
+                        ? "bg-[var(--text-primary,#2A241D)] text-white"
+                        : "bg-black/[0.04] text-[var(--text-secondary,#49433C)] hover:bg-black/[0.08]",
+                    ].join(" ")}
+                  >
+                    <FlagIcon code={lang.code} />
+                    <span>{lang.code}</span>
+                  </button>
+                );
+              })}
             </div>
 
             <nav aria-label="Mobile" className="min-h-0 flex-1 overflow-y-auto px-5">
