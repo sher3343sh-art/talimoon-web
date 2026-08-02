@@ -82,6 +82,48 @@
 //    over time. Fix: scale only, with transform-origin pinned to the
 //    same focal-point percentage object-position already uses, so the
 //    subject stays visually stationary through the entire zoom.
+//
+// v6 — art-direction pass only, no architecture changes:
+// 1. Every slide's focalPoint.x moved further left (e.g. 0.45 → 0.32,
+//    0.3 → 0.2) — the previous values still read as too centered once
+//    actually viewed on a narrow mobile crop.
+// 2. HERO_GRADIENT and HERO_SECTION_TRANSITION are merged into one
+//    gradient. Previously the cream section-handoff was a second,
+//    separate `<div>` stacked on top of the darkening gradient — visibly
+//    two layers. Now the cream color is simply HERO_GRADIENT's own first
+//    stop (0%), so the Hero's bottom edge blending into "How It Works"
+//    is part of the same continuous gradient as the text-contrast
+//    darkening above it, not an added overlay. HERO_SECTION_TRANSITION
+//    and its `<div>` are removed.
+// 3. HeroText's bottom padding increased (raising the whole block) and
+//    HERO_GRADIENT's dark plateau extended higher to match — together
+//    these move the headline from straddling the point where the old
+//    gradient started fading to sitting fully inside solid coverage.
+//
+// v7 — mobile-only rendering-strategy fix, no architecture change:
+// 1. Root cause of the remaining mobile issue: `object-position` and
+//    the Ken Burns `transform-origin` were driven off a single
+//    percentage (`focalPoint`) shared by every breakpoint. On narrow
+//    viewports the crop ratio is far more aggressive than on desktop,
+//    so a percentage anchor tuned by eye against a wide crop still
+//    pulled the subject away from the left edge once the same percentage
+//    was applied to a much narrower box — hence the repeated "nudge
+//    focalPoint.x further left" cycle in v6, which was adjusting the
+//    symptom, not the mechanism.
+// 2. Fix: below `md`, the image is anchored with `object-left`
+//    (`object-position: left`, i.e. 0% on the x-axis) instead of the
+//    per-slide percentage, and the Ken Burns `transform-origin` is
+//    pinned to `left` to match — so the subject sits flush against the
+//    left edge and every mobile viewport crops from the right only,
+//    regardless of viewport width. At `md` and above, both properties
+//    revert to the exact same per-slide `focalPoint` percentage used
+//    before — desktop output is byte-for-byte unchanged.
+// 3. Implemented via a CSS custom property (`--hero-focal`) set once
+//    per slide and consumed only inside an `md:` Tailwind arbitrary
+//    value, so the branch is resolved by the browser at paint time —
+//    no `useMediaQuery`/`isMobile` state, no hydration flash, no
+//    resize-triggered re-render (consistent with the v4 decision to
+//    keep all breakpoint differences in CSS).
 
 'use client';
 
@@ -115,10 +157,11 @@ interface HeroSlideData {
     readonly src: string;
     readonly alt: string;
     // Left-biased on purpose for every current slide (subject sits in
-    // the left ~65-70% of frame, per the brand's illustration brief) —
-    // a single percentage anchor, not a per-breakpoint override, since
-    // object-position holds its relative position at any container
-    // size on its own.
+    // the left ~65-70% of frame, per the brand's illustration brief).
+    // Used verbatim at md: and above. Below md:, the image anchors to
+    // the left edge instead (see HeroImage) — a single percentage
+    // anchor doesn't hold the same apparent composition once the crop
+    // ratio changes as drastically as it does on narrow viewports.
     readonly focalPoint: { readonly x: number; readonly y: number };
   };
   // Drives the navbar's ink/cream color for this slide (see
@@ -149,7 +192,7 @@ const SLIDES: readonly HeroSlideData[] = [
     image: {
       src: '/images/hero/slide-personalized-books.webp',
       alt: 'A child reading a personalized book in warm bedroom light',
-      focalPoint: { x: 0.35, y: 0.5 },
+      focalPoint: { x: 0.26, y: 0.5 },
     },
     navColor: 'cream',
   },
@@ -162,7 +205,7 @@ const SLIDES: readonly HeroSlideData[] = [
     image: {
       src: '/images/hero/slide-yusuf-yasmina.webp',
       alt: 'Yusuf and Yasmina characters with playful expressions',
-      focalPoint: { x: 0.3, y: 0.5 },
+      focalPoint: { x: 0.2, y: 0.5 },
     },
     navColor: 'ink',
   },
@@ -175,7 +218,7 @@ const SLIDES: readonly HeroSlideData[] = [
     image: {
       src: '/images/hero/slide-story-library.webp',
       alt: 'A glowing library shelf with diverse books',
-      focalPoint: { x: 0.4, y: 0.5 },
+      focalPoint: { x: 0.3, y: 0.5 },
     },
     navColor: 'ink',
   },
@@ -188,7 +231,7 @@ const SLIDES: readonly HeroSlideData[] = [
     image: {
       src: '/images/hero/slide-talimoon-toys.webp',
       alt: 'Studio shot of Talimoon toys with soft shadows',
-      focalPoint: { x: 0.45, y: 0.5 },
+      focalPoint: { x: 0.32, y: 0.5 },
     },
     navColor: 'cream',
   },
@@ -201,7 +244,7 @@ const SLIDES: readonly HeroSlideData[] = [
     image: {
       src: '/images/hero/slide-ecosystem.webp',
       alt: 'Abstract connected world of books, toys, and characters',
-      focalPoint: { x: 0.3, y: 0.5 },
+      focalPoint: { x: 0.22, y: 0.5 },
     },
     navColor: 'cream',
   },
@@ -215,45 +258,45 @@ const HERO_CONFIG: HeroConfig = {
   kenBurnsScale: 1.07, // mid-range of the requested 1.06-1.08
 };
 
-// A graduated, six-stop curve rather than a blunt 4-stop one — the
-// point isn't just "get darker," it's an eased falloff so the darkening
-// itself feels like part of the photo's own tonal range instead of a
-// panel dropped on top. The plateau near the bottom (0-18%, staying
-// above 0.8 alpha) is what actually fixed mobile headline contrast —
-// previously that same zone had already started thinning out this high
-// up, which is exactly where the text sits. Same navy as the Navbar
-// tokens (#1C2A3A) throughout, no new color introduced.
+// One continuous gradient — no separate overlay. The bottom edge opens
+// on the exact cream token "How It Works" uses (--surface-warm-100,
+// #F7F2EA) so the Hero's own last few pixels blend directly into the
+// next section, then crosses into the navy plateau that carries the
+// text, then fades away entirely by ~88% so the photo's upper reaches
+// stay untouched and vibrant. Because this is one gradient rather than
+// a photo-darkening layer plus a separate cream strip stacked on top,
+// the cream handoff reads as the image itself easing into the section
+// below it, not as an added band. The dark plateau (8-30%, staying
+// above 0.8 alpha) was raised from its previous 0-18% range to stay
+// under the text block after its own bottom padding was increased
+// below, so the headline sits fully inside solid coverage rather than
+// straddling the point where it starts thinning out.
 const HERO_GRADIENT =
   'linear-gradient(to top, ' +
-  'rgba(28,42,58,0.94) 0%, ' +
-  'rgba(28,42,58,0.82) 18%, ' +
-  'rgba(28,42,58,0.55) 38%, ' +
-  'rgba(28,42,58,0.28) 56%, ' +
-  'rgba(28,42,58,0.08) 70%, ' +
-  'transparent 84%)';
+  '#F7F2EA 0%, ' +
+  'rgba(28,42,58,0.94) 8%, ' +
+  'rgba(28,42,58,0.84) 30%, ' +
+  'rgba(28,42,58,0.56) 48%, ' +
+  'rgba(28,42,58,0.28) 64%, ' +
+  'rgba(28,42,58,0.09) 78%, ' +
+  'transparent 88%)';
 
 // Mirrors HERO_GRADIENT's exact stops (not just its endpoints) so the
 // blur's intensity ramps down in lockstep with the darkness — this is
 // what makes the blur read as "the image itself going slightly soft
 // toward the bottom" rather than a separate hard-edged blurred rectangle
-// sitting on top of a separately-edged dark rectangle.
+// sitting on top of a separately-edged dark rectangle. The 0-8% cream
+// band doesn't need its own blur value since it's fully opaque there
+// regardless — kept at full mask coverage for simplicity.
 const HERO_BLUR_MASK =
   'linear-gradient(to top, ' +
   'rgba(0,0,0,1) 0%, ' +
-  'rgba(0,0,0,0.9) 18%, ' +
-  'rgba(0,0,0,0.6) 38%, ' +
-  'rgba(0,0,0,0.3) 56%, ' +
-  'rgba(0,0,0,0.09) 70%, ' +
-  'rgba(0,0,0,0) 84%)';
-
-// A short, separate handoff at the true bottom edge — fades the Hero's
-// last ~40-56px into the exact cream token the next section
-// (--surface-warm-100, #F7F2EA) opens with, so the seam between the two
-// sections disappears instead of cutting hard from photo to flat cream.
-// Sits within HeroText's own bottom padding reserve, so it never
-// crosses into the text itself.
-const HERO_SECTION_TRANSITION =
-  'linear-gradient(to top, #F7F2EA 0%, rgba(247,242,234,0) 100%)';
+  'rgba(0,0,0,1) 8%, ' +
+  'rgba(0,0,0,0.9) 30%, ' +
+  'rgba(0,0,0,0.6) 48%, ' +
+  'rgba(0,0,0,0.3) 64%, ' +
+  'rgba(0,0,0,0.1) 78%, ' +
+  'rgba(0,0,0,0) 88%)';
 
 // ============================================================
 // Animation Definitions
@@ -273,17 +316,11 @@ const textTransition: Transition = {
 // Ken Burns — forward-only, restarts fresh every time a slide mounts
 // (keyed remount in HeroSlider), runs the full dwell duration linearly.
 //
-// Scale only now — no x/y translate. The previous version animated a
-// translate alongside the scale using the element's default (50% 50%)
-// transform-origin, which is what caused the reported "drift back
-// toward center": scaling from the geometric center while the visible
-// crop was already left-biased (via object-position) meant growth
-// pulled the frame toward showing more of what's right of center over
-// time, fighting the static focal point instead of respecting it. The
-// fix lives in HeroImage below — transform-origin is now set to the
-// same focal-point percentage object-position already uses, so scale
-// grows outward *from* the subject instead of from the box's center,
-// and the subject's on-screen position never moves.
+// Scale only — no x/y translate. transform-origin is set to match
+// whichever anchor is active for the current breakpoint (see HeroImage:
+// `left` below md:, the per-slide focal percentage at md: and above),
+// so scale grows outward *from* the subject instead of from the box's
+// center, and the subject's on-screen position never drifts.
 const kenBurnsVariants = (): Variants => ({
   initial: {
     scale: 1,
@@ -448,24 +485,23 @@ const HeroImage = memo(function HeroImage({
     return kenBurnsVariants();
   }, [reducedMotion]);
 
-  // Same anchor object-position uses below, applied as the scale's
-  // transform-origin — this is what keeps the focal subject visually
-  // stationary while the image grows around it (see the note on
-  // kenBurnsVariants above for why this replaces the old x/y drift).
+  // Per-slide anchor used at md: and above only — exposed as a CSS
+  // custom property so the md: branch can be resolved by the browser
+  // via a Tailwind arbitrary value, with no JS media-query state.
   const focalOrigin = `${focalPoint.x * 100}% ${focalPoint.y * 100}%`;
 
   return (
-    <div className="absolute inset-0 overflow-hidden">
+    <div
+      className="absolute inset-0 overflow-hidden"
+      style={{ ['--hero-focal' as string]: focalOrigin }}
+    >
       <motion.div
-        className="absolute inset-0"
+        className="absolute inset-0 origin-left md:[transform-origin:var(--hero-focal)]"
         variants={variants}
         initial="initial"
         animate="animate"
         exit="exit"
-        style={{
-          transformOrigin: focalOrigin,
-          ...(reducedMotion ? { transform: 'none' } : null),
-        }}
+        style={reducedMotion ? { transform: 'none' } : undefined}
       >
         <Image
           src={src}
@@ -473,10 +509,14 @@ const HeroImage = memo(function HeroImage({
           fill
           priority={priority}
           sizes="100vw"
-          className="object-cover"
-          style={{
-            objectPosition: focalOrigin,
-          }}
+          // Below md: the image anchors flush to the left edge
+          // (object-position: left) so cropping only ever eats into
+          // the right side of the frame, regardless of how narrow the
+          // viewport is — this is what keeps the left-side composition
+          // intact instead of drifting as the crop ratio changes. At
+          // md: and above this reverts to the exact per-slide focal
+          // percentage used previously, so desktop is unchanged.
+          className="object-cover object-left md:[object-position:var(--hero-focal)]"
         />
       </motion.div>
     </div>
@@ -503,8 +543,12 @@ const HeroText = memo(function HeroText({
       className={[
         'absolute inset-x-0 bottom-0 z-10',
         'px-5 md:px-10 lg:px-16',
-        'pb-[calc(2.5rem+env(safe-area-inset-bottom))]',
-        'md:pb-14 lg:pb-16',
+        // Raised from the previous 2.5rem/pb-14/pb-16 — paired with
+        // HERO_GRADIENT's extended plateau above, this is what moves
+        // the headline fully inside solid dark coverage instead of
+        // straddling where it used to start fading.
+        'pb-[calc(3.25rem+env(safe-area-inset-bottom))]',
+        'md:pb-16 lg:pb-20',
         'text-left text-[#F7F2EA]',
         'max-w-[92%] sm:max-w-[560px] md:max-w-[620px] lg:max-w-[680px]',
       ].join(' ')}
@@ -613,17 +657,6 @@ const HeroSlide = memo(
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 z-[5]"
           style={{ backgroundImage: HERO_GRADIENT }}
-        />
-
-        {/* Section-transition handoff: a short band at the true bottom
-            edge only (well inside HeroText's own bottom padding, so it
-            never overlaps a glyph), fading into the exact cream token
-            "How It Works" opens with. This is what removes the hard
-            seam between the two sections — see HERO_SECTION_TRANSITION. */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 bottom-0 z-[6] h-8 md:h-12 lg:h-14"
-          style={{ backgroundImage: HERO_SECTION_TRANSITION }}
         />
 
         <HeroText
