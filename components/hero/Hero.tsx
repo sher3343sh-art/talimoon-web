@@ -56,6 +56,32 @@
 //    silently added, since the brief calls for the Hero to stay
 //    chrome-free and a persistent pause button is a real UI decision
 //    that should be made deliberately, not slipped in.
+//
+// v5 — targeted production fixes only, no architecture or desktop
+// layout changes:
+// 1. Mobile headline contrast fixed via a more graduated HERO_GRADIENT
+//    (six stops instead of four, with a flatter near-bottom plateau
+//    exactly where text sits), a two-layer text-shadow (tight + soft —
+//    still an ordinary shadow, never a stroke/outline), and a
+//    mobile-only font-weight bump (font-semibold, reverting to the
+//    original font-medium at md: so desktop is unchanged).
+// 2. HERO_BLUR_MASK's stops now mirror HERO_GRADIENT's exactly, so the
+//    backdrop-blur fades in lockstep with the darkening instead of
+//    ending at a visibly different point — this is the actual fix for
+//    "looks like a flat gradient sitting on the photo" rather than the
+//    photo itself going quietly soft toward the bottom.
+// 3. New HERO_SECTION_TRANSITION — a short band at the Hero's true
+//    bottom edge (well inside HeroText's padding reserve, never
+//    touching a glyph) fading into the exact cream token "How It
+//    Works" opens with, so the two sections no longer meet at a hard
+//    edge.
+// 4. Ken Burns no longer animates x/y translate. That, combined with
+//    the default (center) transform-origin it used before, was the
+//    actual cause of the reported "zoom drifts back toward center" —
+//    scaling from the box's center fights a left-biased object-position
+//    over time. Fix: scale only, with transform-origin pinned to the
+//    same focal-point percentage object-position already uses, so the
+//    subject stays visually stationary through the entire zoom.
 
 'use client';
 
@@ -189,18 +215,45 @@ const HERO_CONFIG: HeroConfig = {
   kenBurnsScale: 1.07, // mid-range of the requested 1.06-1.08
 };
 
-// One fixed gradient, used at every breakpoint. Bottom-up, so it darkens
-// only the lower band the text sits in — the top ~55-75% of every photo
-// stays untouched, bright, and vibrant, exactly as specified. Same navy
-// already used by this site's Navbar tokens (#1C2A3A), not a new color.
+// A graduated, six-stop curve rather than a blunt 4-stop one — the
+// point isn't just "get darker," it's an eased falloff so the darkening
+// itself feels like part of the photo's own tonal range instead of a
+// panel dropped on top. The plateau near the bottom (0-18%, staying
+// above 0.8 alpha) is what actually fixed mobile headline contrast —
+// previously that same zone had already started thinning out this high
+// up, which is exactly where the text sits. Same navy as the Navbar
+// tokens (#1C2A3A) throughout, no new color introduced.
 const HERO_GRADIENT =
-  'linear-gradient(to top, rgba(28,42,58,0.90) 0%, rgba(28,42,58,0.62) 30%, rgba(28,42,58,0.20) 56%, transparent 74%)';
+  'linear-gradient(to top, ' +
+  'rgba(28,42,58,0.94) 0%, ' +
+  'rgba(28,42,58,0.82) 18%, ' +
+  'rgba(28,42,58,0.55) 38%, ' +
+  'rgba(28,42,58,0.28) 56%, ' +
+  'rgba(28,42,58,0.08) 70%, ' +
+  'transparent 84%)';
 
-// A mask, not a second gradient — reused to feather the backdrop-blur
-// layer below so the blur itself fades out with the gradient instead of
-// ending in a hard, visible seam partway up the photo.
+// Mirrors HERO_GRADIENT's exact stops (not just its endpoints) so the
+// blur's intensity ramps down in lockstep with the darkness — this is
+// what makes the blur read as "the image itself going slightly soft
+// toward the bottom" rather than a separate hard-edged blurred rectangle
+// sitting on top of a separately-edged dark rectangle.
 const HERO_BLUR_MASK =
-  'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0) 74%)';
+  'linear-gradient(to top, ' +
+  'rgba(0,0,0,1) 0%, ' +
+  'rgba(0,0,0,0.9) 18%, ' +
+  'rgba(0,0,0,0.6) 38%, ' +
+  'rgba(0,0,0,0.3) 56%, ' +
+  'rgba(0,0,0,0.09) 70%, ' +
+  'rgba(0,0,0,0) 84%)';
+
+// A short, separate handoff at the true bottom edge — fades the Hero's
+// last ~40-56px into the exact cream token the next section
+// (--surface-warm-100, #F7F2EA) opens with, so the seam between the two
+// sections disappears instead of cutting hard from photo to flat cream.
+// Sits within HeroText's own bottom padding reserve, so it never
+// crosses into the text itself.
+const HERO_SECTION_TRANSITION =
+  'linear-gradient(to top, #F7F2EA 0%, rgba(247,242,234,0) 100%)';
 
 // ============================================================
 // Animation Definitions
@@ -219,16 +272,24 @@ const textTransition: Transition = {
 
 // Ken Burns — forward-only, restarts fresh every time a slide mounts
 // (keyed remount in HeroSlider), runs the full dwell duration linearly.
-const kenBurnsVariants = (focalPoint: { x: number; y: number }): Variants => ({
+//
+// Scale only now — no x/y translate. The previous version animated a
+// translate alongside the scale using the element's default (50% 50%)
+// transform-origin, which is what caused the reported "drift back
+// toward center": scaling from the geometric center while the visible
+// crop was already left-biased (via object-position) meant growth
+// pulled the frame toward showing more of what's right of center over
+// time, fighting the static focal point instead of respecting it. The
+// fix lives in HeroImage below — transform-origin is now set to the
+// same focal-point percentage object-position already uses, so scale
+// grows outward *from* the subject instead of from the box's center,
+// and the subject's on-screen position never moves.
+const kenBurnsVariants = (): Variants => ({
   initial: {
     scale: 1,
-    x: 0,
-    y: 0,
   },
   animate: {
     scale: HERO_CONFIG.kenBurnsScale,
-    x: `${(0.5 - focalPoint.x) * 10}%`,
-    y: `${(0.5 - focalPoint.y) * 10}%`,
     transition: {
       duration: HERO_CONFIG.dwellTime / 1000,
       ease: 'linear',
@@ -236,8 +297,6 @@ const kenBurnsVariants = (focalPoint: { x: number; y: number }): Variants => ({
   },
   exit: {
     scale: 1,
-    x: 0,
-    y: 0,
     transition: { duration: 0.8, ease: 'easeInOut' },
   },
 });
@@ -386,8 +445,14 @@ const HeroImage = memo(function HeroImage({
 
   const variants = useMemo(() => {
     if (reducedMotion) return undefined;
-    return kenBurnsVariants(focalPoint);
-  }, [reducedMotion, focalPoint]);
+    return kenBurnsVariants();
+  }, [reducedMotion]);
+
+  // Same anchor object-position uses below, applied as the scale's
+  // transform-origin — this is what keeps the focal subject visually
+  // stationary while the image grows around it (see the note on
+  // kenBurnsVariants above for why this replaces the old x/y drift).
+  const focalOrigin = `${focalPoint.x * 100}% ${focalPoint.y * 100}%`;
 
   return (
     <div className="absolute inset-0 overflow-hidden">
@@ -397,7 +462,10 @@ const HeroImage = memo(function HeroImage({
         initial="initial"
         animate="animate"
         exit="exit"
-        style={reducedMotion ? { transform: 'none' } : undefined}
+        style={{
+          transformOrigin: focalOrigin,
+          ...(reducedMotion ? { transform: 'none' } : null),
+        }}
       >
         <Image
           src={src}
@@ -407,7 +475,7 @@ const HeroImage = memo(function HeroImage({
           sizes="100vw"
           className="object-cover"
           style={{
-            objectPosition: `${focalPoint.x * 100}% ${focalPoint.y * 100}%`,
+            objectPosition: focalOrigin,
           }}
         />
       </motion.div>
@@ -447,10 +515,14 @@ const HeroText = memo(function HeroText({
       transition={textTransition}
     >
       {/* Gold eyebrow — same brand gold family used across the site,
-          not a new color. */}
+          not a new color. Two shadow layers (tight + soft) rather than
+          one, for the same reason as the headline below. */}
       <motion.span
         className="mb-2 block text-[13px] font-sans font-medium uppercase tracking-[0.18em] md:mb-3 md:text-[14px]"
-        style={{ color: 'rgb(224, 194, 130)', textShadow: '0 1px 2px rgba(0,0,0,0.18)' }}
+        style={{
+          color: 'rgb(224, 194, 130)',
+          textShadow: '0 1px 2px rgba(0,0,0,0.35), 0 1px 6px rgba(0,0,0,0.2)',
+        }}
         variants={textItemVariants}
       >
         {eyebrow}
@@ -462,9 +534,17 @@ const HeroText = memo(function HeroText({
         variants={textItemVariants}
       />
 
+      {/* font-semibold on mobile only (md: reverts to the original
+          font-medium, so desktop is unchanged) — a small, deliberate
+          weight increase that reads as crisper against a photo at
+          small sizes without looking like a different typeface. Paired
+          with a two-layer shadow: a tight, higher-alpha pass for edge
+          definition against busy image detail, plus the original soft
+          pass for depth — neither is a stroke/outline, both are
+          ordinary text-shadow. */}
       <motion.h1
-        className="mb-3 font-serif text-[30px] font-medium leading-[1.14] tracking-tight md:mb-4 md:text-[46px] lg:text-[54px] xl:text-[60px]"
-        style={{ textShadow: '0 2px 10px rgba(0,0,0,0.28)' }}
+        className="mb-3 font-serif text-[30px] font-semibold leading-[1.14] tracking-tight md:mb-4 md:text-[46px] md:font-medium lg:text-[54px] xl:text-[60px]"
+        style={{ textShadow: '0 1px 3px rgba(0,0,0,0.45), 0 6px 18px rgba(0,0,0,0.3)' }}
         variants={textItemVariants}
       >
         {headline}
@@ -472,7 +552,10 @@ const HeroText = memo(function HeroText({
 
       <motion.p
         className="max-w-[34ch] text-[14px] font-normal leading-relaxed md:max-w-[40ch] md:text-[16px]"
-        style={{ color: 'rgba(247, 242, 234, 0.86)' }}
+        style={{
+          color: 'rgba(247, 242, 234, 0.92)',
+          textShadow: '0 1px 4px rgba(0,0,0,0.3)',
+        }}
         variants={textItemVariants}
       >
         {description}
@@ -530,6 +613,17 @@ const HeroSlide = memo(
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 z-[5]"
           style={{ backgroundImage: HERO_GRADIENT }}
+        />
+
+        {/* Section-transition handoff: a short band at the true bottom
+            edge only (well inside HeroText's own bottom padding, so it
+            never overlaps a glyph), fading into the exact cream token
+            "How It Works" opens with. This is what removes the hard
+            seam between the two sections — see HERO_SECTION_TRANSITION. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-[6] h-8 md:h-12 lg:h-14"
+          style={{ backgroundImage: HERO_SECTION_TRANSITION }}
         />
 
         <HeroText
