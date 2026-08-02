@@ -219,6 +219,14 @@ const MOBILE_HERO_HEIGHT = 'clamp(380px, 115vw, 460px)';
 const MOBILE_GRADIENT =
   'linear-gradient(to top, rgba(28,42,58,0.90) 0%, rgba(28,42,58,0.62) 30%, rgba(28,42,58,0.20) 56%, transparent 74%)';
 
+// Mirrors MOBILE_GRADIENT's exact stops so the backdrop-blur fades in
+// lockstep with the darkening — the photo itself goes softly out of
+// focus right where the text sits, instead of a flat dark rectangle
+// sitting on a still-sharp image. Mobile only; desktop's HeroScrim has
+// no equivalent and is untouched.
+const MOBILE_BLUR_MASK =
+  'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.75) 30%, rgba(0,0,0,0.25) 56%, rgba(0,0,0,0) 74%)';
+
 // ============================================================
 // Animation Definitions
 // ============================================================
@@ -717,6 +725,16 @@ const HeroSlide = memo(
           // bottom — no separate box splitting the frame. See file
           // header for the full reasoning.
           <>
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 z-[4]"
+              style={{
+                backdropFilter: 'blur(6px)',
+                WebkitBackdropFilter: 'blur(6px)',
+                WebkitMaskImage: MOBILE_BLUR_MASK,
+                maskImage: MOBILE_BLUR_MASK,
+              }}
+            />
             <div
               aria-hidden="true"
               className="pointer-events-none absolute inset-0 z-[5]"
