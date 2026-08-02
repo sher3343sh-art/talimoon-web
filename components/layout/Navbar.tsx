@@ -193,9 +193,47 @@ export default function Navbar() {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const wasOpenRef = useRef(false);
 
+  // Mobile top-bar language dropdown — lives next to the hamburger now,
+  // not inside the drawer. Own refs (can't share the desktop language
+  // trigger/container refs: both nav variants stay mounted at once via
+  // CSS `hidden`, so a shared ref would just get overwritten by
+  // whichever one rendered second).
+  const mobileLanguageContainerRef = useRef<HTMLDivElement>(null);
+  const mobileLanguageTriggerRef = useRef<HTMLButtonElement>(null);
+
   const closeMenu = () => setMobileOpen(false);
 
-  // Collapse both accordions (Product, Language) whenever the drawer itself closes
+  // Click outside the mobile top-bar language dropdown closes it
+  useEffect(() => {
+    if (!mobileLanguageOpen) return;
+
+    function onPointerDown(event: MouseEvent) {
+      const target = event.target as Node;
+      if (!mobileLanguageContainerRef.current?.contains(target)) {
+        setMobileLanguageOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", onPointerDown);
+    return () => document.removeEventListener("mousedown", onPointerDown);
+  }, [mobileLanguageOpen]);
+
+  // Escape closes the mobile top-bar language dropdown and returns focus to its trigger
+  useEffect(() => {
+    if (!mobileLanguageOpen) return;
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key !== "Escape") return;
+      setMobileLanguageOpen(false);
+      mobileLanguageTriggerRef.current?.focus();
+    }
+
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [mobileLanguageOpen]);
+
+  // Collapse the Product accordion (drawer-internal) and the top-bar
+  // language dropdown whenever the drawer itself closes
   useEffect(() => {
     if (!mobileOpen) {
       setMobileProductOpen(false);
@@ -356,6 +394,30 @@ export default function Navbar() {
         : "text-white"
       : "",
   ].join(" ");
+
+  // Mobile top-bar language trigger — same color/open-state logic as
+  // the desktop languageTriggerClass above, just recompacted to sit
+  // comfortably in the h-16 mobile bar (h-8 matches the mobile logo's
+  // own height, so both sit on the same visual line). No background
+  // chip, matching the hamburger button right next to it — icon and
+  // text sit directly on the navbar, nothing boxed.
+  const mobileLanguageTriggerClass = (isOpen: boolean) =>
+    [
+      "group relative inline-flex h-8 shrink-0 items-center gap-1",
+      "whitespace-nowrap font-sans text-[13px] font-medium tracking-[0.01em]",
+      "transition-colors duration-200",
+      "focus-visible:outline focus-visible:outline-2",
+      "focus-visible:outline-offset-2",
+      "focus-visible:outline-[var(--accent-primary,#B5764B)]",
+      scrolled
+        ? "text-[var(--text-secondary,#49433C)] hover:text-[var(--text-primary,#2A241D)]"
+        : "text-white/85 hover:text-white",
+      isOpen
+        ? scrolled
+          ? "text-[var(--text-primary,#2A241D)]"
+          : "text-white"
+        : "",
+    ].join(" ");
 
   const chevronClass = (isOpen: boolean) =>
     [
@@ -870,44 +932,110 @@ export default function Navbar() {
           />
         </Link>
 
-        <button
-          ref={toggleButtonRef}
-          type="button"
-          aria-label={mobileOpen ? "Close menu" : "Open menu"}
-          aria-expanded={mobileOpen}
-          aria-controls="tm-mobile-drawer"
-          onClick={() => setMobileOpen((open) => !open)}
-          className={[
-            "relative flex h-6 w-6 shrink-0 items-center justify-center",
-            "focus-visible:outline focus-visible:outline-2",
-            "focus-visible:outline-offset-2",
-            "focus-visible:outline-[var(--accent-primary,#B5764B)]",
-          ].join(" ")}
-        >
-          <span aria-hidden="true" className="relative flex h-4 w-6 flex-col justify-between">
-            <span
+        <div className="flex shrink-0 items-center gap-2">
+          <div ref={mobileLanguageContainerRef} className="relative shrink-0">
+            <button
+              ref={mobileLanguageTriggerRef}
+              type="button"
+              aria-haspopup="menu"
+              aria-expanded={mobileLanguageOpen}
+              aria-controls="tm-mobile-topbar-language-menu"
+              aria-label={`Language: ${currentLanguageName}`}
+              onClick={() => setMobileLanguageOpen((open) => !open)}
+              className={mobileLanguageTriggerClass(mobileLanguageOpen)}
+            >
+              <GlobeIcon />
+              <span>{language}</span>
+              <span className={chevronClass(mobileLanguageOpen)}>
+                <ChevronIcon />
+              </span>
+            </button>
+
+            <div
+              id="tm-mobile-topbar-language-menu"
+              role="menu"
+              aria-label="Language"
               className={[
-                "h-[1.5px] w-6 rounded-full transition-transform duration-300 ease-out",
-                hamburgerBarColor,
-                mobileOpen ? "translate-y-[7px] rotate-45" : "",
+                dropdownPanelClass(mobileLanguageOpen, "right"),
+                "flex w-max flex-col gap-0.5",
               ].join(" ")}
-            />
-            <span
-              className={[
-                "h-[1.5px] w-6 rounded-full transition-opacity duration-200 ease-out",
-                hamburgerBarColor,
-                mobileOpen ? "opacity-0" : "opacity-100",
-              ].join(" ")}
-            />
-            <span
-              className={[
-                "h-[1.5px] w-6 rounded-full transition-transform duration-300 ease-out",
-                hamburgerBarColor,
-                mobileOpen ? "-translate-y-[7px] -rotate-45" : "",
-              ].join(" ")}
-            />
-          </span>
-        </button>
+            >
+              {LANGUAGES.map((lang) => (
+                <button
+                  key={lang.code}
+                  type="button"
+                  role="menuitemradio"
+                  aria-checked={language === lang.code}
+                  aria-label={lang.name}
+                  tabIndex={mobileLanguageOpen ? 0 : -1}
+                  onClick={() => {
+                    setLanguage(lang.code);
+                    setMobileLanguageOpen(false);
+                    mobileLanguageTriggerRef.current?.focus();
+                  }}
+                  className={[
+                    "flex items-center gap-2 rounded px-2.5 py-2",
+                    "font-sans text-[14px] font-medium",
+                    "transition-colors duration-150",
+                    "focus-visible:outline focus-visible:outline-2",
+                    "focus-visible:outline-offset-[-2px]",
+                    "focus-visible:outline-[var(--accent-primary,#B5764B)]",
+                    scrolled ? "text-[var(--text-primary,#2A241D)]" : "text-white/90",
+                    language === lang.code
+                      ? scrolled
+                        ? "bg-black/[0.05]"
+                        : "bg-white/[0.08]"
+                      : scrolled
+                        ? "hover:bg-black/[0.05]"
+                        : "hover:bg-white/[0.08]",
+                  ].join(" ")}
+                >
+                  <FlagIcon code={lang.code} />
+                  <span>{lang.code}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <button
+            ref={toggleButtonRef}
+            type="button"
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileOpen}
+            aria-controls="tm-mobile-drawer"
+            onClick={() => setMobileOpen((open) => !open)}
+            className={[
+              "relative flex h-6 w-6 shrink-0 items-center justify-center",
+              "focus-visible:outline focus-visible:outline-2",
+              "focus-visible:outline-offset-2",
+              "focus-visible:outline-[var(--accent-primary,#B5764B)]",
+            ].join(" ")}
+          >
+            <span aria-hidden="true" className="relative flex h-4 w-6 flex-col justify-between">
+              <span
+                className={[
+                  "h-[1.5px] w-6 rounded-full transition-transform duration-300 ease-out",
+                  hamburgerBarColor,
+                  mobileOpen ? "translate-y-[7px] rotate-45" : "",
+                ].join(" ")}
+              />
+              <span
+                className={[
+                  "h-[1.5px] w-6 rounded-full transition-opacity duration-200 ease-out",
+                  hamburgerBarColor,
+                  mobileOpen ? "opacity-0" : "opacity-100",
+                ].join(" ")}
+              />
+              <span
+                className={[
+                  "h-[1.5px] w-6 rounded-full transition-transform duration-300 ease-out",
+                  hamburgerBarColor,
+                  mobileOpen ? "-translate-y-[7px] -rotate-45" : "",
+                ].join(" ")}
+              />
+            </span>
+          </button>
+        </div>
       </div>
 
       {/* ============================================================
@@ -1013,92 +1141,6 @@ export default function Navbar() {
                     <path d="M6 6l12 12M18 6 6 18" />
                   </svg>
                 </button>
-              </div>
-            </div>
-
-            {/* Language: own accordion row, sitting outside/above the Product accordion.
-                Shows the currently selected language; tapping it expands the panel
-                below to reveal the other languages — same interaction pattern as
-                the Product accordion further down, so the drawer feels consistent. */}
-            <div className="shrink-0 border-b border-[var(--border-subtle,rgba(42,36,29,0.12))] px-5">
-              <button
-                type="button"
-                aria-expanded={mobileLanguageOpen}
-                aria-controls="tm-mobile-language-panel"
-                onClick={() => setMobileLanguageOpen((open) => !open)}
-                className={[
-                  "flex min-h-[52px] w-full items-center justify-between",
-                  "py-3 text-left font-sans text-[14px] font-medium",
-                  "text-[var(--text-primary,#2A241D)]",
-                  "transition-colors duration-200 ease-out active:text-[var(--accent-primary,#B5764B)]",
-                  "focus-visible:outline focus-visible:outline-2",
-                  "focus-visible:outline-offset-2",
-                  "focus-visible:outline-[var(--accent-primary,#B5764B)]",
-                ].join(" ")}
-              >
-                <span className="flex items-center gap-2.5">
-                  <span className="text-[var(--text-tertiary,#726C65)]">
-                    <GlobeIcon />
-                  </span>
-                  <span>{currentLanguageName}</span>
-                  <span className="font-sans text-[11px] font-normal uppercase tracking-[0.06em] text-[var(--text-tertiary,#726C65)]">
-                    {language}
-                  </span>
-                </span>
-                <span
-                  className={[
-                    "h-3 w-3 shrink-0 text-[var(--text-tertiary,#726C65)]",
-                    "transition-transform duration-300 ease-out",
-                    mobileLanguageOpen ? "rotate-180" : "rotate-0",
-                  ].join(" ")}
-                >
-                  <ChevronIcon />
-                </span>
-              </button>
-
-              <div
-                id="tm-mobile-language-panel"
-                role="radiogroup"
-                aria-label="Language"
-                className={[
-                  "grid overflow-hidden",
-                  `transition-[grid-template-rows] duration-300 ${DRAWER_EASING}`,
-                  mobileLanguageOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
-                ].join(" ")}
-              >
-                <ul className="min-h-0 flex flex-col gap-1 pb-3 pl-4">
-                  {LANGUAGES.map((lang) => {
-                    const isSelected = language === lang.code;
-                    return (
-                      <li key={lang.code}>
-                        <button
-                          type="button"
-                          role="radio"
-                          aria-checked={isSelected}
-                          tabIndex={mobileLanguageOpen ? 0 : -1}
-                          onClick={() => {
-                            setLanguage(lang.code);
-                            setMobileLanguageOpen(false);
-                          }}
-                          className={[
-                            "flex min-h-[44px] w-full items-center gap-2.5 rounded-lg px-2",
-                            "font-sans text-[15px] font-medium leading-[1.3]",
-                            "transition-colors duration-200 ease-out",
-                            "focus-visible:outline focus-visible:outline-2",
-                            "focus-visible:outline-offset-2",
-                            "focus-visible:outline-[var(--accent-primary,#B5764B)]",
-                            isSelected
-                              ? "text-[var(--text-primary,#2A241D)]"
-                              : "text-[var(--text-secondary,#49433C)] active:text-[var(--text-primary,#2A241D)]",
-                          ].join(" ")}
-                        >
-                          <FlagIcon code={lang.code} />
-                          <span>{lang.name}</span>
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
               </div>
             </div>
 
