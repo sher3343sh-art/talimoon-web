@@ -186,6 +186,7 @@ export default function Navbar() {
   const [menuMounted, setMenuMounted] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
   const [mobileProductOpen, setMobileProductOpen] = useState(false);
+  const [mobileLanguageOpen, setMobileLanguageOpen] = useState(false);
 
   const drawerRef = useRef<HTMLDivElement>(null);
   const toggleButtonRef = useRef<HTMLButtonElement>(null);
@@ -194,9 +195,12 @@ export default function Navbar() {
 
   const closeMenu = () => setMobileOpen(false);
 
-  // Collapse the Product accordion whenever the drawer itself closes
+  // Collapse both accordions (Product, Language) whenever the drawer itself closes
   useEffect(() => {
-    if (!mobileOpen) setMobileProductOpen(false);
+    if (!mobileOpen) {
+      setMobileProductOpen(false);
+      setMobileLanguageOpen(false);
+    }
   }, [mobileOpen]);
 
   // Mount/animate the drawer in, or animate it out then unmount
@@ -493,6 +497,10 @@ export default function Navbar() {
   const hamburgerBarColor = scrolled
     ? "bg-[var(--nav-rest-bg,#1C2A3A)]"
     : "bg-white";
+
+  // Full display name of the currently selected language (for the mobile accordion trigger)
+  const currentLanguageName =
+    LANGUAGES.find((lang) => lang.code === language)?.name ?? language;
 
   return (
     <header
@@ -1008,39 +1016,90 @@ export default function Navbar() {
               </div>
             </div>
 
-            {/* Language: compact selectable chips, placed before the Product dropdown/nav list */}
-            <div
-              role="radiogroup"
-              aria-label="Language"
-              className="flex shrink-0 items-center gap-2 overflow-x-auto border-b border-[var(--border-subtle,rgba(42,36,29,0.12))] px-5 py-3"
-            >
-              {LANGUAGES.map((lang) => {
-                const isSelected = language === lang.code;
-                return (
-                  <button
-                    key={lang.code}
-                    type="button"
-                    role="radio"
-                    aria-checked={isSelected}
-                    aria-label={lang.name}
-                    onClick={() => setLanguage(lang.code)}
-                    className={[
-                      "flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5",
-                      "font-sans text-[12px] font-medium",
-                      "transition-colors duration-150",
-                      "focus-visible:outline focus-visible:outline-2",
-                      "focus-visible:outline-offset-2",
-                      "focus-visible:outline-[var(--accent-primary,#B5764B)]",
-                      isSelected
-                        ? "bg-[var(--text-primary,#2A241D)] text-white"
-                        : "bg-black/[0.04] text-[var(--text-secondary,#49433C)] hover:bg-black/[0.08]",
-                    ].join(" ")}
-                  >
-                    <FlagIcon code={lang.code} />
-                    <span>{lang.code}</span>
-                  </button>
-                );
-              })}
+            {/* Language: own accordion row, sitting outside/above the Product accordion.
+                Shows the currently selected language; tapping it expands the panel
+                below to reveal the other languages — same interaction pattern as
+                the Product accordion further down, so the drawer feels consistent. */}
+            <div className="shrink-0 border-b border-[var(--border-subtle,rgba(42,36,29,0.12))] px-5">
+              <button
+                type="button"
+                aria-expanded={mobileLanguageOpen}
+                aria-controls="tm-mobile-language-panel"
+                onClick={() => setMobileLanguageOpen((open) => !open)}
+                className={[
+                  "flex min-h-[52px] w-full items-center justify-between",
+                  "py-3 text-left font-sans text-[14px] font-medium",
+                  "text-[var(--text-primary,#2A241D)]",
+                  "transition-colors duration-200 ease-out active:text-[var(--accent-primary,#B5764B)]",
+                  "focus-visible:outline focus-visible:outline-2",
+                  "focus-visible:outline-offset-2",
+                  "focus-visible:outline-[var(--accent-primary,#B5764B)]",
+                ].join(" ")}
+              >
+                <span className="flex items-center gap-2.5">
+                  <span className="text-[var(--text-tertiary,#726C65)]">
+                    <GlobeIcon />
+                  </span>
+                  <span>{currentLanguageName}</span>
+                  <span className="font-sans text-[11px] font-normal uppercase tracking-[0.06em] text-[var(--text-tertiary,#726C65)]">
+                    {language}
+                  </span>
+                </span>
+                <span
+                  className={[
+                    "h-3 w-3 shrink-0 text-[var(--text-tertiary,#726C65)]",
+                    "transition-transform duration-300 ease-out",
+                    mobileLanguageOpen ? "rotate-180" : "rotate-0",
+                  ].join(" ")}
+                >
+                  <ChevronIcon />
+                </span>
+              </button>
+
+              <div
+                id="tm-mobile-language-panel"
+                role="radiogroup"
+                aria-label="Language"
+                className={[
+                  "grid overflow-hidden",
+                  `transition-[grid-template-rows] duration-300 ${DRAWER_EASING}`,
+                  mobileLanguageOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+                ].join(" ")}
+              >
+                <ul className="min-h-0 flex flex-col gap-1 pb-3 pl-4">
+                  {LANGUAGES.map((lang) => {
+                    const isSelected = language === lang.code;
+                    return (
+                      <li key={lang.code}>
+                        <button
+                          type="button"
+                          role="radio"
+                          aria-checked={isSelected}
+                          tabIndex={mobileLanguageOpen ? 0 : -1}
+                          onClick={() => {
+                            setLanguage(lang.code);
+                            setMobileLanguageOpen(false);
+                          }}
+                          className={[
+                            "flex min-h-[44px] w-full items-center gap-2.5 rounded-lg px-2",
+                            "font-sans text-[15px] font-medium leading-[1.3]",
+                            "transition-colors duration-200 ease-out",
+                            "focus-visible:outline focus-visible:outline-2",
+                            "focus-visible:outline-offset-2",
+                            "focus-visible:outline-[var(--accent-primary,#B5764B)]",
+                            isSelected
+                              ? "text-[var(--text-primary,#2A241D)]"
+                              : "text-[var(--text-secondary,#49433C)] active:text-[var(--text-primary,#2A241D)]",
+                          ].join(" ")}
+                        >
+                          <FlagIcon code={lang.code} />
+                          <span>{lang.name}</span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
             </div>
 
             <nav aria-label="Mobile" className="min-h-0 flex-1 overflow-y-auto px-5">
