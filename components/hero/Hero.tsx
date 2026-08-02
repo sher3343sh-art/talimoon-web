@@ -217,7 +217,7 @@ const MOBILE_HERO_HEIGHT = 'clamp(380px, 115vw, 460px)';
 // the file header. Same navy already used by this site's Navbar/nav
 // tokens (#1C2A3A), not a new color.
 const MOBILE_GRADIENT =
-  'linear-gradient(to top, rgba(28,42,58,0.90) 0%, rgba(28,42,58,0.62) 30%, rgba(28,42,58,0.20) 56%, transparent 74%)';
+  'linear-gradient(to top, rgba(28,42,58,0.90) 0%, rgba(28,42,58,0.62) 25%, rgba(28,42,58,0.20) 32%, transparent 50%)';
 
 // Mirrors MOBILE_GRADIENT's exact stops so the backdrop-blur fades in
 // lockstep with the darkening — the photo itself goes softly out of
@@ -225,7 +225,7 @@ const MOBILE_GRADIENT =
 // sitting on a still-sharp image. Mobile only; desktop's HeroScrim has
 // no equivalent and is untouched.
 const MOBILE_BLUR_MASK =
-  'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.75) 30%, rgba(0,0,0,0.25) 56%, rgba(0,0,0,0) 74%)';
+  'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.75) 25%, rgba(0,0,0,0.25) 32%, rgba(0,0,0,0) 50%)';
 
 // ============================================================
 // Animation Definitions
@@ -647,7 +647,7 @@ const MobileHeroText = memo(function MobileHeroText({
     <motion.div
       className="absolute inset-x-0 bottom-0 z-10 px-6 text-left"
       style={{
-        paddingBottom: 'calc(1.75rem + env(safe-area-inset-bottom))',
+        paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))',
         color: '#F7F2EA',
       }}
       variants={textBlockVariants}
@@ -665,14 +665,14 @@ const MobileHeroText = memo(function MobileHeroText({
       </motion.span>
 
       <motion.h1
-        className="mb-3 font-serif text-[28px] font-medium leading-[1.15] tracking-tight"
+        className="mb-2 font-serif text-[22px] font-medium leading-[1.15] tracking-tight"
         variants={textItemVariants}
       >
         {headline}
       </motion.h1>
 
       <motion.p
-        className="max-w-[34ch] text-[14px] leading-relaxed"
+        className="max-w-[34ch] text-[12.5px] leading-snug"
         style={{ color: 'rgba(247, 242, 234, 0.86)' }}
         variants={textItemVariants}
       >
@@ -732,8 +732,8 @@ const HeroSlide = memo(
               aria-hidden="true"
               className="pointer-events-none absolute inset-0 z-[4]"
               style={{
-                backdropFilter: 'blur(6px)',
-                WebkitBackdropFilter: 'blur(6px)',
+                backdropFilter: 'blur(3px)',
+                WebkitBackdropFilter: 'blur(3npmpx)',
                 WebkitMaskImage: MOBILE_BLUR_MASK,
                 maskImage: MOBILE_BLUR_MASK,
               }}
