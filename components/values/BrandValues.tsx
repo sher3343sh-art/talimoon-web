@@ -291,7 +291,7 @@ function LogoEmblem() {
       ))}
 
       <Image
-        src="/images/logo/talimoon-logo.svg"
+        src="/logo/talimoon-logo-color.svg"
         alt=""
         aria-hidden="true"
         width={100}

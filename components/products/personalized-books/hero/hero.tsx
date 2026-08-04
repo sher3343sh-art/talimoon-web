@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 
 /**
@@ -99,7 +99,7 @@ export default function TalimoonHero({
           --text-tertiary: rgba(42,36,29,0.65);
           --text-on-image: #F7F2EA;
           --accent-primary: #BA8450;
-          --accent-primary-hover: #C894D;
+          --accent-primary-hover: #9C7A47;
           position: relative;
           min-height: min(92vh, 960px);
           height: 100vh;

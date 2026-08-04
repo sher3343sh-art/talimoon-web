@@ -64,7 +64,7 @@
 
 'use client';
 
-import React, {
+import {
   useState,
   useCallback,
   useEffect,
@@ -733,7 +733,7 @@ const HeroSlide = memo(
               className="pointer-events-none absolute inset-0 z-[4]"
               style={{
                 backdropFilter: 'blur(3px)',
-                WebkitBackdropFilter: 'blur(3npmpx)',
+                WebkitBackdropFilter: 'blur(3px)',
                 WebkitMaskImage: MOBILE_BLUR_MASK,
                 maskImage: MOBILE_BLUR_MASK,
               }}

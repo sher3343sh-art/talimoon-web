@@ -6,6 +6,7 @@ import BookShowcase from "@/components/showcase/BookShowcase";
 import InsideBook from "@/components/inside-book/InsideBook";
 import EmotionalBanner from "@/components/emotional-banner/EmotionalBanner";
 import Examples from "@/components/examples/Examples";
+import Footer from "@/components/layout/Footer";
 
 export default function Home() {
   return (
@@ -21,6 +22,8 @@ export default function Home() {
         <InsideBook />
         <EmotionalBanner />
       </main>
+
+      <Footer />
     </>
   );
 }
