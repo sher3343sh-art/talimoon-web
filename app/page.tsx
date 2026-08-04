@@ -1,6 +1,6 @@
 import Navbar from "@/components/layout/Navbar";
 import { HeroSlider } from "@/components/hero/Hero";
-import TrustStrip from "@/components/trust/TrustStrip";
+import { BrandValues } from "@/components/values/BrandValues";
 import HowItWorks from "@/components/how-it-works/HowItWorks";
 import BookShowcase from "@/components/showcase/BookShowcase";
 import InsideBook from "@/components/inside-book/InsideBook";
@@ -14,7 +14,7 @@ export default function Home() {
 
       <main>
         <HeroSlider />
-        <TrustStrip />
+        <BrandValues />
         <HowItWorks />
         <Examples />
         <BookShowcase />
