@@ -97,20 +97,6 @@ const REST_BORDER = "rgba(255,255,255,0.10)";
 const SCROLLED_BG = "rgba(247,242,234,0.55)";
 const SCROLLED_BORDER = "rgba(42,36,29,0.10)";
 
-/**
- * ---------------------------------------------------------------
- * GOLD DESIGN TOKEN SYSTEM
- * ---------------------------------------------------------------
- */
-const GOLD_TOKENS = {
-  "--gold-shadow": "#5E4620",
-  "--gold-base": "#8A6A35",
-  "--gold-mid": "#C79A4B",
-  "--gold-highlight": "#F0DDA6",
-  "--gold-border": "rgba(255, 244, 219, 0.28)",
-  "--gold-text": "#2A241D",
-} as React.CSSProperties;
-
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
 
@@ -583,103 +569,9 @@ export default function Navbar() {
           : "border-b border-[var(--nav-rest-border)] bg-[var(--nav-rest-bg)]",
       ].join(" ")}
     >
-      {/* Gold CTA surface system */}
-      <style jsx>{`
-        .tm-cta-gold {
-          position: relative;
-          border-radius: 10px;
-          border: 1px solid var(--gold-border);
-          color: var(--gold-text);
-
-          background-image: linear-gradient(
-            135deg,
-            var(--gold-shadow) 0%,
-            var(--gold-base) 20%,
-            var(--gold-mid) 38%,
-            var(--gold-highlight) 50%,
-            var(--gold-mid) 62%,
-            var(--gold-base) 80%,
-            var(--gold-shadow) 100%
-          );
-          background-size: 220% 100%;
-          background-position: 15% 0%;
-
-          box-shadow:
-            inset 0 1px 0 rgba(255, 255, 255, 0.22),
-            inset 0 -1px 0 rgba(0, 0, 0, 0.14),
-            0 1px 2px rgba(60, 45, 20, 0.18),
-            0 8px 20px -10px rgba(120, 90, 40, 0.45);
-
-          transition:
-            background-position 500ms ease-out,
-            box-shadow 250ms ease-out,
-            transform 150ms ease-out,
-            filter 250ms ease-out;
-        }
-
-        .tm-cta-gold:hover {
-          background-position: 85% 0%;
-          filter: brightness(1.04);
-          box-shadow:
-            inset 0 1px 0 rgba(255, 255, 255, 0.28),
-            inset 0 -1px 0 rgba(0, 0, 0, 0.16),
-            0 2px 4px rgba(60, 45, 20, 0.2),
-            0 12px 26px -10px rgba(120, 90, 40, 0.55);
-        }
-
-        .tm-cta-gold:active {
-          transform: translateY(1px);
-          filter: brightness(0.99);
-          box-shadow:
-            inset 0 1px 0 rgba(255, 255, 255, 0.18),
-            inset 0 -1px 0 rgba(0, 0, 0, 0.16),
-            0 1px 2px rgba(60, 45, 20, 0.18),
-            0 4px 10px -6px rgba(120, 90, 40, 0.4);
-        }
-
-        .tm-cta-gold:focus-visible {
-          outline: 2px solid var(--gold-shadow);
-          outline-offset: 2px;
-        }
-
-        .tm-logo-shine {
-          -webkit-mask-image: url("/logo/talimoon-logo-gold.svg");
-          mask-image: url("/logo/talimoon-logo-gold.svg");
-          -webkit-mask-size: contain;
-          mask-size: contain;
-          -webkit-mask-repeat: no-repeat;
-          mask-repeat: no-repeat;
-          -webkit-mask-position: left center;
-          mask-position: left center;
-
-          background-image: linear-gradient(
-            100deg,
-            transparent 46%,
-            rgba(255, 240, 196, 0.85) 50%,
-            transparent 54%
-          );
-          background-size: 240% 100%;
-          background-position: -70% 0%;
-          mix-blend-mode: screen;
-          animation: tm-logo-shine-sweep 6s linear infinite;
-        }
-
-        @keyframes tm-logo-shine-sweep {
-          0% {
-            background-position: -70% 0%;
-          }
-          100% {
-            background-position: 170% 0%;
-          }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .tm-logo-shine {
-            animation: none;
-            background-position: 50% 0%;
-          }
-        }
-      `}</style>
+      {/* Logo shine (.tm-logo-shine) and gold CTA (.tm-cta-gold) both live
+          globally in globals.css (§27/§28) so they can be reused outside
+          Navbar — Footer reuses both for its own logo + CTA. */}
 
       {/* ============================================================
           DESKTOP NAV (lg and above)
@@ -797,7 +689,6 @@ export default function Navbar() {
 
           <a
             href="#begin"
-            style={GOLD_TOKENS}
             className={[
               "tm-cta-gold",
               "inline-flex h-11 shrink-0 items-center justify-center",
@@ -1245,7 +1136,6 @@ export default function Navbar() {
               <a
                 href="#begin"
                 onClick={closeMenu}
-                style={GOLD_TOKENS}
                 className={[
                   "tm-cta-gold",
                   "flex h-12 w-full items-center justify-center",

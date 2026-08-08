@@ -11,12 +11,23 @@ const PARTICLES = [
   { left: "90%", delay: 1.8 },
 ];
 
+type AmbientParticlesProps = {
+  /** Tailwind classes for the dot's own color/size. Defaults match the Our Products wall (light dots for a dark backdrop). */
+  dotClassName?: string;
+  /** Tailwind class for the dots' starting vertical position. */
+  originClassName?: string;
+};
+
 /**
- * Slow-drifting motes across the wall behind the doors — decorative
- * only. Isolated in its own client component so FourDoorsSection can
- * stay a server component.
+ * Slow-drifting motes — decorative only. Isolated in its own client
+ * component so callers (FourDoorsSection, StoryLibraryPreview) can
+ * stay server components. Color/origin are overridable so a light
+ * backdrop can use dark dots instead of the default light-on-dark set.
  */
-export function AmbientParticles() {
+export function AmbientParticles({
+  dotClassName = "h-1 w-1 rounded-full bg-[var(--paper-50)]",
+  originClassName = "bottom-[10%]",
+}: AmbientParticlesProps = {}) {
   const reducedMotion = useReducedMotion();
 
   if (reducedMotion) return null;
@@ -27,7 +38,7 @@ export function AmbientParticles() {
         <motion.span
           key={i}
           aria-hidden="true"
-          className="absolute bottom-[10%] h-1 w-1 rounded-full bg-[var(--paper-50)]"
+          className={["absolute", originClassName, dotClassName].join(" ")}
           style={{ left: particle.left }}
           animate={{ y: [0, -140, -260], opacity: [0, 0.5, 0] }}
           transition={{

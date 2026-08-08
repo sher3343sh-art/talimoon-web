@@ -1,0 +1,117 @@
+"use client";
+
+/**
+ * TestimonialCarousel — Families Wall
+ * ----------------------------------------------------------------
+ * Center-focused 3-card carousel matching the reference exactly: a
+ * large, fully-opaque center card flanked by two smaller, partially
+ * visible side cards peeking in from the container's edges. Circular
+ * gold-outline nav arrows and three dot indicators below (the active
+ * dot always corresponds to whichever story is currently centered).
+ *
+ * With exactly 3 stories, "next"/"previous" is a simple index
+ * rotation — the story that was centered becomes the new side peek,
+ * and vice versa. The side cards are pulled partially behind the
+ * center card with negative margins inside an `overflow-hidden` row,
+ * which is what produces the "cut off at the edge" look without any
+ * absolute-positioning math.
+ */
+
+import { AnimatePresence, motion } from "framer-motion";
+import { useState } from "react";
+import { FamilyCard, type FamilyStory } from "./FamilyCard";
+
+function ChevronIcon({ direction }: { direction: "left" | "right" }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className="h-4 w-4"
+    >
+      <path d={direction === "left" ? "M15 5.5 8.5 12l6.5 6.5" : "M9 5.5 15.5 12 9 18.5"} />
+    </svg>
+  );
+}
+
+export function TestimonialCarousel({ stories }: { stories: FamilyStory[] }) {
+  const [activeIndex, setActiveIndex] = useState(1);
+  const count = stories.length;
+
+  const leftIndex = (activeIndex - 1 + count) % count;
+  const rightIndex = (activeIndex + 1) % count;
+
+  function goTo(index: number) {
+    setActiveIndex(((index % count) + count) % count);
+  }
+
+  return (
+    <div className="relative mx-auto max-w-[1040px]">
+      <button
+        type="button"
+        onClick={() => goTo(activeIndex - 1)}
+        aria-label="Previous story"
+        className="absolute left-0 top-1/2 z-20 hidden -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-[var(--gold-500,#B8935B)] bg-[var(--paper-50,#FDFBF7)] text-[var(--gold-600,#9C7A47)] shadow-[0_4px_16px_-4px_rgba(42,36,29,0.14)] transition-transform duration-200 hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-primary,#B5764B)] md:flex md:h-11 md:w-11"
+      >
+        <ChevronIcon direction="left" />
+      </button>
+      <button
+        type="button"
+        onClick={() => goTo(activeIndex + 1)}
+        aria-label="Next story"
+        className="absolute right-0 top-1/2 z-20 hidden translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-[var(--gold-500,#B8935B)] bg-[var(--paper-50,#FDFBF7)] text-[var(--gold-600,#9C7A47)] shadow-[0_4px_16px_-4px_rgba(42,36,29,0.14)] transition-transform duration-200 hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-primary,#B5764B)] md:flex md:h-11 md:w-11"
+      >
+        <ChevronIcon direction="right" />
+      </button>
+
+      <div className="flex items-center justify-center overflow-hidden">
+        <div className="hidden w-[240px] shrink-0 -mr-14 scale-[0.88] opacity-70 md:block">
+          <FamilyCard story={stories[leftIndex]} size="sm" />
+        </div>
+
+        <div className="z-10 w-full max-w-[520px] shrink-0 px-4 md:px-0">
+          <AnimatePresence initial={false}>
+            <motion.div
+              key={stories[activeIndex].id}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <FamilyCard story={stories[activeIndex]} size="lg" />
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        <div className="hidden w-[240px] shrink-0 -ml-14 scale-[0.88] opacity-70 md:block">
+          <FamilyCard story={stories[rightIndex]} size="sm" />
+        </div>
+      </div>
+
+      <div className="mt-8 flex items-center justify-center gap-2" role="tablist" aria-label="Story navigation">
+        {stories.map((story, index) => (
+          <button
+            key={story.id}
+            type="button"
+            role="tab"
+            aria-selected={index === activeIndex}
+            aria-label={`Show ${story.name}'s story`}
+            onClick={() => goTo(index)}
+            className={[
+              "h-2 w-2 rounded-full transition-[background-color,transform] duration-300 ease-out focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-primary,#B5764B)]",
+              index === activeIndex
+                ? "scale-125 bg-[var(--text-primary,#2A241D)]"
+                : "bg-[var(--border-default,rgba(42,36,29,0.14))] hover:bg-[var(--text-muted,#8B8578)]",
+            ].join(" ")}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default TestimonialCarousel;

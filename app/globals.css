@@ -706,3 +706,130 @@ body {
   transform: scale(0.985);
   transition-duration: 120ms;
 }
+
+/* ==========================================================================
+   27. GOLD CTA — SHARED SURFACE
+   The one production-approved "gold" call-to-action treatment
+   (originally Navbar's "Begin the Story" button). Moved here from a
+   component-local `<style jsx>` in Navbar.tsx so any section that
+   needs the exact same CTA — e.g. Story Library's "Explore Story
+   Library" — can reuse the literal class instead of re-declaring it.
+   Navbar now sources this from here too; nothing about its rendered
+   output changed, only where the CSS lives. Do not duplicate this
+   ruleset locally in a new component — import/reuse `.tm-cta-gold`.
+   ========================================================================== */
+
+:root {
+  --gold-shadow: #5e4620;
+  --gold-base: #8a6a35;
+  --gold-mid: #c79a4b;
+  --gold-highlight: #f0dda6;
+  --gold-border: rgba(255, 244, 219, 0.28);
+  --gold-text: #2a241d;
+}
+
+.tm-cta-gold {
+  position: relative;
+  border-radius: 10px;
+  border: 1px solid var(--gold-border);
+  color: var(--gold-text);
+
+  background-image: linear-gradient(
+    135deg,
+    var(--gold-shadow) 0%,
+    var(--gold-base) 20%,
+    var(--gold-mid) 38%,
+    var(--gold-highlight) 50%,
+    var(--gold-mid) 62%,
+    var(--gold-base) 80%,
+    var(--gold-shadow) 100%
+  );
+  background-size: 220% 100%;
+  background-position: 15% 0%;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.14),
+    0 1px 2px rgba(60, 45, 20, 0.18),
+    0 8px 20px -10px rgba(120, 90, 40, 0.45);
+
+  transition:
+    background-position 500ms ease-out,
+    box-shadow 250ms ease-out,
+    transform 150ms ease-out,
+    filter 250ms ease-out;
+}
+
+.tm-cta-gold:hover {
+  background-position: 85% 0%;
+  filter: brightness(1.04);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.16),
+    0 2px 4px rgba(60, 45, 20, 0.2),
+    0 12px 26px -10px rgba(120, 90, 40, 0.55);
+}
+
+.tm-cta-gold:active {
+  transform: translateY(1px);
+  filter: brightness(0.99);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.16),
+    0 1px 2px rgba(60, 45, 20, 0.18),
+    0 4px 10px -6px rgba(120, 90, 40, 0.4);
+}
+
+.tm-cta-gold:focus-visible {
+  outline: 2px solid var(--gold-shadow);
+  outline-offset: 2px;
+}
+
+/* ==========================================================================
+   28. LOGO SHINE — SHARED SURFACE
+   The gold logo's animated light-sweep, originally a Navbar-local
+   `<style jsx>` rule. Moved here so any other surface that reuses the
+   gold logo asset (e.g. Footer, once it sits on a permanently dark
+   surface) can reuse the exact same shine class instead of
+   re-declaring it. Usage: stack an `<img src="talimoon-logo-gold.svg">`
+   with a same-sized `<span className="tm-logo-shine">` absolutely
+   positioned on top of it.
+   ========================================================================== */
+
+.tm-logo-shine {
+  -webkit-mask-image: url("/logo/talimoon-logo-gold.svg");
+  mask-image: url("/logo/talimoon-logo-gold.svg");
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: left center;
+  mask-position: left center;
+
+  background-image: linear-gradient(
+    100deg,
+    transparent 46%,
+    rgba(255, 240, 196, 0.85) 50%,
+    transparent 54%
+  );
+  background-size: 240% 100%;
+  background-position: -70% 0%;
+  mix-blend-mode: screen;
+  animation: tm-logo-shine-sweep 6s linear infinite;
+}
+
+@keyframes tm-logo-shine-sweep {
+  0% {
+    background-position: -70% 0%;
+  }
+  100% {
+    background-position: 170% 0%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tm-logo-shine {
+    animation: none;
+    background-position: 50% 0%;
+  }
+}

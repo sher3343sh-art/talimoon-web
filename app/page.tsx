@@ -2,10 +2,10 @@ import Navbar from "@/components/layout/Navbar";
 import { HeroSlider } from "@/components/hero/Hero";
 import { BrandValues } from "@/components/values/BrandValues";
 import { FourDoorsSection } from "@/components/our-products/FourDoorsSection";
-import BookShowcase from "@/components/showcase/BookShowcase";
-import InsideBook from "@/components/inside-book/InsideBook";
-import EmotionalBanner from "@/components/emotional-banner/EmotionalBanner";
-import Examples from "@/components/examples/Examples";
+import { StoryLibraryPreview } from "@/components/story-library-preview/StoryLibraryPreview";
+import { RealTalimoonMoments } from "@/components/real-talimoon-moments/RealTalimoonMoments";
+import { FamiliesWall } from "@/components/families-wall/FamiliesWall";
+import { PartnersPreview } from "@/components/partners/PartnersPreview";
 import Footer from "@/components/layout/Footer";
 
 export default function Home() {
@@ -17,10 +17,10 @@ export default function Home() {
         <HeroSlider />
         <BrandValues />
         <FourDoorsSection />
-        <Examples />
-        <BookShowcase />
-        <InsideBook />
-        <EmotionalBanner />
+        <StoryLibraryPreview />
+        <RealTalimoonMoments />
+        <FamiliesWall />
+        <PartnersPreview />
       </main>
 
       <Footer showHowItWorksLink={false} />
