@@ -1,0 +1,389 @@
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
+import type { CSSProperties } from "react";
+import { motion, useReducedMotion } from "framer-motion";
+
+export type DoorId = "personalized-books" | "yusuf-yasmina" | "talimoon-toys";
+
+export interface DoorAssets {
+  /** Painted stone archway + wall surround. Transparent doorway opening. */
+  frame: string;
+  /** Painted door leaf. Hinge drawn on its left edge, handle on its right. */
+  door: string;
+  /** White-on-transparent silhouette of the true opening cut into `frame`. */
+  mask: string;
+  /**
+   * Exact position of the door's painted hinge edge within `door`'s own
+   * canvas, as a percentage (0–100) of image width/height — measured
+   * from the actual opaque pixel bounds of each door.png, not
+   * eyeballed. The door art is NOT flush with its canvas edge (there's
+   * transparent padding on every side), so `transform-origin: 0% 50%`
+   * (the CSS default for "left") rotates around empty space well to
+   * the left of the visible door — this is what that measurement
+   * fixes. Re-measure per product if the door art is ever re-exported.
+   */
+  hingeOriginX: number;
+  hingeOriginY: number;
+  /**
+   * X position (percent of door.png's own width) of the door's free
+   * (right, handle-side) edge — same measured-bounds approach as the
+   * hinge, used to anchor the edge-shading strip that sells the
+   * door's physical thickness as it swings open. The strip's vertical
+   * extent doesn't need separate measuring: it's masked to `door`'s
+   * own alpha channel, so it's automatically trimmed to the door's
+   * real silhouette (arched top included) with no extra data.
+   */
+  freeEdgeX: number;
+  /**
+   * Warm light spilling from the gap as the door swings open. Falls back
+   * to a procedural glow until the painted asset exists for this door.
+   */
+  gapLight?: string;
+  /**
+   * The scene revealed behind the door. Falls back to a procedural
+   * abstract scene until the painted asset exists for this door.
+   */
+  world?: string;
+}
+
+export interface DoorVariant {
+  id: DoorId;
+  title: string;
+  tagline: string;
+  href: string;
+  assets: DoorAssets;
+}
+
+interface DoorPortalProps {
+  variant: DoorVariant;
+}
+
+function maskStyle(mask: string): CSSProperties {
+  return {
+    WebkitMaskImage: `url(${mask})`,
+    maskImage: `url(${mask})`,
+    // "100% 100%" (stretch), not "contain": the card box is no longer
+    // the same aspect ratio as the source PNGs (see the +10%/+20%
+    // note on the aspect-ratio box below) and door/frame now render
+    // with object-fill to match — the mask has to stretch the same
+    // way or it stops lining up with the doorway it's supposed to cut.
+    WebkitMaskSize: "100% 100%",
+    maskSize: "100% 100%",
+    WebkitMaskPosition: "center",
+    maskPosition: "center",
+    WebkitMaskRepeat: "no-repeat",
+    maskRepeat: "no-repeat",
+  };
+}
+
+/**
+ * Procedural placeholder for the interior scene — ported from the
+ * previous implementation, kept only until a painted `world` asset
+ * exists per door. Abstract only, 2–3 quiet motion elements, warm
+ * brass/glow palette, matches DoorAssets["world"] when that lands.
+ */
+function FallbackWorld({
+  id,
+  reducedMotion,
+}: {
+  id: DoorId;
+  reducedMotion: boolean;
+}) {
+  switch (id) {
+    case "personalized-books":
+      return (
+        <motion.div
+          className="absolute left-[36%] top-[30%] h-[24%] w-[26%] rounded-[2px] bg-[var(--paper-50)]/85 shadow-[0_6px_16px_rgba(20,14,10,0.35)]"
+          style={{ transformOrigin: "left center" }}
+          animate={reducedMotion ? undefined : { rotate: [-3, 2, -3] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        />
+      );
+    case "yusuf-yasmina":
+      return (
+        <motion.div
+          className="absolute left-[58%] top-[32%] h-12 w-12 -translate-x-1/2 -translate-y-1/2 rounded-full"
+          style={{
+            background:
+              "radial-gradient(circle, var(--brass-600-a35) 0%, transparent 70%)",
+          }}
+          animate={
+            reducedMotion
+              ? undefined
+              : { opacity: [0.5, 0.9, 0.5], scale: [1, 1.1, 1] }
+          }
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+        />
+      );
+    case "talimoon-toys":
+      return (
+        <motion.div
+          className="absolute right-[20%] top-[32%] h-5 w-5 rounded-[3px] bg-[var(--brass-600)]/45"
+          animate={reducedMotion ? undefined : { rotate: [0, 360] }}
+          transition={{ duration: 16, repeat: Infinity, ease: "linear" }}
+        />
+      );
+  }
+}
+
+/**
+ * DoorPortal — a single painted archway. Frame, door and opening mask
+ * are per-product assets (see DoorAssets); "hidden world" and "gap
+ * light" fall back to the previous procedural treatment until their
+ * painted assets exist.
+ *
+ * Interaction technique is carried over from the previous
+ * implementation verbatim: a plain CSS transform driven by
+ * :hover/:focus-visible (not JS state
+ * + Framer Motion `animate`), rotateY + perspective co-located in the
+ * transform value, cubic-bezier(0.22,1,0.36,1) easing over 750ms —
+ * that exact combination is the one confirmed to actually repaint
+ * live in this project. Only the geometry changed: the previous
+ * split double-leaf (half-width panel, origin-right) was a
+ * workaround for having no door art; the painted `door` asset is one
+ * full leaf hinged on its left edge, so the whole leaf now rotates
+ * from origin-left instead.
+ */
+export function DoorPortal({ variant }: DoorPortalProps) {
+  const reducedMotion = useReducedMotion();
+  const { id, title, tagline, href, assets } = variant;
+
+  return (
+    <Link
+      href={href}
+      aria-label={`Discover ${title}`}
+      className="group relative block w-full max-w-[428px] shrink-0 focus-visible:outline-none md:max-w-[242px] lg:max-w-[308px] xl:max-w-[391px] 2xl:max-w-[482px]"
+    >
+      <div
+        className="relative w-full rounded-[2px] filter drop-shadow-[0_20px_38px_rgba(58,42,30,0.22)] transition-[transform,filter] duration-500 ease-standard group-focus-visible:ring-2 group-focus-visible:ring-[var(--material-brass)] group-focus-visible:ring-offset-4 group-focus-visible:ring-offset-[var(--surface-base)]"
+        style={{
+          // Frame+door "complex" is +10% width / +20% height vs. the
+          // source art's native 1500:1335 ratio — expressed as a
+          // scaled equivalent canvas (1500*1.10 / 1335*1.20) so the
+          // math is traceable back to those two percentages. Combined
+          // with `object-fill` below (not `object-contain`), the box
+          // no longer matches the image's own ratio, so it stretches
+          // to fill it — frame and door share this exact box and
+          // scale identically, so they stay registered to each other.
+          aspectRatio: "1650 / 1602",
+          containerType: "inline-size",
+        }}
+      >
+        {/* Hidden world + gap light — masked to the painted opening
+            (mask.png), since this layer has no natural edges of its
+            own. */}
+        <div className="absolute inset-0 overflow-hidden" style={maskStyle(assets.mask)}>
+          {/* Hidden world */}
+          <div className="absolute inset-0">
+            {assets.world ? (
+              <Image src={assets.world} alt="" fill className="object-cover" />
+            ) : (
+              <div
+                className="absolute inset-0"
+                style={{
+                  background:
+                    "radial-gradient(ellipse 85% 75% at 50% 42%, #E3C288 0%, #AD7F49 26%, #63452C 54%, var(--material-walnut-deep) 80%)",
+                }}
+              >
+                <FallbackWorld id={id} reducedMotion={!!reducedMotion} />
+              </div>
+            )}
+          </div>
+
+          {/* Gap light — a crack of light at rest, since the door is
+              only ajar; fades out as the door opens and the room
+              itself becomes the light source. */}
+          {assets.gapLight ? (
+            <Image
+              src={assets.gapLight}
+              alt=""
+              fill
+              className="pointer-events-none object-cover opacity-100 transition-opacity duration-500 group-hover:opacity-0 group-focus-visible:opacity-0"
+            />
+          ) : (
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute left-0 top-1/2 h-24 w-24 -translate-y-1/2 rounded-full opacity-90 blur-[26px] transition-opacity duration-500 group-hover:opacity-0 group-focus-visible:opacity-0"
+              style={{
+                background:
+                  "radial-gradient(circle, rgba(227,194,136,0.6) 0%, transparent 70%)",
+              }}
+            />
+          )}
+        </div>
+
+        {/* THE DOOR — deliberately NOT run through the opening mask.
+            This asset was cut from the same source painting as the
+            frame, so its silhouette is already registered to the
+            opening; re-clipping it with the (slightly smaller,
+            hand-traced) mask was cropping real pixels off the door —
+            e.g. the top of its own arch. The frame renders on top and
+            is opaque everywhere except the true opening, so it
+            occludes anything here that strays outside the doorway —
+            the same job the mask was doing, but pixel-accurate to the
+            actual artwork instead of an approximation. `overflow-hidden`
+            stays only as a plain rectangular safety net for the
+            rotation, not a shaped clip.
+
+            Hinge: `transformOrigin` uses this door's measured painted
+            hinge position (see DoorAssets.hingeOriginX/Y) rather than
+            the CSS default 0% ("left"), which would rotate around
+            empty canvas padding well to the left of the visible door.
+
+            Perspective is a separate `perspective`/`perspectiveOrigin`
+            pair on this wrapper (in `cqw` — percent of this card's own
+            rendered width, via `containerType: inline-size` on the
+            ancestor above — so the door reads equally "open" on a
+            phone-width card and a full desktop card), not the
+            `perspective()` *function* folded into the child's own
+            `transform`. Those two are not equivalent with an
+            off-center transform-origin: the function form has no
+            independent origin of its own (the spec ties it to the
+            same transform-origin as the rotation), and with this
+            door's hinge sitting at ~34% instead of dead-center that
+            produced a real bug — the leaf visually sheared, hanging
+            diagonally off its lower-right corner with the bottom edge
+            lifting off the threshold as it opened. Giving perspective
+            its own `perspectiveOrigin` — pinned to the same hinge
+            point as `transformOrigin` — makes the "camera" look
+            straight down the hinge axis instead of straight down the
+            card's center, which is what removes the shear. Don't
+            fold perspective back into the child's `transform` without
+            re-testing the full open angle against the threshold —
+            this is a real, confirmed browser behavior, not a stylistic
+            preference.
+
+            Hover angle capped at -68deg, deliberately short of a full
+            -90deg: confirmed by direct testing (stepping the live
+            transform through -40/-60/-70/-78deg) that steep angles
+            here start silently collapsing the door's bottom edge
+            somewhere between -70deg and -78deg — the leaf reads as
+            "open" well before that point, so there's no reason to get
+            close to the broken zone. Don't push this past ~-70deg
+            without re-testing at that exact angle, not just eyeballing
+            a mid-range value. */}
+        <div
+          className="absolute inset-0 overflow-hidden"
+          style={{
+            perspective: "205cqw",
+            perspectiveOrigin: `${assets.hingeOriginX}% ${assets.hingeOriginY}%`,
+          }}
+        >
+          <div
+            className="absolute inset-0 transition-transform duration-[1100ms] [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] [transform:rotateY(-22deg)] group-hover:[transform:rotateY(-68deg)] group-focus-visible:[transform:rotateY(-68deg)]"
+            style={{
+              transformOrigin: `${assets.hingeOriginX}% ${assets.hingeOriginY}%`,
+            }}
+          >
+            <Image
+              src={assets.door}
+              alt=""
+              fill
+              className="object-fill"
+              sizes="(min-width: 1024px) 340px, 45vw"
+            />
+            {/* Edge shading — a shadow hugging the door's own free
+                (handle-side) edge, reading as the leaf's physical
+                thickness turning away from the viewer. Masked to the
+                door's own alpha channel (same image, reused as its
+                own mask) rather than a plain rectangle: a rectangle
+                can't follow the arched top, so it read as a straight
+                line floating past the door's edge instead of shading
+                on the door itself. Anchored so its *outer* edge sits
+                on the measured free edge (freeEdgeX) and the gradient
+                extends inward onto the door surface, not outward past
+                it — the mask then trims it to only the real door
+                pixels, arch curve included, automatically. */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0"
+              style={maskStyle(assets.door)}
+            >
+              <div
+                className="absolute inset-y-0 w-[5%]"
+                style={{
+                  left: `${assets.freeEdgeX - 5}%`,
+                  background:
+                    "linear-gradient(90deg, transparent 0%, rgba(20,14,10,0.55) 75%, rgba(20,14,10,0.75) 100%)",
+                }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Frame — the fixed stone archway, always on top of the door. */}
+        <Image
+          src={assets.frame}
+          alt=""
+          fill
+          className="pointer-events-none object-fill"
+          sizes="(min-width: 1024px) 340px, 45vw"
+        />
+      </div>
+
+      {/* Floor shadow — grounds the portal as a physical object. */}
+      <div
+        aria-hidden="true"
+        className="mx-auto -mt-2 h-3 max-w-[70%]"
+        style={{
+          background:
+            "radial-gradient(ellipse 70% 100% at 50% 0%, rgba(74,52,38,0.3) 0%, transparent 75%)",
+        }}
+      />
+
+      {/* CTA — "Step Inside", the invitation to cross the doorway.
+          Exact spec, 2026-08-07 (CTA-only revision — nothing else in
+          this file changed for this pass).
+
+          Idle breathing lives on an outer wrapper (animation-driven
+          transform); hover/active state lives on the inner pill via
+          the `.our-products-cta` rules in globals.css (color, border,
+          shadow, scale) — kept on separate elements so the running
+          breathe animation and the hover scale never fight over the
+          same element's `transform`. Color/shadow are plain CSS, not
+          Tailwind arbitrary classes: a chained multi-layer
+          `shadow-[...]` value was confirmed (via the compiled
+          stylesheet) to silently break Tailwind's class extractor and
+          drop every hover utility after it — see globals.css §26. */}
+      <div className="mt-[7px] flex justify-center">
+        <span className="[animation:cta-breathe_6s_ease-in-out_infinite] group-hover:[animation-play-state:paused] group-focus-visible:[animation-play-state:paused]">
+          <span
+            className="our-products-cta inline-flex h-[58px] min-w-[208px] items-center justify-center gap-2 rounded-pill px-9 text-[15px] font-bold normal-case leading-none tracking-[0.05em]"
+            style={{ fontFamily: "var(--font-manrope)" }}
+          >
+            Step Inside
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 16 16"
+              className="our-products-cta__arrow h-[14px] w-[14px] shrink-0"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M3 8h10M9 4l4 4-4 4" />
+            </svg>
+          </span>
+        </span>
+      </div>
+
+      <h3
+        className="mt-[5px] text-center text-[22px] font-semibold text-[#252A35] lg:text-[28px]"
+        style={{ fontFamily: "var(--font-cormorant-garamond)" }}
+      >
+        {title}
+      </h3>
+      <p
+        className="mx-auto mt-[4px] max-w-[310px] text-center text-[15px] font-normal leading-[1.15] text-[#7B7368]"
+        style={{ fontFamily: "var(--font-manrope)" }}
+      >
+        {tagline}
+      </p>
+    </Link>
+  );
+}
+
+export default DoorPortal;

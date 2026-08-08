@@ -1,55 +1,44 @@
 // FILE: src/components/values/BrandValues.tsx
-// Brand Values — REDESIGN per Creative Director's "Complete Layout
-// Redesign" brief. This replaces the previous three-block structure
-// (heading / boxed book image / value cards) with one continuous
-// composition: a full-bleed atmospheric background sits behind the
-// entire section, an original logo mark is embedded mid-composition
-// with a soft glow, and the value cards sit directly on top of that
-// same background rather than below a separate image.
+// Brand Values — PRODUCTION CLEANUP PASS.
+// Purpose: strip every decorative/atmospheric visual layer so the
+// raw content structure can be inspected on its own. This is NOT a
+// redesign — layout, spacing, alignment, sizing, typography,
+// responsiveness, and content-relevant animations are all untouched.
 //
-// What changed structurally, and why:
-// - The old <BookPlaceholder> was a boxed, aspect-ratio-constrained
-//   <Image> sitting IN THE DOCUMENT FLOW between the description and
-//   the value grid — that's exactly the "stacked components" feeling
-//   the brief flags as the core problem. It has been replaced by
-//   <SectionArtwork>, which is `position: absolute; inset: 0` behind
-//   the whole section (z-0), so it costs zero flow height and every
-//   piece of content (heading, description, logo, icons) renders on
-//   top of the SAME background layer instead of before/after it.
-// - Removing that ~500-700px flow-height image block (replaced by an
-//   absolutely-positioned layer + a much smaller logo emblem) is what
-//   delivers the "reduce visual height 10-20%" requirement — it is a
-//   structural consequence of the fix, not a separate font/spacing cut.
-// - Because the value grid now renders directly on top of the same
-//   continuous background (not after a separate image), it inherently
-//   "overlaps the artwork" and "sits on top of it" per the brief,
-//   without needing an artificial negative margin hack.
-// - Icon paths, icon order, and the ValueColumn markup are UNCHANGED
-//   from the approved version, per explicit instruction to preserve
-//   them exactly.
+// Removed in this pass:
+// - <LogoEmblem> (the center Talimoon logo mark, its glow blur,
+//   its radial gradient halo, and its five floating gold particles)
+//   — deleted entirely, including its call site.
+// - PARTICLES data and the particleFloat animation variant, which
+//   existed solely to drive the now-removed logo particles.
+// - Every darkening/shadow layer that used to sit ON TOP of the
+//   background image: the WebkitMaskImage/maskImage fade mask, the
+//   mix-blend-mode: multiply, the atmosphere-only opacity: 0.8, and
+//   the radial "light source" gradient overlay.
 //
-// Two things flagged rather than silently guessed (same policy as
-// before — real ambiguity noted, not resolved by assumption):
-//
-// 1. Logo asset — the brief requires the "original TALIMOON logo SVG,
-//    used exactly as-is, never redrawn." No logo file/path exists
-//    anywhere in the previous BrandValues implementation, so the path
-//    below (`/images/logo/talimoon-logo.svg`) is a placeholder that
-//    needs to be pointed at wherever the real logo SVG actually lives
-//    in the project (e.g. wherever Navbar imports it from). Swap the
-//    `src` in <LogoEmblem> once that path is confirmed — nothing else
-//    in this file needs to change.
-// 2. Background artwork aspect ratio — the existing asset
-//    (book.png) is 1560×696 (≈2.24:1), designed for a short, wide
-//    box. Stretched full-bleed behind a now-vertical stack (heading +
-//    description + logo + five values), `object-cover` will crop it
-//    much more aggressively than before, especially on mobile where
-//    the section is tall and narrow. The mask/blend below is tuned to
-//    keep the crop invisible by fading it out well before the visible
-//    edges, but this is a stopgap: the real fix is a piece of art
-//    actually composed for a tall full-section background (soft
-//    light/depth per the brief — "no extra books, no extra children"),
-//    not a repurposed short banner image.
+// Kept / restored:
+// - <SectionArtwork>: the book.png image itself IS the requested
+//   background, so it stays — full opacity, no mask, no blend mode,
+//   no gradient laid over it. Plain <Image fill className="object-
+//   cover" />, nothing else. This is content (the requested visual),
+//   not decoration, so it's not in the "remove" list.
+// - SectionArtwork's positioning is now pinned with explicit inline
+//   styles (position: absolute; inset: 0; width/height: 100%) on
+//   both the wrapper div and the <Image> itself, on top of the
+//   Tailwind classes. This guarantees the artwork contributes ZERO
+//   flow height to the section — the section's height is driven
+//   only by its normal-flow content (label, heading, description,
+//   value grid), exactly as it was in the no-background version.
+// - Cream section background (shows only in any area the image
+//   doesn't cover, e.g. object-cover edge cases).
+// - Eyebrow label, headline (incl. its gold gradient text — that's
+//   typography styling, not atmospheric lighting), description.
+// - All five value icons, titles, gold underline accents, and
+//   descriptions — value-card markup is untouched.
+// - Desktop hairline dividers between columns.
+// - The scroll-reveal stagger animation (sequenceContainer /
+//   sequenceItem) — this drives real content (heading, paragraph,
+//   value grid), not decoration, so it stays.
 
 'use client';
 
@@ -116,7 +105,7 @@ const VALUES: readonly ValueItem[] = [
 
 // ============================================================
 // Scroll animation — same macro sequence and timing as before:
-// Eyebrow → Headline → Description → Logo Emblem → Five Values.
+// Eyebrow → Headline → Description → Five Values.
 // Stagger 0.10, duration 0.70, easeOut. The five columns still fade
 // in together as the final stage, not re-staggered individually.
 // ============================================================
@@ -137,30 +126,49 @@ const sequenceItem: Variants = {
   },
 };
 
-// Particle drift — extremely subtle, slow, staggered. Not a flashy
-// sparkle effect: low peak opacity, small travel distance, long
-// duration, so it reads as "atmosphere" rather than "animation."
-const particleFloat: Variants = {
-  hidden: { opacity: 0 },
-  visible: (i: number) => ({
-    opacity: [0, 0.45, 0.25, 0.45, 0],
-    y: [0, -8, -2, -6, 0],
-    transition: {
-      duration: 7 + i,
-      repeat: Infinity,
-      ease: 'easeInOut',
-      delay: i * 0.8,
-    },
-  }),
-};
+// ============================================================
+// Section artwork — the background image, shown plainly. No mask,
+// no blend mode, no gradient overlay, no opacity reduction — the
+// image renders at full strength with nothing darkening it.
+// position: absolute, inset: 0, z-0, zero flow height, so it sits
+// behind the content without affecting layout/spacing.
+// ============================================================
 
-const PARTICLES = [
-  { top: '8%', left: '18%', size: 4 },
-  { top: '72%', left: '84%', size: 3 },
-  { top: '20%', left: '82%', size: 3 },
-  { top: '85%', left: '12%', size: 4 },
-  { top: '48%', left: '6%', size: 3 },
-] as const;
+function SectionArtwork() {
+  return (
+    <div
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-0 z-0 overflow-hidden"
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: '100%',
+        height: '100%',
+        overflow: 'hidden',
+      }}
+    >
+      <Image
+        src="/images/values/book.png"
+        alt=""
+        fill
+        sizes="100vw"
+        className="object-cover"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+        }}
+        priority
+      />
+    </div>
+  );
+}
 
 // ============================================================
 // Headline — unchanged: "light" in the gold gradient, rest in navy.
@@ -196,110 +204,6 @@ function Headline() {
       </span>
       .
     </motion.h2>
-  );
-}
-
-// ============================================================
-// Section artwork — the illustration as a true background layer.
-// position: absolute, inset: 0, z-0, zero flow height. Sits behind
-// the eyebrow, headline, description, logo, and value grid alike, so
-// nothing in the section reads as "placed on top of" or "after" an
-// image — it's all one surface. Mask fades the image out well
-// before the section's own edges (no visible rectangle/frame), and
-// mix-blend-mode: multiply lets the image's tones darken into the
-// cream page color instead of sitting on top of it.
-// ============================================================
-
-function SectionArtwork() {
-  return (
-    <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
-      <div
-        className="absolute inset-0"
-        style={{
-          WebkitMaskImage:
-            'radial-gradient(ellipse 82% 88% at 50% 46%, black 30%, transparent 100%)',
-          maskImage:
-            'radial-gradient(ellipse 82% 88% at 50% 46%, black 30%, transparent 100%)',
-          mixBlendMode: 'multiply',
-          opacity: 0.8,
-        }}
-      >
-        <Image
-          src="/images/values/book.png"
-          alt=""
-          fill
-          sizes="100vw"
-          className="object-cover"
-          priority
-        />
-      </div>
-
-      {/* Light source: strongest behind the logo, softening as it
-          reaches the value row below — pure gradient, no image, so
-          there's nothing resembling a connecting line. */}
-      <div
-        className="absolute inset-0"
-        style={{
-          background: `radial-gradient(ellipse 62% 68% at 50% 56%, ${GOLD}26, transparent 72%)`,
-        }}
-      />
-    </div>
-  );
-}
-
-// ============================================================
-// Logo emblem — the original mark, unmodified, centered between the
-// description and the values. Soft cinematic glow behind it, a
-// handful of extremely delicate gold particles around it. Calm, not
-// magical: no rotation, no scale-pulsing, no color shift on the mark
-// itself.
-// ============================================================
-
-function LogoEmblem() {
-  return (
-    <motion.div
-      variants={sequenceItem}
-      className="relative z-10 flex items-center justify-center"
-      style={{ width: 176, height: 176, marginBottom: 8 }}
-    >
-      <div
-        aria-hidden="true"
-        className="absolute rounded-full"
-        style={{
-          inset: -44,
-          background: `radial-gradient(circle, ${GOLD}33, transparent 70%)`,
-          filter: 'blur(20px)',
-        }}
-      />
-
-      {PARTICLES.map((p, i) => (
-        <motion.span
-          key={i}
-          aria-hidden="true"
-          custom={i}
-          variants={particleFloat}
-          className="absolute rounded-full"
-          style={{
-            top: p.top,
-            left: p.left,
-            width: p.size,
-            height: p.size,
-            backgroundColor: GOLD,
-            filter: 'blur(1px)',
-          }}
-        />
-      ))}
-
-      <Image
-        src="/logo/talimoon-logo-color.svg"
-        alt=""
-        aria-hidden="true"
-        width={100}
-        height={100}
-        className="relative z-10"
-        priority
-      />
-    </motion.div>
   );
 }
 
@@ -435,12 +339,8 @@ export function BrandValues() {
           heart and shape a beautiful tomorrow.
         </motion.p>
 
-        <LogoEmblem />
-
-        {/* Five Values — rendered directly on top of <SectionArtwork>,
-            not after a separate image, so it visually overlaps and
-            continues the same composition rather than sitting below
-            it. Desktop: 5 equal columns, 32px gap, hairline dividers
+        {/* Five Values — icons, titles, and descriptions unchanged.
+            Desktop: 5 equal columns, 32px gap, hairline dividers
             between (not around) columns. Mobile: vertical list. */}
         <motion.div
           variants={sequenceItem}

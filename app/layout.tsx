@@ -1,5 +1,11 @@
 import type { Metadata } from "next";
-import { Fraunces, Plus_Jakarta_Sans, Geist_Mono } from "next/font/google";
+import {
+  Fraunces,
+  Plus_Jakarta_Sans,
+  Geist_Mono,
+  Cormorant_Garamond,
+  Manrope,
+} from "next/font/google";
 import "./globals.css";
 import { MaskDefs } from "@/components/ui/MaskDefs";
 
@@ -22,6 +28,23 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
+// Scoped to the "Our Products" showroom section only (Creative
+// Direction spec, 2026-08-07) — not part of the site-wide type
+// system above, deliberately not wired into globals.css tokens.
+const cormorantGaramond = Cormorant_Garamond({
+  variable: "--font-cormorant-garamond",
+  subsets: ["latin"],
+  weight: ["600"],
+  display: "swap",
+});
+
+const manrope = Manrope({
+  variable: "--font-manrope",
+  subsets: ["latin"],
+  weight: ["400", "600", "700"],
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "TALIMOON | Personalized Children's Books",
   description:
@@ -36,7 +59,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full">
       <body
-  className={`${fraunces.variable} ${plusJakartaSans.variable} ${geistMono.variable} antialiased min-h-full flex flex-col`}
+  className={`${fraunces.variable} ${plusJakartaSans.variable} ${geistMono.variable} ${cormorantGaramond.variable} ${manrope.variable} antialiased min-h-full flex flex-col`}
 >
   <MaskDefs />
   {children}

@@ -37,7 +37,18 @@ const columnHeadingClass =
 const linkClass =
   "block font-sans text-[0.9375rem] leading-[1.6] text-[var(--text-secondary,#49433C)] hover:text-[var(--text-primary,#2A241D)]";
 
-export function Footer() {
+export interface FooterProps {
+  /** Whether the Explore column links to the #how-it-works anchor. Set
+   * false on pages that don't render a HowItWorks section, so Footer
+   * never renders a link to an anchor that doesn't exist. */
+  showHowItWorksLink?: boolean;
+}
+
+export function Footer({ showHowItWorksLink = true }: FooterProps) {
+  const exploreLinks = showHowItWorksLink
+    ? EXPLORE_LINKS
+    : EXPLORE_LINKS.filter((link) => link.href !== "#how-it-works");
+
   return (
     <footer className="w-full bg-[var(--surface-raised,#FDFBF7)]">
       <div className="mx-auto max-w-[1440px] px-5 md:px-10 lg:px-16">
@@ -65,7 +76,7 @@ export function Footer() {
           <div>
             <h3 className={columnHeadingClass}>Explore</h3>
             <ul className="mt-5 space-y-3">
-              {EXPLORE_LINKS.map((link) => (
+              {exploreLinks.map((link) => (
                 <li key={link.label}>
                   <a href={link.href} className={linkClass}>
                     {link.label}
