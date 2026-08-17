@@ -223,9 +223,15 @@ export function DoorPortal({ variant }: DoorPortalProps) {
             is opaque everywhere except the true opening, so it
             occludes anything here that strays outside the doorway —
             the same job the mask was doing, but pixel-accurate to the
-            actual artwork instead of an approximation. `overflow-hidden`
-            stays only as a plain rectangular safety net for the
-            rotation, not a shaped clip.
+            actual artwork instead of an approximation. The rotation
+            wrapper below is intentionally NOT `overflow-hidden`: at
+            the near-full -81deg hover angle the foreshortened leaf's
+            projected quad genuinely extends past its own box (worst
+            at the bottom, since hingeOriginY sits at ~48% rather than
+            exactly 50%) — clipping the wrapper to its own rect was
+            cutting the door's bottom corner off mid-swing instead of
+            letting the frame do the occluding it's already meant to
+            do.
 
             Hinge: `transformOrigin` uses this door's measured painted
             hinge position (see DoorAssets.hingeOriginX/Y) rather than
@@ -255,24 +261,59 @@ export function DoorPortal({ variant }: DoorPortalProps) {
             this is a real, confirmed browser behavior, not a stylistic
             preference.
 
-            Hover angle capped at -68deg, deliberately short of a full
-            -90deg: confirmed by direct testing (stepping the live
-            transform through -40/-60/-70/-78deg) that steep angles
-            here start silently collapsing the door's bottom edge
-            somewhere between -70deg and -78deg — the leaf reads as
-            "open" well before that point, so there's no reason to get
-            close to the broken zone. Don't push this past ~-70deg
-            without re-testing at that exact angle, not just eyeballing
-            a mid-range value. */}
+            2026-08-09: rest/hover angles moved to -18deg/-81deg (20%
+            and 90% of a full -90deg swing) and perspective distance
+            increased from 205cqw to 420cqw specifically to reach
+            -81deg without the corner-collapse artifact described
+            above — a flatter (further-away) perspective camera
+            reduces the foreshortening that was causing it, confirmed
+            by live-testing -81deg at both distances before landing
+            here. Re-test at the exact target angle (not a nearby
+            value) if either number changes again — this project has
+            twice previously hit real, confirmed-in-browser collapse
+            bugs in this exact zone that eyeballing a mid-range value
+            would not have caught.
+
+            2026-08-17: rest angle raised -18deg → -30deg. At -18deg
+            the door art's own oversize margin (it's cut ~10-20%
+            larger than the true opening, see the aspect-ratio note
+            above) fully absorbed that little foreshortening, so the
+            "ajar" state read as flush shut with no visible crack —
+            -30deg is the point that first reads as visibly open.
+            Hover duration also raised 1320ms → 1716ms (+30%) for a
+            calmer swing.
+
+            Hover angle pulled back -81deg → -72deg (80% instead of
+            90% of the full -90deg swing) and perspective distance
+            doubled 420cqw → 800cqw, together: the frame's stone sill
+            is painted assuming the doorway's opening ends at a fixed
+            floor line, but the open leaf's foreshortened bottom
+            corner doesn't recede downward toward that line — it gets
+            pulled UP toward the perspective vanishing point (pinned
+            at hingeOriginY, ~48%) the same way its top corner does,
+            since a pure Y-axis rotation moves a point's apparent
+            screen Y toward the vanishing point in proportion to how
+            far that point's Z has receded, and the leaf's far
+            (bottom-right) corner has the most Z-depth of any point on
+            it. At -81deg that corner had receded enough to visibly
+            surface above the sill, i.e. below the leaf, reading as a
+            chunk of the door "missing." Doubling the perspective
+            distance reduces how much any given Z-depth bends the
+            projection (flatter/further camera), and -72deg keeps the
+            corner's Z-depth further from the point where that bend
+            becomes visible — live-tested corner-by-corner (72/78/81deg
+            at both 420 and 800cqw) before landing here. Re-test
+            against the sill line the same way if either number moves
+            again. */}
         <div
-          className="absolute inset-0 overflow-hidden"
+          className="absolute inset-0"
           style={{
-            perspective: "205cqw",
+            perspective: "800cqw",
             perspectiveOrigin: `${assets.hingeOriginX}% ${assets.hingeOriginY}%`,
           }}
         >
           <div
-            className="absolute inset-0 transition-transform duration-[1100ms] [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] [transform:rotateY(-22deg)] group-hover:[transform:rotateY(-68deg)] group-focus-visible:[transform:rotateY(-68deg)]"
+            className="absolute inset-0 transition-transform duration-[1716ms] [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] [transform:rotateY(-30deg)] group-hover:[transform:rotateY(-72deg)] group-focus-visible:[transform:rotateY(-72deg)]"
             style={{
               transformOrigin: `${assets.hingeOriginX}% ${assets.hingeOriginY}%`,
             }}
@@ -333,40 +374,30 @@ export function DoorPortal({ variant }: DoorPortalProps) {
         }}
       />
 
-      {/* CTA — "Step Inside", the invitation to cross the doorway.
-          Exact spec, 2026-08-07 (CTA-only revision — nothing else in
-          this file changed for this pass).
-
-          Idle breathing lives on an outer wrapper (animation-driven
-          transform); hover/active state lives on the inner pill via
-          the `.our-products-cta` rules in globals.css (color, border,
-          shadow, scale) — kept on separate elements so the running
-          breathe animation and the hover scale never fight over the
-          same element's `transform`. Color/shadow are plain CSS, not
-          Tailwind arbitrary classes: a chained multi-layer
-          `shadow-[...]` value was confirmed (via the compiled
-          stylesheet) to silently break Tailwind's class extractor and
-          drop every hover utility after it — see globals.css §26. */}
-      <div className="mt-[7px] flex justify-center">
-        <span className="[animation:cta-breathe_6s_ease-in-out_infinite] group-hover:[animation-play-state:paused] group-focus-visible:[animation-play-state:paused]">
-          <span
-            className="our-products-cta inline-flex h-[58px] min-w-[208px] items-center justify-center gap-2 rounded-pill px-9 text-[15px] font-bold normal-case leading-none tracking-[0.05em]"
-            style={{ fontFamily: "var(--font-manrope)" }}
+      {/* CTA — "Step Inside". 2026-08-09: replaced the section-local
+          "our-products-cta" pill (58px tall, idle-breathing, its own
+          bespoke gold gradient) with the exact shared `.tm-cta-gold`
+          class every other CTA on the site uses (Navbar, Story
+          Library, Families Wall) — same gold, same 44px height, same
+          hover/active/focus behavior, nothing bespoke left here. No
+          idle-breathe animation: none of the other `.tm-cta-gold`
+          instances site-wide have one, so keeping it only on this
+          button would itself be the inconsistency. */}
+      <div className="mt-[10px] flex justify-center">
+        <span className="tm-cta-gold inline-flex h-[31px] shrink-0 items-center justify-center gap-1 whitespace-nowrap px-3.5 text-[12px] font-medium tracking-[0.015em]">
+          Step Inside
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 16 16"
+            className="h-2.5 w-2.5 shrink-0 transition-transform duration-300 ease-out group-hover:translate-x-0.5"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           >
-            Step Inside
-            <svg
-              aria-hidden="true"
-              viewBox="0 0 16 16"
-              className="our-products-cta__arrow h-[14px] w-[14px] shrink-0"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M3 8h10M9 4l4 4-4 4" />
-            </svg>
-          </span>
+            <path d="M3 8h10M9 4l4 4-4 4" />
+          </svg>
         </span>
       </div>
 
