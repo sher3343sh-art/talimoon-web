@@ -36,6 +36,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# raw video masters — not served, kept locally for re-editing only
+/media-source/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

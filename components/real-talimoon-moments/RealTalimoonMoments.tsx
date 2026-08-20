@@ -23,12 +23,16 @@
  * section's explicit spec, not the 50/50 `lg:grid-cols-2` BookShowcase
  * and InsideBook use for their own mockup+content layout.
  *
- * Thumbnails are placeholders — the existing Hero family photographs
- * (public/images/hero/{22,d,s}.webp), the only real on-brand family
- * photography in the repo — until dedicated customer video assets
- * exist. Names, ages, durations and reaction counts are illustrative
- * sample data, not claims about specific verified customers; swap
- * MOMENTS below for real content once it's available.
+ * "madinabonu" is the first real customer moment: an on-brand H.264
+ * MP4 (transcoded from a 90MB/1072x1920/50fps source down to ~8.5MB
+ * at 480px width/30fps — plenty for this mockup's max 300px display
+ * width — via `public/video/madinabonu-1.mp4` + poster frame at
+ * `public/images/home/real-talimoon-moments/madinabonu-poster.jpg`;
+ * the untouched original lives in `media-source/video/`, gitignored,
+ * not served). The other two entries remain placeholders — the
+ * existing Hero family photographs (public/images/hero/{d,s}.webp)
+ * with illustrative names/ages/reaction counts, not claims about
+ * specific verified customers — until their own videos exist.
  */
 
 import { useState } from "react";
@@ -43,16 +47,19 @@ export type Moment = {
   childAge: string;
   duration: string;
   thumbnail: string;
+  /** Real video source, when available. Falls back to a static thumbnail when absent. */
+  video?: string;
   reactions: { smile: number; love: number; wow: number };
 };
 
 const MOMENTS: Moment[] = [
   {
-    id: "amira",
-    name: "Amira's Family",
-    childAge: "Age 5",
-    duration: "0:38",
-    thumbnail: "/images/hero/22.webp",
+    id: "madinabonu",
+    name: "Madinabonu",
+    childAge: "Age 7",
+    duration: "1:49",
+    thumbnail: "/images/home/real-talimoon-moments/madinabonu-poster.jpg",
+    video: "/video/madinabonu-1.mp4",
     reactions: { smile: 214, love: 189, wow: 76 },
   },
   {
@@ -85,7 +92,13 @@ const reveal: Variants = {
 export function RealTalimoonMoments() {
   const [selectedId, setSelectedId] = useState(MOMENTS[0].id);
   const reducedMotion = useReducedMotion();
-  const selected = MOMENTS.find((m) => m.id === selectedId) ?? MOMENTS[0];
+  const selectedIndex = MOMENTS.findIndex((m) => m.id === selectedId);
+  const selected = MOMENTS[selectedIndex] ?? MOMENTS[0];
+
+  const goToOffset = (offset: number) => {
+    const nextIndex = (selectedIndex + offset + MOMENTS.length) % MOMENTS.length;
+    setSelectedId(MOMENTS[nextIndex].id);
+  };
 
   return (
     <motion.section
@@ -98,7 +111,11 @@ export function RealTalimoonMoments() {
     >
       <div className="mx-auto grid max-w-[1440px] grid-cols-1 items-center gap-12 px-5 md:px-10 lg:grid-cols-5 lg:gap-20 lg:px-16">
         <div className="lg:col-span-2">
-          <PhoneMockup moment={selected} />
+          <PhoneMockup
+            moment={selected}
+            onPrev={() => goToOffset(-1)}
+            onNext={() => goToOffset(1)}
+          />
         </div>
 
         <div className="lg:col-span-3">
