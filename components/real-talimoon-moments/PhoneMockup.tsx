@@ -282,14 +282,21 @@ function MomentScreen({
             continuation of the same image reads as intentional
             ambience instead, at every width, matching the transport
             bar's own reflection treatment below rather than
-            introducing a third visual language. */}
+            introducing a third visual language.
+            No opacity utility here (an earlier pass used opacity-50):
+            an Image's own opacity blends it with whatever's behind
+            it, which here is the stage's own near-black bg — halving
+            a mostly warm/light photo's opacity over near-black
+            darkens it right back down toward black, defeating the
+            entire point. Full opacity is what actually reads as "a
+            photo," not "a slightly-less-black rectangle." */}
         <Image
           src={moment.thumbnail}
           alt=""
           aria-hidden="true"
           fill
           sizes="300px"
-          className="scale-110 object-cover blur-2xl opacity-50"
+          className="scale-110 object-cover blur-2xl"
         />
         {hasVideo ? (
           <video
