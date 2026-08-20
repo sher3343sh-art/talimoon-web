@@ -58,6 +58,15 @@ import { useEffect, useRef, useState } from "react";
 import type { Moment } from "./RealTalimoonMoments";
 import { useT } from "@/lib/i18n/LanguageContext";
 
+// iOS Safari's non-standard native-video-fullscreen API — not in the
+// standard DOM lib types, so declared here rather than sprinkling
+// `as any` at every call site.
+interface IOSVideoElement extends HTMLVideoElement {
+  webkitEnterFullscreen?: () => void;
+  webkitExitFullscreen?: () => void;
+  webkitDisplayingFullscreen?: boolean;
+}
+
 const CHROME_EN = {
   play: (name: string) => `Play ${name}'s video`,
   pause: (name: string) => `Pause ${name}'s video`,
@@ -197,19 +206,52 @@ function MomentScreen({
   // normal phone-mockup layout. Synced via the fullscreenchange event
   // rather than only in the click handler, since fullscreen can also
   // exit via Escape or the browser's own UI.
+  //
+  // iOS Safari never implemented `Element.requestFullscreen()` for
+  // arbitrary containers — only a `<video>` element can go fullscreen
+  // there, via the non-standard `webkitEnterFullscreen()`, which hands
+  // control to the OS's own native video player (our custom bar isn't
+  // visible during that, same trade-off every custom web video player
+  // on iOS makes). `webkitbeginfullscreen`/`webkitendfullscreen` fire
+  // on the video element itself in that case, not `fullscreenchange`
+  // on `document`, so both are listened for to keep the button's own
+  // icon state correct either way.
   useEffect(() => {
+    const video = videoRef.current as IOSVideoElement | null;
+
     const onFullscreenChange = () => {
       setIsFullscreen(document.fullscreenElement === containerRef.current);
     };
+    const onIOSBegin = () => setIsFullscreen(true);
+    const onIOSEnd = () => setIsFullscreen(false);
+
     document.addEventListener("fullscreenchange", onFullscreenChange);
-    return () => document.removeEventListener("fullscreenchange", onFullscreenChange);
+    video?.addEventListener("webkitbeginfullscreen", onIOSBegin);
+    video?.addEventListener("webkitendfullscreen", onIOSEnd);
+    return () => {
+      document.removeEventListener("fullscreenchange", onFullscreenChange);
+      video?.removeEventListener("webkitbeginfullscreen", onIOSBegin);
+      video?.removeEventListener("webkitendfullscreen", onIOSEnd);
+    };
   }, []);
 
   const toggleFullscreen = () => {
+    const video = videoRef.current as IOSVideoElement | null;
+
     if (document.fullscreenElement) {
       void document.exitFullscreen();
+      return;
+    }
+    if (video?.webkitDisplayingFullscreen) {
+      video.webkitExitFullscreen?.();
+      return;
+    }
+    if (containerRef.current?.requestFullscreen) {
+      containerRef.current.requestFullscreen().catch(() => {
+        video?.webkitEnterFullscreen?.();
+      });
     } else {
-      void containerRef.current?.requestFullscreen();
+      video?.webkitEnterFullscreen?.();
     }
   };
 
@@ -307,8 +349,20 @@ function MomentScreen({
       {/* Transport bar — fixed height, dedicated to Prev/Mute/Play/Next.
           A flex sibling of the stage above, never an overlay on it.
           Its backdrop is the moment's own thumbnail, flipped and
-          blurred into a soft reflection under a dark gradient. */}
-      <div className="relative flex h-[52px] shrink-0 items-center overflow-hidden border-t border-white/10">
+          blurred into a soft reflection under a dark gradient.
+          `-mt-px` deliberately overlaps the stage's bottom edge by one
+          CSS pixel: at the phone frame's high-DPR mobile widths (2x/3x
+          device pixels per CSS pixel), the browser can round the
+          stage's fractional flex-basis height differently than the
+          bar's, leaving a true — if sub-CSS-pixel — rendering gap that
+          exposes the screen's own ink-950 background as a hairline
+          black seam. Invisible on 1x desktop displays (nothing to
+          round), which is why it only ever showed up on phones. The
+          overlap costs nothing visually (the bar's own reflection
+          image already extends past its box edge via `scale-110`) and
+          removes the seam by construction instead of chasing exact
+          rounding per breakpoint. */}
+      <div className="relative -mt-px flex h-[52px] shrink-0 items-center overflow-hidden border-t border-white/10">
         <Image
           src={moment.thumbnail}
           alt=""
