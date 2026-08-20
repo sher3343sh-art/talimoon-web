@@ -113,7 +113,7 @@ export default function Navbar() {
    * ---------------------------------------------------------------
    */
   const [openDropdown, setOpenDropdown] = useState<"product" | "language" | null>(null);
-  const [language, setLanguage] = useState<(typeof LANGUAGES)[number]["code"]>("UZ");
+  const [language, setLanguage] = useState<(typeof LANGUAGES)[number]["code"]>("EN");
 
   const productContainerRef = useRef<HTMLLIElement>(null);
   const languageContainerRef = useRef<HTMLDivElement>(null);
