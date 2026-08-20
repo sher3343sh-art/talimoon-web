@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { CSSProperties } from "react";
 import { motion, useReducedMotion } from "framer-motion";
+import { useT } from "@/lib/i18n/LanguageContext";
 
 export type DoorId = "personalized-books" | "yusuf-yasmina" | "talimoon-toys";
 
@@ -146,14 +147,18 @@ function FallbackWorld({
  * full leaf hinged on its left edge, so the whole leaf now rotates
  * from origin-left instead.
  */
+const DOOR_CHROME_EN = { discover: "Discover", stepInside: "Step Inside" };
+const DOOR_CHROME_UZ: typeof DOOR_CHROME_EN = { discover: "Kashf eting", stepInside: "Ichkariga kiring" };
+
 export function DoorPortal({ variant }: DoorPortalProps) {
   const reducedMotion = useReducedMotion();
+  const chrome = useT(DOOR_CHROME_EN, DOOR_CHROME_UZ);
   const { id, title, tagline, href, assets } = variant;
 
   return (
     <Link
       href={href}
-      aria-label={`Discover ${title}`}
+      aria-label={`${chrome.discover} ${title}`}
       className="group relative block w-full max-w-[428px] shrink-0 focus-visible:outline-none md:max-w-[242px] lg:max-w-[308px] xl:max-w-[391px] 2xl:max-w-[482px]"
     >
       <div
@@ -385,7 +390,7 @@ export function DoorPortal({ variant }: DoorPortalProps) {
           button would itself be the inconsistency. */}
       <div className="mt-[10px] flex justify-center">
         <span className="tm-cta-gold inline-flex h-[31px] shrink-0 items-center justify-center gap-1 whitespace-nowrap px-3.5 text-[12px] font-medium tracking-[0.015em]">
-          Step Inside
+          {chrome.stepInside}
           <svg
             aria-hidden="true"
             viewBox="0 0 16 16"

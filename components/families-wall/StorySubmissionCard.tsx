@@ -21,6 +21,27 @@
 
 import { useRef, useState, type FormEvent } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { useT } from "@/lib/i18n/LanguageContext";
+
+const COPY_EN = {
+  thankYou: "Thank you.",
+  received: "Your story has been received and will appear after approval.",
+  shareLabel: "Share your family's Talimoon story",
+  placeholder: "Write your family's story...",
+  sharing: "Sharing…",
+  shareYourStory: "Share Your Story",
+  reviewedNote: "Every story is reviewed before appearing publicly.",
+};
+
+const COPY_UZ: typeof COPY_EN = {
+  thankYou: "Rahmat.",
+  received: "Hikoyangiz qabul qilindi va tasdiqlangandan so'ng ko'rinadi.",
+  shareLabel: "Oilangizning Talimoon hikoyasini baham ko'ring",
+  placeholder: "Oilangiz hikoyasini yozing...",
+  sharing: "Yuborilmoqda…",
+  shareYourStory: "Hikoyangizni ulashing",
+  reviewedNote: "Har bir hikoya ommaga ko'rsatishdan oldin ko'rib chiqiladi.",
+};
 
 function PencilIcon() {
   return (
@@ -68,6 +89,7 @@ function ShieldIcon() {
 }
 
 export function StorySubmissionCard() {
+  const t = useT(COPY_EN, COPY_UZ);
   const [value, setValue] = useState("");
   const [status, setStatus] = useState<"idle" | "submitting" | "success">("idle");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -104,10 +126,10 @@ export function StorySubmissionCard() {
               role="status"
             >
               <p className="font-serif text-[1.25rem] font-medium text-[var(--text-primary,#2A241D)]">
-                Thank you.
+                {t.thankYou}
               </p>
               <p className="mx-auto mt-1.5 max-w-[46ch] font-sans text-[0.9375rem] leading-[1.6] text-[var(--text-secondary,#49433C)]">
-                Your story has been received and will appear after approval.
+                {t.received}
               </p>
             </motion.div>
           ) : (
@@ -129,7 +151,7 @@ export function StorySubmissionCard() {
 
               <div className="min-w-0 flex-1">
                 <label htmlFor="family-story" className="sr-only">
-                  Share your family&apos;s Talimoon story
+                  {t.shareLabel}
                 </label>
                 <textarea
                   ref={textareaRef}
@@ -137,7 +159,7 @@ export function StorySubmissionCard() {
                   name="story"
                   value={value}
                   onChange={handleInput}
-                  placeholder="Write your family's story..."
+                  placeholder={t.placeholder}
                   rows={1}
                   disabled={status === "submitting"}
                   className="w-full resize-none overflow-hidden border-0 border-b border-[var(--border-default,rgba(42,36,29,0.14))] bg-transparent pb-2 font-sans text-[1.0625rem] leading-[1.5] text-[var(--text-primary,#2A241D)] placeholder:text-[var(--text-muted,#8B8578)] focus:border-[var(--accent-primary,#B5764B)] focus:outline-none disabled:opacity-70"
@@ -149,7 +171,7 @@ export function StorySubmissionCard() {
                 disabled={!value.trim() || status === "submitting"}
                 className="tm-cta-gold inline-flex h-11 shrink-0 items-center justify-center gap-2 whitespace-nowrap px-5 text-[13px] font-medium tracking-[0.015em] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {status === "submitting" ? "Sharing…" : "Share Your Story"}
+                {status === "submitting" ? t.sharing : t.shareYourStory}
                 {status !== "submitting" && <ArrowIcon />}
               </button>
             </motion.form>
@@ -159,7 +181,7 @@ export function StorySubmissionCard() {
 
       <p className="mt-4 flex items-center justify-center gap-1.5 text-center font-sans text-[0.8125rem] text-[var(--text-muted,#8B8578)]">
         <ShieldIcon />
-        Every story is reviewed before appearing publicly.
+        {t.reviewedNote}
       </p>
     </div>
   );

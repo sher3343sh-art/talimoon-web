@@ -20,6 +20,21 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 import { FamilyCard, type FamilyStory } from "./FamilyCard";
+import { useT } from "@/lib/i18n/LanguageContext";
+
+const CHROME_EN = {
+  prevStory: "Previous story",
+  nextStory: "Next story",
+  storyNav: "Story navigation",
+  showStory: (name: string) => `Show ${name}'s story`,
+};
+
+const CHROME_UZ: typeof CHROME_EN = {
+  prevStory: "Oldingi hikoya",
+  nextStory: "Keyingi hikoya",
+  storyNav: "Hikoyalar navigatsiyasi",
+  showStory: (name: string) => `${name} hikoyasini ko'rsatish`,
+};
 
 function ChevronIcon({ direction }: { direction: "left" | "right" }) {
   return (
@@ -39,6 +54,7 @@ function ChevronIcon({ direction }: { direction: "left" | "right" }) {
 }
 
 export function TestimonialCarousel({ stories }: { stories: FamilyStory[] }) {
+  const t = useT(CHROME_EN, CHROME_UZ);
   const [activeIndex, setActiveIndex] = useState(1);
   const count = stories.length;
 
@@ -54,7 +70,7 @@ export function TestimonialCarousel({ stories }: { stories: FamilyStory[] }) {
       <button
         type="button"
         onClick={() => goTo(activeIndex - 1)}
-        aria-label="Previous story"
+        aria-label={t.prevStory}
         className="absolute left-0 top-1/2 z-20 hidden -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-[var(--gold-500,#B8935B)] bg-[var(--paper-50,#FDFBF7)] text-[var(--gold-600,#9C7A47)] shadow-[0_4px_16px_-4px_rgba(42,36,29,0.14)] transition-transform duration-200 hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-primary,#B5764B)] md:flex md:h-11 md:w-11"
       >
         <ChevronIcon direction="left" />
@@ -62,7 +78,7 @@ export function TestimonialCarousel({ stories }: { stories: FamilyStory[] }) {
       <button
         type="button"
         onClick={() => goTo(activeIndex + 1)}
-        aria-label="Next story"
+        aria-label={t.nextStory}
         className="absolute right-0 top-1/2 z-20 hidden translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-[var(--gold-500,#B8935B)] bg-[var(--paper-50,#FDFBF7)] text-[var(--gold-600,#9C7A47)] shadow-[0_4px_16px_-4px_rgba(42,36,29,0.14)] transition-transform duration-200 hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-primary,#B5764B)] md:flex md:h-11 md:w-11"
       >
         <ChevronIcon direction="right" />
@@ -92,14 +108,14 @@ export function TestimonialCarousel({ stories }: { stories: FamilyStory[] }) {
         </div>
       </div>
 
-      <div className="mt-8 flex items-center justify-center gap-2" role="tablist" aria-label="Story navigation">
+      <div className="mt-8 flex items-center justify-center gap-2" role="tablist" aria-label={t.storyNav}>
         {stories.map((story, index) => (
           <button
             key={story.id}
             type="button"
             role="tab"
             aria-selected={index === activeIndex}
-            aria-label={`Show ${story.name}'s story`}
+            aria-label={t.showStory(story.name)}
             onClick={() => goTo(index)}
             className={[
               "h-2 w-2 rounded-full transition-[background-color,transform] duration-300 ease-out focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-primary,#B5764B)]",

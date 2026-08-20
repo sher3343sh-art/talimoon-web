@@ -1,5 +1,10 @@
+"use client";
+
 /**
  * PartnersPreview — TALIMOON home page ("Trusted Partners")
+ * ----------------------------------------------------------------
+ * Now a Client Component (was a server component before): needs
+ * `useT` (a Context hook) for translated copy.
  * ----------------------------------------------------------------
  * A compact, deliberately unfinished-feeling-NOT reserved space
  * before the Footer — not a real partners page, just three "Coming
@@ -19,6 +24,7 @@
  */
 
 import { PartnerCard, type Partner } from "./PartnerCard";
+import { useT } from "@/lib/i18n/LanguageContext";
 
 const PARTNERS: Partner[] = [
   { id: "partner-1" },
@@ -26,7 +32,25 @@ const PARTNERS: Partner[] = [
   { id: "partner-3" },
 ];
 
+const COPY_EN = {
+  eyebrow: "Trusted Partners",
+  heading: "Growing Together",
+  description:
+    "Future collaborations with educational institutions, publishers and family-focused organizations will appear here.",
+  reservedSlots: "Reserved partner slots",
+};
+
+const COPY_UZ: typeof COPY_EN = {
+  eyebrow: "Ishonchli hamkorlar",
+  heading: "Birgalikda o'sib boramiz",
+  description:
+    "Bu yerda ta'lim muassasalari, nashriyotlar va oilaviy tashkilotlar bilan kelajakdagi hamkorliklar joylashadi.",
+  reservedSlots: "Zaxiradagi hamkor o'rinlari",
+};
+
 export function PartnersPreview() {
+  const t = useT(COPY_EN, COPY_UZ);
+
   return (
     <section
       aria-labelledby="partners-heading"
@@ -44,22 +68,22 @@ export function PartnersPreview() {
       <div className="relative mx-auto max-w-[1440px] px-5 md:px-10 lg:px-16">
         <div className="text-center">
           <p className="font-sans text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-[var(--accent-primary,#B5764B)]">
-            Trusted Partners
+            {t.eyebrow}
           </p>
           <h2
             id="partners-heading"
             className="mt-1.5 font-serif text-[1.125rem] font-medium leading-[1.2] tracking-[-0.005em] text-[var(--text-primary,#2A241D)] lg:text-[1.375rem]"
           >
-            Growing Together
+            {t.heading}
           </h2>
           <p className="mx-auto mt-1.5 max-w-[340px] font-sans text-[0.6875rem] leading-[1.35] text-[var(--text-secondary,#49433C)] md:max-w-[720px] md:text-[0.75rem] lg:max-w-[900px] lg:text-[0.8125rem]">
-            Future collaborations with educational institutions, publishers and family-focused organizations will appear here.
+            {t.description}
           </p>
         </div>
 
         <ul
           className="mx-auto mt-2 flex max-w-[720px] list-none items-center justify-start gap-3 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:justify-center sm:gap-4 sm:overflow-visible lg:mt-4"
-          aria-label="Reserved partner slots"
+          aria-label={t.reservedSlots}
         >
           {PARTNERS.map((partner) => (
             <li key={partner.id}>

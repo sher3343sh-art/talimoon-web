@@ -13,6 +13,10 @@
  */
 
 import { ReactionBar, type ReactionCounts } from "./ReactionBar";
+import { useT } from "@/lib/i18n/LanguageContext";
+
+const VERIFIED_EN = "Verified Talimoon Family";
+const VERIFIED_UZ = "Tasdiqlangan Talimoon oilasi";
 
 export type FamilyStory = {
   id: string;
@@ -32,6 +36,7 @@ function VerifiedIcon() {
 
 export function FamilyCard({ story, size = "lg" }: { story: FamilyStory; size?: "lg" | "sm" }) {
   const isLarge = size === "lg";
+  const verifiedLabel = useT(VERIFIED_EN, VERIFIED_UZ);
 
   return (
     <article
@@ -68,7 +73,7 @@ export function FamilyCard({ story, size = "lg" }: { story: FamilyStory; size?: 
         <div className="mt-1 inline-flex items-center gap-1.5 text-[var(--gold-600,#9C7A47)]">
           <VerifiedIcon />
           <span className="font-sans text-[0.6875rem] font-semibold uppercase tracking-[0.08em]">
-            Verified Talimoon Family
+            {verifiedLabel}
           </span>
         </div>
       </div>

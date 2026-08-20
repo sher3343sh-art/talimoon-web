@@ -56,6 +56,25 @@ import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRef, useState } from "react";
 import type { Moment } from "./RealTalimoonMoments";
+import { useT } from "@/lib/i18n/LanguageContext";
+
+const CHROME_EN = {
+  play: (name: string) => `Play ${name}'s video`,
+  pause: (name: string) => `Pause ${name}'s video`,
+  prevMoment: "Previous moment",
+  nextMoment: "Next moment",
+  mute: "Mute",
+  unmute: "Unmute",
+};
+
+const CHROME_UZ: typeof CHROME_EN = {
+  play: (name: string) => `${name} videosini ijro etish`,
+  pause: (name: string) => `${name} videosini pauza qilish`,
+  prevMoment: "Oldingi lahza",
+  nextMoment: "Keyingi lahza",
+  mute: "Ovozni o'chirish",
+  unmute: "Ovozni yoqish",
+};
 
 function PlayIcon({ className = "h-5 w-5" }: { className?: string }) {
   return (
@@ -126,6 +145,7 @@ function MomentScreen({
   const [isMuted, setIsMuted] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const hasVideo = Boolean(moment.video);
+  const chrome = useT(CHROME_EN, CHROME_UZ);
 
   const togglePlay = () => {
     if (!hasVideo) {
@@ -188,7 +208,7 @@ function MomentScreen({
         <button
           type="button"
           onClick={togglePlay}
-          aria-label={isPlaying ? `Pause ${moment.name}'s video` : `Play ${moment.name}'s video`}
+          aria-label={isPlaying ? chrome.pause(moment.name) : chrome.play(moment.name)}
           className="absolute inset-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
         />
 
@@ -225,7 +245,7 @@ function MomentScreen({
           <button
             type="button"
             onClick={() => setIsMuted((m) => !m)}
-            aria-label={isMuted ? "Unmute" : "Mute"}
+            aria-label={isMuted ? chrome.unmute : chrome.mute}
             className="flex h-9 w-9 items-center justify-center rounded-full text-white/70 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
           >
             <SpeakerIcon muted={isMuted} />
@@ -235,7 +255,7 @@ function MomentScreen({
             <button
               type="button"
               onClick={onPrev}
-              aria-label="Previous moment"
+              aria-label={chrome.prevMoment}
               className="flex h-10 w-10 items-center justify-center rounded-full text-white/70 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
               <ChevronIcon direction="left" />
@@ -243,7 +263,7 @@ function MomentScreen({
             <button
               type="button"
               onClick={togglePlay}
-              aria-label={isPlaying ? `Pause ${moment.name}'s video` : `Play ${moment.name}'s video`}
+              aria-label={isPlaying ? chrome.pause(moment.name) : chrome.play(moment.name)}
               className="flex h-11 w-11 items-center justify-center rounded-full bg-white/92 text-[var(--ink-950,#211D18)] shadow-[0_4px_12px_rgba(0,0,0,0.25)] transition-transform duration-200 hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
               {isPlaying ? <PauseIcon /> : <PlayIcon />}
@@ -251,7 +271,7 @@ function MomentScreen({
             <button
               type="button"
               onClick={onNext}
-              aria-label="Next moment"
+              aria-label={chrome.nextMoment}
               className="flex h-10 w-10 items-center justify-center rounded-full text-white/70 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
               <ChevronIcon direction="right" />

@@ -32,8 +32,9 @@ import { SectionOrnament } from "./SectionOrnament";
 import { TestimonialCarousel } from "./TestimonialCarousel";
 import { ReactionSummary } from "./ReactionSummary";
 import type { FamilyStory } from "./FamilyCard";
+import { useT } from "@/lib/i18n/LanguageContext";
 
-const STORIES: FamilyStory[] = [
+const STORIES_EN: FamilyStory[] = [
   {
     id: "azizbek",
     quote: "He finally enjoyed reading.",
@@ -53,6 +54,48 @@ const STORIES: FamilyStory[] = [
     reactions: { smile: 387, love: 156, touched: 49 },
   },
 ];
+
+const STORIES_UZ: FamilyStory[] = [
+  {
+    id: "azizbek",
+    quote: "Nihoyat u o'qishdan zavq oldi.",
+    name: "Azizbekning otasi",
+    reactions: { smile: 512, love: 301, touched: 74 },
+  },
+  {
+    id: "madina",
+    quote: "Qizim uxlashdan oldin uni uch marta o'qib berishimni so'radi.",
+    name: "Madinaning onasi",
+    reactions: { smile: 428, love: 192, touched: 66 },
+  },
+  {
+    id: "dilnoza",
+    quote: "Shaxsiylashtirilgan hikoya kichkinamizni juda xursand qildi.",
+    name: "Dilnoza",
+    reactions: { smile: 387, love: 156, touched: 49 },
+  },
+];
+
+const COPY_EN = {
+  eyebrow: "What Families Are Saying",
+  heading: "Every Story Leaves a Smile.",
+  descriptionPre: "Real moments shared by families who created memories with",
+  descriptionPost: ".",
+  featured: "Featured Stories",
+  viewAll: "View all family stories",
+};
+
+const COPY_UZ: typeof COPY_EN = {
+  eyebrow: "Oilalar nima deyishmoqda",
+  heading: "Har bir hikoya tabassum qoldiradi.",
+  // Uzbek word order puts the brand name first, not trailing before
+  // the period like English — `descriptionPre` is empty and the
+  // brand's highlighted <span> effectively opens the sentence.
+  descriptionPre: "",
+  descriptionPost: " bilan xotiralar yaratgan oilalarning haqiqiy lahzalari.",
+  featured: "Tanlangan hikoyalar",
+  viewAll: "Barcha oila hikoyalarini ko'rish",
+};
 
 const sectionReveal: Variants = {
   hidden: { opacity: 0, y: 24 },
@@ -83,6 +126,8 @@ function DecorationSlot({ corner }: { corner: "top-left" | "top-right" | "bottom
 
 export function FamiliesWall() {
   const reducedMotion = useReducedMotion();
+  const t = useT(COPY_EN, COPY_UZ);
+  const stories = useT(STORIES_EN, STORIES_UZ);
 
   return (
     <motion.section
@@ -101,18 +146,20 @@ export function FamiliesWall() {
       <div className="relative mx-auto max-w-[1440px] px-5 md:px-10 lg:px-16">
         <div className="mx-auto max-w-[640px] text-center">
           <p className="font-sans text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent-primary,#B5764B)]">
-            What Families Are Saying
+            {t.eyebrow}
           </p>
           <SectionOrnament />
           <h2
             id="families-wall-heading"
             className="mt-4 font-serif text-[2.25rem] font-medium leading-[1.15] tracking-[-0.01em] text-[var(--text-primary,#2A241D)]"
           >
-            Every Story Leaves a Smile.
+            {t.heading}
           </h2>
           <p className="mx-auto mt-4 max-w-[46ch] font-sans text-[1.125rem] leading-[1.65] text-[var(--text-secondary,#49433C)]">
-            Real moments shared by families who created memories with{" "}
-            <span className="text-[var(--accent-primary,#B5764B)]">TALIMOON</span>.
+            {t.descriptionPre}
+            {t.descriptionPre && " "}
+            <span className="text-[var(--accent-primary,#B5764B)]">TALIMOON</span>
+            {t.descriptionPost}
           </p>
         </div>
 
@@ -122,13 +169,13 @@ export function FamiliesWall() {
 
         <div className="mt-16 text-center lg:mt-20">
           <p className="font-sans text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent-primary,#B5764B)]">
-            Featured Stories
+            {t.featured}
           </p>
           <SectionOrnament size="small" />
         </div>
 
         <div className="mt-10">
-          <TestimonialCarousel stories={STORIES} />
+          <TestimonialCarousel stories={stories} />
         </div>
 
         <div className="mt-12 lg:mt-14">
@@ -140,7 +187,7 @@ export function FamiliesWall() {
             href="/story-library"
             className="inline-flex items-center gap-1.5 font-sans text-[0.9375rem] font-semibold text-[var(--accent-primary,#B5764B)] transition-opacity duration-200 hover:opacity-75 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--accent-primary,#B5764B)]"
           >
-            View all family stories
+            {t.viewAll}
             <span aria-hidden="true">→</span>
           </a>
         </div>

@@ -8,6 +8,7 @@ import {
 } from "next/font/google";
 import "./globals.css";
 import { MaskDefs } from "@/components/ui/MaskDefs";
+import { LanguageProvider } from "@/lib/i18n/LanguageContext";
 
 
 const fraunces = Fraunces({
@@ -62,7 +63,7 @@ export default function RootLayout({
   className={`${fraunces.variable} ${plusJakartaSans.variable} ${geistMono.variable} ${cormorantGaramond.variable} ${manrope.variable} antialiased min-h-full flex flex-col`}
 >
   <MaskDefs />
-  {children}
+  <LanguageProvider>{children}</LanguageProvider>
 </body>
     </html>
   );

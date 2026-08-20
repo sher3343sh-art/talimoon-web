@@ -13,6 +13,7 @@
 
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { useT } from "@/lib/i18n/LanguageContext";
 
 export type ReactionCounts = {
   smile: number;
@@ -20,11 +21,27 @@ export type ReactionCounts = {
   touched: number;
 };
 
-const REACTIONS: { key: keyof ReactionCounts; emoji: string; label: string }[] = [
+const REACTIONS_EN: { key: keyof ReactionCounts; emoji: string; label: string }[] = [
   { key: "smile", emoji: "😊", label: "Smile" },
   { key: "love", emoji: "❤️", label: "Love" },
   { key: "touched", emoji: "🥹", label: "Touched" },
 ];
+
+const REACTIONS_UZ: { key: keyof ReactionCounts; emoji: string; label: string }[] = [
+  { key: "smile", emoji: "😊", label: "Tabassum" },
+  { key: "love", emoji: "❤️", label: "Sevgi" },
+  { key: "touched", emoji: "🥹", label: "Ta'sirlangan" },
+];
+
+const CHROME_EN = {
+  reactWith: (label: string, reacted: boolean) => `React with ${label}${reacted ? " — already reacted" : ""}`,
+  reactToStory: "React to this story",
+};
+
+const CHROME_UZ: typeof CHROME_EN = {
+  reactWith: (label: string, reacted: boolean) => `${label} bilan munosabat bildirish${reacted ? " — allaqachon bildirilgan" : ""}`,
+  reactToStory: "Ushbu hikoyaga munosabat bildiring",
+};
 
 function storageKey(storyId: string, reactionKey: string) {
   return `talimoon:reaction:${storyId}:${reactionKey}`;
@@ -46,6 +63,7 @@ function ReactionButton({
   const [reacted, setReacted] = useState(false);
   const [count, setCount] = useState(initialCount);
   const [pulses, setPulses] = useState(0);
+  const chrome = useT(CHROME_EN, CHROME_UZ);
 
   // Deliberately an effect, not a lazy useState initializer: reading
   // localStorage during the initializer would run on the client's
@@ -79,7 +97,7 @@ function ReactionButton({
       onClick={handleClick}
       disabled={reacted}
       aria-pressed={reacted}
-      aria-label={`React with ${label}${reacted ? " — already reacted" : ""}`}
+      aria-label={chrome.reactWith(label, reacted)}
       className="inline-flex items-center gap-1.5 rounded-full font-sans text-[0.9375rem] text-[var(--text-secondary,#49433C)] transition-opacity duration-200 hover:opacity-80 disabled:cursor-default focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-primary,#B5764B)]"
     >
       <motion.span
@@ -104,8 +122,11 @@ function ReactionButton({
 }
 
 export function ReactionBar({ storyId, reactions }: { storyId: string; reactions: ReactionCounts }) {
+  const chrome = useT(CHROME_EN, CHROME_UZ);
+  const REACTIONS = useT(REACTIONS_EN, REACTIONS_UZ);
+
   return (
-    <div className="flex items-center gap-5" aria-label="React to this story">
+    <div className="flex items-center gap-5" aria-label={chrome.reactToStory}>
       {REACTIONS.map(({ key, emoji, label }) => (
         <ReactionButton
           key={key}

@@ -1,5 +1,10 @@
+"use client";
+
 /**
  * StoryLibraryPreview — TALIMOON home page
+ * ----------------------------------------------------------------
+ * Now a Client Component (was a server component before): needs
+ * `useT` (a Context hook) for translated copy.
  * ----------------------------------------------------------------
  * A preview, not the library: this section exists only to make a
  * visitor curious enough to click through to /story-library. It
@@ -25,14 +30,37 @@
 
 import Link from "next/link";
 import { StoryLibraryIllustration } from "./StoryLibraryIllustration";
+import { useT } from "@/lib/i18n/LanguageContext";
 
-const STATS = [
-  { value: "250+", label: "Stories" },
-  { value: "6", label: "Categories" },
-  { value: "Updated", label: "Weekly" },
-];
+const COPY_EN = {
+  eyebrow: "Story Library",
+  heading: "Where Every Story Comes Alive.",
+  description:
+    "Step into a growing collection of gentle, meaningful tales — each one crafted to spark imagination and nurture character, one page at a time.",
+  cta: "Explore Story Library",
+  stats: [
+    { value: "250+", label: "Stories" },
+    { value: "6", label: "Categories" },
+    { value: "Updated", label: "Weekly" },
+  ],
+};
+
+const COPY_UZ: typeof COPY_EN = {
+  eyebrow: "Hikoyalar kutubxonasi",
+  heading: "Har bir hikoya jonlanadigan joy.",
+  description:
+    "Nozik va ma'noli hikoyalarning tobora boyib boruvchi to'plamiga qadam qo'ying — har biri xayolotni uyg'otish va xarakterni tarbiyalash uchun, sahifama-sahifa yaratilgan.",
+  cta: "Hikoyalar kutubxonasini ko'rish",
+  stats: [
+    { value: "250+", label: "Hikoyalar" },
+    { value: "6", label: "Toifalar" },
+    { value: "Yangilanadi", label: "har hafta" },
+  ],
+};
 
 export function StoryLibraryPreview() {
+  const t = useT(COPY_EN, COPY_UZ);
+
   return (
     <section
       aria-labelledby="story-library-preview-heading"
@@ -56,22 +84,20 @@ export function StoryLibraryPreview() {
         {/* Text column — ≈40% on desktop */}
         <div className="order-2 lg:order-1 lg:col-span-2">
           <p className="text-label font-sans font-semibold uppercase text-accent-primary">
-            Story Library
+            {t.eyebrow}
           </p>
           <h2
             id="story-library-preview-heading"
             className="mt-3 font-display text-heading text-text-primary"
           >
-            Where Every Story Comes Alive.
+            {t.heading}
           </h2>
           <p className="mt-4 max-w-[42ch] text-body text-text-secondary">
-            Step into a growing collection of gentle, meaningful tales —
-            each one crafted to spark imagination and nurture character,
-            one page at a time.
+            {t.description}
           </p>
 
           <dl className="mt-8 flex items-center gap-6 sm:gap-8">
-            {STATS.map((stat, i) => (
+            {t.stats.map((stat, i) => (
               <div key={stat.label} className="flex items-center gap-6 sm:gap-8">
                 {i > 0 && (
                   <span aria-hidden="true" className="h-8 w-px bg-border-subtle" />
@@ -92,7 +118,7 @@ export function StoryLibraryPreview() {
             href="/story-library"
             className="tm-cta-gold mt-12 inline-flex h-11 shrink-0 items-center justify-center whitespace-nowrap px-4 text-[13px] font-medium tracking-[0.015em]"
           >
-            Explore Story Library
+            {t.cta}
           </Link>
         </div>
 

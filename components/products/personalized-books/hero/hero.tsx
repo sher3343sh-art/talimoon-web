@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { useT } from "@/lib/i18n/LanguageContext";
 
 /**
  * TALIMOON — "The Open Page" Hero
@@ -60,36 +61,77 @@ export interface TalimoonHeroProps {
   secondaryCtaHref?: string;
 }
 
-const defaultNavLinks = [
+const defaultNavLinksEn = [
   { label: "How it works", href: "#how-it-works" },
   { label: "Craftsmanship", href: "#craftsmanship" },
   { label: "Collections", href: "#collections" },
   { label: "Gifting", href: "#gifting" },
 ];
 
+const defaultNavLinksUz = [
+  { label: "Qanday ishlaydi", href: "#how-it-works" },
+  { label: "Ustalik", href: "#craftsmanship" },
+  { label: "To'plamlar", href: "#collections" },
+  { label: "Sovg'a qilish", href: "#gifting" },
+];
+
 // Verified location: public/images/products/personalized-books/hero/hero-v13.png
 const DEFAULT_HERO_IMAGE_SRC =
   "/images/products/personalized-books/hero/hero-v13.png";
 
+const DEFAULT_COPY_EN = {
+  imageAlt: "A child reading, softly connected to the story in their hands",
+  logoText: "Talimoon",
+  kicker: "Personalized storybooks",
+  headline: "A story where your child is the hero.",
+  subhead:
+    "Personalized books made with the care of a fine publisher - for families who want more than a name dropped into a template.",
+  primaryCtaLabel: "Begin the Story",
+  secondaryCtaLabel: "See how it works",
+};
+
+const DEFAULT_COPY_UZ: typeof DEFAULT_COPY_EN = {
+  imageAlt: "Bola hikoyaga chin qalbdan bog'langan holda o'qimoqda",
+  logoText: "Talimoon",
+  kicker: "Shaxsiylashtirilgan hikoya kitoblari",
+  headline: "Farzandingiz qahramon bo'lgan hikoya.",
+  subhead:
+    "Andozaga faqat ism qo'shilgan kitob emas, balki har bir tafsiloti bilan chin nashriyot ehtiyotkorligi bilan yaratilgan shaxsiylashtirilgan kitoblar.",
+  primaryCtaLabel: "Hikoyani boshlash",
+  secondaryCtaLabel: "Qanday ishlashini ko'ring",
+};
+
 export default function TalimoonHero({
   imageSrc = DEFAULT_HERO_IMAGE_SRC,
-  imageAlt = "A child reading, softly connected to the story in their hands",
+  imageAlt,
   showNav = false,
-  logoText = "Talimoon",
-  navLinks = defaultNavLinks,
-  kicker = "Personalized storybooks",
-  headline = "A story where your child is the hero.",
-  subhead = "Personalized books made with the care of a fine publisher - for families who want more than a name dropped into a template.",
-  primaryCtaLabel = "Begin the Story",
+  logoText,
+  navLinks,
+  kicker,
+  headline,
+  subhead,
+  primaryCtaLabel,
   primaryCtaHref = "#start",
-  secondaryCtaLabel = "See how it works",
+  secondaryCtaLabel,
   secondaryCtaHref = "#how-it-works",
 }: TalimoonHeroProps) {
   const [loaded, setLoaded] = useState(false);
   const [errored, setErrored] = useState(false);
+  const t = useT(DEFAULT_COPY_EN, DEFAULT_COPY_UZ);
+  const defaultNavLinks = useT(defaultNavLinksEn, defaultNavLinksUz);
+  const sectionLabel = useT("Hero", "Bosh banner");
+
+  imageAlt ??= t.imageAlt;
+  logoText ??= t.logoText;
+  navLinks ??= defaultNavLinks;
+  kicker ??= t.kicker;
+  headline ??= t.headline;
+  subhead ??= t.subhead;
+  primaryCtaLabel ??= t.primaryCtaLabel;
+  secondaryCtaLabel ??= t.secondaryCtaLabel;
 
   return (
-    <section className="tm-hero" aria-label="Hero">
+    <section className="tm-hero" aria-label={sectionLabel}>
       <style>{`
         .tm-hero {
           --surface-warm-100: #F7F2EA;

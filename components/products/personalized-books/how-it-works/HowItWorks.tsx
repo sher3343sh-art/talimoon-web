@@ -1,6 +1,10 @@
+"use client";
+
 import { MaskedImage } from "@/components/ui/MaskedImage";
+import { useT } from "@/lib/i18n/LanguageContext";
 
 interface Step {
+  key: string;
   title: string;
   sentence: string;
   alt: string;
@@ -8,14 +12,16 @@ interface Step {
   image?: string;
 }
 
-const STEPS: Step[] = [
+const STEPS_EN: Step[] = [
   {
+    key: "tell-us",
     title: "Tell Us About Your Child",
     sentence: "Share their name, personality, dreams and photos.",
     alt: "A parent filling in details and photos about their child",
     image: "/images/how-it-works/step-1-family-details.svg",
   },
   {
+    key: "we-create",
     title: "We Create Their Story",
     sentence:
       "Our writers and illustrators craft a unique personalized adventure.",
@@ -23,12 +29,14 @@ const STEPS: Step[] = [
     image: "/images/how-it-works/step-2-create-story.svg",
   },
   {
+    key: "printed",
     title: "Printed With Care",
     sentence: "Every book is beautifully produced using premium materials.",
     alt: "A finished storybook being printed on premium paper",
     image: "/images/how-it-works/step-3-printed-with-care.svg",
   },
   {
+    key: "delivered",
     title: "Delivered To Your Family",
     sentence: "A timeless keepsake arrives ready to be treasured.",
     alt: "A child holding their personalized storybook at home",
@@ -36,7 +44,58 @@ const STEPS: Step[] = [
   },
 ];
 
+const STEPS_UZ: Step[] = [
+  {
+    key: "tell-us",
+    title: "Farzandingiz haqida bizga ayting",
+    sentence: "Uning ismi, xarakteri, orzulari va suratlarini baham ko'ring.",
+    alt: "Ota-ona farzandi haqida ma'lumot va suratlarni to'ldirmoqda",
+    image: "/images/how-it-works/step-1-family-details.svg",
+  },
+  {
+    key: "we-create",
+    title: "Biz uning hikoyasini yaratamiz",
+    sentence:
+      "Bizning yozuvchi va rassomlarimiz noyob, shaxsiylashtirilgan sarguzasht yaratadi.",
+    alt: "Rassom shaxsiylashtirilgan hikoya kitobining sahifasini chizmoqda",
+    image: "/images/how-it-works/step-2-create-story.svg",
+  },
+  {
+    key: "printed",
+    title: "Ehtiyotkorlik bilan chop etiladi",
+    sentence: "Har bir kitob premium materiallar yordamida chiroyli tarzda ishlab chiqariladi.",
+    alt: "Tayyor hikoya kitobi premium qog'ozda chop etilmoqda",
+    image: "/images/how-it-works/step-3-printed-with-care.svg",
+  },
+  {
+    key: "delivered",
+    title: "Oilangizga yetkaziladi",
+    sentence: "Abadiy xotira yodgorligi qadrlashga tayyor holda yetib keladi.",
+    alt: "Bola uyida o'zining shaxsiylashtirilgan hikoya kitobini ushlab turibdi",
+    image: "/images/how-it-works/step-4-delivered-to-your-family.svg",
+  },
+];
+
+const COPY_EN = {
+  eyebrow: "The Process",
+  heading: "How It Works",
+  description:
+    "From a few details about your child to a keepsake in their hands — here is the entire journey.",
+  stepOf: (n: number, total: number) => `Step ${n} of ${total}: `,
+};
+
+const COPY_UZ: typeof COPY_EN = {
+  eyebrow: "Jarayon",
+  heading: "Qanday ishlaydi",
+  description:
+    "Farzandingiz haqidagi bir necha ma'lumotdan tortib, qo'lidagi xotira yodgorligigacha — mana butun sayohat.",
+  stepOf: (n: number, total: number) => `${n}-qadam, jami ${total}: `,
+};
+
 export function HowItWorks() {
+  const t = useT(COPY_EN, COPY_UZ);
+  const STEPS = useT(STEPS_EN, STEPS_UZ);
+
   return (
     <section
       id="how-it-works"
@@ -46,17 +105,16 @@ export function HowItWorks() {
       <div className="mx-auto max-w-[1440px] px-5 py-16 md:px-10 md:py-20 lg:px-16 lg:py-24">
         <div className="mx-auto max-w-[640px] text-center">
           <p className="font-sans text-[12px] font-semibold uppercase tracking-[0.18em] text-[var(--text-tertiary,#726C65)]">
-            The Process
+            {t.eyebrow}
           </p>
           <h2
             id="how-it-works-heading"
             className="mt-3 font-serif text-[2rem] font-medium leading-[1.1] tracking-[-0.015em] text-[var(--text-primary,#2A241D)] sm:text-[2.25rem] md:text-[2.5rem] lg:text-[2.75rem]"
           >
-            How It Works
+            {t.heading}
           </h2>
           <p className="mx-auto mt-6 max-w-[42ch] font-sans text-[1.0625rem] leading-[1.65] text-[var(--text-secondary,#49433C)] md:text-[1.125rem]">
-            From a few details about your child to a keepsake in their hands —
-            here is the entire journey.
+            {t.description}
           </p>
         </div>
 
@@ -77,11 +135,11 @@ export function HowItWorks() {
           <ol className="grid grid-cols-1 gap-x-8 gap-y-14 md:grid-cols-2 md:gap-y-16 lg:grid-cols-4 lg:gap-x-10">
             {STEPS.map((step, idx) => (
               <li
-                key={step.title}
+                key={step.key}
                 className="flex flex-col items-center text-center"
               >
                 <span className="sr-only">
-                  Step {idx + 1} of {STEPS.length}:{" "}
+                  {t.stepOf(idx + 1, STEPS.length)}
                 </span>
 
                 <MaskedImage

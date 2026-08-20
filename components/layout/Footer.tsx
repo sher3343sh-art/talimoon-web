@@ -1,9 +1,13 @@
+"use client";
+
 /**
  * Footer — TALIMOON
  * ----------------------------------------------------------------
- * Server component: no "use client", no state, no motion.
- * Container and spacing are untouched from the original light-surface
- * version — only color tokens changed.
+ * No local state/effects of its own, but now needs `useT`/`useLanguage`
+ * (a Context hook) for translated copy, so it must be a Client
+ * Component — was previously a plain server component, upgraded
+ * specifically for this. Container and spacing are untouched from the
+ * original light-surface version — only color tokens changed.
  *
  * 2026-08-08: the Final CTA section (EmotionalBanner, dark navy
  * `--surface-contrast`) was removed from the home page entirely, and
@@ -25,19 +29,60 @@
  */
 
 import Link from "next/link";
+import { useT } from "@/lib/i18n/LanguageContext";
+
+const FOOTER_EN = {
+  tagline: "Stories they'll remember forever.",
+  beginStory: "Begin the Story",
+  talimoonHome: "Talimoon Home",
+  exploreHeading: "Explore",
+  resourcesHeading: "Resources",
+  socialHeading: "Social",
+  contactHeading: "Contact",
+  about: "About",
+  howItWorks: "How it Works",
+  pricing: "Pricing",
+  faq: "FAQ",
+  privacyPolicy: "Privacy Policy",
+  terms: "Terms",
+  contact: "Contact",
+  email: "Email",
+  copyright: "© 2026 TALIMOON.",
+  craftedWithCare: "Crafted with care for families.",
+};
+
+const FOOTER_UZ: typeof FOOTER_EN = {
+  tagline: "Ular umrbod eslab qoladigan hikoyalar.",
+  beginStory: "Hikoyani boshlash",
+  talimoonHome: "Talimoon bosh sahifasi",
+  exploreHeading: "Sahifalar",
+  resourcesHeading: "Resurslar",
+  socialHeading: "Ijtimoiy tarmoqlar",
+  contactHeading: "Aloqa",
+  about: "Biz haqimizda",
+  howItWorks: "Qanday ishlaydi",
+  pricing: "Narxlar",
+  faq: "Savol-javob",
+  privacyPolicy: "Maxfiylik siyosati",
+  terms: "Foydalanish shartlari",
+  contact: "Aloqa",
+  email: "Email",
+  copyright: "© 2026 TALIMOON.",
+  craftedWithCare: "Oilalar uchun mehr bilan yaratilgan.",
+};
 
 const EXPLORE_LINKS = [
-  { label: "About", href: "#about" },
-  { label: "How it Works", href: "#how-it-works" },
-  { label: "Pricing", href: "#pricing" },
-  { label: "FAQ", href: "#faq" },
-];
+  { key: "about", href: "#about" },
+  { key: "howItWorks", href: "#how-it-works" },
+  { key: "pricing", href: "#pricing" },
+  { key: "faq", href: "#faq" },
+] as const satisfies readonly { key: keyof typeof FOOTER_EN; href: string }[];
 
 const RESOURCES_LINKS = [
-  { label: "Privacy Policy", href: "/privacy" },
-  { label: "Terms", href: "/terms" },
-  { label: "Contact", href: "/contact" },
-];
+  { key: "privacyPolicy", href: "/privacy" },
+  { key: "terms", href: "/terms" },
+  { key: "contact", href: "/contact" },
+] as const satisfies readonly { key: keyof typeof FOOTER_EN; href: string }[];
 
 const SOCIAL_LINKS = [
   { label: "Instagram", href: "#" },
@@ -46,10 +91,10 @@ const SOCIAL_LINKS = [
 ];
 
 const CONTACT_LINKS = [
-  { label: "Email", value: "hello@talimoon.com", href: "mailto:hello@talimoon.com" },
+  { key: "email", value: "hello@talimoon.com", href: "mailto:hello@talimoon.com" },
   { label: "Telegram", value: "@talimoon", href: "#" },
   { label: "Instagram", value: "@talimoon", href: "#" },
-];
+] as const;
 
 const columnHeadingClass =
   "font-sans text-[13px] font-medium uppercase tracking-[0.14em] text-[var(--text-inverse-muted,rgba(247,243,236,0.7))]";
@@ -65,6 +110,7 @@ export interface FooterProps {
 }
 
 export function Footer({ showHowItWorksLink = true }: FooterProps) {
+  const t = useT(FOOTER_EN, FOOTER_UZ);
   const exploreLinks = showHowItWorksLink
     ? EXPLORE_LINKS
     : EXPLORE_LINKS.filter((link) => link.href !== "#how-it-works");
@@ -75,7 +121,7 @@ export function Footer({ showHowItWorksLink = true }: FooterProps) {
         {/* Top area */}
         <div className="flex flex-col gap-8 py-16 md:flex-row md:items-center md:justify-between md:py-20">
           <div>
-            <Link href="/" aria-label="Talimoon Home" className="relative flex h-9 w-auto items-center">
+            <Link href="/" aria-label={t.talimoonHome} className="relative flex h-9 w-auto items-center">
               <img
                 src="/logo/talimoon-logo-gold.svg"
                 alt="Talimoon"
@@ -85,7 +131,7 @@ export function Footer({ showHowItWorksLink = true }: FooterProps) {
               <span aria-hidden="true" className="tm-logo-shine pointer-events-none absolute inset-0 h-9 w-auto" />
             </Link>
             <p className="mt-3 font-sans text-[0.9375rem] leading-[1.6] text-[var(--text-inverse-muted,rgba(247,243,236,0.7))]">
-              Stories they&rsquo;ll remember forever.
+              {t.tagline}
             </p>
           </div>
 
@@ -93,19 +139,19 @@ export function Footer({ showHowItWorksLink = true }: FooterProps) {
             href="#begin"
             className="tm-cta-gold inline-flex h-11 shrink-0 items-center justify-center whitespace-nowrap px-4 text-[13px] font-medium tracking-[0.015em]"
           >
-            Begin the Story
+            {t.beginStory}
           </a>
         </div>
 
         {/* Middle: four columns */}
         <div className="grid grid-cols-1 gap-12 border-t border-[var(--border-inverse,rgba(247,243,236,0.18))] py-16 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
           <div>
-            <h3 className={columnHeadingClass}>Explore</h3>
+            <h3 className={columnHeadingClass}>{t.exploreHeading}</h3>
             <ul className="mt-5 space-y-3">
               {exploreLinks.map((link) => (
-                <li key={link.label}>
+                <li key={link.key}>
                   <a href={link.href} className={linkClass}>
-                    {link.label}
+                    {t[link.key]}
                   </a>
                 </li>
               ))}
@@ -113,12 +159,12 @@ export function Footer({ showHowItWorksLink = true }: FooterProps) {
           </div>
 
           <div>
-            <h3 className={columnHeadingClass}>Resources</h3>
+            <h3 className={columnHeadingClass}>{t.resourcesHeading}</h3>
             <ul className="mt-5 space-y-3">
               {RESOURCES_LINKS.map((link) => (
-                <li key={link.label}>
+                <li key={link.key}>
                   <a href={link.href} className={linkClass}>
-                    {link.label}
+                    {t[link.key]}
                   </a>
                 </li>
               ))}
@@ -126,7 +172,7 @@ export function Footer({ showHowItWorksLink = true }: FooterProps) {
           </div>
 
           <div>
-            <h3 className={columnHeadingClass}>Social</h3>
+            <h3 className={columnHeadingClass}>{t.socialHeading}</h3>
             <ul className="mt-5 space-y-3">
               {SOCIAL_LINKS.map((link) => (
                 <li key={link.label}>
@@ -139,12 +185,14 @@ export function Footer({ showHowItWorksLink = true }: FooterProps) {
           </div>
 
           <div>
-            <h3 className={columnHeadingClass}>Contact</h3>
+            <h3 className={columnHeadingClass}>{t.contactHeading}</h3>
             <ul className="mt-5 space-y-3">
               {CONTACT_LINKS.map((contact) => (
-                <li key={contact.label}>
+                <li key={"key" in contact ? contact.key : contact.label}>
                   <a href={contact.href} className={linkClass}>
-                    <span className="text-[var(--text-inverse-muted,rgba(247,243,236,0.7))]">{contact.label}: </span>
+                    <span className="text-[var(--text-inverse-muted,rgba(247,243,236,0.7))]">
+                      {"key" in contact ? t[contact.key] : contact.label}:{" "}
+                    </span>
                     {contact.value}
                   </a>
                 </li>
@@ -155,8 +203,8 @@ export function Footer({ showHowItWorksLink = true }: FooterProps) {
 
         {/* Bottom area */}
         <div className="flex flex-col gap-3 border-t border-[var(--border-inverse,rgba(247,243,236,0.18))] py-8 font-sans text-[0.8125rem] text-[var(--text-inverse-muted,rgba(247,243,236,0.7))] sm:flex-row sm:items-center sm:justify-between">
-          <p>© 2026 TALIMOON.</p>
-          <p>Crafted with care for families.</p>
+          <p>{t.copyright}</p>
+          <p>{t.craftedWithCare}</p>
         </div>
       </div>
     </footer>

@@ -1,6 +1,11 @@
+"use client";
+
 /**
  * FourDoorsSection — TALIMOON
  * ----------------------------------------------------------------
+ * Now a Client Component (was a server component before): needs
+ * `useT` (a Context hook) for translated copy.
+ *
  * The home "Our Products" scene: shared painted wall, heading, three
  * DoorPortals and trust strip. All rendering and interaction logic
  * for an individual door lives in DoorPortal.tsx — this file only
@@ -13,6 +18,37 @@
 import Image from "next/image";
 import { DoorPortal, type DoorVariant } from "./DoorPortal";
 import { AmbientParticles } from "./AmbientParticles";
+import { useT } from "@/lib/i18n/LanguageContext";
+
+const VARIANT_COPY_EN = {
+  "personalized-books": {
+    title: "Personalized Books",
+    tagline: "Your child becomes the hero of a story created especially for them.",
+  },
+  "yusuf-yasmina": {
+    title: "Yusuf & Yasmina",
+    tagline: "Faith-filled adventures that inspire kindness, courage, and beautiful character.",
+  },
+  "talimoon-toys": {
+    title: "Talimoon Toys",
+    tagline: "Beautiful toys that transform everyday play into joyful learning.",
+  },
+};
+
+const VARIANT_COPY_UZ: typeof VARIANT_COPY_EN = {
+  "personalized-books": {
+    title: "Shaxsiylashtirilgan kitoblar",
+    tagline: "Farzandingiz maxsus u uchun yaratilgan hikoyaning qahramoniga aylanadi.",
+  },
+  "yusuf-yasmina": {
+    title: "Yusuf va Yasmina",
+    tagline: "Mehribonlik, jasorat va go'zal xarakterni ilhomlantiruvchi imonga to'la sarguzashtlar.",
+  },
+  "talimoon-toys": {
+    title: "Talimoon o'yinchoqlari",
+    tagline: "Kundalik o'yinni quvonchli bilim olishga aylantiradigan go'zal o'yinchoqlar.",
+  },
+};
 
 const VARIANTS: DoorVariant[] = [
   {
@@ -68,26 +104,54 @@ const VARIANTS: DoorVariant[] = [
 
 const TRUST_ITEMS = [
   {
-    label: "Safe & Child-Friendly",
+    key: "safe" as const,
     icon: (
       <path d="M10 1.5 L17.5 4.5 V9.5 C17.5 14 14.3 17.4 10 18.5 C5.7 17.4 2.5 14 2.5 9.5 V4.5 Z M6.5 10 L8.7 12.2 L13.5 7.4" />
     ),
   },
   {
-    label: "Meaningful & Ethical",
+    key: "meaningful" as const,
     icon: (
       <path d="M10 17 C10 17 2.5 12.6 2.5 7.4 C2.5 4.7 4.6 2.7 7.1 2.7 C8.4 2.7 9.4 3.3 10 4.2 C10.6 3.3 11.6 2.7 12.9 2.7 C15.4 2.7 17.5 4.7 17.5 7.4 C17.5 12.6 10 17 10 17 Z" />
     ),
   },
   {
-    label: "Made with Love",
+    key: "madeWithLove" as const,
     icon: (
       <path d="M10 1.5 L11.8 7.3 L17.8 7.3 L12.9 10.9 L14.7 16.7 L10 13 L5.3 16.7 L7.1 10.9 L2.2 7.3 L8.2 7.3 Z" />
     ),
   },
 ];
 
+const SECTION_COPY_EN = {
+  eyebrow: "Our Products",
+  heading: "Every Door Opens a World.",
+  description:
+    "Choose the journey that will inspire your child through unforgettable stories, meaningful adventures, and joyful play.",
+  safe: "Safe & Child-Friendly",
+  meaningful: "Meaningful & Ethical",
+  madeWithLove: "Made with Love",
+};
+
+const SECTION_COPY_UZ: typeof SECTION_COPY_EN = {
+  eyebrow: "Bizning mahsulotlarimiz",
+  heading: "Har bir eshik yangi olamga ochiladi.",
+  description:
+    "Farzandingizni unutilmas hikoyalar, ma'noli sarguzashtlar va quvonchli o'yinlar orqali ilhomlantiradigan yo'lni tanlang.",
+  safe: "Xavfsiz va bolalarga qulay",
+  meaningful: "Ma'noli va axloqiy",
+  madeWithLove: "Sevgi bilan yaratilgan",
+};
+
 export function FourDoorsSection() {
+  const t = useT(SECTION_COPY_EN, SECTION_COPY_UZ);
+  const variantCopy = useT(VARIANT_COPY_EN, VARIANT_COPY_UZ);
+  const localizedVariants = VARIANTS.map((variant) => ({
+    ...variant,
+    title: variantCopy[variant.id as keyof typeof VARIANT_COPY_EN].title,
+    tagline: variantCopy[variant.id as keyof typeof VARIANT_COPY_EN].tagline,
+  }));
+
   return (
     <section
       aria-labelledby="four-doors-heading"
@@ -119,7 +183,7 @@ export function FourDoorsSection() {
           className="text-[12px] font-semibold uppercase tracking-[0.28em] text-[#B88633]"
           style={{ fontFamily: "var(--font-manrope)" }}
         >
-          Our Products
+          {t.eyebrow}
         </p>
         <div
           aria-hidden="true"
@@ -130,14 +194,13 @@ export function FourDoorsSection() {
           className="mt-[7px] text-[30px] font-semibold leading-[0.95] tracking-[-0.02em] text-[#1D2433] md:text-[41px] lg:text-[52px]"
           style={{ fontFamily: "var(--font-cormorant-garamond)" }}
         >
-          Every Door Opens a World.
+          {t.heading}
         </h2>
         <p
           className="mx-auto mt-[7px] max-w-[720px] text-[13px] font-normal leading-[1.15] text-[#6A645B] lg:text-[16px]"
           style={{ fontFamily: "var(--font-manrope)" }}
         >
-          Choose the journey that will inspire your child through
-          unforgettable stories, meaningful adventures, and joyful play.
+          {t.description}
         </p>
       </div>
 
@@ -150,7 +213,7 @@ export function FourDoorsSection() {
           keeps them level regardless of how the caption text below
           them wraps. */}
       <div className="relative mx-auto mt-[26px] flex max-w-[1450px] flex-col items-center gap-10 md:flex-row md:items-start md:justify-center md:gap-3 lg:gap-4 xl:gap-6 2xl:gap-8">
-        {VARIANTS.map((variant) => (
+        {localizedVariants.map((variant) => (
           <DoorPortal key={variant.id} variant={variant} />
         ))}
       </div>
@@ -161,7 +224,7 @@ export function FourDoorsSection() {
         className="relative mx-auto mt-[28px] flex max-w-[720px] flex-col items-center gap-8 sm:flex-row sm:justify-between"
       >
         {TRUST_ITEMS.map((item) => (
-          <li key={item.label} className="flex items-center gap-3">
+          <li key={item.key} className="flex items-center gap-3">
             <svg
               aria-hidden="true"
               viewBox="0 0 20 20"
@@ -178,7 +241,7 @@ export function FourDoorsSection() {
               className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#7B7368]"
               style={{ fontFamily: "var(--font-manrope)" }}
             >
-              {item.label}
+              {t[item.key]}
             </span>
           </li>
         ))}

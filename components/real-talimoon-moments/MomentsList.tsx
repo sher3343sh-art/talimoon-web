@@ -10,6 +10,17 @@
 
 import Image from "next/image";
 import type { Moment } from "./RealTalimoonMoments";
+import { useT } from "@/lib/i18n/LanguageContext";
+
+const CHROME_EN = {
+  listLabel: "Customer story videos",
+  sharingAlt: (name: string) => `${name} sharing their TALIMOON story`,
+};
+
+const CHROME_UZ: typeof CHROME_EN = {
+  listLabel: "Mijozlar hikoya videolari",
+  sharingAlt: (name: string) => `${name} o'zining TALIMOON hikoyasini baham ko'rmoqda`,
+};
 
 function ArrowIcon() {
   return (
@@ -37,10 +48,12 @@ export function MomentsList({
   selectedId: string;
   onSelect: (id: string) => void;
 }) {
+  const t = useT(CHROME_EN, CHROME_UZ);
+
   return (
     <div
       role="list"
-      aria-label="Customer story videos"
+      aria-label={t.listLabel}
       className="mt-8 max-h-[276px] space-y-3 overflow-y-auto pr-1"
     >
       {moments.map((moment) => {
@@ -63,7 +76,7 @@ export function MomentsList({
               <span className="relative h-16 w-16 shrink-0 overflow-hidden rounded-[10px]">
                 <Image
                   src={moment.thumbnail}
-                  alt={`${moment.name} sharing their TALIMOON story`}
+                  alt={t.sharingAlt(moment.name)}
                   fill
                   sizes="64px"
                   className="object-cover"

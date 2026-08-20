@@ -1,5 +1,10 @@
+"use client";
+
 /**
  * PartnerCard — Trusted Partners preview
+ * ----------------------------------------------------------------
+ * Now a Client Component (was a server component before): needs
+ * `useT` (a Context hook) for translated copy.
  * ----------------------------------------------------------------
  * Renders either a real partner logo (once one exists — `logoSrc`
  * via next/image, optionally wrapped in a link if `href` is set) or
@@ -9,6 +14,7 @@
  */
 
 import Image from "next/image";
+import { useT } from "@/lib/i18n/LanguageContext";
 
 export type Partner = {
   id: string;
@@ -17,7 +23,11 @@ export type Partner = {
   href?: string;
 };
 
+const COPY_EN = { comingSoon: "Coming Soon", partnerLogo: "Partner logo" };
+const COPY_UZ: typeof COPY_EN = { comingSoon: "Tez orada", partnerLogo: "Hamkor logotipi" };
+
 export function PartnerCard({ partner }: { partner: Partner }) {
+  const t = useT(COPY_EN, COPY_UZ);
   const hasLogo = Boolean(partner.logoSrc);
 
   const card = (
@@ -25,7 +35,7 @@ export function PartnerCard({ partner }: { partner: Partner }) {
       {hasLogo && partner.logoSrc ? (
         <Image
           src={partner.logoSrc}
-          alt={partner.name ?? "Partner logo"}
+          alt={partner.name ?? t.partnerLogo}
           width={140}
           height={44}
           className="h-auto max-h-8 w-auto object-contain"
@@ -36,7 +46,7 @@ export function PartnerCard({ partner }: { partner: Partner }) {
             +
           </span>
           <span className="font-sans text-[0.625rem] font-medium uppercase tracking-[0.12em] text-[var(--text-muted,#8B8578)]">
-            Coming Soon
+            {t.comingSoon}
           </span>
         </div>
       )}

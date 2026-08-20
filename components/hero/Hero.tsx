@@ -80,6 +80,7 @@ import {
   Variants,
   Transition,
 } from 'framer-motion';
+import { useLanguage, useT } from '@/lib/i18n/LanguageContext';
 
 // ============================================================
 // Types
@@ -92,6 +93,17 @@ interface HeroSlideData {
   readonly name: string;
   readonly headline: string;
   readonly description: string;
+  // Uzbek translations of name/headline/description/image.alt, kept as
+  // a parallel object rather than restructuring the fields above into
+  // {en,uz} pairs everywhere — SLIDES stays the same shape it always
+  // was (English, used as-is), and `useLocalizedSlides` below is the
+  // only place that ever reads this field.
+  readonly copyUz: {
+    readonly name: string;
+    readonly headline: string;
+    readonly description: string;
+    readonly alt: string;
+  };
   readonly image: {
     readonly src: string;
     readonly alt: string;
@@ -123,6 +135,13 @@ const SLIDES: readonly HeroSlideData[] = [
     headline: 'Stories that know your child',
     description:
       "Every book adapts to your child's name, interests, and reading level. A unique adventure every time.",
+    copyUz: {
+      name: 'Shaxsiylashtirilgan kitoblar',
+      headline: 'Farzandingizni taniydigan hikoyalar',
+      description:
+        "Har bir kitob farzandingizning ismi, qiziqishlari va o'qish darajasiga moslashadi. Har safar — betakror sarguzasht.",
+      alt: "Bola shaxsiylashtirilgan kitobni yotoqxonaning iliq yorug'ida o'qimoqda",
+    },
     image: {
       src: '/images/hero/slide-personalized-books.webp',
       alt: 'A child reading a personalized book in warm bedroom light',
@@ -138,6 +157,13 @@ const SLIDES: readonly HeroSlideData[] = [
     headline: 'Meet the family behind the stories',
     description:
       'Yusuf and Yasmina bring warmth, curiosity, and a touch of mischief to every page.',
+    copyUz: {
+      name: 'Yusuf va Yasmina',
+      headline: 'Hikoyalar ortidagi oila bilan tanishing',
+      description:
+        "Yusuf va Yasmina har bir sahifaga mehr, qiziquvchanlik va bir chimdim sho'xlik olib keladi.",
+      alt: "Yusuf va Yasmina qahramonlari o'ynoqi ifodalar bilan",
+    },
     image: {
       src: '/images/hero/slide-yusuf-yasmina.webp',
       alt: 'Yusuf and Yasmina characters with playful expressions',
@@ -153,6 +179,13 @@ const SLIDES: readonly HeroSlideData[] = [
     headline: 'A world of stories at your fingertips',
     description:
       'From fairy tales to science adventures – an ever‑growing library for every curious mind.',
+    copyUz: {
+      name: 'Hikoyalar kutubxonasi',
+      headline: 'Hikoyalar olami — barmoq uchida',
+      description:
+        "Ertaklardan tortib ilmiy sarguzashtlargacha — har bir qiziquvchan aql uchun tobora boyib boruvchi kutubxona.",
+      alt: "Turli kitoblar bilan porlab turgan kutubxona javoni",
+    },
     image: {
       src: '/images/hero/slide-story-library.webp',
       alt: 'A glowing library shelf with diverse books',
@@ -168,6 +201,13 @@ const SLIDES: readonly HeroSlideData[] = [
     headline: 'Toys that spark imagination',
     description:
       'Soft, tactile companions designed to complement the stories and inspire play.',
+    copyUz: {
+      name: "Talimoon o'yinchoqlari",
+      headline: 'Xayolotni jonlantiruvchi o\'yinchoqlar',
+      description:
+        "Hikoyalarni to'ldirish va o'yinni ilhomlantirish uchun yaratilgan yumshoq, sezgir hamrohlar.",
+      alt: "Talimoon o'yinchoqlarining yumshoq soyalar bilan studiya suratga olinishi",
+    },
     image: {
       src: '/images/hero/slide-talimoon-toys.webp',
       alt: 'Studio shot of Talimoon toys with soft shadows',
@@ -183,6 +223,13 @@ const SLIDES: readonly HeroSlideData[] = [
     headline: 'Books, toys, and characters – one connected world',
     description:
       'Every piece of the ecosystem works together to nurture creativity and a love for learning.',
+    copyUz: {
+      name: 'TALIMOON ekotizimi',
+      headline: 'Kitoblar, o\'yinchoqlar va qahramonlar — yagona bog\'liq olam',
+      description:
+        "Ekotizimning har bir bo'lagi ijodkorlik va bilimga bo'lgan muhabbatni tarbiyalash uchun birgalikda ishlaydi.",
+      alt: "Kitoblar, o'yinchoqlar va qahramonlarning mavhum bog'langan olami",
+    },
     image: {
       src: '/images/hero/slide-ecosystem.webp',
       alt: 'Abstract connected world of books, toys, and characters',
@@ -696,6 +743,7 @@ const HeroSlide = memo(
     priority,
   }: HeroSlideProps) {
     const { image, scrim, ...textData } = slide;
+    const slideWord = useT('slide', 'slayd');
 
     // v3: mobile gets its own tuned focal point when the slide has one;
     // desktop's `focalPoint` is untouched either way.
@@ -713,7 +761,7 @@ const HeroSlide = memo(
         id={`hero-slide-${slide.id}`}
         role="group"
         aria-roledescription="slide"
-        aria-label={`${slide.name} slide`}
+        aria-label={`${slide.name} ${slideWord}`}
       >
         <HeroImage
           src={image.src}
@@ -770,6 +818,11 @@ const HeroSlide = memo(
   },
   (prev, next) =>
     prev.slide.id === next.slide.id &&
+    // `id` alone used to be sufficient (it's per-slide-slot stable
+    // across re-renders), but a language switch now produces a new
+    // `slide` object with the same `id` and different text — compare
+    // headline too so that case isn't wrongly treated as "unchanged".
+    prev.slide.headline === next.slide.headline &&
     prev.isMobile === next.isMobile &&
     prev.priority === next.priority
 );
@@ -782,12 +835,43 @@ interface HeroSliderProps {
   onNavColorChange?: (color: 'ink' | 'cream') => void;
 }
 
+const CAROUSEL_CHROME_EN = {
+  carouselLabel: 'Featured content carousel',
+  currentSlideLabel: 'Current slide',
+  slideOf: (n: number, total: number, headline: string) =>
+    `Slide ${n} of ${total}: ${headline}`,
+};
+
+const CAROUSEL_CHROME_UZ: typeof CAROUSEL_CHROME_EN = {
+  carouselLabel: 'Asosiy kontent karuseli',
+  currentSlideLabel: 'Joriy slayd',
+  slideOf: (n: number, total: number, headline: string) =>
+    `${n}/${total}-slayd: ${headline}`,
+};
+
 export function HeroSlider({ onNavColorChange }: HeroSliderProps) {
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const isMobile = useMediaQuery('(max-width: 767px)');
+  const { language } = useLanguage();
+  const chrome = useT(CAROUSEL_CHROME_EN, CAROUSEL_CHROME_UZ);
 
-  const totalSlides = SLIDES.length;
-  const currentSlide = SLIDES[activeIndex];
+  // Derives a fully-localized slide list from SLIDES' English base +
+  // each slide's `copyUz` — everything downstream (HeroSlide,
+  // HeroImage, HeroTextBlock, MobileHeroText) stays language-agnostic
+  // and just renders whatever strings it's handed.
+  const slides = useMemo<readonly HeroSlideData[]>(() => {
+    if (language !== 'UZ') return SLIDES;
+    return SLIDES.map((slide) => ({
+      ...slide,
+      name: slide.copyUz.name,
+      headline: slide.copyUz.headline,
+      description: slide.copyUz.description,
+      image: { ...slide.image, alt: slide.copyUz.alt },
+    }));
+  }, [language]);
+
+  const totalSlides = slides.length;
+  const currentSlide = slides[activeIndex];
 
   useEffect(() => {
     if (onNavColorChange) {
@@ -844,7 +928,7 @@ export function HeroSlider({ onNavColorChange }: HeroSliderProps) {
           ? { height: MOBILE_HERO_HEIGHT }
           : { height: '74vh', maxHeight: '580px', minHeight: '500px' }
       }
-      aria-label="Featured content carousel"
+      aria-label={chrome.carouselLabel}
       aria-roledescription="carousel"
     >
       <div className="absolute inset-0">
@@ -893,9 +977,9 @@ export function HeroSlider({ onNavColorChange }: HeroSliderProps) {
         className="sr-only"
         aria-live="polite"
         aria-atomic="true"
-        aria-label="Current slide"
+        aria-label={chrome.currentSlideLabel}
       >
-        {`Slide ${activeIndex + 1} of ${totalSlides}: ${currentSlide.headline}`}
+        {chrome.slideOf(activeIndex + 1, totalSlides, currentSlide.headline)}
       </div>
     </section>
   );

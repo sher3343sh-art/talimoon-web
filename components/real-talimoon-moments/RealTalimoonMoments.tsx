@@ -40,6 +40,7 @@ import { motion, useReducedMotion, type Variants } from "framer-motion";
 import { PhoneMockup } from "./PhoneMockup";
 import { MomentsList } from "./MomentsList";
 import { ReactionRow } from "./ReactionRow";
+import { useLanguage, useT } from "@/lib/i18n/LanguageContext";
 
 export type Moment = {
   id: string;
@@ -50,6 +51,15 @@ export type Moment = {
   /** Real video source, when available. Falls back to a static thumbnail when absent. */
   video?: string;
   reactions: { smile: number; love: number; wow: number };
+};
+
+// name/childAge translations, keyed by moment id — kept parallel to
+// MOMENTS (English base) rather than restructuring every field into
+// {en,uz} pairs, same pattern as Hero.tsx's `copyUz`.
+const MOMENT_COPY_UZ: Record<string, { name: string; childAge: string }> = {
+  madinabonu: { name: "Madinabonu", childAge: "7 yosh" },
+  yusuf: { name: "Yusufning oilasi", childAge: "7 yosh" },
+  layla: { name: "Laylaning oilasi", childAge: "4 yosh" },
 };
 
 const MOMENTS: Moment[] = [
@@ -80,6 +90,20 @@ const MOMENTS: Moment[] = [
   },
 ];
 
+const SECTION_COPY_EN = {
+  eyebrow: "Real Talimoon Moments",
+  heading: "Real Families. Real Joy.",
+  description:
+    "Watch genuine reactions from families experiencing their child's personalized story for the very first time.",
+};
+
+const SECTION_COPY_UZ: typeof SECTION_COPY_EN = {
+  eyebrow: "Haqiqiy Talimoon lahzalari",
+  heading: "Haqiqiy oilalar. Haqiqiy quvonch.",
+  description:
+    "Farzandlari o'zlarining shaxsiylashtirilgan hikoyasini birinchi marta ko'rayotgan oilalarning samimiy his-tuyg'ularini tomosha qiling.",
+};
+
 const reveal: Variants = {
   hidden: { opacity: 0, y: 24 },
   visible: {
@@ -92,12 +116,20 @@ const reveal: Variants = {
 export function RealTalimoonMoments() {
   const [selectedId, setSelectedId] = useState(MOMENTS[0].id);
   const reducedMotion = useReducedMotion();
-  const selectedIndex = MOMENTS.findIndex((m) => m.id === selectedId);
-  const selected = MOMENTS[selectedIndex] ?? MOMENTS[0];
+  const { language } = useLanguage();
+  const t = useT(SECTION_COPY_EN, SECTION_COPY_UZ);
+
+  const moments =
+    language === "UZ"
+      ? MOMENTS.map((m) => ({ ...m, ...MOMENT_COPY_UZ[m.id] }))
+      : MOMENTS;
+
+  const selectedIndex = moments.findIndex((m) => m.id === selectedId);
+  const selected = moments[selectedIndex] ?? moments[0];
 
   const goToOffset = (offset: number) => {
-    const nextIndex = (selectedIndex + offset + MOMENTS.length) % MOMENTS.length;
-    setSelectedId(MOMENTS[nextIndex].id);
+    const nextIndex = (selectedIndex + offset + moments.length) % moments.length;
+    setSelectedId(moments[nextIndex].id);
   };
 
   return (
@@ -120,20 +152,19 @@ export function RealTalimoonMoments() {
 
         <div className="lg:col-span-3">
           <p className="font-sans text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent-primary,#B5764B)]">
-            Real Talimoon Moments
+            {t.eyebrow}
           </p>
           <h2
             id="real-moments-heading"
             className="mt-3 font-serif text-[2.25rem] font-medium leading-[1.15] tracking-[-0.01em] text-[var(--text-primary,#2A241D)]"
           >
-            Real Families. Real Joy.
+            {t.heading}
           </h2>
           <p className="mt-4 max-w-[46ch] font-sans text-[1.125rem] leading-[1.65] text-[var(--text-secondary,#49433C)]">
-            Watch genuine reactions from families experiencing their
-            child&apos;s personalized story for the very first time.
+            {t.description}
           </p>
 
-          <MomentsList moments={MOMENTS} selectedId={selectedId} onSelect={setSelectedId} />
+          <MomentsList moments={moments} selectedId={selectedId} onSelect={setSelectedId} />
           <ReactionRow reactions={selected.reactions} />
         </div>
       </div>

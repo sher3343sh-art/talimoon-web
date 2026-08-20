@@ -45,6 +45,7 @@
 import React from 'react';
 import Image from 'next/image';
 import { motion, Variants } from 'framer-motion';
+import { useLanguage, useT } from '@/lib/i18n/LanguageContext';
 
 // ============================================================
 // Tokens — unchanged from the approved palette.
@@ -70,7 +71,7 @@ interface ValueItem {
   readonly iconSrc: string;
 }
 
-const VALUES: readonly ValueItem[] = [
+const VALUES_EN: readonly ValueItem[] = [
   {
     id: 'knowledge',
     title: 'Knowledge',
@@ -99,6 +100,39 @@ const VALUES: readonly ValueItem[] = [
     id: 'wisdom',
     title: 'Wisdom',
     description: 'Guides children toward a life of character and purpose.',
+    iconSrc: '/images/values/icon/Wisdom.png',
+  },
+] as const;
+
+const VALUES_UZ: readonly ValueItem[] = [
+  {
+    id: 'knowledge',
+    title: 'Bilim',
+    description: "Umrbod bilim olishga bo'lgan ishtiyoqni uyg'otadi.",
+    iconSrc: '/images/values/icon/Knowledge.png',
+  },
+  {
+    id: 'character',
+    title: 'Xarakter',
+    description: 'Mehribonlik, hurmat va yaxshi xulqni shakllantiradi.',
+    iconSrc: '/images/values/icon/Character.png',
+  },
+  {
+    id: 'imagination',
+    title: 'Tasavvur',
+    description: 'Ijodkorlik va mustaqil fikrlashni ilhomlantiradi.',
+    iconSrc: '/images/values/icon/Imagination.png',
+  },
+  {
+    id: 'compassion',
+    title: 'Mehr-shafqat',
+    description: 'Hamdardlik va insoniy iliqlikni singdiradi.',
+    iconSrc: '/images/values/icon/Compassion.png',
+  },
+  {
+    id: 'wisdom',
+    title: 'Donolik',
+    description: 'Bolalarni maqsadli va xarakterli hayot sari yetaklaydi.',
     iconSrc: '/images/values/icon/Wisdom.png',
   },
 ] as const;
@@ -174,7 +208,30 @@ function SectionArtwork() {
 // Headline — unchanged: "light" in the gold gradient, rest in navy.
 // ============================================================
 
+const HEADLINE_EN = { line1: 'Every story begins', line2Pre: 'with a single page of', highlight: 'light' };
+const HEADLINE_UZ: typeof HEADLINE_EN = { line1: 'Har bir hikoya', line2Pre: 'bitta', highlight: 'nur' };
+// Uzbek reorders the highlighted word before the trailing noun
+// ("bitta nur sahifasidan boshlanadi" — "begins from a single page
+// of light") rather than after it as in English, so line2 renders as
+// `line2Pre highlight sahifasidan boshlanadi.` instead of reusing the
+// English `line2Pre ...light.` word order.
+
 function Headline() {
+  const { language } = useLanguage();
+  const t = useT(HEADLINE_EN, HEADLINE_UZ);
+  const highlightSpan = (
+    <span
+      style={{
+        backgroundImage: `linear-gradient(180deg, ${GOLD_GRADIENT_FROM}, ${GOLD_GRADIENT_TO})`,
+        WebkitBackgroundClip: 'text',
+        backgroundClip: 'text',
+        color: 'transparent',
+      }}
+    >
+      {t.highlight}
+    </span>
+  );
+
   return (
     <motion.h2
       id="brand-values-heading"
@@ -189,20 +246,17 @@ function Headline() {
         marginBottom: 22,
       }}
     >
-      Every story begins
+      {t.line1}
       <br />
-      with a single page of{' '}
-      <span
-        style={{
-          backgroundImage: `linear-gradient(180deg, ${GOLD_GRADIENT_FROM}, ${GOLD_GRADIENT_TO})`,
-          WebkitBackgroundClip: 'text',
-          backgroundClip: 'text',
-          color: 'transparent',
-        }}
-      >
-        light
-      </span>
-      .
+      {language === 'UZ' ? (
+        <>
+          {t.line2Pre} {highlightSpan} sahifasidan boshlanadi.
+        </>
+      ) : (
+        <>
+          {t.line2Pre} {highlightSpan}.
+        </>
+      )}
     </motion.h2>
   );
 }
@@ -289,7 +343,22 @@ const ValueColumn = React.memo(function ValueColumn({
 // Main export
 // ============================================================
 
+const SECTION_COPY_EN = {
+  eyebrow: 'OUR VALUES',
+  description:
+    "From one open book, five timeless values grow in a child's heart and shape a beautiful tomorrow.",
+};
+
+const SECTION_COPY_UZ: typeof SECTION_COPY_EN = {
+  eyebrow: 'QADRIYATLARIMIZ',
+  description:
+    "Bitta ochiq kitobdan bola qalbida besh mangu qadriyat unib chiqadi va go'zal ertangi kunni shakllantiradi.",
+};
+
 export function BrandValues() {
+  const sectionCopy = useT(SECTION_COPY_EN, SECTION_COPY_UZ);
+  const values = useT(VALUES_EN, VALUES_UZ);
+
   return (
     <section
       aria-labelledby="brand-values-heading"
@@ -318,7 +387,7 @@ export function BrandValues() {
             marginBottom: 18,
           }}
         >
-          OUR VALUES
+          {sectionCopy.eyebrow}
         </motion.span>
 
         <Headline />
@@ -335,8 +404,7 @@ export function BrandValues() {
             marginBottom: 36,
           }}
         >
-          From one open book, five timeless values grow in a child&rsquo;s
-          heart and shape a beautiful tomorrow.
+          {sectionCopy.description}
         </motion.p>
 
         {/* Five Values — icons, titles, and descriptions unchanged.
@@ -346,7 +414,7 @@ export function BrandValues() {
           variants={sequenceItem}
           className="grid w-full grid-cols-1 gap-y-12 md:grid-cols-5 md:gap-x-8 md:gap-y-0"
         >
-          {VALUES.map((value, i) => (
+          {values.map((value, i) => (
             <ValueColumn key={value.id} item={value} showDivider={i > 0} />
           ))}
         </motion.div>

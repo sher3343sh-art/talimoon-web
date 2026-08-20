@@ -11,6 +11,7 @@
 
 import Image from "next/image";
 import { motion, useReducedMotion, type Variants } from "framer-motion";
+import { useT } from "@/lib/i18n/LanguageContext";
 
 const reveal: Variants = {
   hidden: { opacity: 0, y: 24, scale: 0.97 },
@@ -22,8 +23,12 @@ const reveal: Variants = {
   },
 };
 
+const ALT_EN = "TALIMOON Story Library illustration representing reading, listening and watching stories.";
+const ALT_UZ = "TALIMOON Hikoyalar kutubxonasi tasviri — o'qish, tinglash va tomosha qilish orqali hikoyalarni his qilish.";
+
 export function StoryLibraryIllustration() {
   const reducedMotion = useReducedMotion();
+  const alt = useT(ALT_EN, ALT_UZ);
 
   return (
     <motion.div
@@ -35,7 +40,7 @@ export function StoryLibraryIllustration() {
     >
       <Image
         src="/images/home/story-library-preview/storylibrary.png"
-        alt="TALIMOON Story Library illustration representing reading, listening and watching stories."
+        alt={alt}
         width={1536}
         height={1024}
         fill={false}

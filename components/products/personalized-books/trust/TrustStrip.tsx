@@ -127,9 +127,13 @@
  *   copy, and every other value in this component are unchanged.
  */
 
+"use client";
+
 import Image from "next/image";
+import { useT } from "@/lib/i18n/LanguageContext";
 
 interface TrustItem {
+  key: string;
   title: string;
   sentence: string;
   image: string;
@@ -149,8 +153,9 @@ function isSvgSource(src: string): boolean {
 
 // Copy below is placeholder scaffolding for layout/rhythm purposes —
 // content team to finalize final wording.
-const TRUST_ITEMS: TrustItem[] = [
+const TRUST_ITEMS_EN: TrustItem[] = [
   {
+    key: "personalized",
     title: "Personalized for Your Child",
     sentence:
       "Every detail — name, appearance, spirit — woven into a story that's truly theirs.",
@@ -163,6 +168,7 @@ const TRUST_ITEMS: TrustItem[] = [
     imagePosition: "center 22%",
   },
   {
+    key: "illustrated",
     title: "Beautifully Illustrated",
     sentence:
       "Original artwork crafted with warmth and care, never generic or mass-produced.",
@@ -172,6 +178,7 @@ const TRUST_ITEMS: TrustItem[] = [
     imagePosition: "center",
   },
   {
+    key: "safe",
     title: "Safe & Meaningful",
     sentence:
       "Thoughtful content designed to nurture, never overwhelm or unsettle.",
@@ -181,6 +188,7 @@ const TRUST_ITEMS: TrustItem[] = [
     imagePosition: "center 30%",
   },
   {
+    key: "gift",
     title: "A Gift They'll Treasure",
     sentence:
       "A keepsake built to be read again and again, long after the story ends.",
@@ -190,16 +198,64 @@ const TRUST_ITEMS: TrustItem[] = [
   },
 ];
 
+const TRUST_ITEMS_UZ: TrustItem[] = [
+  {
+    key: "personalized",
+    title: "Farzandingiz uchun shaxsiylashtirilgan",
+    sentence:
+      "Har bir tafsilot — ism, tashqi ko'rinish, ruh — chinakam ularga tegishli hikoyaga to'qib kiritiladi.",
+    image: "/images/trust/personalized.svg",
+    imageAlt:
+      "Bolaning o'zining shaxsiylashtirilgan hikoya kitobini quvonch bilan o'qiyotgani tasviri",
+    imagePosition: "center 22%",
+  },
+  {
+    key: "illustrated",
+    title: "Go'zal illyustratsiyalar",
+    sentence:
+      "Iliqlik va g'amxo'rlik bilan yaratilgan original san'at asari — hech qachon shablon yoki ommaviy ishlab chiqarilgan emas.",
+    image: "/images/trust/illustrated.svg",
+    imageAlt:
+      "Sahifalarida qo'lda ishlangan rasmlar aks etgan ochiq hikoya kitobi tasviri",
+    imagePosition: "center",
+  },
+  {
+    key: "safe",
+    title: "Xavfsiz va ma'noli",
+    sentence:
+      "Tarbiyalash uchun o'ylab yaratilgan mazmun — hech qachon bosib qolmaydi yoki xavotirga solmaydi.",
+    image: "/images/trust/safe.svg",
+    imageAlt:
+      "Ota-ona va bolaning iliq, mehribon lahzada birga kitob o'qiyotgani tasviri",
+    imagePosition: "center 30%",
+  },
+  {
+    key: "gift",
+    title: "Ular qadrlaydigan sovg'a",
+    sentence:
+      "Hikoya tugagandan ko'p vaqt o'tsa ham qayta-qayta o'qiladigan xotira yodgorligi.",
+    image: "/images/trust/gift.svg",
+    imageAlt: "Bolaning o'zi yaxshi ko'rgan hikoya kitobini quvonch bilan quchoqlab turgani tasviri",
+    imagePosition: "center",
+  },
+];
+
+const ARIA_EN = "Why families choose TALIMOON";
+const ARIA_UZ = "Nega oilalar TALIMOONni tanlaydi";
+
 export function TrustStrip() {
+  const items = useT(TRUST_ITEMS_EN, TRUST_ITEMS_UZ);
+  const ariaLabel = useT(ARIA_EN, ARIA_UZ);
+
   return (
     <section
-      aria-label="Why families choose TALIMOON"
+      aria-label={ariaLabel}
       className="hidden w-full bg-[var(--surface-warm-200,#EFE7DA)] lg:block"
     >
       <div className="mx-auto max-w-[1440px] px-16 pt-8 pb-24">
         <ul className="grid grid-cols-4 gap-x-16">
-          {TRUST_ITEMS.map((item) => (
-            <li key={item.title} className="flex flex-col items-start">
+          {items.map((item) => (
+            <li key={item.key} className="flex flex-col items-start">
               <div className="relative h-[280px] w-full overflow-hidden rounded-[12px]">
                 <Image
                   src={item.image}

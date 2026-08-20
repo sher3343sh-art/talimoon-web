@@ -3,19 +3,62 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { useLanguage, useT } from "@/lib/i18n/LanguageContext";
 
 
 // Desktop primary nav. "Product" renders as a dropdown trigger (see
 // PRODUCT_MENU below) instead of a plain link — everything else is
-// a direct link, same as before.
-type NavItem = { label: string; href: string } | { label: string; dropdown: "product" };
+// a direct link, same as before. Labels are looked up by `key`
+// through `useT` below rather than hardcoded here, so this array
+// stays language-agnostic (hrefs/structure only).
+type NavItem = { key: keyof typeof NAV_LABELS_EN; href: string } | { key: keyof typeof NAV_LABELS_EN; dropdown: "product" };
+
+const NAV_LABELS_EN = {
+  home: "Home",
+  news: "News",
+  storyLibrary: "Story Library",
+  about: "About",
+  product: "Product",
+  personalizedBooks: "Personalized Books",
+  yusufYasmina: "Yusuf & Yasmina",
+  storySeries: "Story Series",
+  talimoonToys: "Talimoon Toys",
+  login: "Log in",
+  beginStory: "Begin the Story",
+  talimoonHome: "Talimoon Home",
+  openMenu: "Open menu",
+  closeMenu: "Close menu",
+  languagePrefix: "Language",
+  primaryNav: "Primary",
+  mobileNav: "Mobile navigation",
+};
+
+const NAV_LABELS_UZ: typeof NAV_LABELS_EN = {
+  home: "Bosh sahifa",
+  news: "Yangiliklar",
+  storyLibrary: "Hikoyalar kutubxonasi",
+  about: "Biz haqimizda",
+  product: "Mahsulot",
+  personalizedBooks: "Shaxsiylashtirilgan kitoblar",
+  yusufYasmina: "Yusuf va Yasmina",
+  storySeries: "Hikoyalar turkumi",
+  talimoonToys: "Talimoon o'yinchoqlari",
+  login: "Kirish",
+  beginStory: "Hikoyani boshlash",
+  talimoonHome: "Talimoon bosh sahifasi",
+  openMenu: "Menyuni ochish",
+  closeMenu: "Menyuni yopish",
+  languagePrefix: "Til",
+  primaryNav: "Asosiy",
+  mobileNav: "Mobil navigatsiya",
+};
 
 const DESKTOP_NAV_ITEMS: NavItem[] = [
-  { label: "Home", href: "/" },
-  { label: "Product", dropdown: "product" },
-  { label: "News", href: "/news" },
-  { label: "Story Library", href: "/story-library" },
-  { label: "About", href: "#about" },
+  { key: "home", href: "/" },
+  { key: "product", dropdown: "product" },
+  { key: "news", href: "/news" },
+  { key: "storyLibrary", href: "/story-library" },
+  { key: "about", href: "#about" },
 ];
 
 // Product dropdown contents — exactly the three entries in the spec,
@@ -23,14 +66,14 @@ const DESKTOP_NAV_ITEMS: NavItem[] = [
 // secondary "Story Series" caption directly beneath it (lower
 // emphasis, tighter line-height) rather than being its own row.
 const PRODUCT_MENU = [
-  { label: "Personalized Books", href: "/products/personalized-books" },
+  { key: "personalizedBooks", href: "/products/personalized-books" },
   {
-    label: "Yusuf & Yasmina",
+    key: "yusufYasmina",
     href: "/products/yusuf-and-yasmina",
-    caption: "Story Series",
+    captionKey: "storySeries",
   },
-  { label: "Talimoon Toys", href: "/products/talimoon-toys" },
-] as const;
+  { key: "talimoonToys", href: "/products/talimoon-toys" },
+] as const satisfies readonly { key: keyof typeof NAV_LABELS_EN; href: string; captionKey?: keyof typeof NAV_LABELS_EN }[];
 
 const LANGUAGES = [
   { code: "UZ", name: "O'zbekcha" },
@@ -67,14 +110,14 @@ const SOCIAL_ICON_PATHS = {
 // as an inline accordion using PRODUCT_MENU's existing content
 // rather than a separate hardcoded list, so desktop and mobile can
 // never drift out of sync.
-type MobileNavItem = { label: string; href: string } | { label: string; accordion: "product" };
+type MobileNavItem = { key: keyof typeof NAV_LABELS_EN; href: string } | { key: keyof typeof NAV_LABELS_EN; accordion: "product" };
 
 const MOBILE_NAV_LINKS: MobileNavItem[] = [
-  { label: "Home", href: "/" },
-  { label: "Product", accordion: "product" },
-  { label: "News", href: "/news" },
-  { label: "Story Library", href: "/story-library" },
-  { label: "About", href: "#about" },
+  { key: "home", href: "/" },
+  { key: "product", accordion: "product" },
+  { key: "news", href: "/news" },
+  { key: "storyLibrary", href: "/story-library" },
+  { key: "about", href: "#about" },
 ];
 
 const SCROLL_THRESHOLD = 24;
@@ -99,6 +142,8 @@ const SCROLLED_BORDER = "rgba(42,36,29,0.10)";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
+  const { language, setLanguage } = useLanguage();
+  const t = useT(NAV_LABELS_EN, NAV_LABELS_UZ);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > SCROLL_THRESHOLD);
@@ -113,7 +158,6 @@ export default function Navbar() {
    * ---------------------------------------------------------------
    */
   const [openDropdown, setOpenDropdown] = useState<"product" | "language" | null>(null);
-  const [language, setLanguage] = useState<(typeof LANGUAGES)[number]["code"]>("EN");
 
   const productContainerRef = useRef<HTMLLIElement>(null);
   const languageContainerRef = useRef<HTMLDivElement>(null);
@@ -577,12 +621,12 @@ export default function Navbar() {
           DESKTOP NAV (lg and above)
       ============================================================ */}
       <nav
-        aria-label="Primary"
+        aria-label={t.primaryNav}
         className="relative mx-auto hidden h-[74px] max-w-[1440px] grid-cols-[1fr_auto_1fr] items-center gap-8 px-5 md:px-10 lg:grid lg:px-16"
       >
         <Link
           href="/"
-          aria-label="Talimoon Home"
+          aria-label={t.talimoonHome}
           className="relative flex h-[45px] w-auto shrink-0 items-center"
         >
           <img
@@ -612,7 +656,7 @@ export default function Navbar() {
             if ("dropdown" in item) {
               const isOpen = openDropdown === "product";
               return (
-                <li key={item.label} ref={productContainerRef} className="relative">
+                <li key={item.key} ref={productContainerRef} className="relative">
                   <button
                     ref={productTriggerRef}
                     type="button"
@@ -622,14 +666,14 @@ export default function Navbar() {
                     onClick={() => toggleDropdown("product")}
                     className={dropdownTriggerClass(isOpen)}
                   >
-                    {item.label}
+                    {t[item.key]}
                     <span aria-hidden="true" className={underlineClass} />
                   </button>
 
                   <div
                     id="tm-product-menu"
                     role="menu"
-                    aria-label="Product"
+                    aria-label={t.product}
                     className={dropdownPanelClass(isOpen)}
                   >
                     {PRODUCT_MENU.map((product, index) => (
@@ -642,15 +686,15 @@ export default function Navbar() {
                         onClick={closeDropdowns}
                         className={dropdownItemClass}
                       >
-                        {product.label}
-                        {"caption" in product && (
+                        {t[product.key]}
+                        {"captionKey" in product && (
                           <span
                             className={[
                               "mt-0.5 block font-sans text-[11px] font-normal uppercase tracking-[0.08em]",
                               dropdownCaptionClass,
                             ].join(" ")}
                           >
-                            {product.caption}
+                            {t[product.captionKey]}
                           </span>
                         )}
                       </a>
@@ -662,15 +706,15 @@ export default function Navbar() {
 
             const isHashAnchor = item.href.startsWith("#");
             return (
-              <li key={item.label}>
+              <li key={item.key}>
                 {isHashAnchor ? (
                   <a href={item.href} className={linkClass}>
-                    {item.label}
+                    {t[item.key]}
                     <span aria-hidden="true" className={underlineClass} />
                   </a>
                 ) : (
                   <Link href={item.href} className={linkClass}>
-                    {item.label}
+                    {t[item.key]}
                     <span aria-hidden="true" className={underlineClass} />
                   </Link>
                 )}
@@ -683,7 +727,7 @@ export default function Navbar() {
           <span aria-hidden="true" className="w-1 shrink-0" />
 
           <Link href="/login" className={`${linkClass} ml-8`}>
-            Log in
+            {t.login}
             <span aria-hidden="true" className={underlineClass} />
           </Link>
 
@@ -696,7 +740,7 @@ export default function Navbar() {
               "text-[13px] font-medium tracking-[0.015em]",
             ].join(" ")}
           >
-            Begin the Story
+            {t.beginStory}
           </a>
 
           <div ref={languageContainerRef} className="relative -ml-2">
@@ -706,7 +750,7 @@ export default function Navbar() {
               aria-haspopup="menu"
               aria-expanded={openDropdown === "language"}
               aria-controls="tm-language-menu"
-              aria-label={`Language: ${LANGUAGES.find((l) => l.code === language)?.name ?? language}`}
+              aria-label={`${t.languagePrefix}: ${LANGUAGES.find((l) => l.code === language)?.name ?? language}`}
               onClick={() => toggleDropdown("language")}
               className={languageTriggerClass(openDropdown === "language")}
             >
@@ -720,7 +764,7 @@ export default function Navbar() {
             <div
               id="tm-language-menu"
               role="menu"
-              aria-label="Language"
+              aria-label={t.languagePrefix}
               className={[
                 dropdownPanelClass(openDropdown === "language", "left"),
                 "flex w-max flex-col gap-0.5",
@@ -798,7 +842,7 @@ export default function Navbar() {
       <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between px-5 lg:hidden">
         <Link
           href="/"
-          aria-label="Talimoon Home"
+          aria-label={t.talimoonHome}
           className="relative flex h-8 w-auto shrink-0 items-center"
         >
           <img
@@ -831,7 +875,7 @@ export default function Navbar() {
               aria-haspopup="menu"
               aria-expanded={mobileLanguageOpen}
               aria-controls="tm-mobile-topbar-language-menu"
-              aria-label={`Language: ${currentLanguageName}`}
+              aria-label={`${t.languagePrefix}: ${currentLanguageName}`}
               onClick={() => setMobileLanguageOpen((open) => !open)}
               className={mobileLanguageTriggerClass(mobileLanguageOpen)}
             >
@@ -845,7 +889,7 @@ export default function Navbar() {
             <div
               id="tm-mobile-topbar-language-menu"
               role="menu"
-              aria-label="Language"
+              aria-label={t.languagePrefix}
               className={[
                 dropdownPanelClass(mobileLanguageOpen, "right"),
                 "flex w-max flex-col gap-0.5",
@@ -891,7 +935,7 @@ export default function Navbar() {
           <button
             ref={toggleButtonRef}
             type="button"
-            aria-label={mobileOpen ? "Close menu" : "Open menu"}
+            aria-label={mobileOpen ? t.closeMenu : t.openMenu}
             aria-expanded={mobileOpen}
             aria-controls="tm-mobile-drawer"
             onClick={() => setMobileOpen((open) => !open)}
@@ -949,7 +993,7 @@ export default function Navbar() {
             ref={drawerRef}
             role="dialog"
             aria-modal="true"
-            aria-label="Mobile navigation"
+            aria-label={t.mobileNav}
             className={[
               "fixed left-3 right-3 top-[72px] z-[60] lg:hidden",
               "flex max-h-[60vh] flex-col overflow-hidden rounded-3xl",
@@ -966,7 +1010,7 @@ export default function Navbar() {
             <div className="flex shrink-0 items-center justify-between border-b border-[var(--border-subtle,rgba(42,36,29,0.12))] px-5 py-3">
               <Link
                 href="/"
-                aria-label="Talimoon Home"
+                aria-label={t.talimoonHome}
                 onClick={closeMenu}
                 className="flex h-7 w-auto items-center"
               >
@@ -1010,7 +1054,7 @@ export default function Navbar() {
                 <button
                   ref={closeButtonRef}
                   type="button"
-                  aria-label="Close menu"
+                  aria-label={t.closeMenu}
                   onClick={closeMenu}
                   className={[
                     "flex h-6 w-6 shrink-0 items-center justify-center",
@@ -1035,12 +1079,12 @@ export default function Navbar() {
               </div>
             </div>
 
-            <nav aria-label="Mobile" className="min-h-0 flex-1 overflow-y-auto px-5">
+            <nav aria-label={t.mobileNav} className="min-h-0 flex-1 overflow-y-auto px-5">
               <ul className="flex flex-col divide-y divide-[var(--border-subtle,rgba(42,36,29,0.12))]">
                 {MOBILE_NAV_LINKS.map((item) => {
                   if ("accordion" in item) {
                     return (
-                      <li key={item.label}>
+                      <li key={item.key}>
                         <button
                           type="button"
                           aria-expanded={mobileProductOpen}
@@ -1056,7 +1100,7 @@ export default function Navbar() {
                             "focus-visible:outline-[var(--accent-primary,#B5764B)]",
                           ].join(" ")}
                         >
-                          {item.label}
+                          {t[item.key]}
                           <span
                             className={[
                               "h-3 w-3 shrink-0 text-[var(--text-tertiary,#726C65)]",
@@ -1094,10 +1138,10 @@ export default function Navbar() {
                                     "focus-visible:outline-[var(--accent-primary,#B5764B)]",
                                   ].join(" ")}
                                 >
-                                  {product.label}
-                                  {"caption" in product && (
+                                  {t[product.key]}
+                                  {"captionKey" in product && (
                                     <span className="mt-0.5 font-sans text-[11px] font-normal uppercase tracking-[0.08em] text-[var(--text-tertiary,#726C65)]">
-                                      {product.caption}
+                                      {t[product.captionKey]}
                                     </span>
                                   )}
                                 </a>
@@ -1110,7 +1154,7 @@ export default function Navbar() {
                   }
 
                   return (
-                    <li key={item.label}>
+                    <li key={item.key}>
                       <a
                         href={item.href}
                         onClick={closeMenu}
@@ -1124,7 +1168,7 @@ export default function Navbar() {
                           "focus-visible:outline-[var(--accent-primary,#B5764B)]",
                         ].join(" ")}
                       >
-                        {item.label}
+                        {t[item.key]}
                       </a>
                     </li>
                   );
@@ -1142,7 +1186,7 @@ export default function Navbar() {
                   "text-[14px] font-medium tracking-[0.02em]",
                 ].join(" ")}
               >
-                Begin the Story
+                {t.beginStory}
               </a>
             </div>
           </div>
