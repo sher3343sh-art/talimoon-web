@@ -54,7 +54,7 @@
 
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Moment } from "./RealTalimoonMoments";
 import { useT } from "@/lib/i18n/LanguageContext";
 
@@ -65,6 +65,8 @@ const CHROME_EN = {
   nextMoment: "Next moment",
   mute: "Mute",
   unmute: "Unmute",
+  enterFullscreen: "Enter fullscreen",
+  exitFullscreen: "Exit fullscreen",
 };
 
 const CHROME_UZ: typeof CHROME_EN = {
@@ -74,6 +76,8 @@ const CHROME_UZ: typeof CHROME_EN = {
   nextMoment: "Keyingi lahza",
   mute: "Ovozni o'chirish",
   unmute: "Ovozni yoqish",
+  enterFullscreen: "To'liq ekran",
+  exitFullscreen: "To'liq ekrandan chiqish",
 };
 
 function PlayIcon({ className = "h-5 w-5" }: { className?: string }) {
@@ -97,6 +101,27 @@ function ChevronIcon({ direction }: { direction: "left" | "right" }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.25} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="h-5 w-5">
       <path d={direction === "left" ? "M14.5 5.5 8 12l6.5 6.5" : "M9.5 5.5 16 12l-6.5 6.5"} />
+    </svg>
+  );
+}
+
+function FullscreenIcon({ active }: { active: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.8}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className="h-[17px] w-[17px]"
+    >
+      {active ? (
+        <path d="M9 4.5v3A1.5 1.5 0 0 1 7.5 9h-3M15 4.5v3A1.5 1.5 0 0 0 16.5 9h3M9 19.5v-3A1.5 1.5 0 0 0 7.5 15h-3M15 19.5v-3a1.5 1.5 0 0 1 1.5-1.5h3" />
+      ) : (
+        <path d="M4.5 9V6A1.5 1.5 0 0 1 6 4.5h3M19.5 9V6A1.5 1.5 0 0 0 18 4.5h-3M4.5 15v3A1.5 1.5 0 0 0 6 19.5h3M19.5 15v3a1.5 1.5 0 0 1-1.5 1.5h-3" />
+      )}
     </svg>
   );
 }
@@ -143,7 +168,9 @@ function MomentScreen({
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const hasVideo = Boolean(moment.video);
   const chrome = useT(CHROME_EN, CHROME_UZ);
 
@@ -162,18 +189,66 @@ function MomentScreen({
     }
   };
 
+  // True browser fullscreen (like YouTube), not just an enlarged view
+  // inside the phone frame — requestFullscreen on this screen's own
+  // container takes it out of the bezel's clipping/max-width entirely
+  // (the Fullscreen API renders it in the browser's top layer), so no
+  // extra sizing CSS is needed beyond what's already here for the
+  // normal phone-mockup layout. Synced via the fullscreenchange event
+  // rather than only in the click handler, since fullscreen can also
+  // exit via Escape or the browser's own UI.
+  useEffect(() => {
+    const onFullscreenChange = () => {
+      setIsFullscreen(document.fullscreenElement === containerRef.current);
+    };
+    document.addEventListener("fullscreenchange", onFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", onFullscreenChange);
+  }, []);
+
+  const toggleFullscreen = () => {
+    if (document.fullscreenElement) {
+      void document.exitFullscreen();
+    } else {
+      void containerRef.current?.requestFullscreen();
+    }
+  };
+
   return (
     <motion.div
+      ref={containerRef}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-      className="absolute inset-0 flex flex-col"
+      className="absolute inset-0 flex flex-col bg-[var(--ink-950,#211D18)]"
     >
       {/* Stage — the video/photo pane. Everything here only ever
           competes with the transport bar below for height, never
           gets drawn over by it. */}
       <div className="relative min-h-0 flex-1 overflow-hidden">
+        {/* Blurred backdrop of the same thumbnail, behind the video —
+            `object-contain` above only ever fills the stage exactly
+            when the stage's own aspect ratio happens to match the
+            footage's; at any other ratio (the phone frame's own
+            aspect changes with viewport width, since the transport
+            bar below is a fixed pixel height but the frame itself
+            scales) it letterboxes, and without this the letterboxed
+            strip was flat --ink-950 black — visible as a hard, ugly
+            gap on narrower/mobile renders even though the same math
+            produced too thin a strip to notice at the ~300px desktop
+            width this was first built and checked at. A soft blurred
+            continuation of the same image reads as intentional
+            ambience instead, at every width, matching the transport
+            bar's own reflection treatment below rather than
+            introducing a third visual language. */}
+        <Image
+          src={moment.thumbnail}
+          alt=""
+          aria-hidden="true"
+          fill
+          sizes="300px"
+          className="scale-110 object-cover blur-2xl opacity-50"
+        />
         {hasVideo ? (
           <video
             ref={videoRef}
@@ -182,7 +257,10 @@ function MomentScreen({
             playsInline
             preload="none"
             muted={isMuted}
-            className="absolute inset-0 h-full w-full object-contain object-top"
+            className={[
+              "absolute inset-0 h-full w-full object-contain",
+              isFullscreen ? "object-center" : "object-top",
+            ].join(" ")}
             onPlay={() => setIsPlaying(true)}
             onPause={() => setIsPlaying(false)}
             onEnded={() => setIsPlaying(false)}
@@ -278,9 +356,27 @@ function MomentScreen({
             </button>
           </div>
 
-          {/* Balances the mute button's width so the Prev/Play/Next
-              cluster reads as truly centered, not offset by it. */}
-          <div className="h-9 w-9" aria-hidden="true" />
+          {/* Mirrors the mute button on the opposite side, both so the
+              Prev/Play/Next cluster reads as truly centered and so the
+              bar has a real, functional fullscreen control — like
+              YouTube's, this takes over the whole device screen, not
+              just a bigger box inside the phone frame (see the
+              `containerRef`/`requestFullscreen` note above). Only
+              offered for real video; a static placeholder photo has
+              nothing fullscreen would add, so that case keeps the
+              plain balancing spacer it always had. */}
+          {hasVideo ? (
+            <button
+              type="button"
+              onClick={toggleFullscreen}
+              aria-label={isFullscreen ? chrome.exitFullscreen : chrome.enterFullscreen}
+              className="flex h-9 w-9 items-center justify-center rounded-full text-white/70 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            >
+              <FullscreenIcon active={isFullscreen} />
+            </button>
+          ) : (
+            <div className="h-9 w-9" aria-hidden="true" />
+          )}
         </div>
       </div>
     </motion.div>
