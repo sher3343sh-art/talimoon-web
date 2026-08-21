@@ -344,14 +344,14 @@ function MomentScreen({
           `overflow-hidden` so the flipped image itself still gets
           clean edges. */}
       <div className="relative flex h-[52px] shrink-0 items-center">
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[160px] overflow-hidden">
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[80px] overflow-hidden">
           <Image
             src={moment.thumbnail}
             alt=""
             aria-hidden="true"
             fill
             sizes="280px"
-            className="scale-110 object-cover object-bottom [transform:scaleY(-1)]"
+            className="scale-110 object-cover object-bottom blur-md [transform:scaleY(-1)]"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/55 to-black/95" />
         </div>
