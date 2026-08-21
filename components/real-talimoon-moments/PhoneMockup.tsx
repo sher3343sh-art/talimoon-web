@@ -55,7 +55,7 @@
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
-import type { Moment } from "./RealTalimoonMoments";
+import type { Moment, ReactionKey } from "./RealTalimoonMoments";
 import { useT } from "@/lib/i18n/LanguageContext";
 
 // iOS Safari's non-standard native-video-fullscreen API — not in the
@@ -76,6 +76,9 @@ const CHROME_EN = {
   unmute: "Unmute",
   enterFullscreen: "Enter fullscreen",
   exitFullscreen: "Exit fullscreen",
+  reactionLabels: { smile: "Smile", love: "Love", wow: "Wow" } as Record<ReactionKey, string>,
+  reactWith: (label: string, active: boolean) =>
+    `React with ${label}${active ? " — already reacted" : ""}`,
 };
 
 const CHROME_UZ: typeof CHROME_EN = {
@@ -87,6 +90,9 @@ const CHROME_UZ: typeof CHROME_EN = {
   unmute: "Ovozni yoqish",
   enterFullscreen: "To'liq ekran",
   exitFullscreen: "To'liq ekrandan chiqish",
+  reactionLabels: { smile: "Tabassum", love: "Sevgi", wow: "Hayrat" } as Record<ReactionKey, string>,
+  reactWith: (label: string, active: boolean) =>
+    `${label} bilan munosabat bildirish${active ? " — allaqachon bildirilgan" : ""}`,
 };
 
 function PlayIcon({ className = "h-5 w-5" }: { className?: string }) {
@@ -157,6 +163,50 @@ function SpeakerIcon({ muted }: { muted: boolean }) {
   );
 }
 
+const REACTION_EMOJIS: { key: ReactionKey; emoji: string }[] = [
+  { key: "smile", emoji: "😊" },
+  { key: "love", emoji: "❤️" },
+  { key: "wow", emoji: "🤩" },
+];
+
+// Small on-screen counterpart to ReactionRow below the phone — real,
+// not decorative: tapping one actually increments that moment's count
+// (via `onReact`, owned by the parent so ReactionRow can show the
+// exact same live number). `active` reflects `reacted[key]` from the
+// parent, not local state, since "have I already reacted" has to
+// survive this component remounting on every moment switch.
+function ReactionButton({
+  emoji,
+  count,
+  active,
+  label,
+  onClick,
+}: {
+  emoji: string;
+  count: number;
+  active: boolean;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      aria-pressed={active}
+      className={[
+        "flex items-center gap-1 rounded-full px-1.5 py-1 text-[11px] font-semibold leading-none transition-colors",
+        active ? "text-[var(--gold-500,#B8935B)]" : "text-white/80 hover:text-white",
+      ].join(" ")}
+    >
+      <span aria-hidden="true" className="text-[13px] leading-none">
+        {emoji}
+      </span>
+      <span>{count}</span>
+    </button>
+  );
+}
+
 // Owns isPlaying/progress/isMuted itself and is mounted with
 // `key={moment.id}` by its AnimatePresence parent below, so switching
 // moments naturally resets all three to their initial values via
@@ -169,10 +219,14 @@ function MomentScreen({
   moment,
   onPrev,
   onNext,
+  onReact,
+  reacted,
 }: {
   moment: Moment;
   onPrev: () => void;
   onNext: () => void;
+  onReact: (key: ReactionKey) => void;
+  reacted: Partial<Record<ReactionKey, boolean>>;
 }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -343,9 +397,15 @@ function MomentScreen({
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/55 to-black/95" />
         </div>
 
-        {/* Progress bar + name/age — moved down from the stage into
-            this bled-up blur zone (owner request), instead of sitting
-            right at the stage's own bottom edge. */}
+        {/* Progress bar + name/age (left) + reactions (right) — moved
+            down from the stage into this bled-up blur zone (owner
+            request), instead of sitting right at the stage's own
+            bottom edge. Reactions sit in the space the name/age block
+            used to leave empty on the right — real buttons (see
+            `ReactionButton` above), so this row alone gets
+            `pointer-events-auto` despite the wrapper around it being
+            `pointer-events-none` (a CSS descendant can always re-
+            enable pointer events an ancestor turned off). */}
         <div className="pointer-events-none absolute inset-x-0 bottom-[48px] px-4">
           <div className="mb-2 h-[3px] w-full overflow-hidden rounded-full bg-white/25">
             <div
@@ -353,10 +413,27 @@ function MomentScreen({
               style={{ width: `${(hasVideo ? progress : 0.35) * 100}%` }}
             />
           </div>
-          <p className="font-sans text-[0.9375rem] font-semibold text-white">{moment.name}</p>
-          {moment.childAge && (
-            <p className="font-sans text-[0.8125rem] text-white/70">{moment.childAge}</p>
-          )}
+          <div className="flex items-end justify-between gap-2">
+            <div className="min-w-0">
+              <p className="truncate font-sans text-[0.9375rem] font-semibold text-white">{moment.name}</p>
+              {moment.childAge && (
+                <p className="font-sans text-[0.8125rem] text-white/70">{moment.childAge}</p>
+              )}
+            </div>
+
+            <div className="pointer-events-auto flex shrink-0 items-center gap-0.5">
+              {REACTION_EMOJIS.map(({ key, emoji }) => (
+                <ReactionButton
+                  key={key}
+                  emoji={emoji}
+                  count={moment.reactions[key]}
+                  active={Boolean(reacted[key])}
+                  label={chrome.reactWith(chrome.reactionLabels[key], Boolean(reacted[key]))}
+                  onClick={() => onReact(key)}
+                />
+              ))}
+            </div>
+          </div>
         </div>
 
         <div className="relative z-10 flex w-full items-center justify-between px-4">
@@ -427,10 +504,14 @@ export function PhoneMockup({
   moment,
   onPrev,
   onNext,
+  onReact,
+  reacted,
 }: {
   moment: Moment;
   onPrev: () => void;
   onNext: () => void;
+  onReact: (key: ReactionKey) => void;
+  reacted: Partial<Record<ReactionKey, boolean>>;
 }) {
   return (
     <div className="relative mx-auto w-full max-w-[300px]">
@@ -444,7 +525,14 @@ export function PhoneMockup({
         {/* Screen */}
         <div className="relative h-full w-full overflow-hidden rounded-[2.25rem] bg-[var(--ink-950,#211D18)]">
           <AnimatePresence initial={false}>
-            <MomentScreen key={moment.id} moment={moment} onPrev={onPrev} onNext={onNext} />
+            <MomentScreen
+              key={moment.id}
+              moment={moment}
+              onPrev={onPrev}
+              onNext={onNext}
+              onReact={onReact}
+              reacted={reacted}
+            />
           </AnimatePresence>
 
           {/* Dynamic-island-style notch — small, iPhone-Pro-proportioned */}

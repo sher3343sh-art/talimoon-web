@@ -35,7 +35,7 @@
  * specific verified customers — until their own videos exist.
  */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, useReducedMotion, type Variants } from "framer-motion";
 import { PhoneMockup } from "./PhoneMockup";
 import { MomentsList } from "./MomentsList";
@@ -52,6 +52,13 @@ export type Moment = {
   video?: string;
   reactions: { smile: number; love: number; wow: number };
 };
+
+export type ReactionKey = keyof Moment["reactions"];
+const REACTION_KEYS: ReactionKey[] = ["smile", "love", "wow"];
+
+function reactionStorageKey(momentId: string, key: ReactionKey) {
+  return `talimoon:moment-reaction:${momentId}:${key}`;
+}
 
 // name/childAge translations, keyed by moment id — kept parallel to
 // MOMENTS (English base) rather than restructuring every field into
@@ -132,6 +139,61 @@ export function RealTalimoonMoments() {
     setSelectedId(moments[nextIndex].id);
   };
 
+  // Which (moment, reaction) pairs this browser has already tapped —
+  // the phone's own reaction buttons are real, not decorative: a tap
+  // increments the count for good, once per visitor, same "once per
+  // browser via localStorage" honesty already established by
+  // FamiliesWall's ReactionBar (no backend to track it more precisely
+  // than that). Hydrated post-mount, not via a lazy initializer:
+  // localStorage doesn't exist during SSR, so reading it up front
+  // would mismatch the server-rendered HTML.
+  const [reactedMap, setReactedMap] = useState<Record<string, Partial<Record<ReactionKey, boolean>>>>({});
+
+  // Deliberately an effect, not a lazy useState initializer — same
+  // documented exception as FamiliesWall's ReactionBar: reading
+  // localStorage during the initializer would run on the client's
+  // first (hydration) render and mismatch the server-rendered HTML,
+  // which always renders "nothing reacted yet" since localStorage
+  // isn't available server-side. Applying it post-hydration, here, is
+  // the correct SSR-safe pattern, not the "should have used a lazy
+  // initializer" case react-hooks/set-state-in-effect is checking
+  // for. Runs once on mount only.
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    const map: Record<string, Partial<Record<ReactionKey, boolean>>> = {};
+    for (const m of MOMENTS) {
+      map[m.id] = {};
+      for (const key of REACTION_KEYS) {
+        if (window.localStorage.getItem(reactionStorageKey(m.id, key)) === "1") {
+          map[m.id][key] = true;
+        }
+      }
+    }
+    setReactedMap(map);
+  }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
+
+  const reactToMoment = (momentId: string, key: ReactionKey) => {
+    if (reactedMap[momentId]?.[key]) return;
+    window.localStorage.setItem(reactionStorageKey(momentId, key), "1");
+    setReactedMap((prev) => ({
+      ...prev,
+      [momentId]: { ...prev[momentId], [key]: true },
+    }));
+  };
+
+  // The live count the phone's buttons and the ReactionRow below both
+  // display — same source, so they can never drift out of sync. Only
+  // the phone's own buttons can ever change it (ReactionRow is
+  // display-only, per spec); this is just where both read it from.
+  const selectedReacted = reactedMap[selected.id] ?? {};
+  const liveReactions = {
+    smile: selected.reactions.smile + (selectedReacted.smile ? 1 : 0),
+    love: selected.reactions.love + (selectedReacted.love ? 1 : 0),
+    wow: selected.reactions.wow + (selectedReacted.wow ? 1 : 0),
+  };
+  const liveSelected: Moment = { ...selected, reactions: liveReactions };
+
   return (
     <motion.section
       aria-labelledby="real-moments-heading"
@@ -144,9 +206,11 @@ export function RealTalimoonMoments() {
       <div className="mx-auto grid max-w-[1440px] grid-cols-1 items-center gap-12 px-5 md:px-10 lg:grid-cols-5 lg:gap-20 lg:px-16">
         <div className="lg:col-span-2">
           <PhoneMockup
-            moment={selected}
+            moment={liveSelected}
             onPrev={() => goToOffset(-1)}
             onNext={() => goToOffset(1)}
+            onReact={(key) => reactToMoment(selected.id, key)}
+            reacted={selectedReacted}
           />
         </div>
 
@@ -165,7 +229,7 @@ export function RealTalimoonMoments() {
           </p>
 
           <MomentsList moments={moments} selectedId={selectedId} onSelect={setSelectedId} />
-          <ReactionRow reactions={selected.reactions} />
+          <ReactionRow reactions={liveReactions} />
         </div>
       </div>
     </motion.section>
