@@ -308,19 +308,6 @@ function MomentScreen({
           aria-label={isPlaying ? chrome.pause(moment.name) : chrome.play(moment.name)}
           className="absolute inset-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
         />
-
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 p-4">
-          <div className="mb-2 h-[3px] w-full overflow-hidden rounded-full bg-white/25">
-            <div
-              className="h-full rounded-full bg-[var(--gold-500,#B8935B)]"
-              style={{ width: `${(hasVideo ? progress : 0.35) * 100}%` }}
-            />
-          </div>
-          <p className="font-sans text-[0.9375rem] font-semibold text-white">{moment.name}</p>
-          {moment.childAge && (
-            <p className="font-sans text-[0.8125rem] text-white/70">{moment.childAge}</p>
-          )}
-        </div>
       </div>
 
       {/* Transport bar — the clickable row (Prev/Mute/Play/Next) is a
@@ -344,7 +331,7 @@ function MomentScreen({
           `overflow-hidden` so the flipped image itself still gets
           clean edges. */}
       <div className="relative flex h-[52px] shrink-0 items-center">
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[80px] overflow-hidden">
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[96px] overflow-hidden">
           <Image
             src={moment.thumbnail}
             alt=""
@@ -354,6 +341,22 @@ function MomentScreen({
             className="scale-110 object-cover object-bottom blur-md [transform:scaleY(-1)]"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/55 to-black/95" />
+        </div>
+
+        {/* Progress bar + name/age — moved down from the stage into
+            this bled-up blur zone (owner request), instead of sitting
+            right at the stage's own bottom edge. */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-[48px] px-4">
+          <div className="mb-2 h-[3px] w-full overflow-hidden rounded-full bg-white/25">
+            <div
+              className="h-full rounded-full bg-[var(--gold-500,#B8935B)]"
+              style={{ width: `${(hasVideo ? progress : 0.35) * 100}%` }}
+            />
+          </div>
+          <p className="font-sans text-[0.9375rem] font-semibold text-white">{moment.name}</p>
+          {moment.childAge && (
+            <p className="font-sans text-[0.8125rem] text-white/70">{moment.childAge}</p>
+          )}
         </div>
 
         <div className="relative z-10 flex w-full items-center justify-between px-4">
