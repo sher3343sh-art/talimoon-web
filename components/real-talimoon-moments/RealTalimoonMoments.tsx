@@ -56,8 +56,16 @@ export type Moment = {
 export type ReactionKey = keyof Moment["reactions"];
 const REACTION_KEYS: ReactionKey[] = ["smile", "love", "wow"];
 
-function reactionStorageKey(momentId: string, key: ReactionKey) {
-  return `talimoon:moment-reaction:${momentId}:${key}`;
+// One choice per moment, not one boolean per emoji — owner spec: a
+// visitor gets exactly one reaction per video, ever, and once made it
+// can't be changed to a different emoji. So storage/state key off the
+// moment alone, value is which key (if any) was chosen.
+function reactionStorageKey(momentId: string) {
+  return `talimoon:moment-reaction:${momentId}`;
+}
+
+function isReactionKey(value: string | null): value is ReactionKey {
+  return value !== null && (REACTION_KEYS as string[]).includes(value);
 }
 
 // name/childAge translations, keyed by moment id — kept parallel to
@@ -139,15 +147,16 @@ export function RealTalimoonMoments() {
     setSelectedId(moments[nextIndex].id);
   };
 
-  // Which (moment, reaction) pairs this browser has already tapped —
-  // the phone's own reaction buttons are real, not decorative: a tap
-  // increments the count for good, once per visitor, same "once per
-  // browser via localStorage" honesty already established by
-  // FamiliesWall's ReactionBar (no backend to track it more precisely
-  // than that). Hydrated post-mount, not via a lazy initializer:
-  // localStorage doesn't exist during SSR, so reading it up front
-  // would mismatch the server-rendered HTML.
-  const [reactedMap, setReactedMap] = useState<Record<string, Partial<Record<ReactionKey, boolean>>>>({});
+  // Which single reaction (if any) this browser has already cast per
+  // moment — the phone's own reaction buttons are real, not
+  // decorative: a tap increments the count for good, once per
+  // visitor, one emoji only, same "once per browser via localStorage"
+  // honesty already established by FamiliesWall's ReactionBar (no
+  // backend to track it more precisely than that). Hydrated
+  // post-mount, not via a lazy initializer: localStorage doesn't
+  // exist during SSR, so reading it up front would mismatch the
+  // server-rendered HTML.
+  const [reactedMap, setReactedMap] = useState<Record<string, ReactionKey | null>>({});
 
   // Deliberately an effect, not a lazy useState initializer — same
   // documented exception as FamiliesWall's ReactionBar: reading
@@ -160,37 +169,32 @@ export function RealTalimoonMoments() {
   // for. Runs once on mount only.
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
-    const map: Record<string, Partial<Record<ReactionKey, boolean>>> = {};
+    const map: Record<string, ReactionKey | null> = {};
     for (const m of MOMENTS) {
-      map[m.id] = {};
-      for (const key of REACTION_KEYS) {
-        if (window.localStorage.getItem(reactionStorageKey(m.id, key)) === "1") {
-          map[m.id][key] = true;
-        }
-      }
+      const stored = window.localStorage.getItem(reactionStorageKey(m.id));
+      map[m.id] = isReactionKey(stored) ? stored : null;
     }
     setReactedMap(map);
   }, []);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   const reactToMoment = (momentId: string, key: ReactionKey) => {
-    if (reactedMap[momentId]?.[key]) return;
-    window.localStorage.setItem(reactionStorageKey(momentId, key), "1");
-    setReactedMap((prev) => ({
-      ...prev,
-      [momentId]: { ...prev[momentId], [key]: true },
-    }));
+    // Locked after the first tap — one video, one visitor, one choice,
+    // ever. Not "one active at a time that can be switched."
+    if (reactedMap[momentId]) return;
+    window.localStorage.setItem(reactionStorageKey(momentId), key);
+    setReactedMap((prev) => ({ ...prev, [momentId]: key }));
   };
 
   // The live count the phone's buttons and the ReactionRow below both
   // display — same source, so they can never drift out of sync. Only
   // the phone's own buttons can ever change it (ReactionRow is
   // display-only, per spec); this is just where both read it from.
-  const selectedReacted = reactedMap[selected.id] ?? {};
+  const selectedReacted = reactedMap[selected.id] ?? null;
   const liveReactions = {
-    smile: selected.reactions.smile + (selectedReacted.smile ? 1 : 0),
-    love: selected.reactions.love + (selectedReacted.love ? 1 : 0),
-    wow: selected.reactions.wow + (selectedReacted.wow ? 1 : 0),
+    smile: selected.reactions.smile + (selectedReacted === "smile" ? 1 : 0),
+    love: selected.reactions.love + (selectedReacted === "love" ? 1 : 0),
+    wow: selected.reactions.wow + (selectedReacted === "wow" ? 1 : 0),
   };
   const liveSelected: Moment = { ...selected, reactions: liveReactions };
 

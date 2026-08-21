@@ -172,19 +172,24 @@ const REACTION_EMOJIS: { key: ReactionKey; emoji: string }[] = [
 // Small on-screen counterpart to ReactionRow below the phone — real,
 // not decorative: tapping one actually increments that moment's count
 // (via `onReact`, owned by the parent so ReactionRow can show the
-// exact same live number). `active` reflects `reacted[key]` from the
-// parent, not local state, since "have I already reacted" has to
-// survive this component remounting on every moment switch.
+// exact same live number). `active` reflects `reacted` from the
+// parent, not local state, since "which reaction (if any) have I
+// already cast" has to survive this component remounting on every
+// moment switch. One choice per moment, ever — once `reacted` is set
+// (to any key), every button in the cluster locks, including the
+// chosen one itself; there's no "pick again" or "switch emoji".
 function ReactionButton({
   emoji,
   count,
   active,
+  locked,
   label,
   onClick,
 }: {
   emoji: string;
   count: number;
   active: boolean;
+  locked: boolean;
   label: string;
   onClick: () => void;
 }) {
@@ -192,14 +197,19 @@ function ReactionButton({
     <button
       type="button"
       onClick={onClick}
+      disabled={locked}
       aria-label={label}
       aria-pressed={active}
       className={[
-        "flex items-center gap-1 rounded-full px-1.5 py-1 text-[11px] font-semibold leading-none transition-colors",
-        active ? "text-[var(--gold-500,#B8935B)]" : "text-white/80 hover:text-white",
+        "flex items-center gap-0.5 rounded-full px-1 py-0.5 text-[12.5px] font-semibold leading-none transition-colors disabled:cursor-default",
+        active
+          ? "text-[var(--gold-500,#B8935B)]"
+          : locked
+            ? "text-white/40"
+            : "text-white/80 hover:text-white",
       ].join(" ")}
     >
-      <span aria-hidden="true" className="text-[13px] leading-none">
+      <span aria-hidden="true" className="text-[15px] leading-none">
         {emoji}
       </span>
       <span>{count}</span>
@@ -226,7 +236,7 @@ function MomentScreen({
   onPrev: () => void;
   onNext: () => void;
   onReact: (key: ReactionKey) => void;
-  reacted: Partial<Record<ReactionKey, boolean>>;
+  reacted: ReactionKey | null;
 }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -400,20 +410,29 @@ function MomentScreen({
         {/* Progress bar + name/age (left) + reactions (right) — moved
             down from the stage into this bled-up blur zone (owner
             request), instead of sitting right at the stage's own
-            bottom edge. Reactions sit in the space the name/age block
-            used to leave empty on the right — real buttons (see
-            `ReactionButton` above), so this row alone gets
-            `pointer-events-auto` despite the wrapper around it being
-            `pointer-events-none` (a CSS descendant can always re-
-            enable pointer events an ancestor turned off). */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-[48px] px-4">
+            bottom edge. Reactions sit in the space the name row used
+            to leave empty on the right — real buttons (see
+            `ReactionButton` above), vertically centered against the
+            name/age block via `items-center` — not bottom-aligned
+            with the age line (owner feedback: that put them right on
+            top of the transport bar's icon row below, reading as
+            squished together) and not top-aligned with the name line
+            either (owner feedback: that glued them to the name text
+            instead of sitting between the two lines). This row alone
+            gets `pointer-events-auto` despite the wrapper around it
+            being `pointer-events-none` (a CSS descendant can always
+            re-enable pointer events an ancestor turned off). Locked to
+            one choice per moment — once `reacted` is set, every button
+            disables, including the chosen one; there's no re-picking
+            or switching emoji. */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-[52px] px-4">
           <div className="mb-2 h-[3px] w-full overflow-hidden rounded-full bg-white/25">
             <div
               className="h-full rounded-full bg-[var(--gold-500,#B8935B)]"
               style={{ width: `${(hasVideo ? progress : 0.35) * 100}%` }}
             />
           </div>
-          <div className="flex items-end justify-between gap-2">
+          <div className="flex items-center justify-between gap-1">
             <div className="min-w-0">
               <p className="truncate font-sans text-[0.9375rem] font-semibold text-white">{moment.name}</p>
               {moment.childAge && (
@@ -421,14 +440,15 @@ function MomentScreen({
               )}
             </div>
 
-            <div className="pointer-events-auto flex shrink-0 items-center gap-0.5">
+            <div className="pointer-events-auto flex shrink-0 items-center gap-px">
               {REACTION_EMOJIS.map(({ key, emoji }) => (
                 <ReactionButton
                   key={key}
                   emoji={emoji}
                   count={moment.reactions[key]}
-                  active={Boolean(reacted[key])}
-                  label={chrome.reactWith(chrome.reactionLabels[key], Boolean(reacted[key]))}
+                  active={reacted === key}
+                  locked={reacted !== null}
+                  label={chrome.reactWith(chrome.reactionLabels[key], reacted === key)}
                   onClick={() => onReact(key)}
                 />
               ))}
@@ -511,7 +531,7 @@ export function PhoneMockup({
   onPrev: () => void;
   onNext: () => void;
   onReact: (key: ReactionKey) => void;
-  reacted: Partial<Record<ReactionKey, boolean>>;
+  reacted: ReactionKey | null;
 }) {
   return (
     <div className="relative mx-auto w-full max-w-[300px]">
