@@ -268,36 +268,6 @@ function MomentScreen({
           competes with the transport bar below for height, never
           gets drawn over by it. */}
       <div className="relative min-h-0 flex-1 overflow-hidden">
-        {/* Blurred backdrop of the same thumbnail, behind the video —
-            `object-contain` above only ever fills the stage exactly
-            when the stage's own aspect ratio happens to match the
-            footage's; at any other ratio (the phone frame's own
-            aspect changes with viewport width, since the transport
-            bar below is a fixed pixel height but the frame itself
-            scales) it letterboxes, and without this the letterboxed
-            strip was flat --ink-950 black — visible as a hard, ugly
-            gap on narrower/mobile renders even though the same math
-            produced too thin a strip to notice at the ~300px desktop
-            width this was first built and checked at. A soft blurred
-            continuation of the same image reads as intentional
-            ambience instead, at every width, matching the transport
-            bar's own reflection treatment below rather than
-            introducing a third visual language.
-            No opacity utility here (an earlier pass used opacity-50):
-            an Image's own opacity blends it with whatever's behind
-            it, which here is the stage's own near-black bg — halving
-            a mostly warm/light photo's opacity over near-black
-            darkens it right back down toward black, defeating the
-            entire point. Full opacity is what actually reads as "a
-            photo," not "a slightly-less-black rectangle." */}
-        <Image
-          src={moment.thumbnail}
-          alt=""
-          aria-hidden="true"
-          fill
-          sizes="300px"
-          className="scale-110 object-cover blur-2xl"
-        />
         {hasVideo ? (
           <video
             ref={videoRef}
@@ -353,32 +323,38 @@ function MomentScreen({
         </div>
       </div>
 
-      {/* Transport bar — fixed height, dedicated to Prev/Mute/Play/Next.
-          A flex sibling of the stage above, never an overlay on it.
-          Its backdrop is the moment's own thumbnail, flipped and
-          blurred into a soft reflection under a dark gradient.
-          `-mt-px` deliberately overlaps the stage's bottom edge by one
-          CSS pixel: at the phone frame's high-DPR mobile widths (2x/3x
-          device pixels per CSS pixel), the browser can round the
-          stage's fractional flex-basis height differently than the
-          bar's, leaving a true — if sub-CSS-pixel — rendering gap that
-          exposes the screen's own ink-950 background as a hairline
-          black seam. Invisible on 1x desktop displays (nothing to
-          round), which is why it only ever showed up on phones. The
-          overlap costs nothing visually (the bar's own reflection
-          image already extends past its box edge via `scale-110`) and
-          removes the seam by construction instead of chasing exact
-          rounding per breakpoint. */}
-      <div className="relative -mt-px flex h-[52px] shrink-0 items-center overflow-hidden border-t border-white/10">
-        <Image
-          src={moment.thumbnail}
-          alt=""
-          aria-hidden="true"
-          fill
-          sizes="280px"
-          className="scale-110 object-cover object-bottom opacity-80 blur-[3px] [transform:scaleY(-1)]"
-        />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/35 via-black/78 to-black/95" />
+      {/* Transport bar — the clickable row (Prev/Mute/Play/Next) is a
+          fixed 52px flex sibling of the stage above, same as always.
+          Its backdrop is deliberately taller than that and bleeds
+          upward into the stage: two earlier attempts tried to patch
+          the letterbox gap from the STAGE side (a blurred copy of the
+          thumbnail sitting behind the video) and kept failing on real
+          mobile devices — the stage's own name/age text scrim already
+          darkens that exact region (`bg-gradient-to-t from-black/70`
+          below), so a bright blurred patch there read as a mismatched
+          bright island against darker surroundings, not a fix. Owner
+          feedback: raise the bar's own reflection/shadow up instead.
+          That's what this does — one continuous dark backdrop that's
+          already the right darkness (it's the same treatment the
+          stage's own scrim uses), covering the gap from below/on top
+          rather than trying to match it from behind. No `overflow-
+          hidden` on this outer row — that's what lets the taller
+          backdrop actually bleed upward past the 52px box instead of
+          being clipped to it; the backdrop has its own inner
+          `overflow-hidden` so the flipped image itself still gets
+          clean edges. */}
+      <div className="relative flex h-[52px] shrink-0 items-center">
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[160px] overflow-hidden">
+          <Image
+            src={moment.thumbnail}
+            alt=""
+            aria-hidden="true"
+            fill
+            sizes="280px"
+            className="scale-110 object-cover object-bottom [transform:scaleY(-1)]"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/55 to-black/95" />
+        </div>
 
         <div className="relative z-10 flex w-full items-center justify-between px-4">
           <button
