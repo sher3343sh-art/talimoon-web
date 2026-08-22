@@ -769,8 +769,8 @@ export default function Navbar() {
             <span aria-hidden="true" className={underlineClass} />
           </Link>
 
-          <a
-            href="#begin"
+          <Link
+            href="/begin"
             style={GOLD_TOKENS}
             className={[
               "tm-cta-gold",
@@ -780,7 +780,7 @@ export default function Navbar() {
             ].join(" ")}
           >
             {t.beginStory}
-          </a>
+          </Link>
 
           <div ref={languageContainerRef} className="relative -ml-2">
             <button
@@ -1119,8 +1119,8 @@ export default function Navbar() {
             </nav>
 
             <div className="shrink-0 border-t border-[var(--border-subtle,rgba(42,36,29,0.12))] px-5 py-4">
-              <a
-                href="#begin"
+              <Link
+                href="/begin"
                 onClick={closeMenu}
                 style={GOLD_TOKENS}
                 className={[
@@ -1130,7 +1130,7 @@ export default function Navbar() {
                 ].join(" ")}
               >
                 {t.beginStory}
-              </a>
+              </Link>
             </div>
           </div>
         </>

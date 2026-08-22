@@ -135,12 +135,12 @@ export function Footer({ showHowItWorksLink = true }: FooterProps) {
             </p>
           </div>
 
-          <a
-            href="#begin"
+          <Link
+            href="/begin"
             className="tm-cta-gold inline-flex h-11 shrink-0 items-center justify-center whitespace-nowrap px-4 text-[13px] font-medium tracking-[0.015em]"
           >
             {t.beginStory}
-          </a>
+          </Link>
         </div>
 
         {/* Middle: four columns */}

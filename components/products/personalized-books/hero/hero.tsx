@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useT } from "@/lib/i18n/LanguageContext";
 
 /**
@@ -111,7 +112,7 @@ export default function TalimoonHero({
   headline,
   subhead,
   primaryCtaLabel,
-  primaryCtaHref = "#start",
+  primaryCtaHref = "/begin",
   secondaryCtaLabel,
   secondaryCtaHref = "#how-it-works",
 }: TalimoonHeroProps) {
@@ -462,9 +463,9 @@ export default function TalimoonHero({
         <h1 className="tm-hero__headline tm-reveal tm-reveal--d2">{headline}</h1>
         <p className="tm-hero__subhead tm-reveal tm-reveal--d3">{subhead}</p>
         <div className="tm-hero__cta-group tm-reveal tm-reveal--d4">
-          <a className="tm-hero__cta-primary" href={primaryCtaHref}>
+          <Link className="tm-hero__cta-primary" href={primaryCtaHref}>
             {primaryCtaLabel}
-          </a>
+          </Link>
           <a className="tm-hero__cta-secondary" href={secondaryCtaHref}>
             {secondaryCtaLabel}
           </a>

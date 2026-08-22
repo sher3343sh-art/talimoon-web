@@ -9,6 +9,8 @@
  * there is only one product.
  */
 
+import Link from "next/link";
+
 const FEATURES = [
   "Personalized story",
   "Premium illustrations",
@@ -65,12 +67,12 @@ export function Pricing() {
               </p>
             </div>
 
-            <a
-              href="#begin"
+            <Link
+              href="/begin"
               className="mt-8 inline-flex h-14 w-full items-center justify-center rounded px-8 bg-[var(--accent-primary,#B8935B)] text-[15px] font-medium tracking-[0.02em] text-white hover:bg-[var(--accent-primary-hover,#9C7A47)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-primary,#B8935B)]"
             >
               Create Your Story
-            </a>
+            </Link>
           </div>
 
           <dl className="mt-10 space-y-4 border-t border-[var(--border-subtle,rgba(42,36,29,0.12))] pt-10">
