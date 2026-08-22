@@ -36,8 +36,8 @@ const NAV_LABELS_EN = {
 const NAV_LABELS_UZ: typeof NAV_LABELS_EN = {
   home: "Bosh sahifa",
   news: "Yangiliklar",
-  storyLibrary: "Hikoyalar kutubxonasi",
-  about: "Biz haqimizda",
+  storyLibrary: "Kutubxona",
+  about: "Haqimizda",
   product: "Mahsulot",
   personalizedBooks: "Shaxsiylashtirilgan kitoblar",
   yusufYasmina: "Yusuf va Yasmina",
@@ -622,7 +622,7 @@ export default function Navbar() {
       ============================================================ */}
       <nav
         aria-label={t.primaryNav}
-        className="relative mx-auto hidden h-[74px] max-w-[1440px] grid-cols-[1fr_auto_1fr] items-center gap-8 px-5 md:px-10 lg:grid lg:px-16"
+        className="relative mx-auto hidden h-[74px] max-w-[1440px] grid-cols-[minmax(200px,1fr)_auto_1fr] items-center gap-8 px-5 md:px-10 lg:grid lg:px-16"
       >
         <Link
           href="/"
@@ -633,7 +633,7 @@ export default function Navbar() {
             src="/logo/talimoon-logo-color.svg"
             alt="Talimoon"
             draggable={false}
-            className="h-[45px] w-auto transition-opacity duration-300"
+            className="h-[45px] w-auto shrink-0 transition-opacity duration-300"
             style={{ opacity: scrolled ? 1 : 0 }}
           />
           <img
@@ -641,7 +641,7 @@ export default function Navbar() {
             alt=""
             aria-hidden="true"
             draggable={false}
-            className="absolute inset-0 h-[45px] w-auto transition-opacity duration-300"
+            className="absolute inset-0 h-[45px] w-auto shrink-0 transition-opacity duration-300"
             style={{ opacity: scrolled ? 0 : 1 }}
           />
           <span
@@ -849,7 +849,7 @@ export default function Navbar() {
             src="/logo/talimoon-logo-color.svg"
             alt="Talimoon"
             draggable={false}
-            className="h-8 w-auto transition-opacity duration-300"
+            className="h-8 w-auto shrink-0 transition-opacity duration-300"
             style={{ opacity: scrolled ? 1 : 0 }}
           />
           <img
@@ -857,7 +857,7 @@ export default function Navbar() {
             alt=""
             aria-hidden="true"
             draggable={false}
-            className="absolute inset-0 h-8 w-auto transition-opacity duration-300"
+            className="absolute inset-0 h-8 w-auto shrink-0 transition-opacity duration-300"
             style={{ opacity: scrolled ? 0 : 1 }}
           />
           <span
@@ -1018,7 +1018,7 @@ export default function Navbar() {
                   src="/logo/talimoon-logo-color.svg"
                   alt="Talimoon"
                   draggable={false}
-                  className="h-7 w-auto"
+                  className="h-7 w-auto shrink-0"
                 />
               </Link>
 
