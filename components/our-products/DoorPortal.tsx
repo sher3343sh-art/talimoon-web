@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import type { CSSProperties } from "react";
+import type { CSSProperties, MouseEvent } from "react";
+import { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useT } from "@/lib/i18n/LanguageContext";
 
@@ -155,10 +156,33 @@ export function DoorPortal({ variant }: DoorPortalProps) {
   const chrome = useT(DOOR_CHROME_EN, DOOR_CHROME_UZ);
   const { id, title, tagline, href, assets } = variant;
 
+  // Touch devices have no real `:hover` to drive the door open — the
+  // whole animation above is built on `group-hover`/`group-focus-
+  // visible`, so on a phone the door just sat frozen shut and the
+  // very first tap immediately navigated away before anyone could see
+  // it open. Fix, per owner spec: first tap opens the door (and does
+  // NOT navigate), a second tap follows the link. Gated behind a
+  // `(hover: hover) and (pointer: fine)` check so real mouse/trackpad
+  // users keep the original single-click-navigates behavior — hover
+  // already shows them the open door before they ever click.
+  const [touchOpen, setTouchOpen] = useState(false);
+
+  const handleClick = (e: MouseEvent<HTMLAnchorElement>) => {
+    const canHover =
+      typeof window !== "undefined" &&
+      window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+    if (canHover) return;
+    if (!touchOpen) {
+      e.preventDefault();
+      setTouchOpen(true);
+    }
+  };
+
   return (
     <Link
       href={href}
       aria-label={`${chrome.discover} ${title}`}
+      onClick={handleClick}
       className="group relative block w-full max-w-[428px] shrink-0 focus-visible:outline-none md:max-w-[242px] lg:max-w-[308px] xl:max-w-[391px] 2xl:max-w-[482px]"
     >
       <div
@@ -205,12 +229,12 @@ export function DoorPortal({ variant }: DoorPortalProps) {
               src={assets.gapLight}
               alt=""
               fill
-              className="pointer-events-none object-cover opacity-100 transition-opacity duration-500 group-hover:opacity-0 group-focus-visible:opacity-0"
+              className={`pointer-events-none object-cover transition-opacity duration-500 group-hover:opacity-0 group-focus-visible:opacity-0 ${touchOpen ? "opacity-0" : "opacity-100"}`}
             />
           ) : (
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute left-0 top-1/2 h-24 w-24 -translate-y-1/2 rounded-full opacity-90 blur-[26px] transition-opacity duration-500 group-hover:opacity-0 group-focus-visible:opacity-0"
+              className={`pointer-events-none absolute left-0 top-1/2 h-24 w-24 -translate-y-1/2 rounded-full blur-[26px] transition-opacity duration-500 group-hover:opacity-0 group-focus-visible:opacity-0 ${touchOpen ? "opacity-0" : "opacity-90"}`}
               style={{
                 background:
                   "radial-gradient(circle, rgba(227,194,136,0.6) 0%, transparent 70%)",
@@ -318,9 +342,16 @@ export function DoorPortal({ variant }: DoorPortalProps) {
           }}
         >
           <div
-            className="absolute inset-0 transition-transform duration-[1716ms] [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] [transform:rotateY(-30deg)] group-hover:[transform:rotateY(-72deg)] group-focus-visible:[transform:rotateY(-72deg)]"
+            className="absolute inset-0 transition-transform duration-[1716ms] [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] [transform:rotateY(var(--door-angle,-30deg))] group-hover:[--door-angle:-72deg] group-focus-visible:[--door-angle:-72deg]"
             style={{
               transformOrigin: `${assets.hingeOriginX}% ${assets.hingeOriginY}%`,
+              // Touch has no real `:hover` to drive `--door-angle` via
+              // the classes above, so a tap sets it directly here —
+              // inline styles always win the cascade over a class
+              // selector for the same property, and only ever get set
+              // once `touchOpen` is true, so real-hover devices (where
+              // this stays unset) are completely unaffected.
+              ...(touchOpen ? ({ "--door-angle": "-72deg" } as CSSProperties) : {}),
             }}
           >
             <Image
@@ -394,7 +425,7 @@ export function DoorPortal({ variant }: DoorPortalProps) {
           <svg
             aria-hidden="true"
             viewBox="0 0 16 16"
-            className="h-2.5 w-2.5 shrink-0 transition-transform duration-300 ease-out group-hover:translate-x-0.5"
+            className={`h-2.5 w-2.5 shrink-0 transition-transform duration-300 ease-out group-hover:translate-x-0.5 ${touchOpen ? "translate-x-0.5" : ""}`}
             fill="none"
             stroke="currentColor"
             strokeWidth="1.8"
