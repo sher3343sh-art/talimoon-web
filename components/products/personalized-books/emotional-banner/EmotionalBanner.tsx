@@ -6,14 +6,12 @@ const COPY_EN = {
   heading: "Every Child Deserves a Story They Can Call Their Own.",
   paragraph:
     "A story written for one child alone — their name, their courage, their small victories, bound into a book they will keep for the rest of their life.",
-  cta: "Begin the Story",
 };
 
 const COPY_UZ: typeof COPY_EN = {
   heading: "Har bir bola o'ziniki deb ataydigan hikoyaga loyiqdir.",
   paragraph:
     "Faqat bitta bola uchun yozilgan hikoya — uning ismi, jasorati, kichik g'alabalari — umr bo'yi saqlaydigan kitobga jamlangan.",
-  cta: "Hikoyani boshlash",
 };
 
 /**
@@ -41,11 +39,13 @@ const COPY_UZ: typeof COPY_EN = {
  * site-wide section rhythm (py-16/20/28, matching every section above
  * it) — that oversized padding was sized for being THE page's single
  * biggest moment, which is Footer's job now, not this section's.
- * CTA upgraded from a plain underlined text link to the shared
- * `.tm-cta-gold` button — the same signature CTA every other "Begin
- * the Story" moment on this page and site now uses, closing out the
- * page on the same visual note it opened and continued on rather than
- * a one-off bespoke treatment.
+ * No CTA button of its own (2026-08, follow-up): this section sits
+ * directly above Footer with nothing in between, and Footer already
+ * asks "Begin the Story" right there — a second identical button one
+ * scroll-length below the first read as redundant rather than a
+ * deliberate repeat-the-ask moment (unlike Navbar/Hero/here, which
+ * are spaced across real content). This section's job is purely the
+ * emotional close; Footer alone makes the ask.
  */
 export default function EmotionalBanner() {
   const t = useT(COPY_EN, COPY_UZ);
@@ -73,15 +73,6 @@ export default function EmotionalBanner() {
             <p className="text-pretty font-sans text-lg leading-relaxed text-text-secondary sm:text-xl sm:leading-relaxed">
               {t.paragraph}
             </p>
-
-            <div className="mt-10 sm:mt-12">
-              <a
-                href="#pricing"
-                className="tm-cta-gold inline-flex h-12 items-center justify-center px-6 font-sans text-sm font-medium tracking-[0.02em]"
-              >
-                {t.cta}
-              </a>
-            </div>
           </div>
         </div>
       </div>
