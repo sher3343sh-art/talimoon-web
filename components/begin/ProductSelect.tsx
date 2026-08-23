@@ -71,7 +71,7 @@ export default function ProductSelect() {
   }
 
   return (
-    <section className="mx-auto w-full max-w-container-content bg-surface-base px-6 pb-16 pt-32 sm:px-8 lg:px-16">
+    <section className="mx-auto w-full max-w-container-content bg-surface-base px-6 py-16 sm:px-8 md:py-20 lg:px-16 lg:py-28">
       <div className="mx-auto max-w-2xl text-center">
         <p className="mb-3 font-sans text-[13px] font-medium uppercase tracking-[0.16em] text-accent-primary">
           {chrome.eyebrow}

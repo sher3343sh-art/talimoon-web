@@ -74,6 +74,8 @@ const CHROME_EN = {
 
   availableSoon: "Available soon",
   uploadReceipt: "Upload payment receipt",
+
+  planSelected: (label: string, price: string) => `${label} · ${price} — selected`,
 };
 
 const CHROME_UZ: typeof CHROME_EN = {
@@ -126,6 +128,8 @@ const CHROME_UZ: typeof CHROME_EN = {
 
   availableSoon: "Tez orada mavjud bo'ladi",
   uploadReceipt: "To'lov chekini yuklang",
+
+  planSelected: (label: string, price: string) => `${label} · ${price} — tanlandi`,
 };
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -232,13 +236,33 @@ function TextArea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
 
 export default function PersonalizedBookOrderForm({
   onBack,
+  initialBookType,
 }: {
   onBack: () => void;
+  /**
+   * Pre-selects a plan when this form is entered from a pricing card
+   * that already committed to a book type — e.g. PricingSection on the
+   * product page. Omitted (undefined) for the /begin flow, where the
+   * visitor hasn't chosen a plan yet and picks one on the "book" step
+   * as before.
+   */
+  initialBookType?: BookType;
 }) {
   const { language } = useLanguage();
   const t = useT(CHROME_EN, CHROME_UZ);
   const [stepIndex, setStepIndex] = useState(0);
-  const [data, setData] = useState<FormData>(EMPTY);
+  const [data, setData] = useState<FormData>(() =>
+    initialBookType
+      ? {
+          ...EMPTY,
+          bookType: initialBookType,
+          children:
+            initialBookType === "multi"
+              ? [{ name: "", age: "" }, { name: "", age: "" }]
+              : [{ name: "", age: "" }],
+        }
+      : EMPTY
+  );
   const [submitted, setSubmitted] = useState(false);
 
   const step = STEPS[stepIndex];
@@ -318,7 +342,7 @@ export default function PersonalizedBookOrderForm({
 
   if (submitted) {
     return (
-      <section className="mx-auto flex min-h-[560px] w-full max-w-container-content flex-col items-center justify-center bg-surface-base px-6 pb-16 pt-32 text-center">
+      <section className="mx-auto flex min-h-[560px] w-full max-w-container-content flex-col items-center justify-center bg-surface-base px-6 py-16 text-center md:py-20 lg:py-28">
         <span className="mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-accent-primary/[0.14]">
           <Check size={24} strokeWidth={2} className="text-accent-primary" />
         </span>
@@ -332,8 +356,10 @@ export default function PersonalizedBookOrderForm({
     );
   }
 
+  const StepIcon = step.icon;
+
   return (
-    <section className="mx-auto w-full max-w-container-content bg-surface-base px-6 pb-14 pt-32 sm:px-8 lg:px-16">
+    <section className="mx-auto w-full max-w-container-content bg-surface-base px-6 py-16 sm:px-8 md:py-20 lg:px-16 lg:py-28">
       <div className="mx-auto max-w-xl">
         {/* Progress */}
         <div className="mb-8">
@@ -358,7 +384,21 @@ export default function PersonalizedBookOrderForm({
           </div>
         </div>
 
-        <h2 className="mb-8 font-display text-[26px] font-medium leading-tight text-text-primary">
+        {initialBookType && stepIndex === 0 && (
+          <div className="mb-4 text-center">
+            <span className="inline-block rounded-pill bg-accent-primary/[0.12] px-3.5 py-1.5 font-sans text-[12px] font-medium text-accent-primary">
+              {t.planSelected(
+                language === "UZ" ? PRICING[data.bookType].labelUz : PRICING[data.bookType].label,
+                formatSom(PRICING[data.bookType].base)
+              )}
+            </span>
+          </div>
+        )}
+
+        <span className="mx-auto mb-3.5 flex h-[52px] w-[52px] items-center justify-center rounded-full bg-accent-primary/[0.12]" aria-hidden="true">
+          <StepIcon size={22} strokeWidth={1.5} className="text-accent-primary" />
+        </span>
+        <h2 className="mb-8 text-center font-display text-[26px] font-medium leading-tight text-text-primary">
           {stepTitle}
         </h2>
 

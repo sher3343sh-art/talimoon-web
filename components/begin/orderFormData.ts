@@ -9,6 +9,15 @@
 // closed list (never fetched/filtered by id elsewhere), so co-locating both
 // languages on one object is simpler and keeps a price change or a wording
 // fix a one-line diff instead of two arrays to keep in sync by hand.
+//
+// This file stays a plain .ts module (no JSX) even though it imports
+// lucide-react icon *components* for STEPS — importing a component
+// reference isn't JSX, so the extension doesn't need to change, and every
+// consumer of STEPS gets the icon and its copy from one place instead of
+// a second array to keep index-aligned by hand.
+
+import type { LucideIcon } from "lucide-react";
+import { CreditCard, Globe, Heart, Camera, Sparkles, User, Users } from "lucide-react";
 
 export type BookType = "single" | "multi";
 
@@ -92,14 +101,16 @@ export interface StepConfig {
   titleUz: string;
   eyebrow: string;
   eyebrowUz: string;
+  /** Small circular badge above the step title — see PersonalizedBookOrderForm. */
+  icon: LucideIcon;
 }
 
 export const STEPS: StepConfig[] = [
-  { id: "contact", eyebrow: "Step 1 of 7", eyebrowUz: "1/7-qadam", title: "Who should we send it to", titleUz: "Kimga yuboramiz" },
-  { id: "book", eyebrow: "Step 2 of 7", eyebrowUz: "2/7-qadam", title: "About the child", titleUz: "Farzandingiz haqida" },
-  { id: "personalize", eyebrow: "Step 3 of 7", eyebrowUz: "3/7-qadam", title: "Make it truly theirs", titleUz: "Chinakam o'ziga xos qiling" },
-  { id: "personal-touch", eyebrow: "Step 4 of 7", eyebrowUz: "4/7-qadam", title: "A personal touch", titleUz: "Shaxsiy jozibasi" },
-  { id: "photos", eyebrow: "Step 5 of 7", eyebrowUz: "5/7-qadam", title: "Photos for the illustrations", titleUz: "Illyustratsiyalar uchun suratlar" },
-  { id: "review", eyebrow: "Step 6 of 7", eyebrowUz: "6/7-qadam", title: "Language, copies & review", titleUz: "Til, nusxalar va ko'rib chiqish" },
-  { id: "payment", eyebrow: "Step 7 of 7", eyebrowUz: "7/7-qadam", title: "Payment", titleUz: "To'lov" },
+  { id: "contact", eyebrow: "Step 1 of 7", eyebrowUz: "1/7-qadam", title: "Who should we send it to", titleUz: "Kimga yuboramiz", icon: User },
+  { id: "book", eyebrow: "Step 2 of 7", eyebrowUz: "2/7-qadam", title: "About the child", titleUz: "Farzandingiz haqida", icon: Users },
+  { id: "personalize", eyebrow: "Step 3 of 7", eyebrowUz: "3/7-qadam", title: "Make it truly theirs", titleUz: "Chinakam o'ziga xos qiling", icon: Sparkles },
+  { id: "personal-touch", eyebrow: "Step 4 of 7", eyebrowUz: "4/7-qadam", title: "A personal touch", titleUz: "Shaxsiy jozibasi", icon: Heart },
+  { id: "photos", eyebrow: "Step 5 of 7", eyebrowUz: "5/7-qadam", title: "Photos for the illustrations", titleUz: "Illyustratsiyalar uchun suratlar", icon: Camera },
+  { id: "review", eyebrow: "Step 6 of 7", eyebrowUz: "6/7-qadam", title: "Language, copies & review", titleUz: "Til, nusxalar va ko'rib chiqish", icon: Globe },
+  { id: "payment", eyebrow: "Step 7 of 7", eyebrowUz: "7/7-qadam", title: "Payment", titleUz: "To'lov", icon: CreditCard },
 ];

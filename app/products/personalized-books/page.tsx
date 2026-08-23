@@ -4,6 +4,7 @@ import TrustStrip from "@/components/products/personalized-books/trust/TrustStri
 import HowItWorks from "@/components/products/personalized-books/how-it-works/HowItWorks";
 import BookShowcase from "@/components/products/personalized-books/showcase/BookShowcase";
 import InsideBook from "@/components/products/personalized-books/inside-book/InsideBook";
+import PricingSection from "@/components/products/personalized-books/pricing/PricingSection";
 import EmotionalBanner from "@/components/products/personalized-books/emotional-banner/EmotionalBanner";
 import Footer from "@/components/products/personalized-books/layout/Footer";
 
@@ -22,6 +23,8 @@ export default function PersonalizedBooksPage() {
         <BookShowcase />
 
         <InsideBook />
+
+        <PricingSection />
 
         <EmotionalBanner />
       </main>
