@@ -19,6 +19,33 @@ const COPY_UZ: typeof COPY_EN = {
 /**
  * EmotionalBanner — now a Client Component (was a server component
  * before): needs `useT` (a Context hook) for translated copy.
+ *
+ * Light, not dark navy (2026-08 revision): this section used to be a
+ * full-bleed `--surface-contrast` dark moment — the page's own
+ * "final CTA," the same role the home page's Footer eventually took
+ * over entirely (see Footer.tsx's own history comment: the home page
+ * removed its dark EmotionalBanner-style section outright once Footer
+ * itself became the dark closing note, rather than running two dark
+ * sections back to back). This product page still renders its own
+ * Footer right after this section, and since that Footer was recently
+ * unified with the home page's real (dark navy) one, keeping this
+ * section dark too stacked two navy blocks directly on top of each
+ * other with only a hairline between them — reading as one oversized,
+ * unintentional blue mass, not two distinct moments. Matching
+ * PricingSection/InsideBook's own `bg-surface-base` here instead lets
+ * Footer alone own the page's one dark beat, exactly like home. The
+ * asymmetric editorial grid (heading cols 2–10, copy cols 6–11) and
+ * generous whitespace are untouched — those were never the problem,
+ * only the color was. Padding brought down from the old dark
+ * "dramatic full-bleed ending" scale (py-28/40/56) to the standard
+ * site-wide section rhythm (py-16/20/28, matching every section above
+ * it) — that oversized padding was sized for being THE page's single
+ * biggest moment, which is Footer's job now, not this section's.
+ * CTA upgraded from a plain underlined text link to the shared
+ * `.tm-cta-gold` button — the same signature CTA every other "Begin
+ * the Story" moment on this page and site now uses, closing out the
+ * page on the same visual note it opened and continued on rather than
+ * a one-off bespoke treatment.
  */
 export default function EmotionalBanner() {
   const t = useT(COPY_EN, COPY_UZ);
@@ -26,18 +53,15 @@ export default function EmotionalBanner() {
   return (
     <section
       aria-labelledby="emotional-banner-heading"
-      className="relative bg-[var(--surface-contrast,#1C2A3A)] py-28 sm:py-40 lg:py-56"
+      className="relative bg-surface-base py-16 md:py-20 lg:py-28"
     >
       <div className="mx-auto max-w-[1440px] px-5 md:px-10 lg:px-16">
         <div className="grid grid-cols-1 lg:grid-cols-12 lg:gap-x-8">
           <div className="lg:col-span-9 lg:col-start-2">
-            <div
-              aria-hidden="true"
-              className="mb-10 h-px w-14 bg-[var(--accent-primary,#B8935B)]/40 sm:mb-14 sm:w-16 lg:mb-16"
-            />
+            <div aria-hidden="true" className="mb-10 h-px w-14 bg-accent-primary/40 sm:mb-14 sm:w-16 lg:mb-16" />
             <h2
               id="emotional-banner-heading"
-              className="text-balance font-serif text-[2.5rem] font-normal leading-[1.15] tracking-tight text-[var(--text-inverse,#F7F3EC)] sm:text-6xl sm:leading-[1.1] lg:text-7xl lg:leading-[1.08]"
+              className="text-balance font-serif text-[2.5rem] font-normal leading-[1.15] tracking-tight text-text-primary sm:text-6xl sm:leading-[1.1] lg:text-7xl lg:leading-[1.08]"
             >
               {t.heading}
             </h2>
@@ -46,12 +70,15 @@ export default function EmotionalBanner() {
 
         <div className="mt-14 grid grid-cols-1 lg:grid-cols-12 lg:gap-x-8 lg:mt-20">
           <div className="lg:col-span-6 lg:col-start-6">
-            <p className="text-pretty font-sans text-lg leading-relaxed text-[var(--text-inverse-muted,rgba(247,243,236,0.7))] sm:text-xl sm:leading-relaxed">
+            <p className="text-pretty font-sans text-lg leading-relaxed text-text-secondary sm:text-xl sm:leading-relaxed">
               {t.paragraph}
             </p>
 
             <div className="mt-10 sm:mt-12">
-              <a href="#pricing" className="inline-block border-b border-transparent pb-1 font-sans text-sm uppercase tracking-[0.25em] text-[var(--text-inverse,#F7F3EC)]/90 transition-colors duration-300 hover:border-[var(--accent-primary,#B8935B)]/60 hover:text-[var(--accent-primary,#B8935B)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--accent-primary,#B8935B)]">
+              <a
+                href="#pricing"
+                className="tm-cta-gold inline-flex h-12 items-center justify-center px-6 font-sans text-sm font-medium tracking-[0.02em]"
+              >
                 {t.cta}
               </a>
             </div>
