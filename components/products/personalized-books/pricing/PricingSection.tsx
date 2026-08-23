@@ -92,6 +92,17 @@ function formatUzs(amount: number): string {
   return amount.toLocaleString("en-US").replace(/,/g, " ");
 }
 
+// The exact same gold recipe as .tm-cta-gold (globals.css §27), so the
+// featured card's border reads as the same "gold effect" as the CTA
+// buttons, not just a color from the same family. Duplicated as a
+// literal here rather than shared: .tm-cta-gold's background-image is a
+// flat button fill, while this is a gradient BORDER via the standard
+// two-layer background-origin/background-clip technique (border-image
+// would ignore rounded-lg's corner radius entirely) — different enough
+// mechanisms that reusing one declaration between them isn't practical.
+const GOLD_GRADIENT =
+  "linear-gradient(135deg, var(--gold-shadow) 0%, var(--gold-base) 20%, var(--gold-mid) 38%, var(--gold-highlight) 50%, var(--gold-mid) 62%, var(--gold-base) 80%, var(--gold-shadow) 100%)";
+
 export default function PricingSection() {
   const [selectedPlan, setSelectedPlan] = useState<BookType | null>(null);
   const { language } = useLanguage();
@@ -122,12 +133,31 @@ export default function PricingSection() {
               <div
                 key={plan.type}
                 className={[
-                  "relative flex flex-col rounded-lg bg-surface-overlay p-7",
-                  plan.featured ? "border-[1.5px] border-[var(--gold-mid)]" : "border border-border-default",
+                  "relative flex flex-col rounded-lg p-7",
+                  plan.featured ? "border-[1.5px] border-transparent" : "border border-border-default bg-surface-overlay",
                 ].join(" ")}
+                style={
+                  plan.featured
+                    ? {
+                        backgroundImage: `linear-gradient(var(--surface-overlay), var(--surface-overlay)), ${GOLD_GRADIENT}`,
+                        backgroundOrigin: "border-box",
+                        backgroundClip: "padding-box, border-box",
+                      }
+                    : undefined
+                }
               >
                 {plan.featured && (
-                  <span className="absolute -top-3 left-7 whitespace-nowrap rounded-pill bg-[var(--gold-mid)] px-3 py-1 font-sans text-[10.5px] font-medium uppercase tracking-wide text-white">
+                  // .tm-cta-gold sets `position: relative` in an unlayered
+                  // globals.css rule, which beats Tailwind's `absolute`
+                  // utility regardless of source order (unlayered always
+                  // wins over layered) — without this inline override the
+                  // badge silently reverts to a normal-flow flex child and
+                  // stretches to the card's full width. Inline style is the
+                  // one thing with higher priority than an unlayered rule.
+                  <span
+                    className="tm-cta-gold left-7 -top-3 whitespace-nowrap px-3 py-1 font-sans text-[10.5px] font-medium uppercase tracking-wide"
+                    style={{ position: "absolute", borderRadius: "999px" }}
+                  >
                     {t.mostChosen}
                   </span>
                 )}
