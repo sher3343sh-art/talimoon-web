@@ -6,7 +6,7 @@ import BookShowcase from "@/components/products/personalized-books/showcase/Book
 import InsideBook from "@/components/products/personalized-books/inside-book/InsideBook";
 import PricingSection from "@/components/products/personalized-books/pricing/PricingSection";
 import EmotionalBanner from "@/components/products/personalized-books/emotional-banner/EmotionalBanner";
-import Footer from "@/components/products/personalized-books/layout/Footer";
+import Footer from "@/components/layout/Footer";
 
 export default function PersonalizedBooksPage() {
   return (
@@ -29,7 +29,7 @@ export default function PersonalizedBooksPage() {
         <EmotionalBanner />
       </main>
 
-      <Footer />
+      <Footer ctaHref="#pricing" />
     </>
   );
 }

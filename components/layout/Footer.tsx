@@ -107,9 +107,19 @@ export interface FooterProps {
    * false on pages that don't render a HowItWorks section, so Footer
    * never renders a link to an anchor that doesn't exist. */
   showHowItWorksLink?: boolean;
+  /**
+   * Where the gold "Begin the Story" CTA goes. Defaults to `/begin`
+   * (the product-picker route) for pages with no on-page conversion
+   * point of their own. The personalized-books product page overrides
+   * this to `#pricing` — same reasoning as its navbar/hero/closing-
+   * banner CTAs: that page already has its own real pricing section,
+   * so the CTA scrolls there instead of detouring through `/begin`'s
+   * picker for a product the visitor already committed to.
+   */
+  ctaHref?: string;
 }
 
-export function Footer({ showHowItWorksLink = true }: FooterProps) {
+export function Footer({ showHowItWorksLink = true, ctaHref = "/begin" }: FooterProps) {
   const t = useT(FOOTER_EN, FOOTER_UZ);
   const exploreLinks = showHowItWorksLink
     ? EXPLORE_LINKS
@@ -136,7 +146,7 @@ export function Footer({ showHowItWorksLink = true }: FooterProps) {
           </div>
 
           <Link
-            href="/begin"
+            href={ctaHref}
             className="tm-cta-gold inline-flex h-11 shrink-0 items-center justify-center whitespace-nowrap px-4 text-[13px] font-medium tracking-[0.015em]"
           >
             {t.beginStory}
