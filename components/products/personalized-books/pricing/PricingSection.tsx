@@ -123,11 +123,11 @@ export default function PricingSection() {
                 key={plan.type}
                 className={[
                   "relative flex flex-col rounded-lg bg-surface-overlay p-7",
-                  plan.featured ? "border-[1.5px] border-accent-primary" : "border border-border-default",
+                  plan.featured ? "border-[1.5px] border-[var(--gold-mid)]" : "border border-border-default",
                 ].join(" ")}
               >
                 {plan.featured && (
-                  <span className="absolute -top-3 left-7 whitespace-nowrap rounded-pill bg-accent-primary px-3 py-1 font-sans text-[10.5px] font-medium uppercase tracking-wide text-white">
+                  <span className="absolute -top-3 left-7 whitespace-nowrap rounded-pill bg-[var(--gold-mid)] px-3 py-1 font-sans text-[10.5px] font-medium uppercase tracking-wide text-white">
                     {t.mostChosen}
                   </span>
                 )}
@@ -170,7 +170,7 @@ export default function PricingSection() {
                 <button
                   type="button"
                   onClick={() => setSelectedPlan(plan.type)}
-                  className="mt-6 w-full rounded-md bg-accent-primary py-3 font-sans text-[13.5px] font-medium text-white transition-opacity hover:opacity-90"
+                  className="tm-cta-gold mt-6 flex h-12 w-full items-center justify-center font-sans text-[13.5px] font-medium tracking-[0.015em]"
                 >
                   {t.choosePlan(label)} →
                 </button>
