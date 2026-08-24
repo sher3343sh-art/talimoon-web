@@ -43,8 +43,8 @@ export function FamilyCard({ story, size = "lg" }: { story: FamilyStory; size?: 
       className={[
         "rounded-[24px] border border-[var(--border-subtle,rgba(42,36,29,0.08))] bg-[var(--paper-50,#FDFBF7)] transition-shadow duration-300 ease-out",
         isLarge
-          ? "p-8 shadow-[0_16px_40px_-16px_rgba(42,36,29,0.16)]"
-          : "p-6 shadow-[0_4px_16px_-6px_rgba(42,36,29,0.08)]",
+          ? "p-6 shadow-[0_16px_40px_-16px_rgba(42,36,29,0.16)]"
+          : "p-5 shadow-[0_4px_16px_-6px_rgba(42,36,29,0.08)]",
       ].join(" ")}
     >
       <span
@@ -59,14 +59,14 @@ export function FamilyCard({ story, size = "lg" }: { story: FamilyStory; size?: 
 
       <p
         className={[
-          "font-serif font-medium leading-[1.35] text-[var(--text-primary,#2A241D)]",
-          isLarge ? "mt-1 text-[1.375rem]" : "mt-1 text-[1.125rem]",
+          "line-clamp-3 font-serif font-medium leading-[1.35] text-[var(--text-primary,#2A241D)]",
+          isLarge ? "mt-1 text-[1.375rem]" : "mt-1 text-[1.0625rem]",
         ].join(" ")}
       >
         {story.quote}
       </p>
 
-      <div className={["border-t border-[var(--border-subtle,rgba(42,36,29,0.08))]", isLarge ? "mt-5 pt-4" : "mt-4 pt-3"].join(" ")}>
+      <div className={["border-t border-[var(--border-subtle,rgba(42,36,29,0.08))]", isLarge ? "mt-4 pt-3" : "mt-3 pt-2.5"].join(" ")}>
         <p className="font-serif text-[0.9375rem] font-medium text-[var(--text-primary,#2A241D)]">
           — {story.name}
         </p>
@@ -78,7 +78,7 @@ export function FamilyCard({ story, size = "lg" }: { story: FamilyStory; size?: 
         </div>
       </div>
 
-      <div className={isLarge ? "mt-5" : "mt-4"}>
+      <div className={isLarge ? "mt-4" : "mt-3"}>
         <ReactionBar storyId={story.id} reactions={story.reactions} />
       </div>
     </article>

@@ -3,18 +3,20 @@
 /**
  * TestimonialCarousel — Families Wall
  * ----------------------------------------------------------------
- * Center-focused 3-card carousel matching the reference exactly: a
- * large, fully-opaque center card flanked by two smaller, partially
- * visible side cards peeking in from the container's edges. Circular
- * gold-outline nav arrows and three dot indicators below (the active
- * dot always corresponds to whichever story is currently centered).
+ * Center-focused 5-card carousel: a large, fully-opaque center card
+ * flanked by two tiers of progressively smaller/more-faded side
+ * cards on each side (near + far), all five visible at once — up
+ * from the original 3-slot version (center + one near peek per
+ * side). Circular gold-outline nav arrows and five dot indicators
+ * below (the active dot always corresponds to whichever story is
+ * currently centered).
  *
- * With exactly 3 stories, "next"/"previous" is a simple index
- * rotation — the story that was centered becomes the new side peek,
- * and vice versa. The side cards are pulled partially behind the
- * center card with negative margins inside an `overflow-hidden` row,
- * which is what produces the "cut off at the edge" look without any
- * absolute-positioning math.
+ * With exactly 5 stories, "next"/"previous" is a simple index
+ * rotation — every story stays visible at all times, only which
+ * position (center / near / far) each one occupies changes. The far
+ * side cards are pulled partially behind the near ones with negative
+ * margins inside an `overflow-hidden` row, same technique as the
+ * original center/near pair.
  */
 
 import { AnimatePresence, motion } from "framer-motion";
@@ -55,18 +57,21 @@ function ChevronIcon({ direction }: { direction: "left" | "right" }) {
 
 export function TestimonialCarousel({ stories }: { stories: FamilyStory[] }) {
   const t = useT(CHROME_EN, CHROME_UZ);
-  const [activeIndex, setActiveIndex] = useState(1);
+  const [activeIndex, setActiveIndex] = useState(2);
   const count = stories.length;
 
-  const leftIndex = (activeIndex - 1 + count) % count;
-  const rightIndex = (activeIndex + 1) % count;
+  const wrap = (index: number) => ((index % count) + count) % count;
+  const farLeftIndex = wrap(activeIndex - 2);
+  const nearLeftIndex = wrap(activeIndex - 1);
+  const nearRightIndex = wrap(activeIndex + 1);
+  const farRightIndex = wrap(activeIndex + 2);
 
   function goTo(index: number) {
-    setActiveIndex(((index % count) + count) % count);
+    setActiveIndex(wrap(index));
   }
 
   return (
-    <div className="relative mx-auto max-w-[1040px]">
+    <div className="relative mx-auto max-w-[1320px]">
       <button
         type="button"
         onClick={() => goTo(activeIndex - 1)}
@@ -85,11 +90,15 @@ export function TestimonialCarousel({ stories }: { stories: FamilyStory[] }) {
       </button>
 
       <div className="flex items-center justify-center overflow-hidden">
-        <div className="hidden w-[240px] shrink-0 -mr-14 scale-[0.88] opacity-70 md:block">
-          <FamilyCard story={stories[leftIndex]} size="sm" />
+        <div className="hidden w-[168px] shrink-0 -mr-12 scale-[0.76] opacity-40 xl:block">
+          <FamilyCard story={stories[farLeftIndex]} size="sm" />
         </div>
 
-        <div className="z-10 w-full max-w-[520px] shrink-0 px-4 md:px-0">
+        <div className="hidden w-[220px] shrink-0 -mr-12 scale-[0.88] opacity-70 md:block">
+          <FamilyCard story={stories[nearLeftIndex]} size="sm" />
+        </div>
+
+        <div className="z-10 w-full max-w-[480px] shrink-0 px-4 md:px-0">
           <AnimatePresence initial={false}>
             <motion.div
               key={stories[activeIndex].id}
@@ -103,8 +112,12 @@ export function TestimonialCarousel({ stories }: { stories: FamilyStory[] }) {
           </AnimatePresence>
         </div>
 
-        <div className="hidden w-[240px] shrink-0 -ml-14 scale-[0.88] opacity-70 md:block">
-          <FamilyCard story={stories[rightIndex]} size="sm" />
+        <div className="hidden w-[220px] shrink-0 -ml-12 scale-[0.88] opacity-70 md:block">
+          <FamilyCard story={stories[nearRightIndex]} size="sm" />
+        </div>
+
+        <div className="hidden w-[168px] shrink-0 -ml-12 scale-[0.76] opacity-40 xl:block">
+          <FamilyCard story={stories[farRightIndex]} size="sm" />
         </div>
       </div>
 

@@ -113,7 +113,7 @@ export function StorySubmissionCard() {
 
   return (
     <div className="mx-auto max-w-[900px]">
-      <div className="relative overflow-hidden rounded-[28px] border border-[var(--border-subtle,rgba(42,36,29,0.08))] bg-[var(--paper-50,#FDFBF7)] px-6 py-5 shadow-[0_2px_16px_rgba(42,36,29,0.04)] sm:px-8">
+      <div className="relative overflow-hidden rounded-[28px] border border-[var(--border-subtle,rgba(42,36,29,0.08))] bg-[var(--paper-50,#FDFBF7)] px-6 py-4 shadow-[0_2px_16px_rgba(42,36,29,0.04)] sm:px-8">
         <AnimatePresence mode="wait" initial={false}>
           {status === "success" ? (
             <motion.div
@@ -179,7 +179,7 @@ export function StorySubmissionCard() {
         </AnimatePresence>
       </div>
 
-      <p className="mt-4 flex items-center justify-center gap-1.5 text-center font-sans text-[0.8125rem] text-[var(--text-muted,#8B8578)]">
+      <p className="mt-3 flex items-center justify-center gap-1.5 text-center font-sans text-[0.8125rem] text-[var(--text-muted,#8B8578)]">
         <ShieldIcon />
         {t.reviewedNote}
       </p>

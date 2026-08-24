@@ -37,7 +37,7 @@ export function ReactionSummary() {
 
   return (
     <div
-      className="mx-auto grid max-w-[900px] grid-cols-2 divide-y divide-[var(--border-subtle,rgba(42,36,29,0.08))] rounded-[20px] border border-[var(--border-subtle,rgba(42,36,29,0.08))] bg-[var(--paper-50,#FDFBF7)] px-4 py-6 sm:grid-cols-4 sm:divide-x sm:divide-y-0 sm:px-2"
+      className="mx-auto grid max-w-[900px] grid-cols-2 divide-y divide-[var(--border-subtle,rgba(42,36,29,0.08))] rounded-[20px] border border-[var(--border-subtle,rgba(42,36,29,0.08))] bg-[var(--paper-50,#FDFBF7)] px-4 py-4 sm:grid-cols-4 sm:divide-x sm:divide-y-0 sm:px-2"
       aria-label={ariaLabel}
     >
       {items.map(({ key, emoji, value, label }) => (

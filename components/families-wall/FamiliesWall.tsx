@@ -53,6 +53,18 @@ const STORIES_EN: FamilyStory[] = [
     name: "Dilnoza",
     reactions: { smile: 387, love: 156, touched: 49 },
   },
+  {
+    id: "sardor",
+    quote: "He carries the book around the house like a treasure.",
+    name: "Sardor's Father",
+    reactions: { smile: 341, love: 128, touched: 38 },
+  },
+  {
+    id: "malika",
+    quote: "Bedtime finally became something she looks forward to.",
+    name: "Malika's Mother",
+    reactions: { smile: 296, love: 111, touched: 33 },
+  },
 ];
 
 const STORIES_UZ: FamilyStory[] = [
@@ -73,6 +85,18 @@ const STORIES_UZ: FamilyStory[] = [
     quote: "Shaxsiylashtirilgan hikoya kichkinamizni juda xursand qildi.",
     name: "Dilnoza",
     reactions: { smile: 387, love: 156, touched: 49 },
+  },
+  {
+    id: "sardor",
+    quote: "U kitobni uy bo'ylab xazina kabi olib yuradi.",
+    name: "Sardorning otasi",
+    reactions: { smile: 341, love: 128, touched: 38 },
+  },
+  {
+    id: "malika",
+    quote: "Uxlash vaqti nihoyat u intiqib kutadigan lahzaga aylandi.",
+    name: "Malikaning onasi",
+    reactions: { smile: 296, love: 111, touched: 33 },
   },
 ];
 
@@ -132,7 +156,7 @@ export function FamiliesWall() {
   return (
     <motion.section
       aria-labelledby="families-wall-heading"
-      className="relative w-full overflow-hidden bg-[var(--surface-warm-100,#F7F2EA)] py-16 md:py-20 lg:py-28"
+      className="relative w-full overflow-hidden bg-[var(--surface-warm-100,#F7F2EA)] py-8 md:py-10 lg:py-12"
       initial={reducedMotion ? "visible" : "hidden"}
       whileInView="visible"
       viewport={{ once: true, amount: 0.15 }}
@@ -163,26 +187,26 @@ export function FamiliesWall() {
           </p>
         </div>
 
-        <div className="mt-12 lg:mt-14">
+        <div className="mt-6 lg:mt-7">
           <StorySubmissionCard />
         </div>
 
-        <div className="mt-16 text-center lg:mt-20">
+        <div className="mt-7 text-center lg:mt-8">
           <p className="font-sans text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent-primary,#B5764B)]">
             {t.featured}
           </p>
           <SectionOrnament size="small" />
         </div>
 
-        <div className="mt-10">
+        <div className="mt-5">
           <TestimonialCarousel stories={stories} />
         </div>
 
-        <div className="mt-12 lg:mt-14">
+        <div className="mt-6 lg:mt-7">
           <ReactionSummary />
         </div>
 
-        <div className="mt-10 text-center">
+        <div className="mt-5 text-center">
           <a
             href="/story-library"
             className="inline-flex items-center gap-1.5 font-sans text-[0.9375rem] font-semibold text-[var(--accent-primary,#B5764B)] transition-opacity duration-200 hover:opacity-75 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--accent-primary,#B5764B)]"
