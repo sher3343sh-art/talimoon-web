@@ -22,7 +22,7 @@ type NavItem = { key: keyof typeof NAV_LABELS_EN; href: string } | { key: keyof 
 
 const NAV_LABELS_EN = {
   home: "Home",
-  news: "News",
+  journey: "Journey",
   storyLibrary: "Story Library",
   about: "About",
   product: "Product",
@@ -43,7 +43,7 @@ const NAV_LABELS_EN = {
 
 const NAV_LABELS_UZ: typeof NAV_LABELS_EN = {
   home: "Bosh sahifa",
-  news: "Yangiliklar",
+  journey: "Sayohat",
   storyLibrary: "Kutubxona",
   about: "Haqimizda",
   product: "Mahsulot",
@@ -65,7 +65,7 @@ const NAV_LABELS_UZ: typeof NAV_LABELS_EN = {
 const DESKTOP_NAV_ITEMS: NavItem[] = [
   { key: "home", href: "/" },
   { key: "product", dropdown: "product" },
-  { key: "news", href: "/news" },
+  { key: "journey", href: "/journey" },
   { key: "storyLibrary", href: "/story-library" },
   { key: "about", href: "#about" },
 ];
@@ -115,7 +115,7 @@ const SOCIAL_ICON_PATHS = {
   youtube: "/icons/youtube.png",
 } as const;
 // Drawer now mirrors the desktop information architecture exactly
-// (Home / Product / News / Story Library / About). "Product" opens
+// (Home / Product / Journey / Story Library / About). "Product" opens
 // as an inline accordion using PRODUCT_MENU's existing content
 // rather than a separate hardcoded list, so desktop and mobile can
 // never drift out of sync.
@@ -124,7 +124,7 @@ type MobileNavItem = { key: keyof typeof NAV_LABELS_EN; href: string } | { key: 
 const MOBILE_NAV_LINKS: MobileNavItem[] = [
   { key: "home", href: "/" },
   { key: "product", accordion: "product" },
-  { key: "news", href: "/news" },
+  { key: "journey", href: "/journey" },
   { key: "storyLibrary", href: "/story-library" },
   { key: "about", href: "#about" },
 ];
