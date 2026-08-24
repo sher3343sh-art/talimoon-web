@@ -140,7 +140,20 @@ const REST_BORDER = "rgba(255,255,255,0.10)";
 const SCROLLED_BG = "rgba(247,242,234,0.55)";
 const SCROLLED_BORDER = "rgba(42,36,29,0.10)";
 
-export default function Navbar() {
+export interface NavbarProps {
+  /**
+   * Where the gold "Begin the Story" CTA goes (desktop + mobile drawer).
+   * Defaults to `/begin` (the product-picker route). The
+   * personalized-books product page overrides this to `#pricing` —
+   * same reasoning as its Footer's `ctaHref` prop: that page already
+   * has its own real pricing section, so the CTA scrolls there instead
+   * of detouring through `/begin`'s picker for a product the visitor
+   * already committed to.
+   */
+  ctaHref?: string;
+}
+
+export default function Navbar({ ctaHref = "/begin" }: NavbarProps) {
   const [scrolled, setScrolled] = useState(false);
   const { language, setLanguage } = useLanguage();
   const t = useT(NAV_LABELS_EN, NAV_LABELS_UZ);
@@ -731,17 +744,31 @@ export default function Navbar() {
             <span aria-hidden="true" className={underlineClass} />
           </Link>
 
-          <Link
-            href="/begin"
-            className={[
-              "tm-cta-gold",
-              "inline-flex h-11 shrink-0 items-center justify-center",
-              "whitespace-nowrap px-4",
-              "text-[13px] font-medium tracking-[0.015em]",
-            ].join(" ")}
-          >
-            {t.beginStory}
-          </Link>
+          {ctaHref.startsWith("#") ? (
+            <a
+              href={ctaHref}
+              className={[
+                "tm-cta-gold",
+                "inline-flex h-11 shrink-0 items-center justify-center",
+                "whitespace-nowrap px-4",
+                "text-[13px] font-medium tracking-[0.015em]",
+              ].join(" ")}
+            >
+              {t.beginStory}
+            </a>
+          ) : (
+            <Link
+              href={ctaHref}
+              className={[
+                "tm-cta-gold",
+                "inline-flex h-11 shrink-0 items-center justify-center",
+                "whitespace-nowrap px-4",
+                "text-[13px] font-medium tracking-[0.015em]",
+              ].join(" ")}
+            >
+              {t.beginStory}
+            </Link>
+          )}
 
           <div ref={languageContainerRef} className="relative -ml-2">
             <button
@@ -1177,17 +1204,31 @@ export default function Navbar() {
             </nav>
 
             <div className="shrink-0 border-t border-[var(--border-subtle,rgba(42,36,29,0.12))] px-5 py-4">
-              <Link
-                href="/begin"
-                onClick={closeMenu}
-                className={[
-                  "tm-cta-gold",
-                  "flex h-12 w-full items-center justify-center",
-                  "text-[14px] font-medium tracking-[0.02em]",
-                ].join(" ")}
-              >
-                {t.beginStory}
-              </Link>
+              {ctaHref.startsWith("#") ? (
+                <a
+                  href={ctaHref}
+                  onClick={closeMenu}
+                  className={[
+                    "tm-cta-gold",
+                    "flex h-12 w-full items-center justify-center",
+                    "text-[14px] font-medium tracking-[0.02em]",
+                  ].join(" ")}
+                >
+                  {t.beginStory}
+                </a>
+              ) : (
+                <Link
+                  href={ctaHref}
+                  onClick={closeMenu}
+                  className={[
+                    "tm-cta-gold",
+                    "flex h-12 w-full items-center justify-center",
+                    "text-[14px] font-medium tracking-[0.02em]",
+                  ].join(" ")}
+                >
+                  {t.beginStory}
+                </Link>
+              )}
             </div>
           </div>
         </>

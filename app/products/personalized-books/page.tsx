@@ -1,4 +1,4 @@
-import Navbar from "@/components/products/personalized-books/layout/Navbar";
+import Navbar from "@/components/layout/Navbar";
 import Hero from "@/components/products/personalized-books/hero/hero";
 import TrustStrip from "@/components/products/personalized-books/trust/TrustStrip";
 import HowItWorks from "@/components/products/personalized-books/how-it-works/HowItWorks";
@@ -11,7 +11,7 @@ import Footer from "@/components/layout/Footer";
 export default function PersonalizedBooksPage() {
   return (
     <>
-      <Navbar />
+      <Navbar ctaHref="#pricing" />
 
       <main>
         <Hero imageSrc="/images/products/personalized-books/hero/hero-v13.png" />
