@@ -2,8 +2,15 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useLanguage, useT } from "@/lib/i18n/LanguageContext";
+
+// The personalized-books product page is the one place the CTA reads
+// "Create Your Story" instead of the site-wide "Order Now" — see
+// NAV_LABELS_EN/UZ's ctaOrderNow/ctaCreateStory below and the
+// `ctaLabel` pathname check inside Navbar().
+const PERSONALIZED_BOOKS_PATH = "/products/personalized-books";
 
 
 // Desktop primary nav. "Product" renders as a dropdown trigger (see
@@ -24,7 +31,8 @@ const NAV_LABELS_EN = {
   storySeries: "Story Series",
   talimoonToys: "Talimoon Toys",
   login: "Log in",
-  beginStory: "Begin the Story",
+  ctaOrderNow: "Order Now",
+  ctaCreateStory: "Create Your Story",
   talimoonHome: "Talimoon Home",
   openMenu: "Open menu",
   closeMenu: "Close menu",
@@ -44,7 +52,8 @@ const NAV_LABELS_UZ: typeof NAV_LABELS_EN = {
   storySeries: "Hikoyalar turkumi",
   talimoonToys: "Talimoon o'yinchoqlari",
   login: "Kirish",
-  beginStory: "Hikoyani boshlash",
+  ctaOrderNow: "Buyurtma bering",
+  ctaCreateStory: "Hikoyangizni yarating",
   talimoonHome: "Talimoon bosh sahifasi",
   openMenu: "Menyuni ochish",
   closeMenu: "Menyuni yopish",
@@ -142,13 +151,13 @@ const SCROLLED_BORDER = "rgba(42,36,29,0.10)";
 
 export interface NavbarProps {
   /**
-   * Where the gold "Begin the Story" CTA goes (desktop + mobile drawer).
-   * Defaults to `/begin` (the product-picker route). The
-   * personalized-books product page overrides this to `#pricing` —
-   * same reasoning as its Footer's `ctaHref` prop: that page already
-   * has its own real pricing section, so the CTA scrolls there instead
-   * of detouring through `/begin`'s picker for a product the visitor
-   * already committed to.
+   * Where the gold CTA goes (desktop + mobile drawer). Defaults to
+   * `/begin` (the product-picker route). The personalized-books
+   * product page overrides this to `#pricing` — same reasoning as its
+   * Footer's `ctaHref` prop: that page already has its own real
+   * pricing section, so the CTA scrolls there instead of detouring
+   * through `/begin`'s picker for a product the visitor already
+   * committed to.
    */
   ctaHref?: string;
 }
@@ -157,6 +166,12 @@ export default function Navbar({ ctaHref = "/begin" }: NavbarProps) {
   const [scrolled, setScrolled] = useState(false);
   const { language, setLanguage } = useLanguage();
   const t = useT(NAV_LABELS_EN, NAV_LABELS_UZ);
+  const pathname = usePathname();
+  // "Order Now" everywhere except the personalized-books product page,
+  // which gets its own "Create Your Story" copy — that page already
+  // has one committed product in view, so the general "could be any of
+  // the three products" phrasing doesn't fit.
+  const ctaLabel = pathname === PERSONALIZED_BOOKS_PATH ? t.ctaCreateStory : t.ctaOrderNow;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > SCROLL_THRESHOLD);
@@ -754,7 +769,7 @@ export default function Navbar({ ctaHref = "/begin" }: NavbarProps) {
                 "text-[13px] font-medium tracking-[0.015em]",
               ].join(" ")}
             >
-              {t.beginStory}
+              {ctaLabel}
             </a>
           ) : (
             <Link
@@ -766,7 +781,7 @@ export default function Navbar({ ctaHref = "/begin" }: NavbarProps) {
                 "text-[13px] font-medium tracking-[0.015em]",
               ].join(" ")}
             >
-              {t.beginStory}
+              {ctaLabel}
             </Link>
           )}
 
@@ -1214,7 +1229,7 @@ export default function Navbar({ ctaHref = "/begin" }: NavbarProps) {
                     "text-[14px] font-medium tracking-[0.02em]",
                   ].join(" ")}
                 >
-                  {t.beginStory}
+                  {ctaLabel}
                 </a>
               ) : (
                 <Link
@@ -1226,7 +1241,7 @@ export default function Navbar({ ctaHref = "/begin" }: NavbarProps) {
                     "text-[14px] font-medium tracking-[0.02em]",
                   ].join(" ")}
                 >
-                  {t.beginStory}
+                  {ctaLabel}
                 </Link>
               )}
             </div>

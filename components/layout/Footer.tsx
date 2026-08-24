@@ -29,11 +29,17 @@
  */
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useT } from "@/lib/i18n/LanguageContext";
+
+// Mirrors Navbar's PERSONALIZED_BOOKS_PATH check — that page's CTA
+// reads "Create Your Story" instead of the site-wide "Order Now".
+const PERSONALIZED_BOOKS_PATH = "/products/personalized-books";
 
 const FOOTER_EN = {
   tagline: "Stories they'll remember forever.",
-  beginStory: "Begin the Story",
+  ctaOrderNow: "Order Now",
+  ctaCreateStory: "Create Your Story",
   talimoonHome: "Talimoon Home",
   exploreHeading: "Explore",
   resourcesHeading: "Resources",
@@ -53,7 +59,8 @@ const FOOTER_EN = {
 
 const FOOTER_UZ: typeof FOOTER_EN = {
   tagline: "Ular umrbod eslab qoladigan hikoyalar.",
-  beginStory: "Hikoyani boshlash",
+  ctaOrderNow: "Buyurtma bering",
+  ctaCreateStory: "Hikoyangizni yarating",
   talimoonHome: "Talimoon bosh sahifasi",
   exploreHeading: "Sahifalar",
   resourcesHeading: "Resurslar",
@@ -108,19 +115,23 @@ export interface FooterProps {
    * never renders a link to an anchor that doesn't exist. */
   showHowItWorksLink?: boolean;
   /**
-   * Where the gold "Begin the Story" CTA goes. Defaults to `/begin`
-   * (the product-picker route) for pages with no on-page conversion
-   * point of their own. The personalized-books product page overrides
-   * this to `#pricing` — same reasoning as its navbar/hero/closing-
-   * banner CTAs: that page already has its own real pricing section,
-   * so the CTA scrolls there instead of detouring through `/begin`'s
-   * picker for a product the visitor already committed to.
+   * Where the gold CTA goes. Defaults to `/begin` (the product-picker
+   * route) for pages with no on-page conversion point of their own.
+   * The personalized-books product page overrides this to `#pricing`
+   * — same reasoning as its navbar/hero CTAs: that page already has
+   * its own real pricing section, so the CTA scrolls there instead of
+   * detouring through `/begin`'s picker for a product the visitor
+   * already committed to. (The CTA's label text is separate — see
+   * `ctaLabel` below, derived from the current pathname rather than a
+   * prop, so it can't drift out of sync with Navbar's own logic.)
    */
   ctaHref?: string;
 }
 
 export function Footer({ showHowItWorksLink = true, ctaHref = "/begin" }: FooterProps) {
   const t = useT(FOOTER_EN, FOOTER_UZ);
+  const pathname = usePathname();
+  const ctaLabel = pathname === PERSONALIZED_BOOKS_PATH ? t.ctaCreateStory : t.ctaOrderNow;
   const exploreLinks = showHowItWorksLink
     ? EXPLORE_LINKS
     : EXPLORE_LINKS.filter((link) => link.href !== "#how-it-works");
@@ -149,7 +160,7 @@ export function Footer({ showHowItWorksLink = true, ctaHref = "/begin" }: Footer
             href={ctaHref}
             className="tm-cta-gold inline-flex h-11 shrink-0 items-center justify-center whitespace-nowrap px-4 text-[13px] font-medium tracking-[0.015em]"
           >
-            {t.beginStory}
+            {ctaLabel}
           </Link>
         </div>
 

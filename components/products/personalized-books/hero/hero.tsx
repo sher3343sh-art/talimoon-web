@@ -86,7 +86,7 @@ const DEFAULT_COPY_EN = {
   headline: "A story where your child is the hero.",
   subhead:
     "Personalized books made with the care of a fine publisher - for families who want more than a name dropped into a template.",
-  primaryCtaLabel: "Begin the Story",
+  primaryCtaLabel: "Create Your Story",
   secondaryCtaLabel: "See how it works",
 };
 
@@ -97,7 +97,7 @@ const DEFAULT_COPY_UZ: typeof DEFAULT_COPY_EN = {
   headline: "Farzandingiz qahramon bo'lgan hikoya.",
   subhead:
     "Andozaga faqat ism qo'shilgan kitob emas, balki har bir tafsiloti bilan chin nashriyot ehtiyotkorligi bilan yaratilgan shaxsiylashtirilgan kitoblar.",
-  primaryCtaLabel: "Hikoyani boshlash",
+  primaryCtaLabel: "Hikoyangizni yarating",
   secondaryCtaLabel: "Qanday ishlashini ko'ring",
 };
 
