@@ -54,7 +54,7 @@ export function PartnersPreview() {
   return (
     <section
       aria-labelledby="partners-heading"
-      className="relative w-full overflow-hidden bg-[var(--surface-warm-100,#F7F2EA)] py-4 md:py-5 lg:py-8"
+      className="relative w-full overflow-hidden bg-surface-base py-4 md:py-5 lg:py-8"
     >
       <div
         aria-hidden="true"

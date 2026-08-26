@@ -64,7 +64,7 @@ export function StoryLibraryPreview() {
   return (
     <section
       aria-labelledby="story-library-preview-heading"
-      className="relative w-full overflow-hidden bg-[#F7F2EA] px-6 py-16 sm:px-8 lg:px-16 lg:py-20"
+      className="relative w-full overflow-hidden bg-surface-base px-6 py-16 sm:px-8 lg:px-16 lg:py-20"
     >
       {/* Background atmosphere — paper grain only. The shelf-silhouette
           lines from the first pass were dropped: against the new

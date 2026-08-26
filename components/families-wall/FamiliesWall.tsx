@@ -156,7 +156,7 @@ export function FamiliesWall() {
   return (
     <motion.section
       aria-labelledby="families-wall-heading"
-      className="relative w-full overflow-hidden bg-[var(--surface-warm-100,#F7F2EA)] py-8 md:py-10 lg:py-12"
+      className="relative w-full overflow-hidden bg-surface-base py-8 md:py-10 lg:py-12"
       initial={reducedMotion ? "visible" : "hidden"}
       whileInView="visible"
       viewport={{ once: true, amount: 0.15 }}

@@ -55,7 +55,6 @@ const GOLD = '#C8A04A';
 const GOLD_GRADIENT_FROM = '#C69A3B';
 const GOLD_GRADIENT_TO = '#E7C96A';
 const NAVY = '#17243C';
-const CREAM = '#F8F5EF';
 
 const DISPLAY_FONT = "'Cormorant Garamond', serif";
 const BODY_FONT = "'Inter', sans-serif";
@@ -362,8 +361,7 @@ export function BrandValues() {
   return (
     <section
       aria-labelledby="brand-values-heading"
-      className="relative w-full overflow-hidden px-6 md:px-16"
-      style={{ backgroundColor: CREAM }}
+      className="relative w-full overflow-hidden bg-surface-base px-6 md:px-16"
     >
       <SectionArtwork />
 

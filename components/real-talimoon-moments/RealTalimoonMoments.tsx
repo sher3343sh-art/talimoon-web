@@ -201,7 +201,7 @@ export function RealTalimoonMoments() {
   return (
     <motion.section
       aria-labelledby="real-moments-heading"
-      className="w-full overflow-hidden bg-[var(--surface-warm-100,#F7F2EA)] py-16 md:py-20 lg:py-28"
+      className="w-full overflow-hidden bg-surface-base py-16 md:py-20 lg:py-28"
       initial={reducedMotion ? "visible" : "hidden"}
       whileInView="visible"
       viewport={{ once: true, amount: 0.25 }}

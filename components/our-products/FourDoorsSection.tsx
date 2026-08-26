@@ -6,19 +6,65 @@
  * Now a Client Component (was a server component before): needs
  * `useT` (a Context hook) for translated copy.
  *
- * The home "Our Products" scene: shared painted wall, heading, three
- * DoorPortals and trust strip. All rendering and interaction logic
- * for an individual door lives in DoorPortal.tsx — this file only
- * assembles the composition and owns the copy.
+ * The home "Our Products" scene: heading, three DoorPortals and trust
+ * strip, on the same flat `bg-surface-base` every other home-page
+ * section uses. All rendering and interaction logic for an individual
+ * door lives in DoorPortal.tsx — this file only assembles the
+ * composition and owns the copy.
+ *
+ * 2026-08-24: this section used to be the one outlier on the page —
+ * every other section sits on a flat cream background, but this one
+ * had a full painted wall-scene photo (background.png) behind the
+ * doors. Removed in favor of the same flat background plus a subtle
+ * brick-line texture (`<BrickBackdrop />`) confined to the door row
+ * itself, so the doors still read as "set into a wall" without the
+ * section being a visual outlier when scrolling past it.
  *
  * Story Library was removed from this section only; it is left
  * untouched everywhere else (nav, routes, Hero).
  */
 
-import Image from "next/image";
 import { DoorPortal, type DoorVariant } from "./DoorPortal";
-import { AmbientParticles } from "./AmbientParticles";
 import { useT } from "@/lib/i18n/LanguageContext";
+
+// Subtle brick-coursing line texture rendered directly behind the door
+// row (see `<BrickBackdrop />` below) — replaces the old full painted
+// wall-scene image (background.png), which was the one section on the
+// home page with a photographic backdrop instead of the shared flat
+// `bg-surface-base` every other section uses. Classic 4-gradient CSS
+// brick technique: two gradient pairs offset against each other so
+// alternating rows of "bricks" read as a staggered wall pattern, not a
+// plain grid — colored at low opacity in the site's own gold/brass
+// tone so it reads as a quiet texture, not a graphic.
+const BRICK_LINE_COLOR = "rgba(184,134,51,0.10)";
+const BRICK_CELL = 58;
+const BRICK_BACKGROUND_IMAGE = [
+  `linear-gradient(335deg, ${BRICK_LINE_COLOR} 23px, transparent 23px)`,
+  `linear-gradient(155deg, ${BRICK_LINE_COLOR} 23px, transparent 23px)`,
+  `linear-gradient(335deg, ${BRICK_LINE_COLOR} 23px, transparent 23px)`,
+  `linear-gradient(155deg, ${BRICK_LINE_COLOR} 23px, transparent 23px)`,
+].join(", ");
+
+function BrickBackdrop() {
+  return (
+    <div
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-0"
+      style={{
+        backgroundImage: BRICK_BACKGROUND_IMAGE,
+        backgroundPosition: "0px 2px, 4px 35px, 29px 31px, 34px 6px",
+        backgroundSize: `${BRICK_CELL}px ${BRICK_CELL}px`,
+        // Fades to fully transparent at every edge so the textured
+        // rectangle blends into the section's flat bg-surface-base
+        // instead of showing a hard-edged box behind the doors.
+        maskImage:
+          "radial-gradient(ellipse 75% 80% at 50% 45%, black 45%, transparent 85%)",
+        WebkitMaskImage:
+          "radial-gradient(ellipse 75% 80% at 50% 45%, black 45%, transparent 85%)",
+      }}
+    />
+  );
+}
 
 const VARIANT_COPY_EN = {
   "personalized-books": {
@@ -155,26 +201,8 @@ export function FourDoorsSection() {
   return (
     <section
       aria-labelledby="four-doors-heading"
-      className="relative w-full overflow-hidden bg-[var(--surface-base)] px-6 py-[20px] sm:px-8 lg:px-16 lg:py-[30px]"
+      className="relative w-full overflow-hidden bg-surface-base px-6 py-[20px] sm:px-8 lg:px-16 lg:py-[30px]"
     >
-      {/* Background — one shared painted environment behind all three
-          doors, not a background per card. Single image, no tiling,
-          object-cover to fill the section without distorting it. */}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-        <Image
-          src="/images/home/OurProducts/background.png"
-          alt=""
-          fill
-          className="object-cover"
-          style={{ objectPosition: "top center" }}
-        />
-        {/* Very light wash — keeps the trust strip's small label text
-            readable over the deeper lower portion of the artwork
-            without flattening it. */}
-        <div className="absolute inset-0 bg-[var(--paper-50)]/10" />
-        <AmbientParticles />
-      </div>
-
       {/* Heading — Creative Direction spec, 2026-08-07: exact copy,
           type, color and spacing values, Cormorant Garamond / Manrope,
           not the site's default type tokens. Scoped to this section. */}
@@ -213,6 +241,7 @@ export function FourDoorsSection() {
           keeps them level regardless of how the caption text below
           them wraps. */}
       <div className="relative mx-auto mt-[26px] flex max-w-[1450px] flex-col items-center gap-10 md:flex-row md:items-start md:justify-center md:gap-3 lg:gap-4 xl:gap-6 2xl:gap-8">
+        <BrickBackdrop />
         {localizedVariants.map((variant) => (
           <DoorPortal key={variant.id} variant={variant} />
         ))}
