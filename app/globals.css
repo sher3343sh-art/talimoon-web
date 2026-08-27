@@ -766,17 +766,18 @@ body {
 }
 
 /* ==========================================================================
-   29. OUR PRODUCTS — PORTAL CTA CUE
-   Two subtle, GPU-only loops used by DoorPortal's revealed CTA:
+   29. OUR PRODUCTS — PORTAL CTA + GAP-LIGHT CUES
+   Three subtle, GPU-only loops used by DoorPortal:
    `tm-door-cta-breathe` (a scale + white-glow "flicker" on the two-line
-   white "OLAMGA QADAM QO'YING" text) and `tm-door-arrow-cue` (the
+   white "OLAMGA QADAM QO'YING" text), `tm-door-arrow-cue` (the
    sequential step -> doorway chevron, flying inward and dissolving —
-   white stroke with a §27 --gold-mid eyeliner rim + gold glow).
-   transform / opacity / filter / text-shadow only — no layout
-   properties, no position change. Both are applied through `motion-safe:`
-   in the component, and §23's global reduced-motion reset also
-   neutralises them: under reduced motion the CTA text and the two
-   chevrons simply sit static while the door is open.
+   white stroke with a §27 --gold-mid eyeliner rim + gold glow), and
+   `tm-door-gaplight` (a slow glimmer on the golden shaft leaking from
+   the ajar door at rest). transform / opacity / filter / text-shadow
+   only — no layout properties, no position change. All applied through
+   `motion-safe:` in the component, and §23's global reduced-motion
+   reset also neutralises them: under reduced motion the CTA text, the
+   two chevrons and the gap light simply sit static.
    ========================================================================== */
 
 @keyframes tm-door-cta-breathe {
@@ -823,6 +824,25 @@ body {
     filter: drop-shadow(0 0 2px var(--gold-mid))
       drop-shadow(0 0 1px var(--gold-mid))
       drop-shadow(0 0 6px rgba(199, 154, 75, 0.85));
+  }
+}
+
+@keyframes tm-door-gaplight {
+  /* Slow glimmer for the golden shaft leaking from the ajar door —
+     the beam breathes a touch wider and brighter and back, so it
+     reads as living light rather than a flat sticker. opacity /
+     transform / filter only. Its reveal (fade out as the door opens)
+     is a separate transition on the wrapper, not this loop. */
+  0%,
+  100% {
+    opacity: 0.85;
+    transform: scaleX(0.95);
+    filter: brightness(0.96);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleX(1.08);
+    filter: brightness(1.15);
   }
 }
 

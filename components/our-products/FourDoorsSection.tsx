@@ -117,6 +117,10 @@ const VARIANTS: DoorVariant[] = [
       // bloats the download) while `world` is a real image rendered
       // with next/image, where the actual pixels matter.
       world: "/images/home/OurProducts/books-world.png",
+      // Vertical golden light shaft that leaks from the ajar door's
+      // free edge at rest; DoorPortal positions it as a strip and fades
+      // it out as the door swings open. Shared file across all 3 doors.
+      gapLight: "/images/home/OurProducts/light.png",
       // Measured from books-door.png's actual opaque pixel bounds
       // (minX=513, maxX=1047, minY=141, maxY=1134 on a 1500×1335
       // canvas) — not eyeballed. Re-measure if re-exported.
@@ -141,6 +145,7 @@ const VARIANTS: DoorVariant[] = [
       // branching for this; assigning `world` is the only change
       // needed).
       world: "/images/home/OurProducts/yusuf.png",
+      gapLight: "/images/home/OurProducts/light.png",
       // Measured from yusuf-door.png (minX=528, maxX=1050, minY=156,
       // maxY=1152).
       hingeOriginX: 35.2,
@@ -159,6 +164,7 @@ const VARIANTS: DoorVariant[] = [
       mask: "/images/home/OurProducts/toys-mask.png",
       // 2026-08-27: same treatment as books-world.png/yusuf.png above.
       world: "/images/home/OurProducts/toys.png",
+      gapLight: "/images/home/OurProducts/light.png",
       // Measured from toys-door.png (minX=513, maxX=1038, minY=135,
       // maxY=1158).
       hingeOriginX: 34.2,

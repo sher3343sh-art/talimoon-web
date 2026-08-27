@@ -173,66 +173,67 @@ export function DoorPortal({ variant }: DoorPortalProps) {
 
   // Touch devices have no real `:hover` to drive the door open — the
   // whole animation above is built on `group-hover`/`group-focus-
-  // visible`, so on a phone the door used to just sit frozen shut.
-  // 2026-08-27: replaced the old "first tap opens, second tap
-  // navigates" pattern (which required the visitor to already know to
-  // tap twice) with an automatic reveal — once the door scrolls into
-  // view, it starts a self-repeating breathing cycle via the same
-  // `touchOpen` flag/inline `--door-angle` override the old tap
-  // handler used, no interaction required: closed 2s → open → holds
-  // open 5s → closes → closed 2s → open, repeating indefinitely for
-  // as long as the door stays mounted. A tap still navigates
-  // immediately, same as a real mouse click always did. Gated behind
-  // the same `(hover: hover) and (pointer: fine)` check as before so
-  // real mouse/trackpad users are completely unaffected — hover
-  // already opens the door for them on approach.
+  // visible`. On a phone the door opens itself, but ONLY the one the
+  // visitor has actually scrolled to: an IntersectionObserver with a
+  // centre-band `rootMargin` treats a door as "in focus" solely while
+  // it crosses the middle ~20% of the viewport. In focus → closed 2s →
+  // open → hold 5s → close → repeat. The moment it leaves that band
+  // (the visitor scrolls on to the next door) the cycle stops and the
+  // door shuts; a door that's never brought to the centre never moves.
+  // Coming back re-arms it. A tap still navigates immediately. Gated
+  // behind `(hover: hover) and (pointer: fine)` so mouse/trackpad
+  // users are untouched — hover already drives them.
   const [touchOpen, setTouchOpen] = useState(false);
   const linkRef = useRef<HTMLAnchorElement>(null);
-  // A plain ref, not state: only needs to gate the effect below
-  // against re-arming (re-running the IntersectionObserver + kicking
-  // off a second, overlapping cycle) if `reducedMotion` ever changes
-  // after the cycle has already started. Not reflected in the
-  // dependency array on purpose — reading it must not itself cause a
-  // re-run.
-  const hasRevealedRef = useRef(false);
 
   useEffect(() => {
     const canHover =
       typeof window !== "undefined" &&
       window.matchMedia("(hover: hover) and (pointer: fine)").matches;
-    if (canHover || hasRevealedRef.current) return;
+    if (canHover) return;
 
     const node = linkRef.current;
     if (!node) return;
 
     let cycleTimeout: ReturnType<typeof setTimeout> | null = null;
-
-    // Reduced-motion visitors get a single immediate open with no
-    // repeating cycle — a perpetually swinging door is exactly the
-    // kind of motion that setting exists to opt out of. Still
-    // deferred via setTimeout(…, 0) rather than called synchronously
-    // in the effect body, same as the animated path below.
-    if (reducedMotion) {
-      hasRevealedRef.current = true;
-      cycleTimeout = setTimeout(() => setTouchOpen(true), 0);
-      return () => {
-        if (cycleTimeout) clearTimeout(cycleTimeout);
-      };
-    }
+    let inFocus = false;
 
     const runCycle = (open: boolean) => {
       setTouchOpen(open);
       cycleTimeout = setTimeout(() => runCycle(!open), open ? 5000 : 2000);
     };
 
+    const startCycle = () => {
+      if (cycleTimeout) return;
+      // Reduced-motion visitors get a single static open while the door
+      // is in focus — no perpetually swinging leaf.
+      if (reducedMotion) {
+        setTouchOpen(true);
+        return;
+      }
+      cycleTimeout = setTimeout(() => runCycle(true), 2000);
+    };
+
+    const stopCycle = () => {
+      if (cycleTimeout) {
+        clearTimeout(cycleTimeout);
+        cycleTimeout = null;
+      }
+      setTouchOpen(false);
+    };
+
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (!entry.isIntersecting) return;
-        hasRevealedRef.current = true;
-        cycleTimeout = setTimeout(() => runCycle(true), 2000);
-        observer.disconnect();
+        const nowInFocus = entry.isIntersecting;
+        if (nowInFocus === inFocus) return;
+        inFocus = nowInFocus;
+        if (nowInFocus) startCycle();
+        else stopCycle();
       },
-      { threshold: 0.5 }
+      // Root shrunk to the middle ~20% of the viewport: a door only
+      // counts as "in focus" while it's crossing the screen centre, so
+      // exactly one of the three stacked doors animates at a time.
+      { rootMargin: "-40% 0px -40% 0px", threshold: 0.01 }
     );
 
     observer.observe(node);
@@ -265,11 +266,12 @@ export function DoorPortal({ variant }: DoorPortalProps) {
           containerType: "inline-size",
         }}
       >
-        {/* Hidden world + gap light — masked to the painted opening
-            (mask.png), since this layer has no natural edges of its
-            own. */}
+        {/* Hidden world — masked to the painted opening (mask.png),
+            since this layer has no natural edges of its own. The gap
+            light is a separate mask-clipped layer *after* the door
+            (further down) so it can also bleed onto the ajar leaf's
+            own edge. */}
         <div className="absolute inset-0 overflow-hidden" style={maskStyle(assets.mask)}>
-          {/* Hidden world */}
           <div className="absolute inset-0">
             {assets.world ? (
               // The painted `world` PNG isn't full-bleed — it has its
@@ -308,27 +310,6 @@ export function DoorPortal({ variant }: DoorPortalProps) {
               </div>
             )}
           </div>
-
-          {/* Gap light — a crack of light at rest, since the door is
-              only ajar; fades out as the door opens and the room
-              itself becomes the light source. */}
-          {assets.gapLight ? (
-            <Image
-              src={assets.gapLight}
-              alt=""
-              fill
-              className={`pointer-events-none object-cover transition-opacity duration-500 group-hover:opacity-0 group-focus-visible:opacity-0 ${touchOpen ? "opacity-0" : "opacity-100"}`}
-            />
-          ) : (
-            <div
-              aria-hidden="true"
-              className={`pointer-events-none absolute left-0 top-1/2 h-24 w-24 -translate-y-1/2 rounded-full blur-[26px] transition-opacity duration-500 group-hover:opacity-0 group-focus-visible:opacity-0 ${touchOpen ? "opacity-0" : "opacity-90"}`}
-              style={{
-                background:
-                  "radial-gradient(circle, rgba(227,194,136,0.6) 0%, transparent 70%)",
-              }}
-            />
-          )}
         </div>
 
         {/* CTA — "OLAMGA QADAM QO'YING". Not a button/pill: plain white
@@ -440,7 +421,9 @@ export function DoorPortal({ variant }: DoorPortalProps) {
             "ajar" state read as flush shut with no visible crack —
             -30deg is the point that first reads as visibly open.
             Hover duration also raised 1320ms → 1716ms (+30%) for a
-            calmer swing.
+            calmer swing, then 1716ms → 2100ms (2026-08-27) so the door
+            opens slower and the gap-light shaft has room to bloom and
+            dissolve in lockstep with it.
 
             Hover angle pulled back -81deg → -72deg (80% instead of
             90% of the full -90deg swing) and perspective distance
@@ -487,7 +470,7 @@ export function DoorPortal({ variant }: DoorPortalProps) {
           }}
         >
           <div
-            className="absolute inset-0 transition-transform duration-[1716ms] delay-[380ms] [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] [transform:rotateY(var(--door-angle,-30deg))] group-hover:[--door-angle:-85deg] group-hover:delay-0 group-focus-visible:[--door-angle:-85deg] group-focus-visible:delay-0 motion-reduce:delay-0"
+            className="absolute inset-0 transition-transform duration-[2100ms] delay-[380ms] [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] [transform:rotateY(var(--door-angle,-30deg))] group-hover:[--door-angle:-85deg] group-hover:delay-0 group-focus-visible:[--door-angle:-85deg] group-focus-visible:delay-0 motion-reduce:delay-0"
             style={{
               transformOrigin: `${assets.hingeOriginX}% ${assets.hingeOriginY}%`,
               // Touch has no real `:hover` to drive `--door-angle` via
@@ -544,6 +527,64 @@ export function DoorPortal({ variant }: DoorPortalProps) {
             </div>
           </div>
         </div>
+
+        {/* Gap light — a golden shaft leaking from the ajar door's free
+            edge at rest. Its own mask-clipped layer, *after* the door
+            (so the glow spills onto the visible leaf edge too) but
+            *before* the frame (so the stone still occludes anything
+            outside the opening). Two stacked light layers, both
+            `screen`-blended so they add like real light: a soft warm
+            spill (the glow pooling out of the gap — sells "from inside
+            the room") and the sharp `light.png` shaft on top, which
+            also carries a slow shimmer (`tm-door-gaplight`).
+
+            The reveal is tied to the door leaf: the strip transitions
+            `transform` + `opacity` on the same cubic-bezier(0.22,1,
+            0.36,1) and the same close-side `delay-[380ms]` (cancelled
+            on the way open). Asymmetric duration on purpose: it spreads
+            + dissolves in 2600ms (a touch longer than the 2100ms
+            swing) as the door opens, but *gathers + fades back in over
+            4800ms* on the way home — so the light settles back into the
+            gap far more gently than the solid leaf swings shut, never
+            popping back ahead of it. */}
+        {assets.gapLight && (
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 overflow-hidden"
+            style={maskStyle(assets.mask)}
+          >
+            <div
+              className="absolute left-[50%] top-[4%] h-[92%] w-[34%] origin-center opacity-100 transition-[transform,opacity] duration-[4800ms] delay-[380ms] [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] group-hover:opacity-0 group-hover:delay-0 group-hover:duration-[2600ms] group-hover:[transform:scaleX(2)] group-focus-visible:opacity-0 group-focus-visible:delay-0 group-focus-visible:duration-[2600ms] group-focus-visible:[transform:scaleX(2)] motion-reduce:delay-0"
+              style={
+                touchOpen
+                  ? ({
+                      transform: "scaleX(2)",
+                      opacity: 0,
+                      transitionDelay: "0ms",
+                      transitionDuration: "2600ms",
+                    } as CSSProperties)
+                  : undefined
+              }
+            >
+              {/* soft warm spill — the light pooling out of the gap */}
+              <div
+                className="absolute left-1/2 top-1/2 h-[82%] w-[78%] -translate-x-1/2 -translate-y-1/2 rounded-[50%] blur-[9px] [mix-blend-mode:screen]"
+                style={{
+                  background:
+                    "radial-gradient(ellipse at center, rgba(255,206,138,0.55) 0%, rgba(255,183,99,0.22) 42%, transparent 74%)",
+                }}
+              />
+              {/* the shaft itself */}
+              <Image
+                src={assets.gapLight}
+                alt=""
+                fill
+                className="object-cover [mix-blend-mode:screen] motion-safe:animate-[tm-door-gaplight_3800ms_ease-in-out_infinite]"
+                sizes="(min-width: 1024px) 120px, 28vw"
+              />
+            </div>
+          </div>
+        )}
 
         {/* Frame — the fixed stone archway, always on top of the door. */}
         <Image
