@@ -108,6 +108,15 @@ const VARIANTS: DoorVariant[] = [
       frame: "/images/home/OurProducts/books-frame.png",
       door: "/images/home/OurProducts/books-door.png",
       mask: "/images/home/OurProducts/books-mask.png",
+      // 2026-08-27: the painted "hidden world" scene behind this
+      // door — a child reading by lamplight. Separate file from
+      // `mask` on purpose: `mask` must stay a plain white-on-
+      // transparent silhouette (DoorPortal's maskStyle() only ever
+      // reads its alpha channel via CSS mask-image, so any color
+      // data in that file is invisible on the live site and just
+      // bloats the download) while `world` is a real image rendered
+      // with next/image, where the actual pixels matter.
+      world: "/images/home/OurProducts/books-world.png",
       // Measured from books-door.png's actual opaque pixel bounds
       // (minX=513, maxX=1047, minY=141, maxY=1134 on a 1500×1335
       // canvas) — not eyeballed. Re-measure if re-exported.
