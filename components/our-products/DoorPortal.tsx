@@ -214,19 +214,20 @@ export function DoorPortal({ variant }: DoorPortalProps) {
               // Since the door's own opening is close to square while
               // the photo is a tall portrait, object-cover's height-
               // match leaves that margin visible at the very top/
-              // bottom, and being transparent it let the page's own
-              // white background show through — read as a "cut off,
-              // turned white" edge rather than an intentional frame.
-              // This backdrop (identical gradient to the procedural
-              // FallbackWorld two doors over, for visual consistency)
-              // sits behind the untouched photo so that margin blends
-              // into a warm dark tone instead of white.
+              // bottom, mostly right at the arch's own curved peak —
+              // the single most visually prominent spot in the whole
+              // door. A first attempt backed it with the same bright-
+              // centered gradient FallbackWorld uses below, but that
+              // gradient's own light gold center (#E3C288) lands
+              // almost exactly at the arch peak, reading as its own
+              // pale patch against the photo's dark room — swapped
+              // for a flat, uniformly dark tone instead (no bright
+              // center anywhere), so the margin reads as "shadow" and
+              // blends with the photo's own dark ambiance rather than
+              // standing out as a separate lit patch.
               <div
                 className="absolute inset-0"
-                style={{
-                  background:
-                    "radial-gradient(ellipse 85% 75% at 50% 42%, #E3C288 0%, #AD7F49 26%, #63452C 54%, var(--material-walnut-deep) 80%)",
-                }}
+                style={{ backgroundColor: "var(--material-walnut-deep, #3A2A1E)" }}
               >
                 <Image src={assets.world} alt="" fill className="object-cover" />
               </div>
