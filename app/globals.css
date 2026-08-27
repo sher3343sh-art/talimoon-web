@@ -764,3 +764,51 @@ body {
     background-position: 50% 0%;
   }
 }
+
+/* ==========================================================================
+   29. OUR PRODUCTS — PORTAL CTA CUE
+   Two subtle, GPU-only loops used by DoorPortal's revealed CTA:
+   `tm-door-cta-breathe` (a barely-there scale on the "OLAMGA QADAM
+   QO'YING" gold text) and `tm-door-arrow-cue` (the sequential
+   step -> doorway chevron glow). transform / opacity / filter only —
+   no layout properties, no position change. Both are applied through
+   `motion-safe:` in the component, and §23's global reduced-motion
+   reset also neutralises them: under reduced motion the CTA text and
+   the two chevrons simply sit static while the door is open. Palette
+   is §27's shared --gold-* CTA tokens — no new colour introduced.
+   ========================================================================== */
+
+@keyframes tm-door-cta-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.035);
+  }
+}
+
+@keyframes tm-door-arrow-cue {
+  0%,
+  100% {
+    opacity: 0;
+    transform: translateY(3px);
+    filter: drop-shadow(0 0 0 rgba(199, 154, 75, 0));
+  }
+  45%,
+  60% {
+    opacity: 1;
+    transform: translateY(-2px);
+    filter: drop-shadow(0 0 5px var(--gold-mid));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-door-cta],
+  [data-door-arrow] {
+    animation: none;
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}

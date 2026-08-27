@@ -148,8 +148,8 @@ function FallbackWorld({
  * full leaf hinged on its left edge, so the whole leaf now rotates
  * from origin-left instead.
  */
-const DOOR_CHROME_EN = { discover: "Discover", stepInside: "Step Inside" };
-const DOOR_CHROME_UZ: typeof DOOR_CHROME_EN = { discover: "Kashf eting", stepInside: "Ichkariga kiring" };
+const DOOR_CHROME_EN = { discover: "Discover", cta: "Step Into the World" };
+const DOOR_CHROME_UZ: typeof DOOR_CHROME_EN = { discover: "Kashf eting", cta: "OLAMGA QADAM QO'YING" };
 
 export function DoorPortal({ variant }: DoorPortalProps) {
   const reducedMotion = useReducedMotion();
@@ -316,6 +316,36 @@ export function DoorPortal({ variant }: DoorPortalProps) {
           )}
         </div>
 
+        {/* CTA — "OLAMGA QADAM QO'YING". Not a button/pill: gold-gradient
+            text sitting in the upper inside of the archway, above the
+            open leaf, so it reads as part of the interior scene rather
+            than a chip on the step. Deliberately a sibling of (not a
+            child of) the mask.png-clipped world layer above: hard-
+            clipping it to the arch silhouette sheared letters off at
+            this height where the opening narrows. Instead it's placed
+            over the opening and the stone `frame` (rendered after this,
+            opaque everywhere except the true opening) occludes any
+            bleed past the doorway edges — same result, no cut glyphs.
+            It sits before THE DOOR in source order, so the shut leaf
+            covers it (spec §5) and it only surfaces as the door
+            swings. Invisible until then; fades in 900ms after the leaf
+            starts moving (group-hover / touchOpen transition-delay) so
+            it arrives as a *result* of the door opening (§6). Gold is
+            §27's shared --gold-* CTA palette — no new colour. Wrapper
+            owns the centering transform; the inner span owns the
+            barely-there breathe scale, so the two never fight. */}
+        <div
+          className={`pointer-events-none absolute left-1/2 top-[16%] w-[46%] -translate-x-1/2 text-center transition-opacity duration-[600ms] ease-out group-hover:opacity-100 group-hover:delay-[900ms] group-focus-visible:opacity-100 group-focus-visible:delay-[900ms] motion-reduce:delay-0 ${touchOpen ? "opacity-100 delay-[900ms]" : "opacity-0"}`}
+        >
+          <span
+            data-door-cta
+            className="inline-block bg-gradient-to-b from-[var(--gold-highlight)] via-[var(--gold-mid)] to-[var(--gold-base)] bg-clip-text text-[10px] font-semibold uppercase leading-[1.35] tracking-[0.16em] text-transparent [text-shadow:0_1px_10px_rgba(0,0,0,0.6),0_0_16px_var(--gold-500-a35)] motion-safe:animate-[tm-door-cta-breathe_4.5s_ease-in-out_infinite] lg:text-[12px] lg:tracking-[0.2em]"
+            style={{ fontFamily: "var(--font-manrope)" }}
+          >
+            {chrome.cta}
+          </span>
+        </div>
+
         {/* THE DOOR — deliberately NOT run through the opening mask.
             This asset was cut from the same source painting as the
             frame, so its silhouette is already registered to the
@@ -430,7 +460,7 @@ export function DoorPortal({ variant }: DoorPortalProps) {
           }}
         >
           <div
-            className="absolute inset-0 transition-transform duration-[1716ms] [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] [transform:rotateY(var(--door-angle,-30deg))] group-hover:[--door-angle:-85deg] group-focus-visible:[--door-angle:-85deg]"
+            className="absolute inset-0 transition-transform duration-[1716ms] delay-[380ms] [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] [transform:rotateY(var(--door-angle,-30deg))] group-hover:[--door-angle:-85deg] group-hover:delay-0 group-focus-visible:[--door-angle:-85deg] group-focus-visible:delay-0 motion-reduce:delay-0"
             style={{
               transformOrigin: `${assets.hingeOriginX}% ${assets.hingeOriginY}%`,
               // Touch has no real `:hover` to drive `--door-angle` via
@@ -439,7 +469,17 @@ export function DoorPortal({ variant }: DoorPortalProps) {
               // selector for the same property, and only ever get set
               // once `touchOpen` is true, so real-hover devices (where
               // this stays unset) are completely unaffected.
-              ...(touchOpen ? ({ "--door-angle": "-85deg" } as CSSProperties) : {}),
+              //
+              // `delay-[380ms]` above holds the leaf still for 380ms
+              // when it's *closing* so the CTA text + chevrons can fade
+              // out first (spec §9); `group-hover:delay-0` /
+              // `group-focus-visible:delay-0` cancel that on the way
+              // open, and on touch the same cancel is done inline here
+              // (`transitionDelay: 0ms`) since there's no :hover state
+              // to carry it.
+              ...(touchOpen
+                ? ({ "--door-angle": "-85deg", transitionDelay: "0ms" } as CSSProperties)
+                : {}),
             }}
           >
             <Image
@@ -486,6 +526,53 @@ export function DoorPortal({ variant }: DoorPortalProps) {
           className="pointer-events-none object-fill"
           sizes="(min-width: 1024px) 340px, 45vw"
         />
+
+        {/* Directional cue — exactly two upward chevrons resting on the
+            painted step, pointing from the threshold up into the
+            opening (user -> step -> door -> inner world). Hidden while
+            the door is shut; revealed 1100ms after hover — after the
+            CTA text, per the reveal order in §6 — then, motion
+            permitting, they pulse in sequence (lower chevron first,
+            upper one ~0.45s later, `tm-door-arrow-cue`) so the glow
+            travels step -> doorway -> interior, never both at once.
+            Pure CSS keyframe, transform/opacity/filter only; its
+            translateY is a 3px drift, not travel, so the chevrons keep
+            their step position. Under prefers-reduced-motion §29 drops
+            the keyframe and they simply sit visible while the door is
+            open. Exactly two — no third. */}
+        <div
+          aria-hidden="true"
+          className={`pointer-events-none absolute bottom-[6.5%] left-1/2 flex -translate-x-1/2 flex-col items-center gap-[2px] text-[color:var(--gold-mid)] transition-opacity duration-[400ms] ease-out group-hover:opacity-100 group-hover:delay-[1100ms] group-focus-visible:opacity-100 group-focus-visible:delay-[1100ms] motion-reduce:delay-0 ${touchOpen ? "opacity-100 delay-[1100ms]" : "opacity-0"}`}
+        >
+          {/* upper chevron — second in the sequence (0.45s later; the
+              delay is folded into the animation shorthand so the
+              `animate-*` reset can't wipe a separate animation-delay) */}
+          <svg
+            data-door-arrow
+            viewBox="0 0 16 10"
+            className="h-[9px] w-[15px] motion-safe:animate-[tm-door-arrow-cue_2.4s_ease-in-out_0.45s_infinite]"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M2 8 L8 2 L14 8" />
+          </svg>
+          {/* lower chevron — first in the sequence */}
+          <svg
+            data-door-arrow
+            viewBox="0 0 16 10"
+            className="h-[9px] w-[15px] motion-safe:animate-[tm-door-arrow-cue_2.4s_ease-in-out_infinite]"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M2 8 L8 2 L14 8" />
+          </svg>
+        </div>
       </div>
 
       {/* Floor shadow — grounds the portal as a physical object. */}
@@ -498,33 +585,11 @@ export function DoorPortal({ variant }: DoorPortalProps) {
         }}
       />
 
-      {/* CTA — "Step Inside". 2026-08-09: replaced the section-local
-          "our-products-cta" pill (58px tall, idle-breathing, its own
-          bespoke gold gradient) with the exact shared `.tm-cta-gold`
-          class every other CTA on the site uses (Navbar, Story
-          Library, Families Wall) — same gold, same 44px height, same
-          hover/active/focus behavior, nothing bespoke left here. No
-          idle-breathe animation: none of the other `.tm-cta-gold`
-          instances site-wide have one, so keeping it only on this
-          button would itself be the inconsistency. */}
-      <div className="mt-[10px] flex justify-center">
-        <span className="tm-cta-gold inline-flex h-[31px] shrink-0 items-center justify-center gap-1 whitespace-nowrap px-3.5 text-[12px] font-medium tracking-[0.015em]">
-          {chrome.stepInside}
-          <svg
-            aria-hidden="true"
-            viewBox="0 0 16 16"
-            className={`h-2.5 w-2.5 shrink-0 transition-transform duration-300 ease-out group-hover:translate-x-0.5 ${touchOpen ? "translate-x-0.5" : ""}`}
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M3 8h10M9 4l4 4-4 4" />
-          </svg>
-        </span>
-      </div>
-
+      {/* CTA is no longer a pill below the portal — 2026-08-27 it moved
+          *inside* the archway ("OLAMGA QADAM QO'YING" gold text + two
+          step chevrons, both above) so the portal itself is the
+          call-to-action. Nothing replaces it in the flow here; the
+          product name + tagline sit directly under the floor shadow. */}
       <h3
         className="mt-[5px] text-center text-[22px] font-semibold text-[#252A35] lg:text-[28px]"
         style={{ fontFamily: "var(--font-cormorant-garamond)" }}
