@@ -7,62 +7,64 @@
  * `useT` (a Context hook) for translated copy.
  *
  * The home "Our Products" scene: heading, three DoorPortals and trust
- * strip, on the same flat `bg-surface-base` every other home-page
- * section uses. All rendering and interaction logic for an individual
- * door lives in DoorPortal.tsx — this file only assembles the
- * composition and owns the copy.
+ * strip. All rendering and interaction logic for an individual door
+ * lives in DoorPortal.tsx — this file only assembles the composition
+ * and owns the copy.
  *
  * 2026-08-24: this section used to be the one outlier on the page —
  * every other section sits on a flat cream background, but this one
  * had a full painted wall-scene photo (background.png) behind the
- * doors. Removed in favor of the same flat background plus a subtle
- * brick-line texture (`<BrickBackdrop />`) confined to the door row
- * itself, so the doors still read as "set into a wall" without the
- * section being a visual outlier when scrolling past it.
+ * doors. Replaced with the shared flat `bg-surface-base` plus a CSS
+ * brick-line texture behind the doors.
+ *
+ * 2026-08-27 (follow-up): the brick texture didn't fit Talimoon's own
+ * visual language, and BrandValues (the section directly above this
+ * one) already has a much better match — the same delicate sepia
+ * line-art illustration (`/images/values/book.png`: leaf branches in
+ * the corners, minaret silhouettes, flowing lines converging into
+ * root-like linework at the bottom) already used for its own
+ * background. `<HeritageBackdrop />` reuses that exact same image
+ * here too — full-strength at the top (where it visually continues
+ * BrandValues' bottom edge, corner-leaf motif meeting corner-leaf
+ * motif) fading down through the doors so the artwork's own linework
+ * still shows faintly behind them, rather than a fresh, unrelated
+ * texture. One shared asset now bridges both sections into a single
+ * visual "moment," instead of each being its own disconnected block.
  *
  * Story Library was removed from this section only; it is left
  * untouched everywhere else (nav, routes, Hero).
  */
 
+import Image from "next/image";
 import { DoorPortal, type DoorVariant } from "./DoorPortal";
 import { useT } from "@/lib/i18n/LanguageContext";
 
-// Subtle brick-coursing line texture rendered directly behind the door
-// row (see `<BrickBackdrop />` below) — replaces the old full painted
-// wall-scene image (background.png), which was the one section on the
-// home page with a photographic backdrop instead of the shared flat
-// `bg-surface-base` every other section uses. Classic 4-gradient CSS
-// brick technique: two gradient pairs offset against each other so
-// alternating rows of "bricks" read as a staggered wall pattern, not a
-// plain grid — colored at low opacity in the site's own gold/brass
-// tone so it reads as a quiet texture, not a graphic.
-const BRICK_LINE_COLOR = "rgba(184,134,51,0.10)";
-const BRICK_CELL = 58;
-const BRICK_BACKGROUND_IMAGE = [
-  `linear-gradient(335deg, ${BRICK_LINE_COLOR} 23px, transparent 23px)`,
-  `linear-gradient(155deg, ${BRICK_LINE_COLOR} 23px, transparent 23px)`,
-  `linear-gradient(335deg, ${BRICK_LINE_COLOR} 23px, transparent 23px)`,
-  `linear-gradient(155deg, ${BRICK_LINE_COLOR} 23px, transparent 23px)`,
-].join(", ");
-
-function BrickBackdrop() {
+function HeritageBackdrop() {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none absolute inset-0"
+      className="pointer-events-none absolute inset-0 overflow-hidden"
       style={{
-        backgroundImage: BRICK_BACKGROUND_IMAGE,
-        backgroundPosition: "0px 2px, 4px 35px, 29px 31px, 34px 6px",
-        backgroundSize: `${BRICK_CELL}px ${BRICK_CELL}px`,
-        // Fades to fully transparent at every edge so the textured
-        // rectangle blends into the section's flat bg-surface-base
-        // instead of showing a hard-edged box behind the doors.
+        // Opaque at the very top (where BrandValues' own corner-leaf
+        // motif ends, right above this section) fading down to a
+        // faint-but-still-visible level by the doors — never fully
+        // transparent, so the linework doubles as their "chiziqli
+        // fon" (line background) too, per spec.
         maskImage:
-          "radial-gradient(ellipse 75% 80% at 50% 45%, black 45%, transparent 85%)",
+          "linear-gradient(to bottom, black 0%, black 20%, rgba(0,0,0,0.4) 55%, rgba(0,0,0,0.22) 100%)",
         WebkitMaskImage:
-          "radial-gradient(ellipse 75% 80% at 50% 45%, black 45%, transparent 85%)",
+          "linear-gradient(to bottom, black 0%, black 20%, rgba(0,0,0,0.4) 55%, rgba(0,0,0,0.22) 100%)",
       }}
-    />
+    >
+      <Image
+        src="/images/values/book.png"
+        alt=""
+        fill
+        sizes="100vw"
+        className="object-cover"
+        style={{ objectPosition: "top center" }}
+      />
+    </div>
   );
 }
 
@@ -203,6 +205,8 @@ export function FourDoorsSection() {
       aria-labelledby="four-doors-heading"
       className="relative w-full overflow-hidden bg-surface-base px-6 py-[20px] sm:px-8 lg:px-16 lg:py-[30px]"
     >
+      <HeritageBackdrop />
+
       {/* Heading — Creative Direction spec, 2026-08-07: exact copy,
           type, color and spacing values, Cormorant Garamond / Manrope,
           not the site's default type tokens. Scoped to this section. */}
@@ -241,7 +245,6 @@ export function FourDoorsSection() {
           keeps them level regardless of how the caption text below
           them wraps. */}
       <div className="relative mx-auto mt-[26px] flex max-w-[1450px] flex-col items-center gap-10 md:flex-row md:items-start md:justify-center md:gap-3 lg:gap-4 xl:gap-6 2xl:gap-8">
-        <BrickBackdrop />
         {localizedVariants.map((variant) => (
           <DoorPortal key={variant.id} variant={variant} />
         ))}
