@@ -85,16 +85,16 @@ const VARIANT_COPY_EN = {
 
 const VARIANT_COPY_UZ: typeof VARIANT_COPY_EN = {
   "personalized-books": {
-    title: "Shaxsiylashtirilgan kitoblar",
-    tagline: "Farzandingiz maxsus u uchun yaratilgan hikoyaning qahramoniga aylanadi.",
+    title: "SHAXSIYLASHTIRILGAN KITOBLAR",
+    tagline: "Farzandingiz uchun yaratilgan, uni o'z hikoyasining bosh qahramoniga aylantiradigan betakror kitob.",
   },
   "yusuf-yasmina": {
-    title: "Yusuf va Yasmina",
-    tagline: "Mehribonlik, jasorat va go'zal xarakterni ilhomlantiruvchi imonga to'la sarguzashtlar.",
+    title: "YUSUF VA YASMINA",
+    tagline: "Yusuf va Yasmina bilan ezgulik, do'stlik va jasoratni kashf etishga chorlaydigan ilhomli hikoyalar.",
   },
   "talimoon-toys": {
-    title: "Talimoon o'yinchoqlari",
-    tagline: "Kundalik o'yinni quvonchli bilim olishga aylantiradigan go'zal o'yinchoqlar.",
+    title: "TALIMOON O'YINCHOQLARI",
+    tagline: "Bolaning qiziqishi, tasavvuri va tafakkurini o'yin orqali rivojlantirish uchun yaratilgan o'yinchoqlar.",
   },
 };
 
@@ -200,10 +200,10 @@ const SECTION_COPY_EN = {
 };
 
 const SECTION_COPY_UZ: typeof SECTION_COPY_EN = {
-  eyebrow: "Bizning mahsulotlarimiz",
-  heading: "Har bir eshik yangi olamga ochiladi.",
+  eyebrow: "TALIMOON DUNYOSI",
+  heading: "Har bir eshik ortida yangi bir olam.",
   description:
-    "Farzandingizni unutilmas hikoyalar, ma'noli sarguzashtlar va quvonchli o'yinlar orqali ilhomlantiradigan yo'lni tanlang.",
+    "Farzandingiz uchun unutilmas hikoyalar, ma'noli sarguzashtlar va quvonchli o'yinlar olamini kashf eting.",
   safe: "Xavfsiz va bolalarga qulay",
   meaningful: "Ma'noli va axloqiy",
   madeWithLove: "Sevgi bilan yaratilgan",
