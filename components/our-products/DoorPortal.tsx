@@ -333,7 +333,22 @@ export function DoorPortal({ variant }: DoorPortalProps) {
             becomes visible — live-tested corner-by-corner (72/78/81deg
             at both 420 and 800cqw) before landing here. Re-test
             against the sill line the same way if either number moves
-            again. */}
+            again.
+
+            2026-08-27: hover angle opened further, -72deg → -85deg
+            (still at 800cqw). The books-mask.png/books-world.png
+            asset split earlier this same day gave this door its first
+            real photographic "hidden world" backdrop — against a real
+            photo the door not swinging fully open read as more
+            noticeably "stuck," and the fully-open sill/corner collapse
+            this whole comment block is about was worth re-testing
+            against, not assuming still applied. Live-tested -78/-80/
+            -85deg, corner-by-corner, against all three doors (the two
+            without a `world` photo too) — clean at every angle up to
+            and including -85deg, no reappearance of the -81deg
+            collapse. -85deg reads as "fully open" without quite
+            reaching the mathematically exact -90deg some browsers can
+            render with visible z-fighting at the hinge edge. */}
         <div
           className="absolute inset-0"
           style={{
@@ -342,7 +357,7 @@ export function DoorPortal({ variant }: DoorPortalProps) {
           }}
         >
           <div
-            className="absolute inset-0 transition-transform duration-[1716ms] [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] [transform:rotateY(var(--door-angle,-30deg))] group-hover:[--door-angle:-72deg] group-focus-visible:[--door-angle:-72deg]"
+            className="absolute inset-0 transition-transform duration-[1716ms] [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] [transform:rotateY(var(--door-angle,-30deg))] group-hover:[--door-angle:-85deg] group-focus-visible:[--door-angle:-85deg]"
             style={{
               transformOrigin: `${assets.hingeOriginX}% ${assets.hingeOriginY}%`,
               // Touch has no real `:hover` to drive `--door-angle` via
@@ -351,7 +366,7 @@ export function DoorPortal({ variant }: DoorPortalProps) {
               // selector for the same property, and only ever get set
               // once `touchOpen` is true, so real-hover devices (where
               // this stays unset) are completely unaffected.
-              ...(touchOpen ? ({ "--door-angle": "-72deg" } as CSSProperties) : {}),
+              ...(touchOpen ? ({ "--door-angle": "-85deg" } as CSSProperties) : {}),
             }}
           >
             <Image
