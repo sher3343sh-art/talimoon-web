@@ -68,6 +68,70 @@ function HeritageBackdrop() {
   );
 }
 
+// Line color matches book.png's own sepia/brass linework and the
+// section's own eyebrow/ornament gold (#B88633) — same family as
+// HeritageBackdrop, not a new hue. `vectorEffect="non-scaling-stroke"`
+// keeps stroke thickness constant even though `preserveAspectRatio=
+// "none"` stretches the viewBox non-uniformly to fill the row.
+const TERRAIN_LINE_COLOR = "#B88633";
+
+/**
+ * TerrainStage — a distant mountain ridge (upper) and a single ground
+ * line (lower, roughly where the doors' stone thresholds sit) behind
+ * the door row, in the same hand-drawn single-stroke language as
+ * HeritageBackdrop's leaf/wave linework above. Positioned by eye
+ * against the actual rendered door row (not measured from the art),
+ * since the door column's own height ratio shifts slightly across
+ * breakpoints (image block vs. fixed-height caption text below it) —
+ * decorative atmosphere, not a literal floor plane, so it doesn't
+ * need to be pixel-exact.
+ */
+function TerrainStage() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 1200 500"
+      preserveAspectRatio="none"
+      className="pointer-events-none absolute inset-0 h-full w-full"
+    >
+      <path
+        d="M0,55 L85,20 L165,45 L255,5 L335,42 L425,0 L515,38 L605,15 L695,44 L785,3 L875,40 L965,18 L1055,45 L1145,22 L1200,35"
+        fill="none"
+        stroke={TERRAIN_LINE_COLOR}
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        opacity="0.16"
+        vectorEffect="non-scaling-stroke"
+      />
+      <path
+        d="M0,80 L150,60 L300,78 L450,55 L600,76 L750,58 L900,77 L1050,60 L1200,75"
+        fill="none"
+        stroke={TERRAIN_LINE_COLOR}
+        strokeWidth="1.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        opacity="0.12"
+        vectorEffect="non-scaling-stroke"
+      />
+      {/* Ground line — calibrated to the door box's own measured bottom
+          edge (77.8% of the door row's rendered height at desktop
+          widths; DoorPortal has no other layout hook to hang this off
+          more precisely, see file header), just above where each
+          door's caption text starts. */}
+      <path
+        d="M0,389 Q300,378 600,389 T1200,389"
+        fill="none"
+        stroke={TERRAIN_LINE_COLOR}
+        strokeWidth="1.3"
+        strokeLinecap="round"
+        opacity="0.24"
+        vectorEffect="non-scaling-stroke"
+      />
+    </svg>
+  );
+}
+
 const VARIANT_COPY_EN = {
   "personalized-books": {
     title: "Personalized Books",
@@ -246,7 +310,22 @@ export function FourDoorsSection() {
           them wraps. */}
       <div className="relative mx-auto mt-[26px] flex max-w-[1450px] flex-col items-center gap-10 md:flex-row md:items-start md:justify-center md:gap-3 lg:gap-4 xl:gap-6 2xl:gap-8">
         {localizedVariants.map((variant) => (
-          <DoorPortal key={variant.id} variant={variant} />
+          // Each door gets its own TerrainStage rather than one shared
+          // across the whole row: the row switches from flex-col
+          // (mobile, doors stacked) to flex-row (desktop, side by
+          // side), so a single SVG sized to the row's own bounding box
+          // would stretch to a completely different aspect ratio
+          // between those two layouts and land its ground line
+          // somewhere inside the NEXT door instead of under this one
+          // (confirmed on mobile before this fix). Scoping it per-door
+          // means it only ever sizes against that one door's own box,
+          // correct in both layouts — and side by side on desktop the
+          // three repeats still read as one continuous ridge/ground
+          // line, not three visibly separate copies.
+          <div key={variant.id} className="relative w-full max-w-[428px] shrink-0 md:max-w-[242px] lg:max-w-[308px] xl:max-w-[391px] 2xl:max-w-[482px]">
+            <TerrainStage />
+            <DoorPortal variant={variant} />
+          </div>
         ))}
       </div>
 
