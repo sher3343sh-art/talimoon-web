@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import type { CSSProperties, MouseEvent } from "react";
-import { useState } from "react";
+import type { CSSProperties } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useT } from "@/lib/i18n/LanguageContext";
 
@@ -158,31 +158,56 @@ export function DoorPortal({ variant }: DoorPortalProps) {
 
   // Touch devices have no real `:hover` to drive the door open — the
   // whole animation above is built on `group-hover`/`group-focus-
-  // visible`, so on a phone the door just sat frozen shut and the
-  // very first tap immediately navigated away before anyone could see
-  // it open. Fix, per owner spec: first tap opens the door (and does
-  // NOT navigate), a second tap follows the link. Gated behind a
-  // `(hover: hover) and (pointer: fine)` check so real mouse/trackpad
-  // users keep the original single-click-navigates behavior — hover
-  // already shows them the open door before they ever click.
+  // visible`, so on a phone the door used to just sit frozen shut.
+  // 2026-08-27: replaced the old "first tap opens, second tap
+  // navigates" pattern (which required the visitor to already know to
+  // tap twice) with an automatic reveal — once the door scrolls into
+  // view, it waits 3s still closed, then swings open on its own via
+  // the same `touchOpen` flag/inline `--door-angle` override the old
+  // tap handler used, no interaction required. A tap now just
+  // navigates immediately, same as a real mouse click always did.
+  // Gated behind the same `(hover: hover) and (pointer: fine)` check
+  // as before so real mouse/trackpad users are completely unaffected
+  // — hover already opens the door for them on approach.
   const [touchOpen, setTouchOpen] = useState(false);
+  const linkRef = useRef<HTMLAnchorElement>(null);
 
-  const handleClick = (e: MouseEvent<HTMLAnchorElement>) => {
+  useEffect(() => {
     const canHover =
       typeof window !== "undefined" &&
       window.matchMedia("(hover: hover) and (pointer: fine)").matches;
-    if (canHover) return;
-    if (!touchOpen) {
-      e.preventDefault();
-      setTouchOpen(true);
-    }
-  };
+    if (canHover || touchOpen) return;
+
+    const node = linkRef.current;
+    if (!node) return;
+
+    let revealTimeout: ReturnType<typeof setTimeout> | null = null;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        // Reduced-motion visitors get the open state immediately
+        // rather than waiting through a delay for an animation they
+        // won't see play anyway.
+        revealTimeout = setTimeout(() => setTouchOpen(true), reducedMotion ? 0 : 3000);
+        observer.disconnect();
+      },
+      { threshold: 0.5 }
+    );
+
+    observer.observe(node);
+
+    return () => {
+      observer.disconnect();
+      if (revealTimeout) clearTimeout(revealTimeout);
+    };
+  }, [reducedMotion, touchOpen]);
 
   return (
     <Link
+      ref={linkRef}
       href={href}
       aria-label={`${chrome.discover} ${title}`}
-      onClick={handleClick}
       className="group relative block w-full max-w-[428px] shrink-0 focus-visible:outline-none md:max-w-[242px] lg:max-w-[308px] xl:max-w-[391px] 2xl:max-w-[482px]"
     >
       <div
