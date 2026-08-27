@@ -169,7 +169,7 @@ export function FamiliesWall() {
 
       <div className="relative mx-auto max-w-[1440px] px-5 md:px-10 lg:px-16">
         <div className="mx-auto max-w-[640px] text-center">
-          <p className="font-sans text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent-primary,#B5764B)]">
+          <p className="font-sans text-[16px] font-semibold uppercase tracking-[0.16em] text-[var(--accent-primary,#B5764B)]">
             {t.eyebrow}
           </p>
           <SectionOrnament />
@@ -192,7 +192,7 @@ export function FamiliesWall() {
         </div>
 
         <div className="mt-7 text-center lg:mt-8">
-          <p className="font-sans text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent-primary,#B5764B)]">
+          <p className="font-sans text-[16px] font-semibold uppercase tracking-[0.16em] text-[var(--accent-primary,#B5764B)]">
             {t.featured}
           </p>
           <SectionOrnament size="small" />

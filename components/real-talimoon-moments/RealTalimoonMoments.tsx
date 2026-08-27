@@ -219,7 +219,7 @@ export function RealTalimoonMoments() {
         </div>
 
         <div className="lg:col-span-3">
-          <p className="font-sans text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent-primary,#B5764B)]">
+          <p className="font-sans text-[16px] font-semibold uppercase tracking-[0.16em] text-[var(--accent-primary,#B5764B)]">
             {t.eyebrow}
           </p>
           <h2

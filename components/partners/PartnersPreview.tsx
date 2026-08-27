@@ -67,7 +67,7 @@ export function PartnersPreview() {
 
       <div className="relative mx-auto max-w-[1440px] px-5 md:px-10 lg:px-16">
         <div className="text-center">
-          <p className="font-sans text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-[var(--accent-primary,#B5764B)]">
+          <p className="font-sans text-[15px] font-semibold uppercase tracking-[0.16em] text-[var(--accent-primary,#B5764B)]">
             {t.eyebrow}
           </p>
           <h2

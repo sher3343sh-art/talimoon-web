@@ -768,23 +768,38 @@ body {
 /* ==========================================================================
    29. OUR PRODUCTS — PORTAL CTA CUE
    Two subtle, GPU-only loops used by DoorPortal's revealed CTA:
-   `tm-door-cta-breathe` (a barely-there scale on the "OLAMGA QADAM
-   QO'YING" gold text) and `tm-door-arrow-cue` (the sequential
-   step -> doorway chevron glow). transform / opacity / filter only —
-   no layout properties, no position change. Both are applied through
-   `motion-safe:` in the component, and §23's global reduced-motion
-   reset also neutralises them: under reduced motion the CTA text and
-   the two chevrons simply sit static while the door is open. Palette
-   is §27's shared --gold-* CTA tokens — no new colour introduced.
+   `tm-door-cta-breathe` (a scale + white-glow "flicker" on the two-line
+   white "OLAMGA QADAM QO'YING" text) and `tm-door-arrow-cue` (the
+   sequential step -> doorway chevron, flying inward and dissolving —
+   white stroke with a §27 --gold-mid eyeliner rim + gold glow).
+   transform / opacity / filter / text-shadow only — no layout
+   properties, no position change. Both are applied through `motion-safe:`
+   in the component, and §23's global reduced-motion reset also
+   neutralises them: under reduced motion the CTA text and the two
+   chevrons simply sit static while the door is open.
    ========================================================================== */
 
 @keyframes tm-door-cta-breathe {
+  /* At rest the CTA sits ~2 steps smaller; the pulse grows it back up to
+     roughly its former size and lets it fall again — a slow neon
+     "flicker" (lipillash). The white text-shadow swells with it so the
+     glow behind the blue letters shimmers rather than staying flat. */
   0%,
   100% {
     transform: scale(1);
+    text-shadow:
+      0 0 1px rgba(255, 255, 255, 0.85),
+      0 0 5px rgba(255, 255, 255, 0.4),
+      0 1px 4px rgba(0, 0, 0, 0.4);
   }
   50% {
-    transform: scale(1.035);
+    /* barely-there grow (~0.5px on the 8–10px text) — a gentle
+       flicker, not a zoom */
+    transform: scale(1.05);
+    text-shadow:
+      0 0 2px rgba(255, 255, 255, 0.95),
+      0 0 8px rgba(255, 255, 255, 0.6),
+      0 1px 4px rgba(0, 0, 0, 0.4);
   }
 }
 
@@ -792,23 +807,37 @@ body {
   0%,
   100% {
     opacity: 0;
-    transform: translateY(3px);
-    filter: drop-shadow(0 0 0 rgba(199, 154, 75, 0));
+    /* Starts low on the step and flies up into the doorway, then
+       dissolves — reads as the cue "swimming" inward. The chevron
+       stroke is white; a tight gold drop-shadow rims it like eyeliner
+       (§27 --gold-mid) and a softer gold glow pulses in at the peak —
+       white core, gold edge. */
+    transform: translateY(6px);
+    filter: drop-shadow(0 0 2px var(--gold-mid))
+      drop-shadow(0 0 1px var(--gold-mid));
   }
   45%,
   60% {
     opacity: 1;
-    transform: translateY(-2px);
-    filter: drop-shadow(0 0 5px var(--gold-mid));
+    transform: translateY(-10px);
+    filter: drop-shadow(0 0 2px var(--gold-mid))
+      drop-shadow(0 0 1px var(--gold-mid))
+      drop-shadow(0 0 6px rgba(199, 154, 75, 0.85));
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  [data-door-cta],
+  [data-door-cta] {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
   [data-door-arrow] {
     animation: none;
     opacity: 1;
     transform: none;
-    filter: none;
+    /* keep the gold eyeliner rim even with the loop disabled */
+    filter: drop-shadow(0 0 2px var(--gold-mid))
+      drop-shadow(0 0 1px var(--gold-mid));
   }
 }

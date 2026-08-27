@@ -85,15 +85,15 @@ const VARIANT_COPY_EN = {
 
 const VARIANT_COPY_UZ: typeof VARIANT_COPY_EN = {
   "personalized-books": {
-    title: "SHAXSIYLASHTIRILGAN KITOBLAR",
+    title: "Shaxsiylashtirilgan Kitoblar",
     tagline: "Farzandingiz uchun yaratilgan, uni o'z hikoyasining bosh qahramoniga aylantiradigan betakror kitob.",
   },
   "yusuf-yasmina": {
-    title: "YUSUF VA YASMINA",
+    title: "Yusuf va Yasmina",
     tagline: "Yusuf va Yasmina bilan ezgulik, do'stlik va jasoratni kashf etishga chorlaydigan ilhomli hikoyalar.",
   },
   "talimoon-toys": {
-    title: "TALIMOON O'YINCHOQLARI",
+    title: "Talimoon O'yinchoqlari",
     tagline: "Bolaning qiziqishi, tasavvuri va tafakkurini o'yin orqali rivojlantirish uchun yaratilgan o'yinchoqlar.",
   },
 };
@@ -230,7 +230,7 @@ export function FourDoorsSection() {
           not the site's default type tokens. Scoped to this section. */}
       <div className="relative mx-auto max-w-[900px] text-center">
         <p
-          className="text-[12px] font-semibold uppercase tracking-[0.28em] text-[#B88633]"
+          className="text-[16px] font-semibold uppercase tracking-[0.28em] text-[#B88633]"
           style={{ fontFamily: "var(--font-manrope)" }}
         >
           {t.eyebrow}

@@ -148,13 +148,28 @@ function FallbackWorld({
  * full leaf hinged on its left edge, so the whole leaf now rotates
  * from origin-left instead.
  */
-const DOOR_CHROME_EN = { discover: "Discover", cta: "Step Into the World" };
-const DOOR_CHROME_UZ: typeof DOOR_CHROME_EN = { discover: "Kashf eting", cta: "OLAMGA QADAM QO'YING" };
+// CTA renders on two lines inside the arch — line 1 above, line 2 below.
+const DOOR_CHROME_EN = { discover: "Discover", ctaLine1: "Step Into", ctaLine2: "the World" };
+const DOOR_CHROME_UZ: typeof DOOR_CHROME_EN = {
+  discover: "Kashf eting",
+  ctaLine1: "OLAMGA",
+  ctaLine2: "QADAM QO'YING",
+};
 
 export function DoorPortal({ variant }: DoorPortalProps) {
   const reducedMotion = useReducedMotion();
   const chrome = useT(DOOR_CHROME_EN, DOOR_CHROME_UZ);
   const { id, title, tagline, href, assets } = variant;
+
+  // Optical centre of this door's opening (midpoint between the painted
+  // hinge edge and the free/handle edge), as a % of the card box. The
+  // in-arch CTA text and the step chevrons align to this, not the
+  // column's geometric 50%, so they read as centred on the doorway the
+  // visitor is actually looking into.
+  const openingCenterX = (assets.hingeOriginX + assets.freeEdgeX) / 2;
+  // The toys door's interior is the brightest, so its half-moon
+  // backdrop runs 2% wider than the other two for the text to hold up.
+  const ctaCueWidthPct = id === "talimoon-toys" ? 34 : 32;
 
   // Touch devices have no real `:hover` to drive the door open — the
   // whole animation above is built on `group-hover`/`group-focus-
@@ -316,33 +331,45 @@ export function DoorPortal({ variant }: DoorPortalProps) {
           )}
         </div>
 
-        {/* CTA — "OLAMGA QADAM QO'YING". Not a button/pill: gold-gradient
-            text sitting in the upper inside of the archway, above the
-            open leaf, so it reads as part of the interior scene rather
-            than a chip on the step. Deliberately a sibling of (not a
-            child of) the mask.png-clipped world layer above: hard-
-            clipping it to the arch silhouette sheared letters off at
-            this height where the opening narrows. Instead it's placed
-            over the opening and the stone `frame` (rendered after this,
-            opaque everywhere except the true opening) occludes any
-            bleed past the doorway edges — same result, no cut glyphs.
-            It sits before THE DOOR in source order, so the shut leaf
-            covers it (spec §5) and it only surfaces as the door
-            swings. Invisible until then; fades in 900ms after the leaf
-            starts moving (group-hover / touchOpen transition-delay) so
-            it arrives as a *result* of the door opening (§6). Gold is
-            §27's shared --gold-* CTA palette — no new colour. Wrapper
-            owns the centering transform; the inner span owns the
-            barely-there breathe scale, so the two never fight. */}
+        {/* CTA — "OLAMGA QADAM QO'YING". Not a button/pill: plain white
+            two-line text sitting in the upper inside of the archway,
+            above the open leaf, so it reads as part of the interior
+            scene rather than a chip on the step. Deliberately a sibling
+            of (not a child of) the mask.png-clipped world layer above:
+            hard-clipping it to the arch silhouette sheared letters off
+            at this height where the opening narrows. Instead it's
+            placed over the opening and the stone `frame` (rendered
+            after this, opaque everywhere except the true opening)
+            occludes any bleed past the doorway edges. It sits before
+            THE DOOR in source order, so the shut leaf covers it
+            (spec §5) and it only surfaces as the door swings. Invisible
+            until then; fades in 900ms after the leaf starts moving so
+            it arrives as a *result* of the door opening (§6). Wrapper
+            owns the centering transform + the arch backdrop; the inner
+            span owns the barely-there breathe scale. */}
         <div
-          className={`pointer-events-none absolute left-1/2 top-[16%] w-[46%] -translate-x-1/2 text-center transition-opacity duration-[600ms] ease-out group-hover:opacity-100 group-hover:delay-[900ms] group-focus-visible:opacity-100 group-focus-visible:delay-[900ms] motion-reduce:delay-0 ${touchOpen ? "opacity-100 delay-[900ms]" : "opacity-0"}`}
+          className={`pointer-events-none absolute top-[3%] h-[21%] -translate-x-1/2 transition-opacity duration-[600ms] ease-out group-hover:opacity-100 group-hover:delay-[900ms] group-focus-visible:opacity-100 group-focus-visible:delay-[900ms] motion-reduce:delay-0 ${touchOpen ? "opacity-100 delay-[900ms]" : "opacity-0"}`}
+          style={{ left: `${openingCenterX}%`, width: `${ctaCueWidthPct}%` }}
         >
+          {/* Dark backdrop shaped like the top of the arch — a half-moon
+              that drops from the arch crown, domed to follow the curve.
+              No hard edge anywhere: the gradient runs all the way to
+              transparent and a 5px blur lets every side melt into the
+              interior image rather than ending on a line. Kept inside
+              the opening width so it never touches the stone frame. */}
+          <span
+            aria-hidden="true"
+            className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.8)_0%,rgba(0,0,0,0.52)_40%,rgba(0,0,0,0.26)_68%,rgba(0,0,0,0.08)_88%,transparent_100%)] blur-[5px]"
+            style={{ borderRadius: "50% 50% 42% 42% / 60% 60% 18% 18%" }}
+          />
           <span
             data-door-cta
-            className="inline-block bg-gradient-to-b from-[var(--gold-highlight)] via-[var(--gold-mid)] to-[var(--gold-base)] bg-clip-text text-[10px] font-semibold uppercase leading-[1.35] tracking-[0.16em] text-transparent [text-shadow:0_1px_10px_rgba(0,0,0,0.6),0_0_16px_var(--gold-500-a35)] motion-safe:animate-[tm-door-cta-breathe_4.5s_ease-in-out_infinite] lg:text-[12px] lg:tracking-[0.2em]"
+            className="absolute inset-x-0 bottom-[4%] block text-center text-[8px] font-semibold uppercase leading-[1.25] tracking-[0.16em] text-white [text-shadow:0_0_2px_rgba(255,255,255,0.85),0_0_8px_rgba(255,255,255,0.5),0_1px_4px_rgba(0,0,0,0.5)] motion-safe:animate-[tm-door-cta-breathe_3.4s_ease-in-out_infinite] lg:text-[10px] lg:tracking-[0.2em]"
             style={{ fontFamily: "var(--font-manrope)" }}
           >
-            {chrome.cta}
+            {chrome.ctaLine1}
+            <br />
+            {chrome.ctaLine2}
           </span>
         </div>
 
@@ -542,7 +569,8 @@ export function DoorPortal({ variant }: DoorPortalProps) {
             open. Exactly two — no third. */}
         <div
           aria-hidden="true"
-          className={`pointer-events-none absolute bottom-[6.5%] left-1/2 flex -translate-x-1/2 flex-col items-center gap-[2px] text-[color:var(--gold-mid)] transition-opacity duration-[400ms] ease-out group-hover:opacity-100 group-hover:delay-[1100ms] group-focus-visible:opacity-100 group-focus-visible:delay-[1100ms] motion-reduce:delay-0 ${touchOpen ? "opacity-100 delay-[1100ms]" : "opacity-0"}`}
+          className={`pointer-events-none absolute bottom-[8%] flex -translate-x-1/2 flex-col items-center gap-[3px] text-[color:#FFFFFF] transition-opacity duration-[400ms] ease-out group-hover:opacity-100 group-hover:delay-[1100ms] group-focus-visible:opacity-100 group-focus-visible:delay-[1100ms] motion-reduce:delay-0 ${touchOpen ? "opacity-100 delay-[1100ms]" : "opacity-0"}`}
+          style={{ left: `${openingCenterX}%` }}
         >
           {/* upper chevron — second in the sequence (0.45s later; the
               delay is folded into the animation shorthand so the
@@ -550,10 +578,10 @@ export function DoorPortal({ variant }: DoorPortalProps) {
           <svg
             data-door-arrow
             viewBox="0 0 16 10"
-            className="h-[9px] w-[15px] motion-safe:animate-[tm-door-arrow-cue_2.4s_ease-in-out_0.45s_infinite]"
+            className="h-[15px] w-[25px] motion-safe:animate-[tm-door-arrow-cue_2.6s_ease-in-out_0.45s_infinite]"
             fill="none"
             stroke="currentColor"
-            strokeWidth="2"
+            strokeWidth="2.2"
             strokeLinecap="round"
             strokeLinejoin="round"
           >
@@ -563,10 +591,10 @@ export function DoorPortal({ variant }: DoorPortalProps) {
           <svg
             data-door-arrow
             viewBox="0 0 16 10"
-            className="h-[9px] w-[15px] motion-safe:animate-[tm-door-arrow-cue_2.4s_ease-in-out_infinite]"
+            className="h-[15px] w-[25px] motion-safe:animate-[tm-door-arrow-cue_2.6s_ease-in-out_infinite]"
             fill="none"
             stroke="currentColor"
-            strokeWidth="2"
+            strokeWidth="2.2"
             strokeLinecap="round"
             strokeLinejoin="round"
           >
@@ -578,7 +606,7 @@ export function DoorPortal({ variant }: DoorPortalProps) {
       {/* Floor shadow — grounds the portal as a physical object. */}
       <div
         aria-hidden="true"
-        className="mx-auto -mt-2 h-3 max-w-[70%]"
+        className="mx-auto -mt-3 h-2 max-w-[70%]"
         style={{
           background:
             "radial-gradient(ellipse 70% 100% at 50% 0%, rgba(74,52,38,0.3) 0%, transparent 75%)",
@@ -591,13 +619,13 @@ export function DoorPortal({ variant }: DoorPortalProps) {
           call-to-action. Nothing replaces it in the flow here; the
           product name + tagline sit directly under the floor shadow. */}
       <h3
-        className="mt-[5px] text-center text-[22px] font-semibold text-[#252A35] lg:text-[28px]"
+        className="mt-0 text-center text-[22px] font-semibold text-[#252A35] lg:text-[28px]"
         style={{ fontFamily: "var(--font-cormorant-garamond)" }}
       >
         {title}
       </h3>
       <p
-        className="mx-auto mt-[4px] max-w-[310px] text-center text-[15px] font-normal leading-[1.15] text-[#7B7368]"
+        className="mx-auto mt-[6px] max-w-[300px] text-center text-[15px] font-normal leading-[1.5] text-[#7B7368]"
         style={{ fontFamily: "var(--font-manrope)" }}
       >
         {tagline}

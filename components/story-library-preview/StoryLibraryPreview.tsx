@@ -83,7 +83,7 @@ export function StoryLibraryPreview() {
       <div className="relative mx-auto grid max-w-[var(--container-content)] grid-cols-1 items-center gap-y-12 lg:grid-cols-5 lg:gap-x-16">
         {/* Text column — ≈40% on desktop */}
         <div className="order-2 lg:order-1 lg:col-span-2">
-          <p className="text-label font-sans font-semibold uppercase text-accent-primary">
+          <p className="text-[17px] font-sans font-semibold uppercase tracking-[0.22em] text-accent-primary">
             {t.eyebrow}
           </p>
           <h2

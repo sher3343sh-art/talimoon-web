@@ -379,7 +379,7 @@ export function BrandValues() {
           style={{
             fontFamily: BODY_FONT,
             fontWeight: 600,
-            fontSize: 13,
+            fontSize: 17,
             letterSpacing: '0.30em',
             color: GOLD,
             marginBottom: 18,
