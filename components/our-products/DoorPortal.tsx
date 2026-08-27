@@ -162,30 +162,23 @@ export function DoorPortal({ variant }: DoorPortalProps) {
   // 2026-08-27: replaced the old "first tap opens, second tap
   // navigates" pattern (which required the visitor to already know to
   // tap twice) with an automatic reveal — once the door scrolls into
-  // view, it waits 3s still closed, then swings open on its own via
-  // the same `touchOpen` flag/inline `--door-angle` override the old
-  // tap handler used, no interaction required. A tap now just
-  // navigates immediately, same as a real mouse click always did.
-  // Gated behind the same `(hover: hover) and (pointer: fine)` check
-  // as before so real mouse/trackpad users are completely unaffected
-  // — hover already opens the door for them on approach.
-  //
-  // Same day, follow-up: the reveal isn't permanent — after opening
-  // it holds for 7s, then swings itself shut again (a separate effect
-  // below, watching `touchOpen` directly), so a visitor scrolling
-  // past several doors doesn't leave every single one behind them
-  // standing open.
+  // view, it starts a self-repeating breathing cycle via the same
+  // `touchOpen` flag/inline `--door-angle` override the old tap
+  // handler used, no interaction required: closed 2s → open → holds
+  // open 5s → closes → closed 2s → open, repeating indefinitely for
+  // as long as the door stays mounted. A tap still navigates
+  // immediately, same as a real mouse click always did. Gated behind
+  // the same `(hover: hover) and (pointer: fine)` check as before so
+  // real mouse/trackpad users are completely unaffected — hover
+  // already opens the door for them on approach.
   const [touchOpen, setTouchOpen] = useState(false);
   const linkRef = useRef<HTMLAnchorElement>(null);
-  // A plain ref, not state: this only needs to gate the effect below
-  // against re-arming once the 7s auto-close (further down) flips
-  // `touchOpen` back to `false` — without it, that `false` would
-  // satisfy this effect's own `!touchOpen` re-check, the door was
-  // still on-screen, and the observer would immediately fire again,
-  // reopening it 3s later in an endless open/close loop. A ref (not
-  // reflected in the dependency array) lets the effect read "have we
-  // already run the reveal once" without itself re-running every time
-  // that answer changes.
+  // A plain ref, not state: only needs to gate the effect below
+  // against re-arming (re-running the IntersectionObserver + kicking
+  // off a second, overlapping cycle) if `reducedMotion` ever changes
+  // after the cycle has already started. Not reflected in the
+  // dependency array on purpose — reading it must not itself cause a
+  // re-run.
   const hasRevealedRef = useRef(false);
 
   useEffect(() => {
@@ -197,16 +190,31 @@ export function DoorPortal({ variant }: DoorPortalProps) {
     const node = linkRef.current;
     if (!node) return;
 
-    let revealTimeout: ReturnType<typeof setTimeout> | null = null;
+    let cycleTimeout: ReturnType<typeof setTimeout> | null = null;
+
+    // Reduced-motion visitors get a single immediate open with no
+    // repeating cycle — a perpetually swinging door is exactly the
+    // kind of motion that setting exists to opt out of. Still
+    // deferred via setTimeout(…, 0) rather than called synchronously
+    // in the effect body, same as the animated path below.
+    if (reducedMotion) {
+      hasRevealedRef.current = true;
+      cycleTimeout = setTimeout(() => setTouchOpen(true), 0);
+      return () => {
+        if (cycleTimeout) clearTimeout(cycleTimeout);
+      };
+    }
+
+    const runCycle = (open: boolean) => {
+      setTouchOpen(open);
+      cycleTimeout = setTimeout(() => runCycle(!open), open ? 5000 : 2000);
+    };
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (!entry.isIntersecting) return;
         hasRevealedRef.current = true;
-        // Reduced-motion visitors get the open state immediately
-        // rather than waiting through a delay for an animation they
-        // won't see play anyway.
-        revealTimeout = setTimeout(() => setTouchOpen(true), reducedMotion ? 0 : 3000);
+        cycleTimeout = setTimeout(() => runCycle(true), 2000);
         observer.disconnect();
       },
       { threshold: 0.5 }
@@ -216,18 +224,9 @@ export function DoorPortal({ variant }: DoorPortalProps) {
 
     return () => {
       observer.disconnect();
-      if (revealTimeout) clearTimeout(revealTimeout);
+      if (cycleTimeout) clearTimeout(cycleTimeout);
     };
   }, [reducedMotion]);
-
-  // Auto-close 7s after the auto-open above sets `touchOpen` true.
-  // Doesn't run for the initial `false` state (only once it flips to
-  // `true`), so this can't fire before the door has actually opened.
-  useEffect(() => {
-    if (!touchOpen) return;
-    const closeTimeout = setTimeout(() => setTouchOpen(false), 7000);
-    return () => clearTimeout(closeTimeout);
-  }, [touchOpen]);
 
   return (
     <Link

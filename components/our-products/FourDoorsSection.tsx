@@ -134,6 +134,13 @@ const VARIANTS: DoorVariant[] = [
       frame: "/images/home/OurProducts/yusuf-frame.png",
       door: "/images/home/OurProducts/yusuf-door.png",
       mask: "/images/home/OurProducts/yusuf-mask.png",
+      // 2026-08-27: same treatment as books-world.png — a painted
+      // "hidden world" scene, pre-shaped to the arch with its own
+      // transparent margin, revealed behind the door via the existing
+      // mask.png-masked world container (DoorPortal has no per-door
+      // branching for this; assigning `world` is the only change
+      // needed).
+      world: "/images/home/OurProducts/yusuf.png",
       // Measured from yusuf-door.png (minX=528, maxX=1050, minY=156,
       // maxY=1152).
       hingeOriginX: 35.2,
@@ -150,6 +157,8 @@ const VARIANTS: DoorVariant[] = [
       frame: "/images/home/OurProducts/toys-frame.png",
       door: "/images/home/OurProducts/toys-door.png",
       mask: "/images/home/OurProducts/toys-mask.png",
+      // 2026-08-27: same treatment as books-world.png/yusuf.png above.
+      world: "/images/home/OurProducts/toys.png",
       // Measured from toys-door.png (minX=513, maxX=1038, minY=135,
       // maxY=1158).
       hingeOriginX: 34.2,
