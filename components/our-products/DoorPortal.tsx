@@ -207,7 +207,29 @@ export function DoorPortal({ variant }: DoorPortalProps) {
           {/* Hidden world */}
           <div className="absolute inset-0">
             {assets.world ? (
-              <Image src={assets.world} alt="" fill className="object-cover" />
+              // The painted `world` PNG isn't full-bleed — it has its
+              // own transparent margin around the photo itself (an
+              // export artifact, untouched here per instruction: the
+              // file stays exactly as supplied, not cropped/rescaled).
+              // Since the door's own opening is close to square while
+              // the photo is a tall portrait, object-cover's height-
+              // match leaves that margin visible at the very top/
+              // bottom, and being transparent it let the page's own
+              // white background show through — read as a "cut off,
+              // turned white" edge rather than an intentional frame.
+              // This backdrop (identical gradient to the procedural
+              // FallbackWorld two doors over, for visual consistency)
+              // sits behind the untouched photo so that margin blends
+              // into a warm dark tone instead of white.
+              <div
+                className="absolute inset-0"
+                style={{
+                  background:
+                    "radial-gradient(ellipse 85% 75% at 50% 42%, #E3C288 0%, #AD7F49 26%, #63452C 54%, var(--material-walnut-deep) 80%)",
+                }}
+              >
+                <Image src={assets.world} alt="" fill className="object-cover" />
+              </div>
             ) : (
               <div
                 className="absolute inset-0"
