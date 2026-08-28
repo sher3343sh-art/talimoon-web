@@ -266,13 +266,11 @@ const MOBILE_HERO_HEIGHT = 'clamp(380px, 115vw, 460px)';
 const MOBILE_GRADIENT =
   'linear-gradient(to top, rgba(28,42,58,0.90) 0%, rgba(28,42,58,0.62) 25%, rgba(28,42,58,0.20) 32%, transparent 50%)';
 
-// Mirrors MOBILE_GRADIENT's exact stops so the backdrop-blur fades in
-// lockstep with the darkening — the photo itself goes softly out of
-// focus right where the text sits, instead of a flat dark rectangle
-// sitting on a still-sharp image. Mobile only; desktop's HeroScrim has
-// no equivalent and is untouched.
-const MOBILE_BLUR_MASK =
-  'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.75) 25%, rgba(0,0,0,0.25) 32%, rgba(0,0,0,0) 50%)';
+// (v3.1) MOBILE_BLUR_MASK + its `backdrop-filter` layer were removed:
+// on phones a backdrop-filter nested inside the per-slide wrapper whose
+// opacity/filter animate during the crossfade flashed hard WHITE mid-
+// transition (a known mobile Chrome/Safari bug). MOBILE_GRADIENT alone
+// now carries the text contrast. See HeroSlide's mobile branch.
 
 // ============================================================
 // Animation Definitions
@@ -750,13 +748,31 @@ const HeroSlide = memo(
     const activeFocalPoint =
       isMobile && image.mobileFocalPoint ? image.mobileFocalPoint : image.focalPoint;
 
+    // v3.1 — mobile-only crossfade fix. Desktop keeps its exact v2/v3
+    // exit (fade + blur out). On mobile the outgoing slide instead
+    // HOLDS fully opaque for the whole transition, then drops out in a
+    // blink once the incoming slide is already at full opacity on top.
+    // The incoming slide still blurs+fades in the same way, so the
+    // motion reads identically — but there is never a moment where both
+    // layers are semi-transparent, which is what used to let the page
+    // background punch through as a white flash.
+    const exitAnim = isMobile
+      ? {
+          opacity: 0,
+          transition: {
+            duration: 0.25,
+            delay: HERO_CONFIG.transitionDuration / 1000,
+          },
+        }
+      : { opacity: 0, filter: `blur(${HERO_CONFIG.crossfadeBlur}px)` };
+
     return (
       <motion.div
         className="absolute inset-0 w-full h-full"
         style={{ willChange: 'opacity, filter' }}
         initial={{ opacity: 0, filter: `blur(${HERO_CONFIG.crossfadeBlur}px)` }}
         animate={{ opacity: 1, filter: 'blur(0px)' }}
-        exit={{ opacity: 0, filter: `blur(${HERO_CONFIG.crossfadeBlur}px)` }}
+        exit={exitAnim}
         transition={imageTransition}
         id={`hero-slide-${slide.id}`}
         role="group"
@@ -776,16 +792,13 @@ const HeroSlide = memo(
           // bottom — no separate box splitting the frame. See file
           // header for the full reasoning.
           <>
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-0 z-[4]"
-              style={{
-                backdropFilter: 'blur(3px)',
-                WebkitBackdropFilter: 'blur(3px)',
-                WebkitMaskImage: MOBILE_BLUR_MASK,
-                maskImage: MOBILE_BLUR_MASK,
-              }}
-            />
+            {/* v3.1: the mobile `backdrop-filter` defocus layer that
+                used to sit here was removed — nested inside this
+                per-slide wrapper (whose opacity + filter animate during
+                the crossfade) it rendered as a hard WHITE FLASH mid-
+                transition on phones. MOBILE_GRADIENT below already
+                carries all the text contrast; the subtle defocus is
+                the price of a clean, flash-free transition. */}
             <div
               aria-hidden="true"
               className="pointer-events-none absolute inset-0 z-[5]"
@@ -932,6 +945,18 @@ export function HeroSlider({ onNavColorChange }: HeroSliderProps) {
       aria-roledescription="carousel"
     >
       <div className="absolute inset-0">
+        {/* v3.1 — opaque backing behind every slide (mobile only). Even
+            with the crossfade fixed so an opaque slide always backs the
+            incoming one, this guarantees that if a frame ever slips
+            through it dips toward the hero's own navy, never white.
+            Desktop is untouched. */}
+        {isMobile && (
+          <div
+            aria-hidden="true"
+            className="absolute inset-0"
+            style={{ backgroundColor: '#1C2A3A' }}
+          />
+        )}
         {/* Slaydlar bir-birining ustida (absolute inset-0) joylashadi va
             opacity + blur orqali hiralashib bir-biriga kirib boradi –
             hech qanday oq fon ko'rinmaydi */}
