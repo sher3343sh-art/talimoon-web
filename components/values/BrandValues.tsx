@@ -194,7 +194,12 @@ function SectionArtwork() {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none absolute inset-x-0 top-0 z-0 overflow-hidden"
+      /* 2026-08-28 — DESKTOP / TABLET ONLY. On mobile this full-width
+         square sat behind the eyebrow + headline and the navy type
+         collided with the painted focal art. Mobile instead stacks:
+         eyebrow + headline on flat cream, then <MobileValuesScene />
+         renders the same painting inline below them. */
+      className="pointer-events-none absolute inset-x-0 top-0 z-0 hidden overflow-hidden md:block"
       style={{
         aspectRatio: '1 / 1',
         // 2026-08-28 — seam fade toward FourDoorsSection (directly
@@ -274,7 +279,9 @@ function Headline() {
          at lg so the UZ line "Bolalikdan qalbga singadigan
          qadriyatlarimiz." sits on ONE row on desktop; it still wraps
          naturally on tablet / mobile. */
-      className="relative z-10 mx-auto max-w-[900px] text-center text-[34px] md:text-[44px] lg:max-w-[1240px] lg:text-[58px]"
+      /* mobile stepped down two sizes (34 -> 26) per 2026-08-28 mobile
+         pass; md/lg unchanged. */
+      className="relative z-10 mx-auto max-w-[900px] text-center text-[26px] md:text-[44px] lg:max-w-[1240px] lg:text-[58px]"
       style={{
         fontFamily: DISPLAY_FONT,
         fontWeight: 600,
@@ -321,7 +328,10 @@ function HeadlineDeck() {
   return (
     <motion.p
       variants={sequenceItem}
-      className="relative z-10 mx-auto max-w-[820px] text-center"
+      /* DESKTOP / TABLET ONLY — on mobile this same line is placed in
+         the clear cream area to the LEFT of the child inside
+         <MobileValuesScene /> instead of stacked under the headline. */
+      className="relative z-10 mx-auto hidden max-w-[820px] text-center md:block"
       style={{
         fontFamily: BODY_FONT,
         fontWeight: 400,
@@ -334,6 +344,84 @@ function HeadlineDeck() {
     >
       {t.subhead}
     </motion.p>
+  );
+}
+
+// ============================================================
+// Mobile-only composition (2026-08-28 mobile pass)
+// ------------------------------------------------------------
+// Phones don't get the section-wide `SectionArtwork` background —
+// there the painted focal art fought the navy headline. Instead the
+// SAME `values-scene.png` renders here as a full-bleed inline plate
+// directly under the (now smaller) headline, its top/bottom edges
+// dissolving into the section cream. The deck line
+// ("Talimoon bolalar uchun bilim, tarbiya…") is laid into the clear
+// cream space to the LEFT of the seated child — a soft left-side
+// cream lift keeps it legible over the pale sky without a visible
+// card, and its column stops short of the child so type never sits
+// on the illustration. `md:hidden`; desktop path is untouched.
+// ============================================================
+
+function MobileValuesScene() {
+  const t = useT(HEADLINE_EN, HEADLINE_UZ);
+  return (
+    <motion.div
+      variants={sequenceItem}
+      className="relative z-10 mt-4 w-[calc(100%+3rem)] md:hidden"
+    >
+      <div
+        className="relative w-full overflow-hidden"
+        style={{ aspectRatio: '1 / 1' }}
+      >
+        <Image
+          src="/images/values/values-scene.png"
+          alt=""
+          fill
+          sizes="100vw"
+          className="object-cover object-top"
+        />
+        {/* top + bottom edges melt into the section cream */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-x-0 top-0 h-[10%]"
+          style={{
+            background:
+              'linear-gradient(to top, transparent, var(--surface-base))',
+          }}
+        />
+        <div
+          aria-hidden="true"
+          className="absolute inset-x-0 bottom-0 h-[30%]"
+          style={{
+            background:
+              'linear-gradient(to bottom, transparent, var(--surface-base) 94%)',
+          }}
+        />
+        {/* left-side cream lift so the deck line reads over the pale
+            sky — fades out well before the child */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-y-0 left-0 w-[64%]"
+          style={{
+            background:
+              'linear-gradient(to right, var(--surface-base) 6%, rgba(247,243,236,0.7) 36%, transparent 82%)',
+          }}
+        />
+        <p
+          className="absolute left-[6%] top-1/2 w-[46%] -translate-y-1/2 text-left"
+          style={{
+            fontFamily: BODY_FONT,
+            fontWeight: 400,
+            fontSize: 12.5,
+            lineHeight: 1.5,
+            letterSpacing: '0.005em',
+            color: 'rgba(23,36,60,0.74)',
+          }}
+        >
+          {t.subhead}
+        </p>
+      </div>
+    </motion.div>
   );
 }
 
@@ -528,7 +616,7 @@ function ReflectiveQuestions() {
   return (
     <motion.div
       variants={sequenceContainer}
-      className="mt-8 w-full md:mt-10 md:grid md:grid-cols-[minmax(0,47fr)_minmax(0,53fr)] md:items-start md:gap-14 lg:gap-20"
+      className="mt-6 w-full md:mt-10 md:grid md:grid-cols-[minmax(0,47fr)_minmax(0,53fr)] md:items-start md:gap-14 lg:gap-20"
     >
       {/* LEFT — prompt + four reflective questions */}
       <motion.div variants={sequenceContainer} className="max-w-[560px] text-left">
@@ -548,12 +636,13 @@ function ReflectiveQuestions() {
           <motion.div
             key={i}
             variants={sequenceItem}
-            style={{ marginTop: i === 0 ? 26 : 0 }}
+            /* mobile tightens the stack (first gap 26 -> 16); md+ same */
+            className={i === 0 ? 'mt-4 md:mt-[26px]' : undefined}
           >
             {i > 0 && (
               <span
                 aria-hidden="true"
-                className="mb-6 block"
+                className="mb-3 block md:mb-6"
                 style={{
                   height: 1,
                   backgroundImage: `repeating-linear-gradient(to right, ${GOLD}66 0 5px, transparent 5px 11px)`,
@@ -564,24 +653,23 @@ function ReflectiveQuestions() {
               <AskMark />
               <div>
                 <h3
+                  className="leading-[1.28] md:leading-[1.35]"
                   style={{
                     fontFamily: BODY_FONT,
                     fontWeight: 600,
                     fontSize: 18.5,
-                    lineHeight: 1.35,
                     color: NAVY,
                   }}
                 >
                   {it.q}
                 </h3>
                 <p
+                  className="mt-[5px] leading-[1.45] md:mt-[7px] md:leading-[1.6]"
                   style={{
                     fontFamily: BODY_FONT,
                     fontWeight: 400,
                     fontSize: 15,
-                    lineHeight: 1.6,
                     color: 'rgba(23,36,60,0.56)',
-                    marginTop: 7,
                     maxWidth: 440,
                   }}
                 >
@@ -614,8 +702,9 @@ export function BrandValues() {
       <SectionArtwork />
 
       <motion.div
-        className="relative z-10 mx-auto flex w-full max-w-[1240px] flex-col items-center"
-        style={{ paddingTop: 80, paddingBottom: 88 }}
+        /* mobile pulls the section up (pt 80 -> 40) and tightens the
+           bottom (pb 88 -> 64); md+ keeps the original rhythm. */
+        className="relative z-10 mx-auto flex w-full max-w-[1240px] flex-col items-center pt-10 pb-16 md:pt-20 md:pb-[88px]"
         variants={sequenceContainer}
         initial="hidden"
         whileInView="visible"
@@ -623,21 +712,24 @@ export function BrandValues() {
       >
         <motion.span
           variants={sequenceItem}
-          className="block text-center uppercase"
+          /* mobile: smaller (17 -> 13) and flanked by gold ✦ so it
+             reads as a section mark; md+ unchanged. */
+          className="mb-2.5 block text-center text-[13px] uppercase md:mb-[18px] md:text-[17px]"
           style={{
             fontFamily: BODY_FONT,
             fontWeight: 600,
-            fontSize: 17,
             letterSpacing: '0.30em',
             color: GOLD,
-            marginBottom: 18,
           }}
         >
+          <span aria-hidden="true" className="md:hidden">✦</span>
           {sectionCopy.eyebrow}
+          <span aria-hidden="true" className="md:hidden">✦</span>
         </motion.span>
 
         <Headline />
         <HeadlineDeck />
+        <MobileValuesScene />
 
         {/* Reflective questions (left) + reserved illustration space
             (right). Copy / icons / layout of everything else is
@@ -661,7 +753,7 @@ export function BrandValues() {
              keeps the tighter `mt-16` — there the square image is only
              ~1 viewport-width tall, so the child is already well
              above this point. */
-          className="mx-auto mt-16 max-w-[860px] text-center md:mt-40"
+          className="mx-auto mt-8 max-w-[860px] text-center md:mt-40"
           style={{
             fontFamily: BODY_FONT,
             fontWeight: 400,
@@ -690,7 +782,7 @@ export function BrandValues() {
             between (not around) columns. Mobile: vertical list. */}
         <motion.div
           variants={sequenceItem}
-          className="mt-14 grid w-full grid-cols-1 gap-y-12 md:mt-16 md:grid-cols-5 md:gap-x-8 md:gap-y-0"
+          className="mt-10 grid w-full grid-cols-1 gap-y-10 md:mt-16 md:grid-cols-5 md:gap-x-8 md:gap-y-0"
         >
           {values.map((value, i) => (
             <ValueColumn key={value.id} item={value} showDivider={i > 0} />
