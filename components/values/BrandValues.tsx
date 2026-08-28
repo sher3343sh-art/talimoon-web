@@ -283,7 +283,7 @@ function Headline() {
          pass; md/lg unchanged. leading opened up on mobile (0.95 ->
          1.15) so the wrapped "…qadriyatlarimiz" line isn't cramped
          against the line above it; md/lg keep the tight 0.95. */
-      className="relative z-10 mx-auto max-w-[900px] text-center text-[26px] leading-[1.15] md:text-[44px] md:leading-[0.95] lg:max-w-[1240px] lg:text-[58px]"
+      className="relative z-10 mx-auto max-w-[900px] text-center text-[30px] leading-[1.15] md:text-[44px] md:leading-[0.95] lg:max-w-[1240px] lg:text-[58px]"
       style={{
         fontFamily: DISPLAY_FONT,
         fontWeight: 600,
@@ -368,7 +368,11 @@ function MobileValuesScene() {
   return (
     <motion.div
       variants={sequenceItem}
-      className="relative z-10 mt-4 w-[calc(100%+3rem)] md:hidden"
+      /* pulled UP so its (edge-melted) top rises behind the second
+         heading line "qadriyatlarimiz"; sits BELOW the heading
+         (z-0 < the heading's z-10) so the navy/gold type stays on top
+         while the painting washes in behind it. */
+      className="relative z-0 -mt-12 w-[calc(100%+3rem)] md:hidden"
     >
       <div
         className="pointer-events-none relative w-full overflow-hidden"
@@ -381,13 +385,14 @@ function MobileValuesScene() {
           sizes="100vw"
           className="object-cover object-top"
         />
-        {/* only the top + bottom edges melt into the section cream —
-            no overlay over the left half, so the faint sepia city on
-            the left stays visible (the painting reads as a full
-            background behind the type). */}
+        {/* all four edges melt into the section cream so the painting
+            has no hard rectangle — it dissolves into the background
+            and just reads as an atmospheric wash behind the type. The
+            sepia city (well inside the left edge) and the child stay
+            legible. */}
         <div
           aria-hidden="true"
-          className="absolute inset-x-0 top-0 h-[9%]"
+          className="absolute inset-x-0 top-0 h-[8%]"
           style={{
             background:
               'linear-gradient(to top, transparent, var(--surface-base))',
@@ -395,10 +400,26 @@ function MobileValuesScene() {
         />
         <div
           aria-hidden="true"
-          className="absolute inset-x-0 bottom-0 h-[22%]"
+          className="absolute inset-x-0 bottom-0 h-[34%]"
           style={{
             background:
               'linear-gradient(to bottom, transparent, var(--surface-base) 100%)',
+          }}
+        />
+        <div
+          aria-hidden="true"
+          className="absolute inset-y-0 left-0 w-[10%]"
+          style={{
+            background:
+              'linear-gradient(to right, var(--surface-base), transparent)',
+          }}
+        />
+        <div
+          aria-hidden="true"
+          className="absolute inset-y-0 right-0 w-[12%]"
+          style={{
+            background:
+              'linear-gradient(to left, var(--surface-base), transparent)',
           }}
         />
         {/* Deck line as a display "banner" lockup, set over the city /
@@ -406,16 +427,16 @@ function MobileValuesScene() {
             box / scrim — a soft cream glow is the only legibility aid.
             The three pillars are picked out in gold. */}
         <p
-          className="absolute left-[4%] top-1/2 w-[49%] -translate-y-1/2 text-left"
+          className="absolute left-[4%] top-[38%] w-[50%] -translate-y-1/2 text-left"
           style={{
             fontFamily: DISPLAY_FONT,
-            fontWeight: 600,
-            fontSize: 16,
-            lineHeight: 1.22,
-            letterSpacing: '-0.005em',
+            fontWeight: 500,
+            fontSize: 18,
+            lineHeight: 1.42,
+            letterSpacing: '0.012em',
             color: NAVY,
             textShadow:
-              '0 1px 12px rgba(247,243,236,0.7), 0 1px 3px rgba(247,243,236,0.85)',
+              '0 1px 16px rgba(247,243,236,0.72), 0 1px 3px rgba(247,243,236,0.9)',
           }}
         >
           {(() => {
@@ -636,7 +657,7 @@ function ReflectiveQuestions() {
          descends onto the painting's faded lower edge (over the faint
          flourish lines) — the scene reads as a background here, no box
          around the text. md+ keeps its own top gap. */
-      className="relative z-10 -mt-14 w-full md:mt-10 md:grid md:grid-cols-[minmax(0,47fr)_minmax(0,53fr)] md:items-start md:gap-14 lg:gap-20"
+      className="relative z-10 -mt-36 w-full md:mt-10 md:grid md:grid-cols-[minmax(0,47fr)_minmax(0,53fr)] md:items-start md:gap-14 lg:gap-20"
     >
       {/* LEFT — prompt + four reflective questions */}
       <motion.div variants={sequenceContainer} className="max-w-[560px] text-left">
