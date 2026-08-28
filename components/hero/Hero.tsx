@@ -283,7 +283,7 @@ const MOBILE_BLUR_MASK =
 // over this long, with a soft deceleration. Because the layer beneath
 // is always fully opaque there is no crossfade midpoint and nothing
 // can bleed through — no flicker on mobile or desktop.
-const HERO_DISSOLVE_MS = 2000;
+const HERO_DISSOLVE_MS = 4000;
 const HERO_DISSOLVE_EASE: [number, number, number, number] = [0.4, 0, 0.2, 1];
 
 const textTransition: Transition = {
@@ -911,12 +911,15 @@ export function HeroSlider({ onNavColorChange }: HeroSliderProps) {
     }
   }, [activeIndex, currentSlide.navColor, onNavColorChange]);
 
+  // v4.1 — preload EVERY hero image once, up front (there are only 5,
+  // all webp). The dissolve reveals the next slide from underneath the
+  // veil, so if that slide's image isn't already decoded it "pops" in
+  // mid-dissolve and reads as a flicker. Preloading them all means every
+  // base swap lands on an already-decoded image.
   useEffect(() => {
-    const nextIndex = (activeIndex + 1) % totalSlides;
-    const nextImageSrc = SLIDES[nextIndex].image.src;
-    const cleanup = preloadImage(nextImageSrc);
-    return cleanup;
-  }, [activeIndex, totalSlides]);
+    const cleanups = SLIDES.map((s) => preloadImage(s.image.src));
+    return () => cleanups.forEach((c) => c());
+  }, []);
 
   const goToSlide = useCallback(
     (index: number) => {
