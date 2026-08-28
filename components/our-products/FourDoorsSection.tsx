@@ -18,18 +18,23 @@
  * brick-line texture behind the doors.
  *
  * 2026-08-27 (follow-up): the brick texture didn't fit Talimoon's own
- * visual language, and BrandValues (the section directly above this
- * one) already has a much better match — the same delicate sepia
- * line-art illustration (`/images/values/book.png`: leaf branches in
- * the corners, minaret silhouettes, flowing lines converging into
- * root-like linework at the bottom) already used for its own
- * background. `<HeritageBackdrop />` reuses that exact same image
- * here too — full-strength at the top (where it visually continues
- * BrandValues' bottom edge, corner-leaf motif meeting corner-leaf
- * motif) fading down through the doors so the artwork's own linework
- * still shows faintly behind them, rather than a fresh, unrelated
- * texture. One shared asset now bridges both sections into a single
- * visual "moment," instead of each being its own disconnected block.
+ * visual language. `<HeritageBackdrop />` instead uses the delicate
+ * sepia line-art illustration `/images/values/book.png` (leaf branches
+ * in the corners, minaret silhouettes, flowing lines converging into
+ * root-like linework at the bottom), fading down through the doors so
+ * the artwork's own linework still shows faintly behind them, rather
+ * than a fresh, unrelated texture.
+ *
+ * 2026-08-28 (seam pass): BrandValues above no longer uses `book.png`
+ * — it was swapped for a painted scene (`values-scene.png`), so the
+ * old "corner-leaf motif meeting corner-leaf motif" continuity is
+ * gone. To keep the join seamless, this backdrop now FADES IN from
+ * fully transparent at the very top (over the first ~20%) instead of
+ * starting opaque, and peaks a touch softer. Combined with the
+ * matching bottom fade on `values-scene.png`, the two sections now
+ * dissolve into one shared band of flat `--surface-base` cream at the
+ * border, and `book.png`'s linework emerges gently below it rather
+ * than switching on at a hard line.
  *
  * Story Library was removed from this section only; it is left
  * untouched everywhere else (nav, routes, Hero).
@@ -45,15 +50,18 @@ function HeritageBackdrop() {
       aria-hidden="true"
       className="pointer-events-none absolute inset-0 overflow-hidden"
       style={{
-        // Opaque at the very top (where BrandValues' own corner-leaf
-        // motif ends, right above this section) fading down to a
-        // faint-but-still-visible level by the doors — never fully
-        // transparent, so the linework doubles as their "chiziqli
-        // fon" (line background) too, per spec.
+        // Fades IN from fully transparent at the very top so the
+        // line-art emerges out of the shared cream seam with
+        // BrandValues (see file header, 2026-08-28) rather than
+        // switching on at a hard border; rises to a soft peak by ~24%,
+        // then fades down to a faint-but-still-visible level by the
+        // doors — never fully transparent there, so the linework
+        // doubles as their "chiziqli fon" (line background) too, per
+        // spec.
         maskImage:
-          "linear-gradient(to bottom, black 0%, black 20%, rgba(0,0,0,0.4) 55%, rgba(0,0,0,0.22) 100%)",
+          "linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.14) 8%, rgba(0,0,0,0.55) 24%, rgba(0,0,0,0.5) 52%, rgba(0,0,0,0.2) 100%)",
         WebkitMaskImage:
-          "linear-gradient(to bottom, black 0%, black 20%, rgba(0,0,0,0.4) 55%, rgba(0,0,0,0.22) 100%)",
+          "linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.14) 8%, rgba(0,0,0,0.55) 24%, rgba(0,0,0,0.5) 52%, rgba(0,0,0,0.2) 100%)",
       }}
     >
       <Image
@@ -230,6 +238,24 @@ export function FourDoorsSection() {
       className="relative w-full overflow-hidden bg-surface-base px-6 py-[20px] sm:px-8 lg:px-16 lg:py-[30px]"
     >
       <HeritageBackdrop />
+
+      {/* Seam dissolve — paints flat `--surface-base` cream over the
+          very top edge of this section and fades out by ~240px. Sits
+          ON TOP of HeritageBackdrop (later in DOM, same auto z-index)
+          but BELOW the heading/doors/trust content (all `relative`,
+          later still). Whatever faint gold linework survives at the
+          clipped bottom edge of BrandValues' painted scene above, and
+          the top of `book.png` here, both melt into one shared band of
+          calm cream exactly at the border instead of two different
+          drawings colliding at a hard line. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-[240px]"
+        style={{
+          background:
+            "linear-gradient(to bottom, var(--surface-base) 0%, var(--surface-base) 14%, transparent 100%)",
+        }}
+      />
 
       {/* Heading — Creative Direction spec, 2026-08-07: exact copy,
           type, color and spacing values, Cormorant Garamond / Manrope,

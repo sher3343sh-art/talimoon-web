@@ -17,8 +17,8 @@
 //   the radial "light source" gradient overlay.
 //
 // Kept / restored:
-// - <SectionArtwork>: the book.png image itself IS the requested
-//   background, so it stays — full opacity, no mask, no blend mode,
+// - <SectionArtwork>: the painted scene (`values-scene.png`) itself
+//   IS the requested background, so it stays — full opacity, no mask,
 //   no gradient laid over it. Plain <Image fill className="object-
 //   cover" />, nothing else. This is content (the requested visual),
 //   not decoration, so it's not in the "remove" list.
@@ -103,35 +103,46 @@ const VALUES_EN: readonly ValueItem[] = [
   },
 ] as const;
 
+// 2026-08-28 — Uzbek value system re-aligned to the final semantic
+// model: Bilim -> Odob va poklik -> Tasavvur -> Mehr-shafqat -> Komillik.
+// "Xarakter" (too broad/abstract) replaced by "Odob va poklik" (a
+// concrete upbringing focus: good conduct, respect, tidiness, purity,
+// good daily habits) and "Donolik" by "Komillik" (the child growing,
+// with these traits, into a whole/good person as the culmination).
+// All five descriptions moved to a consistent first-person-plural
+// "we nurture" voice. `id`s are language-independent keys — unchanged,
+// so EN/RU/AR copy is untouched.
 const VALUES_UZ: readonly ValueItem[] = [
   {
     id: 'knowledge',
     title: 'Bilim',
-    description: "Umrbod bilim olishga bo'lgan ishtiyoqni uyg'otadi.",
+    description: "O'rganish, izlanish va savol berishga qiziqish uyg'otamiz.",
     iconSrc: '/images/values/icon/Knowledge.png',
   },
   {
     id: 'character',
-    title: 'Xarakter',
-    description: 'Mehribonlik, hurmat va yaxshi xulqni shakllantiradi.',
+    title: 'Odob va poklik',
+    description:
+      "Go'zal xulq, hurmat, ozodalik va poklikni kundalik odatga aylantirishga o'rgatamiz.",
     iconSrc: '/images/values/icon/Character.png',
   },
   {
     id: 'imagination',
     title: 'Tasavvur',
-    description: 'Ijodkorlik va mustaqil fikrlashni ilhomlantiradi.',
+    description: "Ijodkorlikni, tasavvurni va mustaqil fikrlashni rivojlantiramiz.",
     iconSrc: '/images/values/icon/Imagination.png',
   },
   {
     id: 'compassion',
     title: 'Mehr-shafqat',
-    description: 'Hamdardlik va insoniy iliqlikni singdiradi.',
+    description: "Mehr, hamdardlik va boshqalarga g'amxo'rlik qilishni o'rgatamiz.",
     iconSrc: '/images/values/icon/Compassion.png',
   },
   {
     id: 'wisdom',
-    title: 'Donolik',
-    description: 'Bolalarni maqsadli va xarakterli hayot sari yetaklaydi.',
+    title: 'Komillik',
+    description:
+      "O'z ustida ishlash, to'g'ri tanlov qilish va hayotda ma'noli yo'l topishga ilhomlantiramiz.",
     iconSrc: '/images/values/icon/Wisdom.png',
   },
 ] as const;
@@ -160,43 +171,56 @@ const sequenceItem: Variants = {
 };
 
 // ============================================================
-// Section artwork — the background image, shown plainly. No mask,
-// no blend mode, no gradient overlay, no opacity reduction — the
-// image renders at full strength with nothing darkening it.
-// position: absolute, inset: 0, z-0, zero flow height, so it sits
-// behind the content without affecting layout/spacing.
+// Section artwork — the background image, shown plainly: no mask,
+// blend mode, gradient overlay or opacity change.
+// 2026-08-28: this section uses its OWN asset, `values-scene.png`
+// (1536x1536, square) — a painted scene prepared to fit this layout:
+// the left ~44% is kept clear (resolving to cream) for the headline +
+// questions, the focal art sits in the right ~half. The file is
+// colour-graded from the artist's original so its cream white point
+// lands on the site cream `#F7F3EC` (= `--surface-base`), matching the
+// flat-cream FourDoorsSection right below it — no CSS tint needed.
+// (The shared `book.png` — a wider line-art-only texture — stays with
+// FourDoorsSection's HeritageBackdrop; this section no longer touches
+// it.) The wrapper's aspect-ratio matches the file exactly, the image
+// is pinned to the TOP of the section and spans the full width, so
+// nothing is ever cropped at any viewport width. Below it the
+// section's own cream (`bg-surface-base`) continues seamlessly (the
+// image's lower edge is already that cream), so the five values sit on
+// flat cream. Zero flow height.
 // ============================================================
 
 function SectionArtwork() {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none absolute inset-0 z-0 overflow-hidden"
+      className="pointer-events-none absolute inset-x-0 top-0 z-0 overflow-hidden"
       style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        width: '100%',
-        height: '100%',
-        overflow: 'hidden',
+        aspectRatio: '1 / 1',
+        // 2026-08-28 — seam fade toward FourDoorsSection (directly
+        // below). The square scene used to be hard-clipped by the
+        // section's `overflow-hidden` at ~90% of its height, slicing
+        // the faint gold flourish linework baked into its lower edge
+        // mid-stroke and colliding with FourDoorsSection's own
+        // `book.png` linework right at the border. Fading the image to
+        // transparent over its last ~16% lets that linework die out
+        // into flat `--surface-base` cream BEFORE the section ends, so
+        // both sections dissolve into one calm shared cream band at the
+        // join instead of two different drawings meeting at a ruler
+        // line. The focal art (child + stone platform, ~y 55-83%) sits
+        // above the fade and is untouched.
+        maskImage:
+          'linear-gradient(to bottom, black 0%, black 74%, transparent 90%)',
+        WebkitMaskImage:
+          'linear-gradient(to bottom, black 0%, black 74%, transparent 90%)',
       }}
     >
       <Image
-        src="/images/values/book.png"
+        src="/images/values/values-scene.png"
         alt=""
         fill
         sizes="100vw"
-        className="object-cover"
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-        }}
+        className="object-cover object-top"
         priority
       />
     </div>
@@ -207,13 +231,24 @@ function SectionArtwork() {
 // Headline — unchanged: "light" in the gold gradient, rest in navy.
 // ============================================================
 
-const HEADLINE_EN = { line1: 'Every story begins', line2Pre: 'with a single page of', highlight: 'light' };
-const HEADLINE_UZ: typeof HEADLINE_EN = { line1: 'Har bir hikoya', line2Pre: 'bitta', highlight: 'nur' };
-// Uzbek reorders the highlighted word before the trailing noun
-// ("bitta nur sahifasidan boshlanadi" — "begins from a single page
-// of light") rather than after it as in English, so line2 renders as
-// `line2Pre highlight sahifasidan boshlanadi.` instead of reusing the
-// English `line2Pre ...light.` word order.
+const HEADLINE_EN = {
+  line1: 'Every story begins',
+  line2Pre: 'with a single page of',
+  highlight: 'light',
+  // 2026-08-28 — small deck line under the headline.
+  subhead:
+    'Talimoon creates content for children that brings together knowledge, upbringing, and imagination.',
+};
+// 2026-08-28 — UZ heading replaced with a single flowing line,
+// "Bolalikdan qalbga singadigan qadriyatlarimiz.", only the last word
+// gold. EN keeps its original two-line "…page of light." wording.
+const HEADLINE_UZ: typeof HEADLINE_EN = {
+  line1: 'Bolalikdan qalbga singadigan',
+  line2Pre: '',
+  highlight: 'qadriyatlarimiz',
+  subhead:
+    "Talimoon bolalar uchun bilim, tarbiya va tasavvurni birlashtirgan mazmun yaratadi.",
+};
 
 function Headline() {
   const { language } = useLanguage();
@@ -235,28 +270,70 @@ function Headline() {
     <motion.h2
       id="brand-values-heading"
       variants={sequenceItem}
-      className="relative z-10 mx-auto max-w-[900px] text-center text-[40px] md:text-[52px] lg:text-[68px]"
+      /* ~15% smaller than before (68 -> 58 at lg) and a wide max-width
+         at lg so the UZ line "Bolalikdan qalbga singadigan
+         qadriyatlarimiz." sits on ONE row on desktop; it still wraps
+         naturally on tablet / mobile. */
+      className="relative z-10 mx-auto max-w-[900px] text-center text-[34px] md:text-[44px] lg:max-w-[1240px] lg:text-[58px]"
       style={{
         fontFamily: DISPLAY_FONT,
         fontWeight: 600,
         lineHeight: 0.95,
         letterSpacing: '-0.035em',
         color: NAVY,
-        marginBottom: 22,
+        marginBottom: 12,
       }}
     >
-      {t.line1}
-      <br />
       {language === 'UZ' ? (
         <>
-          {t.line2Pre} {highlightSpan} sahifasidan boshlanadi.
+          {t.line1} {highlightSpan}.
         </>
       ) : (
         <>
+          {t.line1}
+          <br />
           {t.line2Pre} {highlightSpan}.
         </>
       )}
     </motion.h2>
+  );
+}
+
+// ============================================================
+// Deck — one small supporting line directly under the headline
+// (2026-08-28). Body font, muted navy, well under the headline size
+// so it reads as a subtitle, not a second heading. Part of the same
+// scroll-reveal stagger (`sequenceItem`).
+//
+// 2026-08-28 (polish): the first pass felt cramped — leading was
+// tighter (1.55) than the section's body-copy norm (~1.65) and it sat
+// almost touching the headline. Opened it up: line-height 1.72, a
+// faint positive letter-spacing for an airy subtitle feel, and a
+// small `marginTop` so it breathes under the headline (the headline's
+// own `marginBottom` stays small so the two still read as one unit).
+// The measure is wide (820px) so the UZ line sits on ONE row on
+// desktop, mirroring the headline above it; it still wraps naturally
+// on tablet / mobile where the viewport is narrower than that.
+// ============================================================
+
+function HeadlineDeck() {
+  const t = useT(HEADLINE_EN, HEADLINE_UZ);
+  return (
+    <motion.p
+      variants={sequenceItem}
+      className="relative z-10 mx-auto max-w-[820px] text-center"
+      style={{
+        fontFamily: BODY_FONT,
+        fontWeight: 400,
+        fontSize: 18,
+        lineHeight: 1.72,
+        letterSpacing: '0.008em',
+        color: 'rgba(23,36,60,0.6)',
+        marginTop: 6,
+      }}
+    >
+      {t.subhead}
+    </motion.p>
   );
 }
 
@@ -321,8 +398,12 @@ const ValueColumn = React.memo(function ValueColumn({
         }}
       />
 
+      {/* line-clamp-4 (was -2): the re-aligned value descriptions run
+          a little longer than the old ones and were getting cut off at
+          two lines — this shows them in full while still capping any
+          future runaway string. */}
       <p
-        className="line-clamp-2 opacity-90 transition-opacity duration-[450ms] ease-out md:group-hover:opacity-100"
+        className="line-clamp-4 opacity-90 transition-opacity duration-[450ms] ease-out md:group-hover:opacity-100"
         style={{
           fontFamily: BODY_FONT,
           fontSize: 17,
@@ -351,8 +432,175 @@ const SECTION_COPY_EN = {
 const SECTION_COPY_UZ: typeof SECTION_COPY_EN = {
   eyebrow: 'QADRIYATLARIMIZ',
   description:
-    "Bitta ochiq kitobdan bola qalbida besh mangu qadriyat unib chiqadi va go'zal ertangi kunni shakllantiradi.",
+    "Bolalikda qalbga singdirilgan qadriyatlar bir umr hamroh bo'ladi. Shuning uchun Talimoon yaratgan har bir hikoya, kitob va mahsulot besh asosiy qadriyatga tayanadi.",
 };
+
+// ============================================================
+// Reflective questions — the block that sits to the LEFT of the
+// illustration space (illustration arrives in a later step).
+// Editorial storytelling, not a FAQ: a small gold "?" line mark, a
+// firm question, a soft supporting line, separated only by a
+// hairline — no card / box / border / shadow, it lives directly on
+// the cream canvas. UZ copy is final and approved; EN mirrors it so
+// `useT` has both objects and the block is ready for RU/AR later.
+// ============================================================
+
+interface Reflection {
+  readonly q: string;
+  readonly s: string;
+}
+interface ReflectCopy {
+  readonly prompt: string;
+  readonly items: readonly Reflection[];
+}
+
+const REFLECT_EN: ReflectCopy = {
+  prompt: 'Have you ever wondered?',
+  items: [
+    {
+      q: 'What kind of person do you hope your child grows into?',
+      s: 'What values are taking shape in their heart today that will guide the life ahead of them?',
+    },
+    {
+      q: "What is shaping your child's world right now?",
+      s: 'What mark do the things they watch, hear, read and play with leave on their heart?',
+    },
+    {
+      q: 'Can they choose what is right even when no one is telling them to?',
+      s: 'Are knowledge, good manners, kindness and independent thinking becoming their own inner compass?',
+    },
+    {
+      q: 'One day they will walk their own path. What do you hope stays in their heart?',
+      s: 'The values placed in their heart today will show tomorrow in their decisions, their relationships and who they become.',
+    },
+  ],
+};
+
+const REFLECT_UZ: ReflectCopy = {
+  prompt: "O'ylab ko'rganmisiz?",
+  items: [
+    {
+      q: "Farzandingiz ulg'ayganda qanday inson bo'lishini istaysiz?",
+      s: "Bugun uning qalbida ertangi hayotiga yo'l ko'rsatadigan qanday qadriyatlar shakllanmoqda?",
+    },
+    {
+      q: 'Uning dunyosini bugun nimalar shakllantiryapti?',
+      s: "Ko'rayotgani, tinglayotgani, o'qiyotgani va o'ynayotgani uning qalbida qanday iz qoldiryapti?",
+    },
+    {
+      q: 'Hech kim aytib turmaganda ham, u yaxshini tanlay oladimi?',
+      s: 'Bilim, odob, mehr va mustaqil fikrlash uning ichki mezoniga aylanib boryaptimi?',
+    },
+    {
+      q: "Bir kun u o'z yo'lidan ketadi. Uning qalbida nimalar qolishini istaysiz?",
+      s: "Bugun qalbiga singdirilgan qadriyatlar ertaga uning qarorlari, munosabatlari va kim bo'lib yetishishida namoyon bo'ladi.",
+    },
+  ],
+};
+
+function AskMark() {
+  return (
+    <svg
+      width="34"
+      height="34"
+      viewBox="0 0 34 34"
+      fill="none"
+      stroke={GOLD}
+      strokeLinecap="round"
+      aria-hidden="true"
+      className="mt-[1px] shrink-0"
+    >
+      {/* thin gold ring (small — well under the 36px cap, not the big
+          reference circles) with a light line "?" inside */}
+      <circle cx="17" cy="17" r="15.6" strokeWidth="1.1" />
+      <path
+        d="M13.2 13.4a4 4 0 1 1 5.9 3.9c-1.7 1 -2.4 1.9 -2.4 3.5"
+        strokeWidth="1.5"
+      />
+      <circle cx="16.7" cy="24" r="0.7" fill={GOLD} stroke="none" />
+    </svg>
+  );
+}
+
+function ReflectiveQuestions() {
+  const t = useT(REFLECT_EN, REFLECT_UZ);
+
+  return (
+    <motion.div
+      variants={sequenceContainer}
+      className="mt-8 w-full md:mt-10 md:grid md:grid-cols-[minmax(0,47fr)_minmax(0,53fr)] md:items-start md:gap-14 lg:gap-20"
+    >
+      {/* LEFT — prompt + four reflective questions */}
+      <motion.div variants={sequenceContainer} className="max-w-[560px] text-left">
+        <motion.p
+          variants={sequenceItem}
+          style={{ fontFamily: DISPLAY_FONT, fontWeight: 600, fontSize: 22, color: GOLD }}
+        >
+          {t.prompt}
+        </motion.p>
+        <div
+          aria-hidden="true"
+          className="mt-2"
+          style={{ width: 40, height: 2, backgroundColor: GOLD }}
+        />
+
+        {t.items.map((it, i) => (
+          <motion.div
+            key={i}
+            variants={sequenceItem}
+            style={{ marginTop: i === 0 ? 26 : 0 }}
+          >
+            {i > 0 && (
+              <span
+                aria-hidden="true"
+                className="mb-6 block"
+                style={{
+                  height: 1,
+                  backgroundImage: `repeating-linear-gradient(to right, ${GOLD}66 0 5px, transparent 5px 11px)`,
+                }}
+              />
+            )}
+            <div className="flex gap-3">
+              <AskMark />
+              <div>
+                <h3
+                  style={{
+                    fontFamily: BODY_FONT,
+                    fontWeight: 600,
+                    fontSize: 18.5,
+                    lineHeight: 1.35,
+                    color: NAVY,
+                  }}
+                >
+                  {it.q}
+                </h3>
+                <p
+                  style={{
+                    fontFamily: BODY_FONT,
+                    fontWeight: 400,
+                    fontSize: 15,
+                    lineHeight: 1.6,
+                    color: 'rgba(23,36,60,0.56)',
+                    marginTop: 7,
+                    maxWidth: 440,
+                  }}
+                >
+                  {it.s}
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </motion.div>
+
+      {/* RIGHT — intentionally empty. The `values-scene.png` artwork
+          behind the whole section already paints the child + sunlit
+          city in this half, so it reads as breathing room, not an
+          unfinished panel. No placeholder / dashed box / label. */}
+      <div aria-hidden="true" className="hidden md:block" />
+    </motion.div>
+  );
+}
 
 export function BrandValues() {
   const sectionCopy = useT(SECTION_COPY_EN, SECTION_COPY_UZ);
@@ -366,12 +614,12 @@ export function BrandValues() {
       <SectionArtwork />
 
       <motion.div
-        className="relative z-10 mx-auto flex flex-col items-center md:min-h-[520px] md:justify-center"
-        style={{ paddingTop: 64, paddingBottom: 64 }}
+        className="relative z-10 mx-auto flex w-full max-w-[1240px] flex-col items-center"
+        style={{ paddingTop: 80, paddingBottom: 88 }}
         variants={sequenceContainer}
         initial="hidden"
         whileInView="visible"
-        viewport={{ once: true, amount: 0.3 }}
+        viewport={{ once: true, amount: 0.2 }}
       >
         <motion.span
           variants={sequenceItem}
@@ -389,20 +637,52 @@ export function BrandValues() {
         </motion.span>
 
         <Headline />
+        <HeadlineDeck />
 
+        {/* Reflective questions (left) + reserved illustration space
+            (right). Copy / icons / layout of everything else is
+            untouched; the five values below simply flow down. */}
+        <ReflectiveQuestions />
+
+        {/* Supporting statement — sits AFTER the questions, reading as
+            TALIMOON's answer to them, just above the five values.
+            Wider max-width so the longer copy settles into ~2 balanced
+            lines by natural wrap (no forced <br>). Only "besh asosiy
+            qadriyatga" gets a flat-gold accent — the same gold the
+            headline highlight uses, no new style; falls back to plain
+            text if the phrase isn't present (e.g. EN). */}
         <motion.p
           variants={sequenceItem}
-          className="mx-auto max-w-[640px] text-center"
+          /* 2026-08-28 — extra top gap on md+ so this line clears the
+             lower edge of the `values-scene.png` child illustration
+             (the image is a full-width square pinned to the section
+             top, so on wider viewports the child sits lower); it now
+             starts below the artwork rather than touching it. Mobile
+             keeps the tighter `mt-16` — there the square image is only
+             ~1 viewport-width tall, so the child is already well
+             above this point. */
+          className="mx-auto mt-16 max-w-[860px] text-center md:mt-40"
           style={{
             fontFamily: BODY_FONT,
             fontWeight: 400,
             fontSize: 21,
             lineHeight: 1.65,
             color: 'rgba(23,36,60,0.68)',
-            marginBottom: 36,
           }}
         >
-          {sectionCopy.description}
+          {(() => {
+            const d = sectionCopy.description;
+            const key = 'besh asosiy qadriyatga';
+            const at = d.indexOf(key);
+            if (at === -1) return d;
+            return (
+              <>
+                {d.slice(0, at)}
+                <span style={{ color: GOLD }}>{key}</span>
+                {d.slice(at + key.length)}
+              </>
+            );
+          })()}
         </motion.p>
 
         {/* Five Values — icons, titles, and descriptions unchanged.
@@ -410,7 +690,7 @@ export function BrandValues() {
             between (not around) columns. Mobile: vertical list. */}
         <motion.div
           variants={sequenceItem}
-          className="grid w-full grid-cols-1 gap-y-12 md:grid-cols-5 md:gap-x-8 md:gap-y-0"
+          className="mt-14 grid w-full grid-cols-1 gap-y-12 md:mt-16 md:grid-cols-5 md:gap-x-8 md:gap-y-0"
         >
           {values.map((value, i) => (
             <ValueColumn key={value.id} item={value} showDivider={i > 0} />
