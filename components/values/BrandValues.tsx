@@ -202,22 +202,23 @@ function SectionArtwork() {
       className="pointer-events-none absolute inset-x-0 top-0 z-0 hidden overflow-hidden md:block"
       style={{
         aspectRatio: '1 / 1',
-        // 2026-08-28 — seam fade toward FourDoorsSection (directly
-        // below). The square scene used to be hard-clipped by the
-        // section's `overflow-hidden` at ~90% of its height, slicing
-        // the faint gold flourish linework baked into its lower edge
-        // mid-stroke and colliding with FourDoorsSection's own
-        // `book.png` linework right at the border. Fading the image to
-        // transparent over its last ~16% lets that linework die out
-        // into flat `--surface-base` cream BEFORE the section ends, so
-        // both sections dissolve into one calm shared cream band at the
-        // join instead of two different drawings meeting at a ruler
-        // line. The focal art (child + stone platform, ~y 55-83%) sits
-        // above the fade and is untouched.
+        // Seam fades on BOTH edges of the painted square so it never
+        // meets a section border as a hard line:
+        //  • TOP (new, 2026-08-29) — the gold branch/leaf flourishes
+        //    baked into the scene's top corners used to be sliced
+        //    mid-leaf exactly at the Hero↕Values border ("xunik
+        //    kesilgan barglar"). Fading the image in from transparent
+        //    over its first ~15% lets that foliage die out into flat
+        //    `--surface-base` cream, so the Hero's own bottom cream
+        //    fade and this scene melt into one shared calm band at the
+        //    join. Focal art (sun/city ~y25%+, child ~y45-83%) is well
+        //    below the fade, untouched.
+        //  • BOTTOM — same idea toward FourDoorsSection: the lower gold
+        //    flourish linework dies into cream before the section ends.
         maskImage:
-          'linear-gradient(to bottom, black 0%, black 74%, transparent 90%)',
+          'linear-gradient(to bottom, transparent 0%, black 13%, black 72%, transparent 90%)',
         WebkitMaskImage:
-          'linear-gradient(to bottom, black 0%, black 74%, transparent 90%)',
+          'linear-gradient(to bottom, transparent 0%, black 13%, black 72%, transparent 90%)',
       }}
     >
       <Image
@@ -749,6 +750,31 @@ export function BrandValues() {
       className="relative w-full overflow-hidden bg-surface-base px-6 md:px-16"
     >
       <SectionArtwork />
+
+      {/* Hero → Values seam (2026-08-29). Two layers, painted over the
+          very top of the section, under the content (z-[1] > SectionArtwork
+          z-0, < content z-10):
+           1. a flat `--surface-base` band that fades out by ~full height
+              — so the top of the painted scene AND the Hero's bottom
+              cream fade both resolve into one shared calm cream band at
+              the border instead of a hard cut.
+           2. a whisper of warm gold light bleeding down from the seam —
+              the golden-hour glow of the Hero photos "carrying over"
+              into the Values cream. Barely-there (α .06); it just keeps
+              the two sections in one warm key rather than snapping from
+              photographic to flat. No rule, no line — a pure premium
+              dissolve.
+          Desktop/tablet only: on mobile there's no SectionArtwork here,
+          the eyebrow+heading already sit on plain cream, and the Hero's
+          own colour-matched fade is enough. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 z-[1] hidden h-[220px] md:block"
+        style={{
+          background:
+            'radial-gradient(130% 120px at 50% 0%, rgba(200,160,74,0.06), transparent 72%), linear-gradient(to bottom, var(--surface-base) 0%, var(--surface-base) 16%, transparent 100%)',
+        }}
+      />
 
       <motion.div
         /* mobile pulls the section up (pt 80 -> 40) and tightens the

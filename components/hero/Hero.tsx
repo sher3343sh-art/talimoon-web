@@ -1033,16 +1033,18 @@ export function HeroSlider({ onNavColorChange }: HeroSliderProps) {
         })}
       </div>
 
-      {/* Trust bo'limiga o'tish gradienti – 50% qisqartirildi (h-24 -> h-12).
-          v3: desktop-only. On mobile this cream fade would sit directly
-          on top of MobileHeroText's bottom-anchored zone and wash out
-          the dark navy gradient exactly where the text needs contrast
-          — mobile's own MOBILE_GRADIENT already grounds the bottom
-          edge, so this strip is skipped there rather than fighting it. */}
+      {/* Landing gradient into the section below (BrandValues). v6: the
+          cream target is now the EXACT `--surface-base` (#F7F3EC) that
+          BrandValues uses, not the slightly warmer #F8F5EF — so there's
+          no cream-tone step at the seam — and it's a touch taller (h-16)
+          so the hero's photo sinks into cream over a real distance
+          rather than a thin hard edge. BrandValues meets it with its own
+          top-side dissolve. Desktop-only (mobile's navy MOBILE_GRADIENT
+          owns the bottom). */}
       {!isMobile && (
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-12 bg-gradient-to-b from-transparent via-[#F8F5EF]/35 to-[#F8F5EF]"
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-16 bg-gradient-to-b from-transparent via-[#F7F3EC]/35 to-[#F7F3EC]"
         />
       )}
 
@@ -1057,7 +1059,7 @@ export function HeroSlider({ onNavColorChange }: HeroSliderProps) {
       {isMobile && (
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 bottom-0 z-[6] h-4 bg-gradient-to-b from-transparent to-[#F8F5EF]"
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-[6] h-8 bg-gradient-to-b from-transparent to-[#F7F3EC]"
         />
       )}
 
