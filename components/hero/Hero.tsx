@@ -266,11 +266,18 @@ const MOBILE_HERO_HEIGHT = 'clamp(380px, 115vw, 460px)';
 const MOBILE_GRADIENT =
   'linear-gradient(to top, rgba(28,42,58,0.90) 0%, rgba(28,42,58,0.62) 25%, rgba(28,42,58,0.20) 32%, transparent 50%)';
 
-// (v3.1) MOBILE_BLUR_MASK + its `backdrop-filter` layer were removed:
-// on phones a backdrop-filter nested inside the per-slide wrapper whose
-// opacity/filter animate during the crossfade flashed hard WHITE mid-
-// transition (a known mobile Chrome/Safari bug). MOBILE_GRADIENT alone
-// now carries the text contrast. See HeroSlide's mobile branch.
+// Mask for the mobile defocus layer — mirrors MOBILE_GRADIENT's stops
+// so the backdrop-blur fades in lockstep with the darkening (the photo
+// itself goes softly out of focus right where the text sits).
+//
+// v3.2: this layer and MOBILE_GRADIENT are now rendered ONCE as static
+// siblings in HeroSlider, NOT inside the per-slide wrapper. A
+// backdrop-filter nested under an element whose opacity/filter animate
+// (the old crossfade wrapper) flashes hard white for a frame on mobile
+// Chrome/Safari — lifting it out of that wrapper fixes the flash while
+// keeping the defocus effect.
+const MOBILE_BLUR_MASK =
+  'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.75) 25%, rgba(0,0,0,0.25) 32%, rgba(0,0,0,0) 50%)';
 
 // ============================================================
 // Animation Definitions
@@ -748,19 +755,32 @@ const HeroSlide = memo(
     const activeFocalPoint =
       isMobile && image.mobileFocalPoint ? image.mobileFocalPoint : image.focalPoint;
 
-    // v3.1 — mobile-only crossfade fix. Desktop keeps its exact v2/v3
-    // exit (fade + blur out). On mobile the outgoing slide instead
-    // HOLDS fully opaque for the whole transition, then drops out in a
-    // blink once the incoming slide is already at full opacity on top.
-    // The incoming slide still blurs+fades in the same way, so the
-    // motion reads identically — but there is never a moment where both
-    // layers are semi-transparent, which is what used to let the page
-    // background punch through as a white flash.
+    // v3.2 — the WHITE FLASH fix.
+    //
+    // Desktop: byte-for-byte the v2/v3 crossfade — opacity + `filter`
+    // blur, in and out.
+    //
+    // Mobile: `filter` is dropped from the transition entirely. Every
+    // slide swap mounts a fresh wrapper with `filter: blur(10px)`,
+    // which forces the browser to spin up a new filtered compositing
+    // layer — on mobile GPUs the first frame of that layer paints
+    // white, which is the flash. A plain opacity crossfade needs no
+    // such layer. The "hiralanish"/defocus look is instead carried by
+    // the STATIC backdrop-filter layer in HeroSlider (rendered once,
+    // never inside an animating wrapper). The outgoing slide also holds
+    // fully opaque for the whole fade so no translucent-on-translucent
+    // midpoint can let anything punch through.
+    const enter = isMobile
+      ? { initial: { opacity: 0 }, animate: { opacity: 1 } }
+      : {
+          initial: { opacity: 0, filter: `blur(${HERO_CONFIG.crossfadeBlur}px)` },
+          animate: { opacity: 1, filter: 'blur(0px)' },
+        };
     const exitAnim = isMobile
       ? {
           opacity: 0,
           transition: {
-            duration: 0.25,
+            duration: 0.3,
             delay: HERO_CONFIG.transitionDuration / 1000,
           },
         }
@@ -769,9 +789,9 @@ const HeroSlide = memo(
     return (
       <motion.div
         className="absolute inset-0 w-full h-full"
-        style={{ willChange: 'opacity, filter' }}
-        initial={{ opacity: 0, filter: `blur(${HERO_CONFIG.crossfadeBlur}px)` }}
-        animate={{ opacity: 1, filter: 'blur(0px)' }}
+        style={{ willChange: isMobile ? 'opacity' : 'opacity, filter' }}
+        initial={enter.initial}
+        animate={enter.animate}
         exit={exitAnim}
         transition={imageTransition}
         id={`hero-slide-${slide.id}`}
@@ -787,29 +807,11 @@ const HeroSlide = memo(
         />
 
         {isMobile ? (
-          // v3 mobile treatment: one full-bleed image, one strong
-          // bottom-up gradient, left-aligned text anchored to the
-          // bottom — no separate box splitting the frame. See file
-          // header for the full reasoning.
-          <>
-            {/* v3.1: the mobile `backdrop-filter` defocus layer that
-                used to sit here was removed — nested inside this
-                per-slide wrapper (whose opacity + filter animate during
-                the crossfade) it rendered as a hard WHITE FLASH mid-
-                transition on phones. MOBILE_GRADIENT below already
-                carries all the text contrast; the subtle defocus is
-                the price of a clean, flash-free transition. */}
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-0 z-[5]"
-              style={{ backgroundImage: MOBILE_GRADIENT }}
-            />
-            <MobileHeroText
-              eyebrow={textData.name}
-              headline={textData.headline}
-              description={textData.description}
-            />
-          </>
+          // v3.2: on mobile this per-slide wrapper carries ONLY the
+          // image. The defocus layer, the gradient and the text are all
+          // rendered once in HeroSlider, outside this crossfading
+          // wrapper, so nothing that could white-flash lives here.
+          null
         ) : (
           // Desktop: unchanged from v2 — same wrapper, same HeroScrim,
           // same HeroTextBlock, same props.
@@ -968,6 +970,41 @@ export function HeroSlider({ onNavColorChange }: HeroSliderProps) {
             priority={isFirstSlide}
           />
         </AnimatePresence>
+
+        {/* v3.2 — mobile: the defocus + gradient + text, rendered ONCE
+            here as STATIC layers on top of the crossfading images
+            instead of inside each slide. The backdrop-filter now blurs
+            whatever image is currently showing (or the blend of two
+            mid-transition) from a wrapper whose own opacity/filter
+            never animate — so it can no longer white-flash. Only the
+            text gets its own keyed crossfade. Desktop path unchanged. */}
+        {isMobile && (
+          <>
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 z-[4]"
+              style={{
+                backdropFilter: 'blur(3px)',
+                WebkitBackdropFilter: 'blur(3px)',
+                WebkitMaskImage: MOBILE_BLUR_MASK,
+                maskImage: MOBILE_BLUR_MASK,
+              }}
+            />
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 z-[5]"
+              style={{ backgroundImage: MOBILE_GRADIENT }}
+            />
+            <AnimatePresence initial={false}>
+              <MobileHeroText
+                key={activeIndex}
+                eyebrow={currentSlide.name}
+                headline={currentSlide.headline}
+                description={currentSlide.description}
+              />
+            </AnimatePresence>
+          </>
+        )}
       </div>
 
       {/* Trust bo'limiga o'tish gradienti – 50% qisqartirildi (h-24 -> h-12).
