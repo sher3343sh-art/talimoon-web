@@ -878,10 +878,6 @@ const CAROUSEL_CHROME_UZ: typeof CAROUSEL_CHROME_EN = {
 };
 
 export function HeroSlider({ onNavColorChange }: HeroSliderProps) {
-  const [activeIndex, setActiveIndex] = useState<number>(0);
-  // v4 — the slide we're leaving. While set, its frozen copy is drawn
-  // as a VEIL on top of the (opaque) active slide and dissolved out.
-  const [exitingIndex, setExitingIndex] = useState<number | null>(null);
   const isMobile = useMediaQuery('(max-width: 767px)');
   const reducedMotion = useReducedMotion();
   const { language } = useLanguage();
@@ -903,13 +899,30 @@ export function HeroSlider({ onNavColorChange }: HeroSliderProps) {
   }, [language]);
 
   const totalSlides = slides.length;
-  const currentSlide = slides[activeIndex];
+
+  // ── v5 — TWO PERSISTENT LAYERS ────────────────────────────────────
+  // The flicker at the swap was a fresh <img> needing a frame to paint.
+  // Fix: two layers that NEVER unmount. `layerIdx` is which slide each
+  // shows; `top` is the layer currently on top. To move to a new slide
+  // we point the *other* (hidden, behind) layer at it — its <img> gets
+  // the full dissolve to paint, unseen — then fade the top layer's
+  // (already-painted) frame out to reveal it, and finally flip `top`.
+  // At no instant is the screen not covered by an opaque, painted
+  // layer, so there is nothing to flicker. `kbKey` restarts a layer's
+  // Ken Burns when it receives a new slide.
+  const [layerIdx, setLayerIdx] = useState<[number, number]>([0, 0]);
+  const [kbKey, setKbKey] = useState<[number, number]>([0, 0]);
+  const [top, setTop] = useState<0 | 1>(0);
+  const [fading, setFading] = useState(false);
+
+  // The slide the viewer is (or is becoming) focused on: the top layer
+  // when idle, the emerging layer while the top one dissolves away.
+  const liveIndex = fading ? layerIdx[top === 0 ? 1 : 0] : layerIdx[top];
+  const liveSlide = slides[liveIndex];
 
   useEffect(() => {
-    if (onNavColorChange) {
-      onNavColorChange(currentSlide.navColor);
-    }
-  }, [activeIndex, currentSlide.navColor, onNavColorChange]);
+    onNavColorChange?.(liveSlide.navColor);
+  }, [liveSlide.navColor, onNavColorChange]);
 
   // v4.1 — preload EVERY hero image once, up front (there are only 5,
   // all webp). The dissolve reveals the next slide from underneath the
@@ -923,26 +936,29 @@ export function HeroSlider({ onNavColorChange }: HeroSliderProps) {
 
   const goToSlide = useCallback(
     (index: number) => {
+      if (fading) return; // ignore requests mid-dissolve
       // Modulo orqali cheksiz aylanish: oxirgi slayddan keyin avtomatik 0-indeksga qaytadi
       let target = index;
       if (target < 0) target = totalSlides - 1;
       if (target >= totalSlides) target = 0;
-      if (target === activeIndex) return;
-      // The slide we're on becomes the dissolving veil; the target
-      // becomes the (already-opaque) base underneath it.
-      setExitingIndex(activeIndex);
-      setActiveIndex(target);
+      if (target === liveIndex) return;
+      const other: 0 | 1 = top === 0 ? 1 : 0;
+      // Point the hidden layer at the new slide (+ restart its Ken
+      // Burns), then start dissolving the top layer away.
+      setLayerIdx((p) => (other === 0 ? [target, p[1]] : [p[0], target]));
+      setKbKey((p) => (other === 0 ? [p[0] + 1, p[1]] : [p[0], p[1] + 1]));
+      setFading(true);
     },
-    [totalSlides, activeIndex]
+    [fading, totalSlides, liveIndex, top]
   );
 
   const goToNext = useCallback(() => {
-    goToSlide(activeIndex + 1);
-  }, [activeIndex, goToSlide]);
+    goToSlide(liveIndex + 1);
+  }, [liveIndex, goToSlide]);
 
   const goToPrev = useCallback(() => {
-    goToSlide(activeIndex - 1);
-  }, [activeIndex, goToSlide]);
+    goToSlide(liveIndex - 1);
+  }, [liveIndex, goToSlide]);
 
   // Har doim ishlab turadi – pauza yo'q, to'xtamaydi, hover'ga bog'liq emas
   useHeroAutoplay({
@@ -957,8 +973,6 @@ export function HeroSlider({ onNavColorChange }: HeroSliderProps) {
     onNext: goToNext,
   });
 
-  const isFirstSlide = activeIndex === 0;
-
   return (
     <section
       className="relative w-full overflow-hidden flex-shrink-0"
@@ -971,52 +985,52 @@ export function HeroSlider({ onNavColorChange }: HeroSliderProps) {
       aria-roledescription="carousel"
     >
       <div className="absolute inset-0">
-        {/* Opaque floor under everything — an image that hasn't decoded
-            yet, or any stray sub-frame, resolves to this dark navy,
-            never white. Both breakpoints now (the veil model means the
-            floor is essentially never seen, but it costs nothing). */}
+        {/* Opaque floor — nothing should ever reach it (a layer always
+            covers), but if it did it dips to navy, never white. */}
         <div
           aria-hidden="true"
           className="absolute inset-0"
           style={{ backgroundColor: '#1C2A3A' }}
         />
 
-        {/* BASE — the live slide. Always fully opaque, runs its own Ken
-            Burns. `key` swaps it instantly when activeIndex changes, but
-            that instant is entirely hidden under the opaque VEIL. */}
-        <HeroSlide
-          key={`base-${activeIndex}`}
-          slide={currentSlide}
-          isMobile={isMobile}
-          priority={isFirstSlide}
-        />
-
-        {/* VEIL — a frozen copy of the slide we're leaving, sitting ON
-            TOP and easing from opacity 1 → 0 to reveal the BASE beneath.
-            The BASE is opaque the whole time, so the composite never
-            drops below fully opaque: no crossfade midpoint, no bleed,
-            no flicker on either breakpoint. Unmounts at opacity 0. */}
-        {exitingIndex !== null && (
-          <motion.div
-            key={`veil-${exitingIndex}`}
-            className="absolute inset-0 z-[20]"
-            style={{ willChange: 'opacity' }}
-            initial={{ opacity: 1 }}
-            animate={{ opacity: 0 }}
-            transition={{
-              duration: reducedMotion ? 0 : HERO_DISSOLVE_MS / 1000,
-              ease: HERO_DISSOLVE_EASE,
-            }}
-            onAnimationComplete={() => setExitingIndex(null)}
-          >
-            <HeroSlide
-              slide={slides[exitingIndex]}
-              isMobile={isMobile}
-              priority={false}
-              frozen
-            />
-          </motion.div>
-        )}
+        {/* Two persistent layers. Neither ever unmounts, so their <img>
+            elements stay painted across a slide change — there's no
+            fresh-<img> frame to flicker. Only the TOP layer animates
+            opacity (1 → 0 while dissolving); the other is always opaque
+            underneath. `top` flips once the dissolve completes. */}
+        {([0, 1] as const).map((layer) => {
+          const isTop = top === layer;
+          const dissolvingOut = isTop && fading;
+          return (
+            <motion.div
+              key={layer}
+              className="absolute inset-0"
+              style={{ zIndex: isTop ? 20 : 10, willChange: 'opacity' }}
+              animate={{ opacity: dissolvingOut ? 0 : 1 }}
+              transition={
+                dissolvingOut
+                  ? {
+                      duration: reducedMotion ? 0 : HERO_DISSOLVE_MS / 1000,
+                      ease: HERO_DISSOLVE_EASE,
+                    }
+                  : { duration: 0 }
+              }
+              onAnimationComplete={() => {
+                if (dissolvingOut) {
+                  setTop(layer === 0 ? 1 : 0);
+                  setFading(false);
+                }
+              }}
+            >
+              <HeroSlide
+                key={`kb-${layer}-${kbKey[layer]}`}
+                slide={slides[layerIdx[layer]]}
+                isMobile={isMobile}
+                priority={layerIdx[layer] === 0}
+              />
+            </motion.div>
+          );
+        })}
       </div>
 
       {/* Trust bo'limiga o'tish gradienti – 50% qisqartirildi (h-24 -> h-12).
@@ -1053,7 +1067,7 @@ export function HeroSlider({ onNavColorChange }: HeroSliderProps) {
         aria-atomic="true"
         aria-label={chrome.currentSlideLabel}
       >
-        {chrome.slideOf(activeIndex + 1, totalSlides, currentSlide.headline)}
+        {chrome.slideOf(liveIndex + 1, totalSlides, liveSlide.headline)}
       </div>
     </section>
   );
