@@ -280,12 +280,13 @@ function Headline() {
          qadriyatlarimiz." sits on ONE row on desktop; it still wraps
          naturally on tablet / mobile. */
       /* mobile stepped down two sizes (34 -> 26) per 2026-08-28 mobile
-         pass; md/lg unchanged. */
-      className="relative z-10 mx-auto max-w-[900px] text-center text-[26px] md:text-[44px] lg:max-w-[1240px] lg:text-[58px]"
+         pass; md/lg unchanged. leading opened up on mobile (0.95 ->
+         1.15) so the wrapped "…qadriyatlarimiz" line isn't cramped
+         against the line above it; md/lg keep the tight 0.95. */
+      className="relative z-10 mx-auto max-w-[900px] text-center text-[26px] leading-[1.15] md:text-[44px] md:leading-[0.95] lg:max-w-[1240px] lg:text-[58px]"
       style={{
         fontFamily: DISPLAY_FONT,
         fontWeight: 600,
-        lineHeight: 0.95,
         letterSpacing: '-0.035em',
         color: NAVY,
         marginBottom: 12,
@@ -370,7 +371,7 @@ function MobileValuesScene() {
       className="relative z-10 mt-4 w-[calc(100%+3rem)] md:hidden"
     >
       <div
-        className="relative w-full overflow-hidden"
+        className="pointer-events-none relative w-full overflow-hidden"
         style={{ aspectRatio: '1 / 1' }}
       >
         <Image
@@ -380,10 +381,13 @@ function MobileValuesScene() {
           sizes="100vw"
           className="object-cover object-top"
         />
-        {/* top + bottom edges melt into the section cream */}
+        {/* only the top + bottom edges melt into the section cream —
+            no overlay over the left half, so the faint sepia city on
+            the left stays visible (the painting reads as a full
+            background behind the type). */}
         <div
           aria-hidden="true"
-          className="absolute inset-x-0 top-0 h-[10%]"
+          className="absolute inset-x-0 top-0 h-[9%]"
           style={{
             background:
               'linear-gradient(to top, transparent, var(--surface-base))',
@@ -391,34 +395,46 @@ function MobileValuesScene() {
         />
         <div
           aria-hidden="true"
-          className="absolute inset-x-0 bottom-0 h-[30%]"
+          className="absolute inset-x-0 bottom-0 h-[22%]"
           style={{
             background:
-              'linear-gradient(to bottom, transparent, var(--surface-base) 94%)',
+              'linear-gradient(to bottom, transparent, var(--surface-base) 100%)',
           }}
         />
-        {/* left-side cream lift so the deck line reads over the pale
-            sky — fades out well before the child */}
-        <div
-          aria-hidden="true"
-          className="absolute inset-y-0 left-0 w-[64%]"
-          style={{
-            background:
-              'linear-gradient(to right, var(--surface-base) 6%, rgba(247,243,236,0.7) 36%, transparent 82%)',
-          }}
-        />
+        {/* Deck line as a display "banner" lockup, set over the city /
+            to the LEFT of the seated child (never on the child). No
+            box / scrim — a soft cream glow is the only legibility aid.
+            The three pillars are picked out in gold. */}
         <p
-          className="absolute left-[6%] top-1/2 w-[46%] -translate-y-1/2 text-left"
+          className="absolute left-[4%] top-1/2 w-[49%] -translate-y-1/2 text-left"
           style={{
-            fontFamily: BODY_FONT,
-            fontWeight: 400,
-            fontSize: 12.5,
-            lineHeight: 1.5,
-            letterSpacing: '0.005em',
-            color: 'rgba(23,36,60,0.74)',
+            fontFamily: DISPLAY_FONT,
+            fontWeight: 600,
+            fontSize: 16,
+            lineHeight: 1.22,
+            letterSpacing: '-0.005em',
+            color: NAVY,
+            textShadow:
+              '0 1px 12px rgba(247,243,236,0.7), 0 1px 3px rgba(247,243,236,0.85)',
           }}
         >
-          {t.subhead}
+          {(() => {
+            const d = t.subhead;
+            const keys = [
+              'bilim, tarbiya va tasavvurni',
+              'knowledge, upbringing, and imagination',
+            ];
+            const key = keys.find((k) => d.includes(k));
+            if (!key) return d;
+            const at = d.indexOf(key);
+            return (
+              <>
+                {d.slice(0, at)}
+                <span style={{ color: GOLD }}>{key}</span>
+                {d.slice(at + key.length)}
+              </>
+            );
+          })()}
         </p>
       </div>
     </motion.div>
@@ -616,13 +632,25 @@ function ReflectiveQuestions() {
   return (
     <motion.div
       variants={sequenceContainer}
-      className="mt-6 w-full md:mt-10 md:grid md:grid-cols-[minmax(0,47fr)_minmax(0,53fr)] md:items-start md:gap-14 lg:gap-20"
+      /* mobile: pull the whole block UP so "O'ylab ko'rganmisiz?"
+         descends onto the painting's faded lower edge (over the faint
+         flourish lines) — the scene reads as a background here, no box
+         around the text. md+ keeps its own top gap. */
+      className="relative z-10 -mt-14 w-full md:mt-10 md:grid md:grid-cols-[minmax(0,47fr)_minmax(0,53fr)] md:items-start md:gap-14 lg:gap-20"
     >
       {/* LEFT — prompt + four reflective questions */}
       <motion.div variants={sequenceContainer} className="max-w-[560px] text-left">
         <motion.p
           variants={sequenceItem}
-          style={{ fontFamily: DISPLAY_FONT, fontWeight: 600, fontSize: 22, color: GOLD }}
+          /* cream glow is invisible on the desktop cream canvas; on
+             mobile it lifts the prompt off the faded painting. */
+          style={{
+            fontFamily: DISPLAY_FONT,
+            fontWeight: 600,
+            fontSize: 22,
+            color: GOLD,
+            textShadow: '0 1px 12px rgba(247,243,236,0.7)',
+          }}
         >
           {t.prompt}
         </motion.p>
@@ -712,9 +740,9 @@ export function BrandValues() {
       >
         <motion.span
           variants={sequenceItem}
-          /* mobile: smaller (17 -> 13) and flanked by gold ✦ so it
-             reads as a section mark; md+ unchanged. */
-          className="mb-2.5 block text-center text-[13px] uppercase md:mb-[18px] md:text-[17px]"
+          /* mobile: much smaller (17 -> 10) and flanked by gold ✦ so it
+             reads as a small section mark; md+ unchanged. */
+          className="mb-2.5 block text-center text-[10px] uppercase md:mb-[18px] md:text-[17px]"
           style={{
             fontFamily: BODY_FONT,
             fontWeight: 600,
