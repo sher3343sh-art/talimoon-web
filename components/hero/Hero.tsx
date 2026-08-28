@@ -73,13 +73,7 @@ import {
   memo,
 } from 'react';
 import Image from 'next/image';
-import {
-  motion,
-  AnimatePresence,
-  useReducedMotion,
-  Variants,
-  Transition,
-} from 'framer-motion';
+import { motion, useReducedMotion, Variants, Transition } from 'framer-motion';
 import { useLanguage, useT } from '@/lib/i18n/LanguageContext';
 
 // ============================================================
@@ -283,10 +277,14 @@ const MOBILE_BLUR_MASK =
 // Animation Definitions
 // ============================================================
 
-const imageTransition: Transition = {
-  duration: HERO_CONFIG.transitionDuration / 1000,
-  ease: [0.22, 1, 0.36, 1],
-};
+// v4 — the "dissolve the outgoing slide to reveal the next" model.
+// The slide we're leaving is drawn as a frozen copy ON TOP of the
+// (always-opaque) incoming slide and its opacity is eased from 1 to 0
+// over this long, with a soft deceleration. Because the layer beneath
+// is always fully opaque there is no crossfade midpoint and nothing
+// can bleed through — no flicker on mobile or desktop.
+const HERO_DISSOLVE_MS = 2000;
+const HERO_DISSOLVE_EASE: [number, number, number, number] = [0.4, 0, 0.2, 1];
 
 const textTransition: Transition = {
   duration: 0.8,
@@ -523,6 +521,10 @@ interface HeroImageProps {
   alt: string;
   focalPoint: { x: number; y: number };
   priority?: boolean;
+  // v4 — render statically at the Ken Burns END pose (no motion of its
+  // own). Used by the dissolving veil so its copy matches the live
+  // layer's last painted frame exactly, with no pop.
+  frozen?: boolean;
   className?: string;
 }
 
@@ -531,6 +533,7 @@ const HeroImage = memo(function HeroImage({
   alt,
   focalPoint,
   priority = false,
+  frozen = false,
   className = '',
 }: HeroImageProps) {
   const reducedMotion = useReducedMotion();
@@ -547,9 +550,11 @@ const HeroImage = memo(function HeroImage({
       <motion.div
         className="absolute inset-0"
         variants={variants}
-        initial="initial"
+        // frozen: start AND stay on the "animate" pose so the veil copy
+        // is pinned to the Ken Burns end state the live layer just
+        // reached — identical frame, zero motion.
+        initial={frozen ? 'animate' : 'initial'}
         animate="animate"
-        exit="exit"
         style={reducedMotion ? { transform: 'none' } : undefined}
       >
         <Image
@@ -600,6 +605,9 @@ interface HeroTextBlockProps {
   description: string;
   isMobile: boolean;
   scrimType: ScrimType;
+  // v4 — false on the frozen veil copy: skip the intro stagger so the
+  // dissolving copy just shows the text already settled.
+  animateIn?: boolean;
 }
 
 const HeroTextBlock = memo(function HeroTextBlock({
@@ -608,6 +616,7 @@ const HeroTextBlock = memo(function HeroTextBlock({
   description,
   isMobile,
   scrimType,
+  animateIn = true,
 }: HeroTextBlockProps) {
   const textColor = getTextColor(scrimType);
   const descriptionColor = getDescriptionColor(scrimType);
@@ -624,9 +633,8 @@ const HeroTextBlock = memo(function HeroTextBlock({
       `}
       style={{ backgroundImage: backdrop }}
       variants={textBlockVariants}
-      initial="hidden"
+      initial={animateIn ? 'hidden' : 'visible'}
       animate="visible"
-      exit="exit"
       transition={textTransition}
     >
       {/* Oltin rangli eyebrow – brend logotipidagi oltin rang bilan uyg'un, premium editorial uslub.
@@ -688,12 +696,15 @@ interface MobileHeroTextProps {
   eyebrow: string;
   headline: string;
   description: string;
+  // v4 — see HeroTextBlockProps.animateIn
+  animateIn?: boolean;
 }
 
 const MobileHeroText = memo(function MobileHeroText({
   eyebrow,
   headline,
   description,
+  animateIn = true,
 }: MobileHeroTextProps) {
   return (
     <motion.div
@@ -703,9 +714,8 @@ const MobileHeroText = memo(function MobileHeroText({
         color: '#F7F2EA',
       }}
       variants={textBlockVariants}
-      initial="hidden"
+      initial={animateIn ? 'hidden' : 'visible'}
       animate="visible"
-      exit="exit"
       transition={textTransition}
     >
       <motion.span
@@ -739,6 +749,12 @@ interface HeroSlideProps {
   slide: HeroSlideData;
   isMobile: boolean;
   priority: boolean;
+  // v4 — this instance is the dissolving VEIL copy, not the live slide:
+  // freeze the Ken Burns at its end pose, skip the text intro, and drop
+  // the mobile backdrop-filter (its wrapper animates opacity, and a
+  // backdrop-filter under an animating-opacity ancestor white-flashes
+  // on mobile).
+  frozen?: boolean;
 }
 
 const HeroSlide = memo(
@@ -746,6 +762,7 @@ const HeroSlide = memo(
     slide,
     isMobile,
     priority,
+    frozen = false,
   }: HeroSlideProps) {
     const { image, scrim, ...textData } = slide;
     const slideWord = useT('slide', 'slayd');
@@ -755,45 +772,14 @@ const HeroSlide = memo(
     const activeFocalPoint =
       isMobile && image.mobileFocalPoint ? image.mobileFocalPoint : image.focalPoint;
 
-    // v3.2 — the WHITE FLASH fix.
-    //
-    // Desktop: byte-for-byte the v2/v3 crossfade — opacity + `filter`
-    // blur, in and out.
-    //
-    // Mobile: `filter` is dropped from the transition entirely. Every
-    // slide swap mounts a fresh wrapper with `filter: blur(10px)`,
-    // which forces the browser to spin up a new filtered compositing
-    // layer — on mobile GPUs the first frame of that layer paints
-    // white, which is the flash. A plain opacity crossfade needs no
-    // such layer. The "hiralanish"/defocus look is instead carried by
-    // the STATIC backdrop-filter layer in HeroSlider (rendered once,
-    // never inside an animating wrapper). The outgoing slide also holds
-    // fully opaque for the whole fade so no translucent-on-translucent
-    // midpoint can let anything punch through.
-    const enter = isMobile
-      ? { initial: { opacity: 0 }, animate: { opacity: 1 } }
-      : {
-          initial: { opacity: 0, filter: `blur(${HERO_CONFIG.crossfadeBlur}px)` },
-          animate: { opacity: 1, filter: 'blur(0px)' },
-        };
-    const exitAnim = isMobile
-      ? {
-          opacity: 0,
-          transition: {
-            duration: 0.3,
-            delay: HERO_CONFIG.transitionDuration / 1000,
-          },
-        }
-      : { opacity: 0, filter: `blur(${HERO_CONFIG.crossfadeBlur}px)` };
-
+    // v4 — a HeroSlide no longer animates its own opacity/filter. It's
+    // just a self-contained frame (image + overlays + text). The
+    // dissolve now lives entirely on the VEIL wrapper in HeroSlider,
+    // over an always-opaque BASE copy of the next slide — so there's no
+    // crossfade midpoint and nothing to flicker.
     return (
-      <motion.div
+      <div
         className="absolute inset-0 w-full h-full"
-        style={{ willChange: isMobile ? 'opacity' : 'opacity, filter' }}
-        initial={enter.initial}
-        animate={enter.animate}
-        exit={exitAnim}
-        transition={imageTransition}
         id={`hero-slide-${slide.id}`}
         role="group"
         aria-roledescription="slide"
@@ -804,17 +790,42 @@ const HeroSlide = memo(
           alt={image.alt}
           focalPoint={activeFocalPoint}
           priority={priority}
+          frozen={frozen}
         />
 
         {isMobile ? (
-          // v3.2: on mobile this per-slide wrapper carries ONLY the
-          // image. The defocus layer, the gradient and the text are all
-          // rendered once in HeroSlider, outside this crossfading
-          // wrapper, so nothing that could white-flash lives here.
-          null
+          <>
+            {/* backdrop-filter defocus — live layer only. On the
+                dissolving veil its opacity-animating wrapper would make
+                this white-flash on mobile, so the veil goes without. */}
+            {!frozen && (
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 z-[4]"
+                style={{
+                  backdropFilter: 'blur(3px)',
+                  WebkitBackdropFilter: 'blur(3px)',
+                  WebkitMaskImage: MOBILE_BLUR_MASK,
+                  maskImage: MOBILE_BLUR_MASK,
+                }}
+              />
+            )}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 z-[5]"
+              style={{ backgroundImage: MOBILE_GRADIENT }}
+            />
+            <MobileHeroText
+              eyebrow={textData.name}
+              headline={textData.headline}
+              description={textData.description}
+              animateIn={!frozen}
+            />
+          </>
         ) : (
-          // Desktop: unchanged from v2 — same wrapper, same HeroScrim,
-          // same HeroTextBlock, same props.
+          // Desktop: same HeroScrim + HeroTextBlock composition as
+          // before — only the outer wrapper's own opacity/filter
+          // animation was removed (moved to the VEIL).
           <div className="absolute inset-0 z-10 flex items-center justify-end">
             <div className="relative w-[35%] h-full">
               <HeroScrim type={scrim} isMobile={false} />
@@ -824,11 +835,12 @@ const HeroSlide = memo(
                 description={textData.description}
                 isMobile={false}
                 scrimType={scrim}
+                animateIn={!frozen}
               />
             </div>
           </div>
         )}
-      </motion.div>
+      </div>
     );
   },
   (prev, next) =>
@@ -839,7 +851,8 @@ const HeroSlide = memo(
     // headline too so that case isn't wrongly treated as "unchanged".
     prev.slide.headline === next.slide.headline &&
     prev.isMobile === next.isMobile &&
-    prev.priority === next.priority
+    prev.priority === next.priority &&
+    prev.frozen === next.frozen
 );
 
 // ============================================================
@@ -866,7 +879,11 @@ const CAROUSEL_CHROME_UZ: typeof CAROUSEL_CHROME_EN = {
 
 export function HeroSlider({ onNavColorChange }: HeroSliderProps) {
   const [activeIndex, setActiveIndex] = useState<number>(0);
+  // v4 — the slide we're leaving. While set, its frozen copy is drawn
+  // as a VEIL on top of the (opaque) active slide and dissolved out.
+  const [exitingIndex, setExitingIndex] = useState<number | null>(null);
   const isMobile = useMediaQuery('(max-width: 767px)');
+  const reducedMotion = useReducedMotion();
   const { language } = useLanguage();
   const chrome = useT(CAROUSEL_CHROME_EN, CAROUSEL_CHROME_UZ);
 
@@ -907,9 +924,13 @@ export function HeroSlider({ onNavColorChange }: HeroSliderProps) {
       let target = index;
       if (target < 0) target = totalSlides - 1;
       if (target >= totalSlides) target = 0;
+      if (target === activeIndex) return;
+      // The slide we're on becomes the dissolving veil; the target
+      // becomes the (already-opaque) base underneath it.
+      setExitingIndex(activeIndex);
       setActiveIndex(target);
     },
-    [totalSlides]
+    [totalSlides, activeIndex]
   );
 
   const goToNext = useCallback(() => {
@@ -947,63 +968,51 @@ export function HeroSlider({ onNavColorChange }: HeroSliderProps) {
       aria-roledescription="carousel"
     >
       <div className="absolute inset-0">
-        {/* v3.1 — opaque backing behind every slide (mobile only). Even
-            with the crossfade fixed so an opaque slide always backs the
-            incoming one, this guarantees that if a frame ever slips
-            through it dips toward the hero's own navy, never white.
-            Desktop is untouched. */}
-        {isMobile && (
-          <div
-            aria-hidden="true"
-            className="absolute inset-0"
-            style={{ backgroundColor: '#1C2A3A' }}
-          />
-        )}
-        {/* Slaydlar bir-birining ustida (absolute inset-0) joylashadi va
-            opacity + blur orqali hiralashib bir-biriga kirib boradi –
-            hech qanday oq fon ko'rinmaydi */}
-        <AnimatePresence initial={false}>
-          <HeroSlide
-            key={activeIndex}
-            slide={currentSlide}
-            isMobile={isMobile}
-            priority={isFirstSlide}
-          />
-        </AnimatePresence>
+        {/* Opaque floor under everything — an image that hasn't decoded
+            yet, or any stray sub-frame, resolves to this dark navy,
+            never white. Both breakpoints now (the veil model means the
+            floor is essentially never seen, but it costs nothing). */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0"
+          style={{ backgroundColor: '#1C2A3A' }}
+        />
 
-        {/* v3.2 — mobile: the defocus + gradient + text, rendered ONCE
-            here as STATIC layers on top of the crossfading images
-            instead of inside each slide. The backdrop-filter now blurs
-            whatever image is currently showing (or the blend of two
-            mid-transition) from a wrapper whose own opacity/filter
-            never animate — so it can no longer white-flash. Only the
-            text gets its own keyed crossfade. Desktop path unchanged. */}
-        {isMobile && (
-          <>
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-0 z-[4]"
-              style={{
-                backdropFilter: 'blur(3px)',
-                WebkitBackdropFilter: 'blur(3px)',
-                WebkitMaskImage: MOBILE_BLUR_MASK,
-                maskImage: MOBILE_BLUR_MASK,
-              }}
+        {/* BASE — the live slide. Always fully opaque, runs its own Ken
+            Burns. `key` swaps it instantly when activeIndex changes, but
+            that instant is entirely hidden under the opaque VEIL. */}
+        <HeroSlide
+          key={`base-${activeIndex}`}
+          slide={currentSlide}
+          isMobile={isMobile}
+          priority={isFirstSlide}
+        />
+
+        {/* VEIL — a frozen copy of the slide we're leaving, sitting ON
+            TOP and easing from opacity 1 → 0 to reveal the BASE beneath.
+            The BASE is opaque the whole time, so the composite never
+            drops below fully opaque: no crossfade midpoint, no bleed,
+            no flicker on either breakpoint. Unmounts at opacity 0. */}
+        {exitingIndex !== null && (
+          <motion.div
+            key={`veil-${exitingIndex}`}
+            className="absolute inset-0 z-[20]"
+            style={{ willChange: 'opacity' }}
+            initial={{ opacity: 1 }}
+            animate={{ opacity: 0 }}
+            transition={{
+              duration: reducedMotion ? 0 : HERO_DISSOLVE_MS / 1000,
+              ease: HERO_DISSOLVE_EASE,
+            }}
+            onAnimationComplete={() => setExitingIndex(null)}
+          >
+            <HeroSlide
+              slide={slides[exitingIndex]}
+              isMobile={isMobile}
+              priority={false}
+              frozen
             />
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-0 z-[5]"
-              style={{ backgroundImage: MOBILE_GRADIENT }}
-            />
-            <AnimatePresence initial={false}>
-              <MobileHeroText
-                key={activeIndex}
-                eyebrow={currentSlide.name}
-                headline={currentSlide.headline}
-                description={currentSlide.description}
-              />
-            </AnimatePresence>
-          </>
+          </motion.div>
         )}
       </div>
 
