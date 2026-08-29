@@ -29,8 +29,71 @@ import {
 } from './types';
 
 // ── Seed ───────────────────────────────────────────────────────────
-/** Published / archived / scheduled / draft entries. Empty in V1. */
-const ENTRIES: readonly JourneyEntry[] = [];
+/**
+ * DEV DEMONSTRATION ENTRY — Increment 2.
+ * ----------------------------------------------------------------
+ * A genuine TALIMOON editorial reflection (a "bir fikr"). It makes
+ * NO claim about any real child, family, visit or event, invents no
+ * scale, and needs no photograph. It exists so THE OPENING can be
+ * evaluated before approved content lands, and it is the kind of
+ * piece that could ship as-is.
+ *
+ * Delete it, or replace it with real content, at any time — nothing
+ * else in the codebase references it by id or slug. When real
+ * photography arrives, a `reportage` / `moment` entry with a `cover`
+ * (and `media.consent: 'granted'`) exercises the photographic
+ * treatment; the type-led treatment here needs nothing further.
+ */
+const DEMO_THOUGHT: JourneyEntry = {
+  id: 'jrn_demo_thought',
+  slug: 'bolaning-nega-si',
+  format: 'thought',
+  weight: 'lead',
+  status: 'published',
+  featured: true,
+  publishedAtISO: '2026-08-27T09:00:00.000Z',
+  tags: ['bir-fikr', 'tarbiya'],
+  defaultLocale: 'uz',
+  indexable: true,
+  media: { consent: 'not-applicable' },
+  translations: {
+    uz: {
+      kicker: { label: 'BIR FIKR' },
+      title: "Bolaning 'Nega?' degani ba'zan javobdan ham muhimroq.",
+      standfirst:
+        "Biz javob berishga shoshamiz. Lekin ba'zan eng qimmatlisi — bolaning savol berishdan to'xtamasligi.",
+      blocks: [
+        {
+          t: 'paragraph',
+          text: "Bola bir savol beradi. Biz unga to'g'ri, aniq javob beramiz — va shu bilan suhbat tugaydi. Savol esa bola uchun eshik edi; biz uni biroz tez yopdik.",
+        },
+        {
+          t: 'paragraph',
+          text: "Ba'zan javobni bir lahza ushlab turib, “O'zing qanday o'ylaysan?” deb so'rash — bolaning tasavvuriga qoldirilgan kichik bo'sh joy. O'sha joyda u mustaqil fikrlashni o'rganadi.",
+        },
+      ],
+    },
+    en: {
+      kicker: { label: 'A THOUGHT' },
+      title: 'A child’s "why?" can matter more than the answer.',
+      standfirst:
+        'We rush to answer. Sometimes what matters most is simply that the child keeps asking.',
+      blocks: [
+        {
+          t: 'paragraph',
+          text: 'A child asks a question. We give a clear, correct answer — and the conversation ends. But the question was a door, and we closed it a little too quickly.',
+        },
+        {
+          t: 'paragraph',
+          text: 'Sometimes holding the answer for a moment and asking “what do you think?” leaves a small open space for the child’s imagination. In that space, they learn to think for themselves.',
+        },
+      ],
+    },
+  },
+};
+
+/** Published / archived / scheduled / draft entries. */
+const ENTRIES: readonly JourneyEntry[] = [DEMO_THOUGHT];
 
 /** YAQIN KUNLAR forward-pulse items not (yet) backed by a full entry. */
 const PULSE: readonly PulseSeed[] = [];
@@ -289,13 +352,32 @@ export function getPulse(
 
 // ── Privacy policy helper ──────────────────────────────────────────
 /**
- * Whether renderers may show recognisable people in this entry's
- * media. Consult this before rendering `cover` / gallery images that
- * contain faces. `'not-applicable'` (no people) is safe; `'none'`
- * (people, no consent) is not.
+ * What a renderer may do with this entry's media.
+ *
+ *  • `showMedia`  — may the `cover` / gallery images be rendered at
+ *    all? `false` for `consent: 'none'` (people present, no consent):
+ *    the renderer must fall back to a non-photographic treatment.
+ *  • `showPeople` — may recognisable faces be shown? Only ever `true`
+ *    for `consent: 'granted'`. For `'not-applicable'` (no people in
+ *    the frame) the media is shown but this stays `false` because
+ *    there is nothing to permit.
+ *
+ * Consult this before rendering any photograph in HAYOT. Do not
+ * weaken it for visual polish.
  */
-export function mediaPolicy(entry: JourneyEntry): { showPeople: boolean } {
-  return { showPeople: entry.media.consent === 'granted' };
+export function mediaPolicy(entry: JourneyEntry): {
+  showMedia: boolean;
+  showPeople: boolean;
+} {
+  switch (entry.media.consent) {
+    case 'granted':
+      return { showMedia: true, showPeople: true };
+    case 'not-applicable':
+      return { showMedia: true, showPeople: false };
+    case 'none':
+    default:
+      return { showMedia: false, showPeople: false };
+  }
 }
 
 /* ============================================================

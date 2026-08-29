@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import { JourneyFoundation } from '@/components/journey/JourneyFoundation';
+import { TheOpening } from '@/components/journey/TheOpening';
 
 export const metadata: Metadata = {
   title: 'Hayot — TALIMOON',
@@ -12,18 +12,19 @@ export const metadata: Metadata = {
 /**
  * HAYOT (Journey) — /journey.
  * ----------------------------------------------------------------
- * Increment 1 (foundation): route + data layer are in place;
- * `JourneyFoundation` renders HAYOT's honest empty state. The
- * opening experience, the YAQIN KUNLAR pulse and the HAYOTDAN
- * stream replace it in later increments. The route stays `/journey`
- * across locales; the nav label is "Hayot" (UZ) / "Journey" (EN).
+ * Increment 2: THE OPENING — the featured entry introduces the
+ * page. `TheOpening` reads `getFeaturedEntry()` and falls back to
+ * the honest empty state when nothing is published. The YAQIN
+ * KUNLAR pulse and the HAYOTDAN stream are added below it in later
+ * increments. Route stays `/journey` across locales; nav label is
+ * "Hayot" (UZ) / "Journey" (EN).
  */
 export default function JourneyPage() {
   return (
     <>
       <Navbar />
       <main>
-        <JourneyFoundation />
+        <TheOpening />
       </main>
       <Footer />
     </>
