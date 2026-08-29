@@ -67,7 +67,7 @@ const DESKTOP_NAV_ITEMS: NavItem[] = [
   { key: "product", dropdown: "product" },
   { key: "journey", href: "/journey" },
   { key: "storyLibrary", href: "/story-library" },
-  { key: "about", href: "#about" },
+  { key: "about", href: "/about" },
 ];
 
 // Product dropdown contents — exactly the three entries in the spec,
@@ -126,7 +126,7 @@ const MOBILE_NAV_LINKS: MobileNavItem[] = [
   { key: "product", accordion: "product" },
   { key: "journey", href: "/journey" },
   { key: "storyLibrary", href: "/story-library" },
-  { key: "about", href: "#about" },
+  { key: "about", href: "/about" },
 ];
 
 const SCROLL_THRESHOLD = 24;
