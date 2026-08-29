@@ -199,7 +199,18 @@ function SectionArtwork() {
          collided with the painted focal art. Mobile instead stacks:
          eyebrow + headline on flat cream, then <MobileValuesScene />
          renders the same painting inline below them. */
-      className="pointer-events-none absolute inset-x-0 top-0 z-0 hidden overflow-hidden md:block"
+      /* 2026-08-29 — width-capped + centred. This square is
+         `width:100%; aspect-ratio:1/1`, so its RENDERED HEIGHT equals
+         the viewport width. The section's own height is driven by its
+         text content (~1480px) and does NOT grow with width, so on any
+         viewport wider than ~1500px the square grew taller than the
+         section and its lower half (the painted child) was guillotined
+         by the section's `overflow-hidden`. Capping the width at
+         1600px freezes the square at ~1600² once screens pass that —
+         matching the section height, child fully visible — and leaves
+         every viewport at or below 1600px (all common laptops)
+         completely unchanged. */
+      className="pointer-events-none absolute left-1/2 top-0 z-0 hidden w-full max-w-[1600px] -translate-x-1/2 overflow-hidden md:block"
       style={{
         aspectRatio: '1 / 1',
         // Seam fades on BOTH edges of the painted square so it never
@@ -276,15 +287,17 @@ function Headline() {
     <motion.h2
       id="brand-values-heading"
       variants={sequenceItem}
-      /* ~15% smaller than before (68 -> 58 at lg) and a wide max-width
-         at lg so the UZ line "Bolalikdan qalbga singadigan
-         qadriyatlarimiz." sits on ONE row on desktop; it still wraps
-         naturally on tablet / mobile. */
-      /* mobile stepped down two sizes (34 -> 26) per 2026-08-28 mobile
-         pass; md/lg unchanged. leading opened up on mobile (0.95 ->
-         1.15) so the wrapped "…qadriyatlarimiz" line isn't cramped
-         against the line above it; md/lg keep the tight 0.95. */
-      className="relative z-10 mx-auto max-w-[900px] text-center text-[30px] leading-[1.15] md:text-[44px] md:leading-[0.95] lg:max-w-[1240px] lg:text-[58px]"
+      /* 2026-08-29 — md+ size is now fluid: clamp(30px, 4vw, 58px).
+         It was a hard step (44px at md, 58px at lg) tuned to one
+         screen width; between ~1024 and ~1300px the long UZ line
+         "Bolalikdan qalbga singadigan qadriyatlarimiz." wrapped and,
+         with the tight leading, crammed. 4vw hits the 58px cap at
+         ~1450px (so every common laptop — 1440 / 1512 / 1536 — is
+         pixel-identical to before) and scales DOWN below that instead
+         of wrapping. Mobile keeps its explicit 30px / 1.15 step.
+         Leading nudged 0.95 -> 1.0 on md+ so a wrapped line never
+         overlaps the one above it. */
+      className="relative z-10 mx-auto max-w-[900px] text-center text-[30px] leading-[1.15] [text-wrap:balance] md:text-[clamp(30px,4vw,58px)] md:leading-[1.0] lg:max-w-[1240px]"
       style={{
         fontFamily: DISPLAY_FONT,
         fontWeight: 600,
@@ -503,7 +516,13 @@ const ValueColumn = React.memo(function ValueColumn({
         style={
           {
             fontFamily: DISPLAY_FONT,
-            fontSize: 34,
+            /* 2026-08-29 — was a fixed 34px from md up, with no
+               breakpoint of its own, so in the 5-column grid it wrapped
+               "Odob va poklik" / "Mehr-shafqat" to 2-3 ragged lines on
+               anything narrower than ~1450px. Fluid now: 2.3vw hits the
+               34px cap at ~1478px (laptops unchanged) and shrinks to
+               fit the column below that rather than wrapping. */
+            fontSize: 'clamp(20px, 2.3vw, 34px)',
             fontWeight: 600,
             color: NAVY,
             marginTop: 28,
@@ -783,7 +802,12 @@ export function BrandValues() {
         variants={sequenceContainer}
         initial="hidden"
         whileInView="visible"
-        viewport={{ once: true, amount: 0.2 }}
+        /* 2026-08-29 — was amount: 0.2. This block is ~1480px tall, so
+           0.2 meant ~300px of it had to scroll into view before the
+           reveal even began — the section read as "empty until you
+           scroll past it". 0.05 fires as its top edge arrives, so the
+           eyebrow/headline animate in as you reach them. */
+        viewport={{ once: true, amount: 0.05 }}
       >
         <motion.span
           variants={sequenceItem}
