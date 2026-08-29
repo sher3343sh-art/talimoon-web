@@ -257,9 +257,6 @@ const HERO_CONFIG: HeroConfig = {
 // image. old: clamp(380px, 115vw, 460px).
 const MOBILE_HERO_HEIGHT = 'clamp(475px, 144vw, 575px)';
 
-// The fraction of the mobile hero taken by the water reflection.
-const MOBILE_REFLECTION = '20%';
-
 // ONE unified bottom shadow for mobile: it darkens the scene's foot,
 // the waterline and the whole reflection as a single fall-off that
 // dissolves upward ("yuqori uchi sekin erib ketsin"), so the reflection
@@ -793,49 +790,63 @@ const HeroSlide = memo(
         aria-roledescription="slide"
         aria-label={`${slide.name} ${slideWord}`}
       >
-        {/* Real scene. Mobile: constrained to the TOP 80% (a plain
-            `bottom` override on HeroImage's own wrapper) so `object-cover`
-            re-fits to exactly the old mobile pixel box — same framing —
-            and the bottom 20% is left for the reflection. Desktop: full. */}
-        <HeroImage
-          src={image.src}
-          alt={image.alt}
-          focalPoint={activeFocalPoint}
-          priority={priority}
-          frozen={frozen}
-          className={isMobile ? 'bottom-[20%] md:bottom-0' : ''}
-        />
-
         {isMobile ? (
           <>
-            {/* WATER REFLECTION — the added bottom 20%. A vertically
-                mirrored copy of the scene, flipped about the waterline
-                (the 80% line where the real image ends), dimmed and
-                dissolved in from that line so it reads as still water.
-                Its darkening is left to the one MOBILE_GRADIENT below,
-                so reflection + scene-foot are a single shaded band. */}
+            {/* Real scene — mobile. Rendered inside a wrapper that ends
+                a little past the waterline (bottom: 16%) and whose own
+                BOTTOM EDGE is masked to transparent over its last ~14%.
+                So the scene doesn't stop at a hard line: it dissolves
+                downward exactly where the reflection dissolves upward,
+                and the two cross-fade through the shadow into one thing
+                — no visible cut. `object-cover` still fits the old
+                mobile pixel box, so framing is unchanged. */}
+            <div
+              className="absolute inset-x-0 top-0 overflow-hidden"
+              style={{
+                bottom: '16%',
+                WebkitMaskImage:
+                  'linear-gradient(to bottom, #000 0%, #000 86%, transparent 100%)',
+                maskImage:
+                  'linear-gradient(to bottom, #000 0%, #000 86%, transparent 100%)',
+              }}
+            >
+              <HeroImage
+                src={image.src}
+                alt={image.alt}
+                focalPoint={activeFocalPoint}
+                priority={priority}
+                frozen={frozen}
+              />
+            </div>
+
+            {/* WATER REFLECTION — a vertically mirrored copy of the
+                scene, flipped about the ~80% waterline, dimmed, and
+                dissolved IN from above over a long ramp (invisible at
+                the waterline, full only by ~90%). Between the scene's
+                fade-out (~72–84%) and this fade-in (~80–90%) there's a
+                wide shadow-filled band where neither has a hard edge —
+                the cut is buried. Darkening is the one MOBILE_GRADIENT
+                below. */}
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] overflow-hidden"
+              className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-[26%] overflow-hidden"
               style={{
-                height: MOBILE_REFLECTION,
                 WebkitMaskImage:
-                  'linear-gradient(to bottom, transparent 0%, black 34%, black 100%)',
+                  'linear-gradient(to bottom, transparent 0%, transparent 24%, black 62%, black 100%)',
                 maskImage:
-                  'linear-gradient(to bottom, transparent 0%, black 34%, black 100%)',
+                  'linear-gradient(to bottom, transparent 0%, transparent 24%, black 62%, black 100%)',
               }}
             >
               <div
                 className="absolute inset-x-0"
                 style={{
-                  // overlay the real-image box exactly (band is 20% of
-                  // the section, the box is the other 80% → ×4), then
-                  // mirror about this element's bottom edge = the 80%
-                  // waterline.
-                  top: '-400%',
-                  height: '400%',
+                  // overlay the real-scene box (section 0→84%) inside a
+                  // band that spans section 74→100%, then mirror about
+                  // section 80% (95.238% down this element).
+                  top: '-284.615%',
+                  height: '323.077%',
                   transform: 'scaleY(-1)',
-                  transformOrigin: '50% 100%',
+                  transformOrigin: '50% 95.238%',
                 }}
               >
                 <Image
@@ -846,7 +857,7 @@ const HeroSlide = memo(
                   className="object-cover"
                   style={{
                     objectPosition: `${activeFocalPoint.x * 100}% ${activeFocalPoint.y * 100}%`,
-                    opacity: 0.8,
+                    opacity: 0.72,
                   }}
                 />
               </div>
@@ -880,22 +891,31 @@ const HeroSlide = memo(
             />
           </>
         ) : (
-          // Desktop: same HeroScrim + HeroTextBlock composition as
-          // before — only the outer wrapper's own opacity/filter
-          // animation was removed (moved to the VEIL).
-          <div className="absolute inset-0 z-10 flex items-center justify-end">
-            <div className="relative w-[35%] h-full">
-              <HeroScrim type={scrim} isMobile={false} />
-              <HeroTextBlock
-                eyebrow={textData.name}
-                headline={textData.headline}
-                description={textData.description}
-                isMobile={false}
-                scrimType={scrim}
-                animateIn={!frozen}
-              />
+          // Desktop: full-bleed scene + same HeroScrim + HeroTextBlock
+          // composition as before — only the outer wrapper's own
+          // opacity/filter animation was removed (moved to the VEIL).
+          <>
+            <HeroImage
+              src={image.src}
+              alt={image.alt}
+              focalPoint={activeFocalPoint}
+              priority={priority}
+              frozen={frozen}
+            />
+            <div className="absolute inset-0 z-10 flex items-center justify-end">
+              <div className="relative w-[35%] h-full">
+                <HeroScrim type={scrim} isMobile={false} />
+                <HeroTextBlock
+                  eyebrow={textData.name}
+                  headline={textData.headline}
+                  description={textData.description}
+                  isMobile={false}
+                  scrimType={scrim}
+                  animateIn={!frozen}
+                />
+              </div>
             </div>
-          </div>
+          </>
         )}
       </div>
     );
