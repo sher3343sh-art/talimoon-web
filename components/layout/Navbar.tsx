@@ -129,6 +129,11 @@ const MOBILE_NAV_LINKS: MobileNavItem[] = [
   { key: "about", href: "/about" },
 ];
 
+// Temporarily hidden until the auth / account flow is finished — flip
+// back to `true` to restore the "Log in" ("Kirish") link in the
+// desktop nav. Nothing else references it, so this is the only switch.
+const SHOW_LOGIN = false;
+
 const SCROLL_THRESHOLD = 24;
 
 // How long the drawer + backdrop's exit transition runs, in ms.
@@ -754,10 +759,12 @@ export default function Navbar({ ctaHref = "/begin" }: NavbarProps) {
         <div className="flex shrink-0 items-center justify-end gap-6 ">
           <span aria-hidden="true" className="w-1 shrink-0" />
 
-          <Link href="/login" className={`${linkClass} ml-8`}>
-            {t.login}
-            <span aria-hidden="true" className={underlineClass} />
-          </Link>
+          {SHOW_LOGIN && (
+            <Link href="/login" className={`${linkClass} ml-8`}>
+              {t.login}
+              <span aria-hidden="true" className={underlineClass} />
+            </Link>
+          )}
 
           {ctaHref.startsWith("#") ? (
             <a
