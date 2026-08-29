@@ -72,7 +72,7 @@ export function StoryAntechamber({ story }: { story: Story }) {
   const hasRealCover = !!ed?.cover?.src;
 
   return (
-    <section className="relative w-full bg-surface-base px-6 md:px-10 lg:px-16">
+    <section className="relative w-full bg-surface-base px-6 pt-20 md:px-10 md:pt-24 lg:px-16">
       <div className="mx-auto w-full max-w-[1080px]">
         <SubNav
           backHref={isEpisode ? '/story-library/yusuf-yasmina' : '/story-library'}
