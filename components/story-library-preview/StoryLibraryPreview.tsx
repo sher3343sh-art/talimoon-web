@@ -36,12 +36,14 @@ const COPY_EN = {
   eyebrow: "Story Library",
   heading: "Where Every Story Comes Alive.",
   description:
-    "Step into a growing collection of gentle, meaningful tales — each one crafted to spark imagination and nurture character, one page at a time.",
+    "Real TALIMOON family stories, shared with permission, alongside the continuing world of Yusuf & Yasmina.",
   cta: "Explore Story Library",
-  stats: [
-    { value: "250+", label: "Stories" },
-    { value: "6", label: "Categories" },
-    { value: "Updated", label: "Weekly" },
+  // No engagement metrics here: the library is small and curated, and
+  // the home page must not imply a scale it doesn't have. Two calm
+  // lines about the two worlds do the work instead.
+  worlds: [
+    "Family stories",
+    "Yusuf & Yasmina",
   ],
 };
 
@@ -49,12 +51,11 @@ const COPY_UZ: typeof COPY_EN = {
   eyebrow: "Hikoyalar kutubxonasi",
   heading: "Har bir hikoya jonlanadigan joy.",
   description:
-    "Nozik va ma'noli hikoyalarning tobora boyib boruvchi to'plamiga qadam qo'ying — har biri xayolotni uyg'otish va xarakterni tarbiyalash uchun, sahifama-sahifa yaratilgan.",
+    "Haqiqiy TALIMOON oila hikoyalari — ruxsat bilan baham ko'rilgan — va Yusuf va Yasmina olamining davomi.",
   cta: "Hikoyalar kutubxonasini ko'rish",
-  stats: [
-    { value: "250+", label: "Hikoyalar" },
-    { value: "6", label: "Toifalar" },
-    { value: "Yangilanadi", label: "har hafta" },
+  worlds: [
+    "Oila hikoyalari",
+    "Yusuf va Yasmina",
   ],
 };
 
@@ -96,23 +97,16 @@ export function StoryLibraryPreview() {
             {t.description}
           </p>
 
-          <dl className="mt-8 flex items-center gap-6 sm:gap-8">
-            {t.stats.map((stat, i) => (
-              <div key={stat.label} className="flex items-center gap-6 sm:gap-8">
+          <ul className="mt-8 flex items-center gap-4 text-label text-text-muted">
+            {t.worlds.map((world, i) => (
+              <li key={world} className="flex items-center gap-4">
                 {i > 0 && (
-                  <span aria-hidden="true" className="h-8 w-px bg-border-subtle" />
+                  <span aria-hidden="true" className="h-4 w-px bg-border-subtle" />
                 )}
-                <div className="flex flex-col">
-                  <dt className="order-2 mt-1 text-label text-text-muted">
-                    {stat.label}
-                  </dt>
-                  <dd className="order-1 font-display text-title text-text-primary">
-                    {stat.value}
-                  </dd>
-                </div>
-              </div>
+                <span className="uppercase">{world}</span>
+              </li>
             ))}
-          </dl>
+          </ul>
 
           <Link
             href="/story-library"
