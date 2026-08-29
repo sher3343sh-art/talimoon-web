@@ -183,6 +183,25 @@ export function DoorPortal({ variant }: DoorPortalProps) {
   // backdrop runs 2% wider than the other two for the text to hold up.
   const ctaCueWidthPct = id === "talimoon-toys" ? 34 : 32;
 
+  // Corrective translate for every layer that's clipped to this door's
+  // opening via mask.png — the hidden world AND the gap-light shaft.
+  // Both share the same mask, so both need the same shift when a
+  // frame.png's painted opening isn't quite registered to it (see
+  // DoorAssets.worldNudgeX/Y). Translating each masked wrapper as a
+  // unit moves its mask and its content together, so the layer stays
+  // registered to itself while sliding under the stone opening —
+  // without it the gap light gets sheared off on a hard mask edge in
+  // open space instead of fading out behind the jamb like the other
+  // doors.
+  const openingNudge: CSSProperties | undefined =
+    assets.worldNudgeX || assets.worldNudgeY
+      ? {
+          transform: `translate(${assets.worldNudgeX ?? "0"}, ${
+            assets.worldNudgeY ?? "0"
+          })`,
+        }
+      : undefined;
+
   // Touch devices have no real `:hover` to drive the door open — the
   // whole animation above is built on `group-hover`/`group-focus-
   // visible`. On a phone the door opens itself, but ONLY the one the
@@ -285,18 +304,7 @@ export function DoorPortal({ variant }: DoorPortalProps) {
             own edge. */}
         <div
           className="absolute inset-0 overflow-hidden"
-          style={{
-            ...maskStyle(assets.mask),
-            // Translating this element moves its CSS mask and the world
-            // image inside it as one unit, so the scene stays registered
-            // to the opening it's clipped by while both shift under the
-            // (slightly off-registered) painted stone opening. See
-            // DoorAssets.worldNudgeX/Y.
-            transform:
-              assets.worldNudgeX || assets.worldNudgeY
-                ? `translate(${assets.worldNudgeX ?? "0"}, ${assets.worldNudgeY ?? "0"})`
-                : undefined,
-          }}
+          style={{ ...maskStyle(assets.mask), ...openingNudge }}
         >
           <div className="absolute inset-0">
             {assets.world ? (
@@ -577,7 +585,7 @@ export function DoorPortal({ variant }: DoorPortalProps) {
           <div
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 overflow-hidden"
-            style={maskStyle(assets.mask)}
+            style={{ ...maskStyle(assets.mask), ...openingNudge }}
           >
             <div
               className="absolute left-[50%] top-[4%] h-[92%] w-[34%] origin-center opacity-100 transition-[transform,opacity] duration-[4800ms] delay-[380ms] [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] group-hover:opacity-0 group-hover:delay-0 group-hover:duration-[2600ms] group-hover:[transform:scaleX(2)] group-focus-visible:opacity-0 group-focus-visible:delay-0 group-focus-visible:duration-[2600ms] group-focus-visible:[transform:scaleX(2)] motion-reduce:delay-0"
