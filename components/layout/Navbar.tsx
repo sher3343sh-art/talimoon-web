@@ -43,7 +43,10 @@ const NAV_LABELS_EN = {
 
 const NAV_LABELS_UZ: typeof NAV_LABELS_EN = {
   home: "Bosh sahifa",
-  journey: "Sayohat",
+  // "Hayot", not a literal translation of "Journey" (Safar/Sayohat) —
+  // an intentional brand adaptation: the page is TALIMOON's living
+  // memory, not travel. Route stays /journey for locale consistency.
+  journey: "Hayot",
   storyLibrary: "Kutubxona",
   about: "Haqimizda",
   product: "Mahsulot",
