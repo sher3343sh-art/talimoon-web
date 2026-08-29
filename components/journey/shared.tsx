@@ -24,6 +24,7 @@
  */
 
 import React from 'react';
+import Link from 'next/link';
 import { motion, useReducedMotion, type Variants } from 'framer-motion';
 
 // ── Design constants (identical to about/shared.tsx) ────────────────
@@ -190,4 +191,97 @@ export function Band({
       <div className="mx-auto w-full max-w-[1200px]">{children}</div>
     </section>
   );
+}
+
+// ── Kicker (label · date) ──────────────────────────────────────────
+/** The small gold strand-mark that opens an entry: "TASHRIF · 29 AVGUST"
+ *  or just "BIR FIKR". Never a heading — a `<p>`. */
+export function Kicker({
+  label,
+  date,
+  className = '',
+}: {
+  label: string;
+  date?: string;
+  className?: string;
+}) {
+  return (
+    <p
+      className={`text-[12px] uppercase md:text-[13px] ${className}`}
+      style={{
+        fontFamily: BODY,
+        fontWeight: 600,
+        letterSpacing: '0.22em',
+        color: GOLD,
+      }}
+    >
+      {label}
+      {date ? (
+        <>
+          <span aria-hidden="true" style={{ color: NAVY_48 }}>
+            {' · '}
+          </span>
+          <span style={{ color: NAVY_64 }}>{date}</span>
+        </>
+      ) : null}
+    </p>
+  );
+}
+
+// ── QuietLink ("label →") ──────────────────────────────────────────
+/** The editorial "continue" affordance used across HAYOT — a plain
+ *  text link with a gold arrow that nudges on hover. Not a button;
+ *  `.tm-cta-gold` is reserved for "purchase". */
+export function QuietLink({
+  href,
+  children,
+  external = false,
+  className = '',
+}: {
+  href: string;
+  children: React.ReactNode;
+  external?: boolean;
+  className?: string;
+}) {
+  const cls = `group inline-flex items-center gap-2 text-[15px] transition-opacity duration-300 hover:opacity-70 ${className}`;
+  const style = { fontFamily: BODY, fontWeight: 600, color: NAVY } as const;
+  const inner = (
+    <>
+      <span>{children}</span>
+      <span
+        aria-hidden="true"
+        className="transition-transform duration-300 group-hover:translate-x-1"
+        style={{ color: GOLD }}
+      >
+        &rarr;
+      </span>
+    </>
+  );
+  return external ? (
+    <a href={href} target="_blank" rel="noopener noreferrer" className={cls} style={style}>
+      {inner}
+    </a>
+  ) : (
+    <Link href={href} className={cls} style={style}>
+      {inner}
+    </Link>
+  );
+}
+
+// ── Month labels for compact dates ────────────────────────────────
+const MONTHS_UZ = [
+  'YANV', 'FEV', 'MART', 'APR', 'MAY', 'IYUN',
+  'IYUL', 'AVG', 'SENT', 'OKT', 'NOYA', 'DEK',
+];
+const MONTHS_EN = [
+  'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
+  'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC',
+];
+
+/** "29 AVG" / "AUG 29" — a short, quiet editorial date. */
+export function shortDate(iso: string, locale: string): string {
+  const d = new Date(iso);
+  const day = d.getUTCDate();
+  const mon = (locale === 'uz' ? MONTHS_UZ : MONTHS_EN)[d.getUTCMonth()] ?? '';
+  return locale === 'uz' ? `${day} ${mon}` : `${mon} ${day}`;
 }

@@ -124,13 +124,15 @@ function Opening({ result }: { result: FeaturedResult }) {
       )?.text
     : undefined;
 
-  // On-mount reveal (above the fold — no scroll trigger). Under
-  // reduced motion every prop is undefined, so elements render
-  // straight to rest — same pattern the About hero uses.
+  // On-mount reveal (above the fold — no scroll trigger). A gentle
+  // rise only, no opacity fade: the opening headline is the LCP
+  // element and must paint immediately and legibly even if the
+  // reveal never runs (JS slow, tab backgrounded on load). Under
+  // reduced motion every prop is undefined — elements render at rest.
   const seq = (delay: number) => ({
-    initial: reduced ? undefined : { opacity: 0, y: 14 },
-    animate: reduced ? undefined : { opacity: 1, y: 0 },
-    transition: reduced ? undefined : { duration: 0.7, delay, ease: EASE },
+    initial: reduced ? undefined : { y: 16 },
+    animate: reduced ? undefined : { y: 0 },
+    transition: reduced ? undefined : { duration: 0.75, delay, ease: EASE },
   });
 
   const coverText = (
@@ -225,7 +227,7 @@ function Opening({ result }: { result: FeaturedResult }) {
   const ledeBlock = lede ? (
     <motion.div
       {...seq(0.5)}
-      className="mt-2 lg:mt-0 lg:border-l lg:pl-10"
+      className="mt-2 lg:mt-0 lg:border-s lg:ps-10"
       style={{ borderColor: 'rgba(184,147,91,0.35)' }}
     >
       <p

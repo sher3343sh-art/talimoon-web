@@ -30,22 +30,24 @@ import {
 
 // ── Seed ───────────────────────────────────────────────────────────
 /**
- * DEV DEMONSTRATION ENTRY — Increment 2.
+ * EDITORIAL SEED — three genuine TALIMOON "bir fikr" pieces.
  * ----------------------------------------------------------------
- * A genuine TALIMOON editorial reflection (a "bir fikr"). It makes
- * NO claim about any real child, family, visit or event, invents no
- * scale, and needs no photograph. It exists so THE OPENING can be
- * evaluated before approved content lands, and it is the kind of
- * piece that could ship as-is.
+ * These are real editorial reflections on childhood in TALIMOON's
+ * voice — the kind of writing the brief itself describes as a HAYOT
+ * content format. They make NO claim about any real child, family,
+ * visit, event, partnership or statistic, and need no photograph.
+ * They are the honest content HAYOT ships with until reportage,
+ * interviews and film arrive.
  *
- * Delete it, or replace it with real content, at any time — nothing
- * else in the codebase references it by id or slug. When real
- * photography arrives, a `reportage` / `moment` entry with a `cover`
- * (and `media.consent: 'granted'`) exercises the photographic
- * treatment; the type-led treatment here needs nothing further.
+ * Each is freely replaceable: swap the object, or drop it, without
+ * touching a component. `featured: true` on the first pins it to THE
+ * OPENING; the other two flow into the HAYOTDAN stream. When real
+ * photographic content lands, a `reportage` / `moment` entry with a
+ * `cover` and `media.consent: 'granted'` exercises the photographic
+ * treatments already built into TheOpening and the stream.
  */
-const DEMO_THOUGHT: JourneyEntry = {
-  id: 'jrn_demo_thought',
+const SEED_THOUGHT_NEGA: JourneyEntry = {
+  id: 'jrn_thought_nega',
   slug: 'bolaning-nega-si',
   format: 'thought',
   weight: 'lead',
@@ -92,10 +94,115 @@ const DEMO_THOUGHT: JourneyEntry = {
   },
 };
 
-/** Published / archived / scheduled / draft entries. */
-const ENTRIES: readonly JourneyEntry[] = [DEMO_THOUGHT];
+const SEED_THOUGHT_TASAVVUR: JourneyEntry = {
+  id: 'jrn_thought_tasavvur',
+  slug: 'tasavvurga-vaqt',
+  format: 'thought',
+  weight: 'standard',
+  status: 'published',
+  featured: false,
+  publishedAtISO: '2026-08-20T09:00:00.000Z',
+  tags: ['bir-fikr', 'tasavvur'],
+  defaultLocale: 'uz',
+  indexable: true,
+  media: { consent: 'not-applicable' },
+  translations: {
+    uz: {
+      kicker: { label: 'BIR FIKR' },
+      title: 'Farzandimizning tasavvuriga ham vaqt qoldiryapmizmi?',
+      standfirst:
+        "Bo'sh daqiqa — zerikish emas. Ko'pincha aynan o'sha yerda o'yin, hikoya va yangi fikr tug'iladi.",
+      blocks: [
+        {
+          t: 'paragraph',
+          text: "Bolaning kuni ba'zan to'liq belgilangan bo'ladi: dars, mashg'ulot, ekran. Har bir daqiqa foydali bo'lsin degan niyat — chiroyli. Lekin tasavvur bo'sh joyni talab qiladi.",
+        },
+        {
+          t: 'paragraph',
+          text: "Devor ortidagi soyani ajdarhoga aylantirish, tayoqdan qilich yasash, xayolan uzoq shaharga borish — bularning hammasi zerikish chegarasida boshlanadi. Biz shu chegarani saqlab qololsak, bola o'zi uchun butun bir olam yaratadi.",
+        },
+      ],
+    },
+    en: {
+      kicker: { label: 'A THOUGHT' },
+      title: 'Are we leaving room for our child’s imagination too?',
+      standfirst:
+        'An empty minute is not wasted time. It is often exactly where play, story and a new idea begin.',
+      blocks: [
+        {
+          t: 'paragraph',
+          text: 'A child’s day can be fully scheduled — lessons, activities, a screen. The wish to make every minute useful is a kind one. But imagination asks for empty space.',
+        },
+        {
+          t: 'paragraph',
+          text: 'Turning a shadow on the wall into a dragon, making a sword from a stick, travelling in the mind to a far city — these begin at the edge of boredom. If we can protect that edge, the child builds a whole world of their own.',
+        },
+      ],
+    },
+  },
+};
 
-/** YAQIN KUNLAR forward-pulse items not (yet) backed by a full entry. */
+const SEED_THOUGHT_HIKOYA: JourneyEntry = {
+  id: 'jrn_thought_hikoya',
+  slug: 'birga-oqilgan-hikoya',
+  format: 'thought',
+  weight: 'quiet',
+  status: 'published',
+  featured: false,
+  publishedAtISO: '2026-08-13T09:00:00.000Z',
+  tags: ['bir-fikr', 'birga-oqish'],
+  defaultLocale: 'uz',
+  indexable: true,
+  media: { consent: 'not-applicable' },
+  translations: {
+    uz: {
+      kicker: { label: 'BIR FIKR' },
+      title: "Birga o'qilgan hikoya qayerda tugaydi?",
+      standfirst:
+        "Kitob yopiladi, lekin suhbat davom etadi — yo'lda, kechki ovqatda, uxlashdan oldin.",
+      blocks: [
+        {
+          t: 'paragraph',
+          text: "Ko'pincha eng qimmatli qism — oxirgi sahifadan keyin boshlanadi. “Nega u shunday qildi?”, “Sen bo'lsang-chi?” — hikoya bola bilan qoladi.",
+        },
+        {
+          t: 'paragraph',
+          text: "Shu bois biz hikoyani shunchaki o'qib berish uchun emas, birga o'ylash uchun yaratamiz. Yaxshi hikoya javob bermaydi — u savolni ochiq qoldiradi.",
+        },
+      ],
+    },
+    en: {
+      kicker: { label: 'A THOUGHT' },
+      title: 'Where does a story read together actually end?',
+      standfirst:
+        'The book closes, but the conversation goes on — on the way home, at dinner, before sleep.',
+      blocks: [
+        {
+          t: 'paragraph',
+          text: 'Often the most valuable part starts after the last page. “Why did they do that?”, “What would you have done?” — the story stays with the child.',
+        },
+        {
+          t: 'paragraph',
+          text: 'That is why we make stories to think about together, not only to read aloud. A good story does not hand over an answer — it leaves the question open.',
+        },
+      ],
+    },
+  },
+};
+
+/** Published / archived / scheduled / draft entries, in any order —
+ *  the accessors sort. */
+const ENTRIES: readonly JourneyEntry[] = [
+  SEED_THOUGHT_NEGA,
+  SEED_THOUGHT_TASAVVUR,
+  SEED_THOUGHT_HIKOYA,
+];
+
+/**
+ * YAQIN KUNLAR forward-pulse items not (yet) backed by a full entry.
+ * Empty until there is something genuinely upcoming — the band is
+ * hidden entirely while this is empty (never a placeholder).
+ */
 const PULSE: readonly PulseSeed[] = [];
 
 // ── Config ─────────────────────────────────────────────────────────

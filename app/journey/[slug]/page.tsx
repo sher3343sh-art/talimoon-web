@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import { JourneyEntryShell } from '@/components/journey/JourneyEntryShell';
+import { EntryDetail } from '@/components/journey/EntryDetail';
 import {
   getEntryBySlug,
   publishedJourneySlugs,
@@ -46,9 +46,8 @@ export async function generateMetadata({
 }
 
 /**
- * A single HAYOT entry. Increment 1 renders the resolved header
- * shell; the full editorial block canvas ("HAYOT DAVOM ETADI" +
- * related entries) is Increment 5.
+ * A single HAYOT entry — the flexible editorial block canvas
+ * (`EntryDetail`), ending with "HAYOT DAVOM ETADI" + related entries.
  */
 export default async function JourneyEntryPage({
   params,
@@ -68,7 +67,7 @@ export default async function JourneyEntryPage({
     <>
       <Navbar />
       <main>
-        <JourneyEntryShell entry={entry} />
+        <EntryDetail entry={entry} />
       </main>
       <Footer />
     </>
