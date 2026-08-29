@@ -249,16 +249,24 @@ const HERO_CONFIG: HeroConfig = {
 // ============================================================
 
 // Width-based, not height-based — see reason (a) in the file header.
-// Range: ~380px on the smallest phones up to ~460px on the largest,
-// scaling with device width in between.
-const MOBILE_HERO_HEIGHT = 'clamp(380px, 115vw, 460px)';
+// v7 — the mobile hero is ~25% taller than before: the real scene
+// still fills the TOP 80% at its old pixel size ([380..460]px, so the
+// framing/focal points are unchanged), and a new BOTTOM 20% carries a
+// still-water REFLECTION of the scene. The extra height is what lets
+// the caption sit down on the reflection instead of over the real
+// image. old: clamp(380px, 115vw, 460px).
+const MOBILE_HERO_HEIGHT = 'clamp(475px, 144vw, 575px)';
 
-// One fixed, deliberately strong gradient for every mobile slide,
-// independent of that slide's `scrim`/`navColor` — see reason (3) in
-// the file header. Same navy already used by this site's Navbar/nav
-// tokens (#1C2A3A), not a new color.
+// The fraction of the mobile hero taken by the water reflection.
+const MOBILE_REFLECTION = '20%';
+
+// ONE unified bottom shadow for mobile: it darkens the scene's foot,
+// the waterline and the whole reflection as a single fall-off that
+// dissolves upward ("yuqori uchi sekin erib ketsin"), so the reflection
+// and the real image's foot read as one shaded band and the caption
+// always has contrast. Navy #1C2A3A, matching the nav tokens.
 const MOBILE_GRADIENT =
-  'linear-gradient(to top, rgba(28,42,58,0.90) 0%, rgba(28,42,58,0.62) 25%, rgba(28,42,58,0.20) 32%, transparent 50%)';
+  'linear-gradient(to top, rgba(28,42,58,0.90) 0%, rgba(28,42,58,0.75) 13%, rgba(28,42,58,0.5) 24%, rgba(28,42,58,0.18) 36%, transparent 52%)';
 
 // Mask for the mobile defocus layer — mirrors MOBILE_GRADIENT's stops
 // so the backdrop-blur fades in lockstep with the darkening (the photo
@@ -785,16 +793,65 @@ const HeroSlide = memo(
         aria-roledescription="slide"
         aria-label={`${slide.name} ${slideWord}`}
       >
+        {/* Real scene. Mobile: constrained to the TOP 80% (a plain
+            `bottom` override on HeroImage's own wrapper) so `object-cover`
+            re-fits to exactly the old mobile pixel box — same framing —
+            and the bottom 20% is left for the reflection. Desktop: full. */}
         <HeroImage
           src={image.src}
           alt={image.alt}
           focalPoint={activeFocalPoint}
           priority={priority}
           frozen={frozen}
+          className={isMobile ? 'bottom-[20%] md:bottom-0' : ''}
         />
 
         {isMobile ? (
           <>
+            {/* WATER REFLECTION — the added bottom 20%. A vertically
+                mirrored copy of the scene, flipped about the waterline
+                (the 80% line where the real image ends), dimmed and
+                dissolved in from that line so it reads as still water.
+                Its darkening is left to the one MOBILE_GRADIENT below,
+                so reflection + scene-foot are a single shaded band. */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] overflow-hidden"
+              style={{
+                height: MOBILE_REFLECTION,
+                WebkitMaskImage:
+                  'linear-gradient(to bottom, transparent 0%, black 34%, black 100%)',
+                maskImage:
+                  'linear-gradient(to bottom, transparent 0%, black 34%, black 100%)',
+              }}
+            >
+              <div
+                className="absolute inset-x-0"
+                style={{
+                  // overlay the real-image box exactly (band is 20% of
+                  // the section, the box is the other 80% → ×4), then
+                  // mirror about this element's bottom edge = the 80%
+                  // waterline.
+                  top: '-400%',
+                  height: '400%',
+                  transform: 'scaleY(-1)',
+                  transformOrigin: '50% 100%',
+                }}
+              >
+                <Image
+                  src={image.src}
+                  alt=""
+                  fill
+                  sizes="100vw"
+                  className="object-cover"
+                  style={{
+                    objectPosition: `${activeFocalPoint.x * 100}% ${activeFocalPoint.y * 100}%`,
+                    opacity: 0.8,
+                  }}
+                />
+              </div>
+            </div>
+
             {/* backdrop-filter defocus — live layer only. On the
                 dissolving veil its opacity-animating wrapper would make
                 this white-flash on mobile, so the veil goes without. */}
