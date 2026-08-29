@@ -154,6 +154,15 @@ const VARIANTS: DoorVariant[] = [
       // needed).
       world: "/images/home/OurProducts/yusuf.png",
       gapLight: "/images/home/OurProducts/light.png",
+      // yusuf-frame.png's transparent opening was exported at x 36.0-69.5%
+      // / y 12.6-84.6% of its canvas, but yusuf-mask.png and yusuf.png
+      // sit at x 35.1-68.5% / y 11.1-83.3% (books & toys frames match
+      // their masks). Left un-nudged the scene reads shifted left inside
+      // the stone opening — clipped left, backing colour on the right.
+      // Shift the masked world layer +0.95% x / +1.3% y to sit under the
+      // frame's actual opening. Re-measure if yusuf-frame.png is re-exported.
+      worldNudgeX: "0.95%",
+      worldNudgeY: "1.3%",
       // Measured from yusuf-door.png (minX=528, maxX=1050, minY=156,
       // maxY=1152).
       hingeOriginX: 35.2,

@@ -48,6 +48,18 @@ export interface DoorAssets {
    * abstract scene until the painted asset exists for this door.
    */
   world?: string;
+  /**
+   * Corrective translate for the masked "hidden world" layer, as CSS
+   * length/percent strings (% is of the card box). Only needed when a
+   * `frame` PNG was exported with its doorway opening not quite
+   * registered to that door's `mask` / `world` — the scene then reads
+   * as shifted inside the stone opening (clipped one side, backing
+   * colour showing on the other). Measured by comparing the
+   * transparent opening in `<id>-frame.png` against `<id>-mask.png`.
+   * Books & toys frames are registered — omitted there (defaults 0).
+   */
+  worldNudgeX?: string;
+  worldNudgeY?: string;
 }
 
 export interface DoorVariant {
@@ -271,7 +283,21 @@ export function DoorPortal({ variant }: DoorPortalProps) {
             light is a separate mask-clipped layer *after* the door
             (further down) so it can also bleed onto the ajar leaf's
             own edge. */}
-        <div className="absolute inset-0 overflow-hidden" style={maskStyle(assets.mask)}>
+        <div
+          className="absolute inset-0 overflow-hidden"
+          style={{
+            ...maskStyle(assets.mask),
+            // Translating this element moves its CSS mask and the world
+            // image inside it as one unit, so the scene stays registered
+            // to the opening it's clipped by while both shift under the
+            // (slightly off-registered) painted stone opening. See
+            // DoorAssets.worldNudgeX/Y.
+            transform:
+              assets.worldNudgeX || assets.worldNudgeY
+                ? `translate(${assets.worldNudgeX ?? "0"}, ${assets.worldNudgeY ?? "0"})`
+                : undefined,
+          }}
+        >
           <div className="absolute inset-0">
             {assets.world ? (
               // The painted `world` PNG isn't full-bleed — it has its
