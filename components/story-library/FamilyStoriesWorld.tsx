@@ -15,10 +15,20 @@
  */
 
 import React from 'react';
+import Link from 'next/link';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useT } from '@/lib/i18n/LanguageContext';
 import type { Story } from '@/lib/story-library/types';
-import { BODY, DISPLAY, Eyebrow, GOLD_SOFT, NAVY, NAVY_48, NAVY_64 } from './shared';
+import {
+  BODY,
+  DISPLAY,
+  Eyebrow,
+  GOLD,
+  GOLD_SOFT,
+  NAVY,
+  NAVY_48,
+  NAVY_64,
+} from './shared';
 
 const EN = {
   eyebrow: 'Family Stories',
@@ -26,6 +36,7 @@ const EN = {
   body: 'After a family approves their personalized book, they can choose to let its digital version live here — so other families can meet it too.',
   consentNote: 'Shared with each family’s permission.',
   emptyLead: 'No family stories are published yet.',
+  viewAll: 'See Family Stories',
 };
 const UZ: typeof EN = {
   eyebrow: 'Oila hikoyalari',
@@ -33,6 +44,7 @@ const UZ: typeof EN = {
   body: "Oila o'z shaxsiy kitobini tasdiqlagach, uning raqamli nusxasini shu yerda qoldirishni tanlashi mumkin — boshqa oilalar ham u bilan tanishsin.",
   consentNote: "Har bir oilaning roziligi bilan baham ko'rilgan.",
   emptyLead: "Hozircha oila hikoyalari e'lon qilinmagan.",
+  viewAll: "Oila hikoyalarini ko'rish",
 };
 
 // gentle, fixed "hand-placed" transforms for the frame cluster
@@ -87,6 +99,14 @@ export function FamilyStoriesWorld({ stories }: { stories: Story[] }) {
         >
           {t.consentNote}
         </p>
+        <Link
+          href="/story-library/families"
+          className="mt-5 inline-flex items-center gap-2 text-[12px] uppercase transition-opacity duration-300 hover:opacity-60"
+          style={{ fontFamily: BODY, fontWeight: 600, letterSpacing: '0.16em', color: NAVY }}
+        >
+          {t.viewAll}
+          <span aria-hidden="true" style={{ color: GOLD }}>&rarr;</span>
+        </Link>
       </motion.div>
 
       {/* the mantel */}

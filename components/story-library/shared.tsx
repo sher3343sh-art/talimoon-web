@@ -14,6 +14,7 @@
  */
 
 import React from 'react';
+import Link from 'next/link';
 import { motion, useReducedMotion, type Variants } from 'framer-motion';
 
 export const DISPLAY =
@@ -145,6 +146,40 @@ export function Band({
     >
       <div className="mx-auto w-full max-w-[1200px]">{children}</div>
     </section>
+  );
+}
+
+/** The quiet secondary context on Story Library sub-pages: a "back"
+ *  and an optional link to the sibling world. No tab bar. */
+export function SubNav({
+  backHref = '/story-library',
+  backLabel,
+  siblingHref,
+  siblingLabel,
+}: {
+  backHref?: string;
+  backLabel: string;
+  siblingHref?: string;
+  siblingLabel?: string;
+}) {
+  const link =
+    'inline-flex items-center gap-1.5 text-[12px] uppercase tracking-[0.16em] transition-opacity duration-300 hover:opacity-60';
+  const style = { fontFamily: BODY, fontWeight: 600, color: NAVY_64 } as const;
+  return (
+    <div className="flex items-center justify-between gap-4 py-6">
+      <Link href={backHref} className={link} style={style}>
+        <span aria-hidden="true">&larr;</span>
+        <span>{backLabel}</span>
+      </Link>
+      {siblingHref && siblingLabel ? (
+        <Link href={siblingHref} className={link} style={style}>
+          <span>{siblingLabel}</span>
+          <span aria-hidden="true" style={{ color: GOLD }}>
+            &rarr;
+          </span>
+        </Link>
+      ) : null}
+    </div>
   );
 }
 

@@ -39,6 +39,7 @@ const EN = {
   titleSoon: 'Coming soon',
   spineEnd: 'The story continues.',
   beginsSoon: 'The first part is being prepared.',
+  viewAll: 'Enter Yusuf & Yasmina',
 };
 const UZ: typeof EN = {
   eyebrow: 'Davom etuvchi hikoya',
@@ -47,6 +48,7 @@ const UZ: typeof EN = {
   titleSoon: 'Tez orada',
   spineEnd: 'Hikoya davom etadi.',
   beginsSoon: 'Birinchi qism tayyorlanmoqda.',
+  viewAll: "Yusuf va Yasmina olamiga kirish",
 };
 
 function EpisodeNode({
@@ -98,18 +100,15 @@ function EpisodeNode({
     </div>
   );
 
-  return published ? (
+  return (
     <li className="relative shrink-0 md:w-[200px]">
       <Link
         href={`/story-library/s/${story.slug}`}
-        className="block outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-500)]"
+        aria-label={published ? `${label} — ${title}` : `${label} — ${comingSoon}`}
+        className="block outline-none transition-opacity duration-300 hover:opacity-80 focus-visible:opacity-80"
       >
         {body}
       </Link>
-    </li>
-  ) : (
-    <li className="relative shrink-0 md:w-[200px]" aria-label={`${label} — ${comingSoon}`}>
-      {body}
     </li>
   );
 }
@@ -168,6 +167,14 @@ export function YusufYasminaSpine({
             {t.beginsSoon}
           </p>
         ) : null}
+        <Link
+          href="/story-library/yusuf-yasmina"
+          className="mt-6 inline-flex items-center gap-2 text-[12px] uppercase transition-opacity duration-300 hover:opacity-60"
+          style={{ fontFamily: BODY, fontWeight: 600, letterSpacing: '0.16em', color: NAVY }}
+        >
+          {t.viewAll}
+          <span aria-hidden="true" style={{ color: GOLD }}>&rarr;</span>
+        </Link>
       </motion.div>
 
       {/* the spine */}

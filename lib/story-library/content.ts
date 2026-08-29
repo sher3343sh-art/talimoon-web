@@ -138,6 +138,27 @@ export function getStoryBySlug(slug: string): Story | undefined {
   return STORIES.find((s) => s.slug === slug);
 }
 
+/** Every slug that should have a Story page — used by
+ *  `generateStaticParams`. Scheduled placeholders included so the
+ *  spine's "coming soon" nodes have a real antechamber to link to. */
+export function allStorySlugs(): string[] {
+  return STORIES.filter(
+    (s) => s.publicationState !== 'draft' && s.publicationState !== 'withdrawn',
+  ).map((s) => s.slug);
+}
+
+/** Previous / next episode within the same series, in episode order. */
+export function getAdjacentEpisodes(story: Story): {
+  prev?: Story;
+  next?: Story;
+} {
+  if (story.kind !== 'series-episode' || !story.seriesId) return {};
+  const eps = getSeriesEpisodes(story.seriesId);
+  const i = eps.findIndex((e) => e.id === story.id);
+  if (i === -1) return {};
+  return { prev: eps[i - 1], next: eps[i + 1] };
+}
+
 /** The edition for a locale, falling back to the story's default
  *  locale, then to whatever edition exists. */
 export function getEdition(
