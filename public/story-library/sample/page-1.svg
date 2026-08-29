@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="1200" height="800">
+  <rect width="1200" height="800" fill="#F7F3EC"/>
+  <rect x="28" y="28" width="1144" height="744" fill="none" stroke="#B8935B" stroke-opacity="0.45" stroke-width="1.5"/>
+  <g fill="none" stroke="#1C2A3A" stroke-opacity="0.62" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M300 470 q60 -90 150 -60 q90 30 150 60" /><circle cx="380" cy="360" r="20"/><path d="M380 380 v70 M362 420 h36"/><circle cx="470" cy="368" r="16"/><path d="M470 384 v58 M456 415 h28"/><path d="M180 520 h840" stroke-opacity="0.25"/>
+  </g>
+  <text x="600" y="640" text-anchor="middle" fill="#1C2A3A" font-family="Georgia, 'Cormorant Garamond', serif" font-size="30" font-style="italic">Two friends set out at first light.</text>
+  <text x="600" y="726" text-anchor="middle" fill="#B8935B" font-family="Arial, sans-serif" font-size="15" letter-spacing="3">SAMPLE PAGE 01</text>
+</svg>

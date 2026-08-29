@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="1200" height="800">
+  <rect width="1200" height="800" fill="#F7F3EC"/>
+  <rect x="28" y="28" width="1144" height="744" fill="none" stroke="#B8935B" stroke-opacity="0.45" stroke-width="1.5"/>
+  <g fill="none" stroke="#1C2A3A" stroke-opacity="0.62" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M520 300 v-70 a60 60 0 0 1 120 0 v70" /><path d="M500 300 h160" /><path d="M580 300 v-90" stroke-opacity="0.4"/><circle cx="360" cy="380" r="18"/><path d="M360 398 v64 M346 430 h28"/>
+  </g>
+  <text x="600" y="640" text-anchor="middle" fill="#1C2A3A" font-family="Georgia, 'Cormorant Garamond', serif" font-size="30" font-style="italic">A question opens like a door.</text>
+  <text x="600" y="726" text-anchor="middle" fill="#B8935B" font-family="Arial, sans-serif" font-size="15" letter-spacing="3">SAMPLE PAGE 02</text>
+</svg>

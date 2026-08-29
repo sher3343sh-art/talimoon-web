@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="1200" height="800">
+  <rect width="1200" height="800" fill="#F7F3EC"/>
+  <rect x="28" y="28" width="1144" height="744" fill="none" stroke="#B8935B" stroke-opacity="0.45" stroke-width="1.5"/>
+  <g fill="none" stroke="#1C2A3A" stroke-opacity="0.62" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M420 430 c40 -22 80 -22 120 0 c-40 22 -80 22 -120 0 Z"/><path d="M480 418 v24" stroke-opacity="0.6"/><path d="M300 520 h600" stroke-opacity="0.22"/>
+  </g>
+  <text x="600" y="640" text-anchor="middle" fill="#1C2A3A" font-family="Georgia, 'Cormorant Garamond', serif" font-size="30" font-style="italic">And the story waits for tomorrow.</text>
+  <text x="600" y="726" text-anchor="middle" fill="#B8935B" font-family="Arial, sans-serif" font-size="15" letter-spacing="3">SAMPLE PAGE 06</text>
+</svg>

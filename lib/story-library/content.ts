@@ -28,6 +28,7 @@ import {
   type Series,
   type Story,
   type StoryEdition,
+  type StoryPage,
 } from './types';
 import { isPubliclyListed } from './access';
 
@@ -98,9 +99,86 @@ function placeholderEpisode(order: number): Story {
   };
 }
 
+// ── Sample published episode ───────────────────────────────────────
+// SAMPLE ONLY — placeholder illustrated pages
+// (public/story-library/sample/page-N.svg) and a placeholder narration
+// bed (narration.wav, faint pad + a soft chime at each page turn), so
+// the Reader — page↔audio sync, the two switches, continue-reading — is
+// fully real and demonstrable. Replacing it with a real episode is a
+// data edit: swap the assets, the timestamps and the copy.
+const SAMPLE_PAGE_TEXT = [
+  'Two friends set out at first light.',
+  'A question opens like a door.',
+  'The path climbs through a quiet garden.',
+  'They help someone who cannot see the way.',
+  'Under the first stars, they rest.',
+  'And the story waits for tomorrow.',
+];
+// audioEnd[n] === audioStart[n+1]; total 72s (matches narration.wav)
+const SAMPLE_BOUNDS = [0, 12, 25, 38, 50, 62, 72];
+
+function samplePages(): StoryPage[] {
+  return SAMPLE_PAGE_TEXT.map((text, i) => ({
+    index: i,
+    image: {
+      id: `sample_p${i + 1}`,
+      src: `/story-library/sample/page-${i + 1}.svg`,
+      width: 1200,
+      height: 800,
+      alt: text,
+    },
+    text,
+    audioStartSec: SAMPLE_BOUNDS[i],
+    audioEndSec: SAMPLE_BOUNDS[i + 1],
+  }));
+}
+
+function sampleEdition(storyId: string, locale: Locale): StoryEdition {
+  const uz = locale === 'uz';
+  return {
+    id: `${storyId}_ed_${locale}`,
+    storyId,
+    locale,
+    direction: directionFor(locale),
+    title: uz ? 'Ilk yo‘l' : 'The First Path',
+    subtitle: uz ? 'Namuna qism' : 'Sample part',
+    description: uz
+      ? 'Yusuf va Yasmina birga yo‘lga chiqadi va yo‘lda kichik bir yaxshilik qiladi. (Bu — Reader’ni sinash uchun namuna nusxa.)'
+      : 'Yusuf and Yasmina set out together and do one small kindness along the way. (A sample edition, for trying the Reader.)',
+    cover: emptyCover(`${storyId}_cover`),
+    pages: samplePages(),
+    audio: {
+      id: `${storyId}_audio_${locale}`,
+      src: '/story-library/sample/narration.wav',
+      durationSec: 72,
+    },
+    status: 'ready',
+  };
+}
+
+function sampleEpisode(): Story {
+  const id = 'story_yy_01';
+  return {
+    id,
+    slug: 'yusuf-yasmina-1',
+    kind: 'series-episode',
+    seriesId: YUSUF_YASMINA.id,
+    episodeOrder: 1,
+    defaultLocale: 'uz',
+    publicationState: 'published',
+    publishedAtISO: '2026-08-01T00:00:00.000Z',
+    indexable: false, // sample content — not for search engines
+    access: 'free',
+    featured: false,
+    recognition: null,
+    commentsEnabled: true,
+    editions: [sampleEdition(id, 'uz'), sampleEdition(id, 'en')],
+  };
+}
+
 // ── Stories ────────────────────────────────────────────────────────
 export const STORIES: readonly Story[] = [
-  placeholderEpisode(1),
+  sampleEpisode(),
   placeholderEpisode(2),
   placeholderEpisode(3),
 ];
@@ -147,6 +225,13 @@ export function allStorySlugs(): string[] {
   ).map((s) => s.slug);
 }
 
+/** Slugs that have a Reader route — published only. */
+export function readableStorySlugs(): string[] {
+  return STORIES.filter((s) => s.publicationState === 'published').map(
+    (s) => s.slug,
+  );
+}
+
 /** Previous / next episode within the same series, in episode order. */
 export function getAdjacentEpisodes(story: Story): {
   prev?: Story;
@@ -157,6 +242,35 @@ export function getAdjacentEpisodes(story: Story): {
   const i = eps.findIndex((e) => e.id === story.id);
   if (i === -1) return {};
   return { prev: eps[i - 1], next: eps[i + 1] };
+}
+
+export interface ReaderData {
+  story: Story;
+  edition: StoryEdition;
+  /** Next episode, if this is a series episode and one exists — for the
+   *  "next part" offer at the end. Never auto-plays. */
+  nextEpisode?: { slug: string; label: string };
+}
+
+/** Everything the Reader route needs for one slug + locale. Returns
+ *  null when the slug is unknown or the edition has no pages. Access
+ *  (`canRead`) is checked by the route, not here. */
+export function getReaderData(slug: string, locale: Locale): ReaderData | null {
+  const story = getStoryBySlug(slug);
+  if (!story) return null;
+  const edition = getEdition(story, locale);
+  if (!edition || edition.pages.length === 0) return null;
+
+  const { next } = getAdjacentEpisodes(story);
+  const nextEpisode =
+    next && next.publicationState === 'published'
+      ? {
+          slug: next.slug,
+          label: `${String(next.episodeOrder ?? 0).padStart(2, '0')}-QISM`,
+        }
+      : undefined;
+
+  return { story, edition, nextEpisode };
 }
 
 /** The edition for a locale, falling back to the story's default

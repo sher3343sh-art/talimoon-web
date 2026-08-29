@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="1200" height="800">
+  <rect width="1200" height="800" fill="#F7F3EC"/>
+  <rect x="28" y="28" width="1144" height="744" fill="none" stroke="#B8935B" stroke-opacity="0.45" stroke-width="1.5"/>
+  <g fill="none" stroke="#1C2A3A" stroke-opacity="0.62" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M360 150 l6 14 l14 6 l-14 6 l-6 14 l-6 -14 l-14 -6 l14 -6 Z" fill="#B8935B" stroke="none"/><path d="M760 210 l5 12 l12 5 l-12 5 l-5 12 l-5 -12 l-12 -5 l12 -5 Z" fill="#B8935B" stroke="none"/><path d="M300 520 q300 -70 620 0" stroke-opacity="0.3"/><circle cx="500" cy="440" r="18"/><circle cx="560" cy="446" r="14"/>
+  </g>
+  <text x="600" y="640" text-anchor="middle" fill="#1C2A3A" font-family="Georgia, 'Cormorant Garamond', serif" font-size="30" font-style="italic">Under the first stars, they rest.</text>
+  <text x="600" y="726" text-anchor="middle" fill="#B8935B" font-family="Arial, sans-serif" font-size="15" letter-spacing="3">SAMPLE PAGE 05</text>
+</svg>
