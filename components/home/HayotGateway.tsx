@@ -15,15 +15,17 @@
  *                  index of the three worlds (plain text, hairlines,
  *                  small gold numerals — NOT buttons) · one editorial
  *                  link into /journey.
- *   RIGHT (~56%) — ONE dominant photographic frame (a warm, real
- *                  parent–child moment) with a tiny vertical
- *                  editorial note along its edge.
+ *   RIGHT (~56%) — a slow-turning triangular prism: three faces, one
+ *                  per Journey world, each a warm real moment. It
+ *                  holds on a face, turns, holds on the next — an
+ *                  editorial display, not a spin. A tiny sideways note
+ *                  anchors its leading edge.
  *
  * MEDIA: no fake TALIMOON event is invented and no Journey content
- * is pulled in (this pass is not dynamic). The frame is a refined,
+ * is pulled in (this pass is not dynamic). Each face is a refined,
  * production-ready placeholder — warm paper, subtle texture, an
- * editorial crop frame with a hairline — until a licensed lifestyle
- * image is supplied, at which point it just fills `HAYOT_IMAGE`.
+ * editorial crop frame with a hairline — until licensed lifestyle
+ * images are supplied via the `HAYOT_FACES` slots.
  */
 
 import Image from 'next/image';
@@ -44,12 +46,17 @@ const HAIRLINE = 'rgba(28,42,58,0.14)';
 
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
+type FaceImage = { src: string; alt: string } | null;
+
 /**
- * The one editorial image slot. Set this (a licensed parent–child
- * lifestyle image, with meaningful alt) and the frame fills — no
- * other change needed. `null` → the prepared editorial placeholder.
+ * The three editorial image slots — one per face of the slowly
+ * turning triangular prism, in the same order as the contents index:
+ *   [0] TALIMOON HAYOTI   [1] OTA-ONALAR UCHUN   [2] ODATLAR VA ILM
+ * Set a slot (a licensed lifestyle image, meaningful alt) and that
+ * face fills — no other change. `null` → the prepared editorial
+ * placeholder on that face.
  */
-const HAYOT_IMAGE = null as { src: string; alt: string } | null;
+const HAYOT_FACES: [FaceImage, FaceImage, FaceImage] = [null, null, null];
 
 // ── Copy — all four site languages authored ────────────────────────
 type Copy = {
@@ -244,11 +251,13 @@ export function HayotGateway() {
     </motion.div>
   );
 
-  // The editorial image "card": a slow, continuous 3D turn on the
-  // Y axis (front = the photo / prepared frame, back = a quiet HAYOT
-  // panel). Stopped entirely under prefers-reduced-motion. The turn
-  // only foreshortens the card, never widens it — no overflow, no
-  // layout shift.
+  // The editorial image as a slow-turning triangular prism — three
+  // faces, one per Journey world, each a photo or the prepared
+  // editorial frame. It holds on a face, turns, holds on the next —
+  // an editorial display, not a spin. Stopped entirely under
+  // prefers-reduced-motion (settling on the first face). A generous
+  // perspective keeps the turn gentle; the prism is inset from the
+  // column edge so a full rotation never overflows.
   const faceBase =
     'absolute inset-0 overflow-hidden [backface-visibility:hidden] [-webkit-backface-visibility:hidden]';
 
@@ -258,93 +267,78 @@ export function HayotGateway() {
         href="/journey"
         tabIndex={-1}
         aria-hidden="true"
-        className="relative block [perspective:1600px]"
+        className="relative block [perspective:2200px]"
       >
-        <div
-          data-hg-card
-          className={`relative aspect-[4/5] w-full sm:aspect-[3/2] lg:aspect-auto lg:h-[420px] [transform-style:preserve-3d] ${
-            reduced
-              ? ''
-              : 'motion-safe:animate-[hg-gateway-turn_22s_linear_infinite]'
-          }`}
-          style={{ transformStyle: 'preserve-3d', willChange: 'transform' }}
-        >
-          {/* FRONT — the photo, or the prepared editorial placeholder */}
-          <div className={faceBase} style={{ backgroundColor: PAPER }}>
-            {HAYOT_IMAGE ? (
-              <Image
-                src={HAYOT_IMAGE.src}
-                alt={HAYOT_IMAGE.alt}
-                fill
-                loading="lazy"
-                sizes="(max-width: 1024px) 92vw, 52vw"
-                className="object-cover"
-              />
-            ) : (
+        {/* layout box — fixed footprint, no CLS */}
+        <div className="relative aspect-[4/5] w-full sm:aspect-[3/2] lg:aspect-auto lg:h-[420px]">
+          {/* the rotating prism, inset from the right edge on desktop */}
+          <div
+            data-hg-card
+            className={`absolute inset-0 [--hg-r:96px] [transform-style:preserve-3d] sm:[--hg-r:150px] lg:left-auto lg:w-[86%] ${
+              reduced
+                ? ''
+                : 'motion-safe:animate-[hg-prism-turn_24s_ease-in-out_infinite]'
+            }`}
+            style={{ transformStyle: 'preserve-3d', willChange: 'transform' }}
+          >
+            {HAYOT_FACES.map((img, k) => (
               <div
-                aria-hidden="true"
-                className="absolute inset-0"
-                style={{ backgroundImage: GRAIN }}
-              >
-                <CropFrame />
-              </div>
-            )}
-            <span
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-0"
-              style={{ boxShadow: 'inset 0 0 0 1px rgba(184,147,91,0.22)' }}
-            />
-            {/* the tiny sideways editorial note — rides on the card's
-                front face. LTR / md+ only. */}
-            {!isRTL ? (
-              <span
-                aria-hidden="true"
-                className="absolute start-3.5 top-7 hidden select-none md:block"
+                key={k}
+                className={faceBase}
                 style={{
-                  writingMode: 'vertical-rl',
-                  textOrientation: 'sideways',
-                  fontFamily: BODY,
-                  fontWeight: 600,
-                  fontSize: 10,
-                  letterSpacing: '0.22em',
-                  textTransform: 'uppercase',
-                  color: 'rgba(184,147,91,0.9)',
-                  textShadow: '0 1px 10px rgba(247,242,234,0.65)',
+                  backgroundColor: PAPER,
+                  transform: `rotateY(${k * 120}deg) translateZ(var(--hg-r))`,
                 }}
               >
-                {c.note}
-              </span>
-            ) : null}
-          </div>
-
-          {/* BACK — a calm HAYOT panel, so a full turn always reads as
-              one deliberate editorial card, never a blank reverse. */}
-          <div
-            aria-hidden="true"
-            className={`${faceBase} flex flex-col items-center justify-center gap-3 [transform:rotateY(180deg)]`}
-            style={{ backgroundColor: PAPER, backgroundImage: GRAIN }}
-          >
-            <span
-              style={{
-                fontFamily: BODY,
-                fontWeight: 600,
-                fontSize: 12,
-                letterSpacing: '0.34em',
-                color: GOLD,
-              }}
-            >
-              HAYOT
-            </span>
-            <span
-              style={{ width: 34, height: 1, backgroundColor: 'rgba(184,147,91,0.55)' }}
-            />
-            <CropFrame />
-            <span
-              className="pointer-events-none absolute inset-0"
-              style={{ boxShadow: 'inset 0 0 0 1px rgba(184,147,91,0.22)' }}
-            />
+                {img ? (
+                  <Image
+                    src={img.src}
+                    alt={img.alt}
+                    fill
+                    loading="lazy"
+                    sizes="(max-width: 1024px) 92vw, 46vw"
+                    className="object-cover"
+                  />
+                ) : (
+                  <div
+                    aria-hidden="true"
+                    className="absolute inset-0"
+                    style={{ backgroundImage: GRAIN }}
+                  >
+                    <CropFrame />
+                  </div>
+                )}
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-0"
+                  style={{ boxShadow: 'inset 0 0 0 1px rgba(184,147,91,0.22)' }}
+                />
+              </div>
+            ))}
           </div>
         </div>
+
+        {/* the tiny sideways editorial note — a fixed anchor beside the
+            turning prism. LTR / md+ only. */}
+        {!isRTL ? (
+          <span
+            aria-hidden="true"
+            className="absolute start-3.5 top-7 z-10 hidden select-none md:block"
+            style={{
+              writingMode: 'vertical-rl',
+              textOrientation: 'sideways',
+              fontFamily: BODY,
+              fontWeight: 600,
+              fontSize: 10,
+              letterSpacing: '0.22em',
+              textTransform: 'uppercase',
+              color: 'rgba(184,147,91,0.9)',
+              textShadow: '0 1px 10px rgba(247,242,234,0.65)',
+            }}
+          >
+            {c.note}
+          </span>
+        ) : null}
       </Link>
     </motion.div>
   );
