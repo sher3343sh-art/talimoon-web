@@ -251,13 +251,14 @@ export function HayotGateway() {
     </motion.div>
   );
 
-  // The editorial image as a slow-turning triangular prism — three
-  // faces, one per Journey world, each a photo or the prepared
-  // editorial frame. It holds on a face, turns, holds on the next —
-  // an editorial display, not a spin. Stopped entirely under
-  // prefers-reduced-motion (settling on the first face). A generous
-  // perspective keeps the turn gentle; the prism is inset from the
-  // column edge so a full rotation never overflows.
+  // The editorial image is a slow, continuously-turning triangular
+  // prism — three designed faces, one per Journey world (a large
+  // ghosted folio numeral + the world name, over the photo once one
+  // is supplied). It always reads as a solid object turning in space:
+  // strong-ish perspective, a grounding floor shadow, a soft top
+  // light on each face. Frozen on the first face under
+  // prefers-reduced-motion. Inset from the column edge so a full turn
+  // never overflows.
   const faceBase =
     'absolute inset-0 overflow-hidden [backface-visibility:hidden] [-webkit-backface-visibility:hidden]';
 
@@ -267,54 +268,119 @@ export function HayotGateway() {
         href="/journey"
         tabIndex={-1}
         aria-hidden="true"
-        className="relative block [perspective:2200px]"
+        className="relative block [perspective:1500px] [perspective-origin:50%_40%]"
       >
         {/* layout box — fixed footprint, no CLS */}
         <div className="relative aspect-[4/5] w-full sm:aspect-[3/2] lg:aspect-auto lg:h-[420px]">
+          {/* grounding floor shadow — gives the prism weight */}
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute bottom-[-14px] left-1/2 h-7 w-[62%] -translate-x-1/2 lg:left-[57%]"
+            style={{
+              background:
+                'radial-gradient(ellipse at center, rgba(28,42,58,0.20), transparent 72%)',
+              filter: 'blur(7px)',
+            }}
+          />
+
           {/* the rotating prism, inset from the right edge on desktop */}
           <div
             data-hg-card
-            className={`absolute inset-0 [--hg-r:96px] [transform-style:preserve-3d] sm:[--hg-r:150px] lg:left-auto lg:w-[86%] ${
+            className={`absolute inset-0 [--hg-r:112px] [transform-style:preserve-3d] md:[--hg-r:152px] lg:left-auto lg:w-[86%] ${
               reduced
                 ? ''
-                : 'motion-safe:animate-[hg-prism-turn_24s_ease-in-out_infinite]'
+                : 'motion-safe:animate-[hg-prism-turn_20s_linear_infinite]'
             }`}
             style={{ transformStyle: 'preserve-3d', willChange: 'transform' }}
           >
-            {HAYOT_FACES.map((img, k) => (
-              <div
-                key={k}
-                className={faceBase}
-                style={{
-                  backgroundColor: PAPER,
-                  transform: `rotateY(${k * 120}deg) translateZ(var(--hg-r))`,
-                }}
-              >
-                {img ? (
-                  <Image
-                    src={img.src}
-                    alt={img.alt}
-                    fill
-                    loading="lazy"
-                    sizes="(max-width: 1024px) 92vw, 46vw"
-                    className="object-cover"
-                  />
-                ) : (
-                  <div
+            {HAYOT_FACES.map((img, k) => {
+              const num = String(k + 1).padStart(2, '0');
+              const label = worldName(WORLD_KEYS[k], locale);
+              return (
+                <div
+                  key={k}
+                  className={faceBase}
+                  style={{
+                    backgroundColor: PAPER,
+                    transform: `rotateY(${k * 120}deg) translateZ(var(--hg-r))`,
+                  }}
+                >
+                  {img ? (
+                    <Image
+                      src={img.src}
+                      alt={img.alt}
+                      fill
+                      loading="lazy"
+                      sizes="(max-width: 1024px) 92vw, 46vw"
+                      className="object-cover"
+                    />
+                  ) : (
+                    <span
+                      aria-hidden="true"
+                      className="absolute inset-0"
+                      style={{ backgroundImage: GRAIN }}
+                    />
+                  )}
+
+                  {/* soft directional light so each face has a surface */}
+                  <span
                     aria-hidden="true"
-                    className="absolute inset-0"
-                    style={{ backgroundImage: GRAIN }}
+                    className="pointer-events-none absolute inset-0"
+                    style={{
+                      background:
+                        'linear-gradient(155deg, rgba(255,255,255,0.34), rgba(255,255,255,0) 34%, rgba(28,42,58,0) 68%, rgba(28,42,58,0.10))',
+                    }}
+                  />
+                  {img ? (
+                    <span
+                      aria-hidden="true"
+                      className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5"
+                      style={{
+                        background:
+                          'linear-gradient(to top, rgba(18,26,36,0.62), transparent)',
+                      }}
+                    />
+                  ) : null}
+
+                  {/* big ghosted folio numeral */}
+                  <span
+                    aria-hidden="true"
+                    className="absolute start-6 top-4 select-none text-[86px] leading-none sm:text-[118px] lg:top-6 lg:text-[130px]"
+                    style={{
+                      fontFamily: DISPLAY,
+                      fontWeight: 600,
+                      color: img
+                        ? 'rgba(255,255,255,0.24)'
+                        : 'rgba(184,147,91,0.18)',
+                    }}
                   >
-                    <CropFrame />
-                  </div>
-                )}
-                <span
-                  aria-hidden="true"
-                  className="pointer-events-none absolute inset-0"
-                  style={{ boxShadow: 'inset 0 0 0 1px rgba(184,147,91,0.22)' }}
-                />
-              </div>
-            ))}
+                    {num}
+                  </span>
+
+                  {/* world name, lower-left */}
+                  <span
+                    className="absolute bottom-6 start-6 end-6 block text-[20px] sm:text-[24px] lg:text-[26px]"
+                    style={{
+                      fontFamily: DISPLAY,
+                      fontWeight: 600,
+                      lineHeight: 1.14,
+                      letterSpacing: '-0.01em',
+                      color: img ? '#FBF7EF' : NAVY,
+                      textShadow: img ? '0 1px 12px rgba(18,26,36,0.5)' : 'none',
+                    }}
+                  >
+                    {label}
+                  </span>
+
+                  <CropFrame />
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0"
+                    style={{ boxShadow: 'inset 0 0 0 1px rgba(184,147,91,0.28)' }}
+                  />
+                </div>
+              );
+            })}
           </div>
         </div>
 

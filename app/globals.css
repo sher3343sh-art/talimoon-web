@@ -863,25 +863,13 @@ body {
 }
 
 /* ── Home HAYOT gateway — the editorial image prism's slow 3D turn ──
-   A triangular prism (three faces, one per Journey world) that holds
-   on a face, turns 120deg, holds again. Transform-only on a
+   A triangular prism (three designed faces, one per Journey world)
+   turning continuously and slowly on its Y axis. Transform-only on a
    preserve-3d element, so it stays on the compositor. Applied via
    `motion-safe:` in the component; disabled again here for anyone who
    slips through, settling on the first face. */
 @keyframes hg-prism-turn {
-  0%,
-  28% {
-    transform: rotateY(0deg);
-  }
-  33.333%,
-  61.333% {
-    transform: rotateY(-120deg);
-  }
-  66.666%,
-  94.666% {
-    transform: rotateY(-240deg);
-  }
-  100% {
+  to {
     transform: rotateY(-360deg);
   }
 }
