@@ -4,6 +4,7 @@ import Footer from '@/components/layout/Footer';
 import { TheOpening } from '@/components/journey/TheOpening';
 import { YaqinKunlar } from '@/components/journey/YaqinKunlar';
 import { Hayotdan } from '@/components/journey/Hayotdan';
+import { HayotEnding } from '@/components/journey/HayotEnding';
 
 export const metadata: Metadata = {
   title: 'Hayot — TALIMOON',
@@ -33,6 +34,7 @@ export default function JourneyPage() {
         <TheOpening />
         <YaqinKunlar />
         <Hayotdan />
+        <HayotEnding />
       </main>
       <Footer />
     </>

@@ -1,89 +1,77 @@
 'use client';
 
 /**
- * HAYOT — foundation placeholder (Increment 1).
+ * HAYOT — the OPENING when there is no real featured entry yet.
  * ----------------------------------------------------------------
- * The route exists and the data layer is in place, but the opening
- * experience, the YAQIN KUNLAR pulse and the HAYOTDAN stream are
- * built in later increments. Until then this renders HAYOT's honest
- * empty state — no fabricated entries, no fake volume.
- *
- * It reads the real accessors so that the moment a genuine entry is
- * published, this stops being the empty state on its own; the full
- * composition still replaces this component in Increment 2+.
+ * Not a marketing hero and not a "coming soon" apology: a calm
+ * statement of what HAYOT is. It sits in the same place as the real
+ * opening's coverline and owns the first viewport, so when a real
+ * featured story is published `TheOpening` swaps it out with no
+ * visible jump. It communicates the living-memory idea quietly and
+ * never pretends something happened.
  */
 
-import { useMemo } from 'react';
-import { getFeaturedEntry, getStreamEntries } from '@/lib/journey/content';
 import { useT } from '@/lib/i18n/LanguageContext';
-import { Band, BODY, DISPLAY, Eyebrow, GoldRule, NAVY, NAVY_64 } from './shared';
+import { Band, BODY, DISPLAY, GOLD, NAVY, NAVY_64 } from './shared';
 
 const EN = {
   eyebrow: 'HAYOT',
-  headline: 'The living side of TALIMOON is being written here.',
-  body: 'Visits, small moments, conversations and what comes next — the real life around TALIMOON. The first pages are on their way.',
-  soon: 'Opening soon',
+  headline: 'Where TALIMOON’s life is written down, and kept.',
+  body: 'Visits, small moments, conversations, films — and what comes next. The first pages, soon.',
 };
-
 const UZ: typeof EN = {
   eyebrow: 'HAYOT',
-  headline: 'TALIMOON hayoti shu yerda yozila boshlaydi.',
-  body: "Tashriflar, kichik lahzalar, suhbatlar va oldinda nima borligi — TALIMOON atrofidagi haqiqiy hayot. Ilk sahifalar tez orada.",
-  soon: 'Tez orada ochiladi',
+  headline: 'TALIMOON hayoti shu yerda yozib boriladi va saqlanadi.',
+  body: "Tashriflar, kichik lahzalar, suhbatlar, videolar — va oldinda nima borligi. Ilk sahifalar tez orada.",
 };
 
 export function JourneyFoundation() {
   const t = useT(EN, UZ);
 
-  // Wired to the real data layer now; still an empty seed in V1.
-  const hasContent = useMemo(
-    () => getFeaturedEntry() !== null || getStreamEntries().total > 0,
-    [],
-  );
-
   return (
     <Band
       labelledBy="journey-heading"
-      className="pt-28 pb-32 md:pt-40 md:pb-44"
+      className="flex min-h-[480px] flex-col justify-center py-24 md:py-28 lg:min-h-[600px] lg:py-32"
     >
-      <div className="mx-auto max-w-[640px] text-center">
-        <Eyebrow>{t.eyebrow}</Eyebrow>
-        <GoldRule className="mt-4" />
+      <div className="max-w-[680px]">
+        <p
+          className="text-[13px] uppercase"
+          style={{
+            fontFamily: BODY,
+            fontWeight: 600,
+            letterSpacing: '0.24em',
+            color: GOLD,
+          }}
+        >
+          {t.eyebrow}
+        </p>
+        <span
+          aria-hidden="true"
+          className="mt-5 block"
+          style={{ width: 40, height: 1, backgroundColor: GOLD }}
+        />
 
         <h1
           id="journey-heading"
-          className="mt-8 text-[30px] sm:text-[36px] md:text-[44px]"
+          className="mt-7 text-[30px] sm:text-[36px] md:text-[42px] lg:text-[46px]"
           style={{
             fontFamily: DISPLAY,
             fontWeight: 600,
             color: NAVY,
-            lineHeight: 1.18,
-            letterSpacing: '-0.01em',
+            lineHeight: 1.12,
+            letterSpacing: '-0.02em',
+            textWrap: 'balance',
           }}
         >
           {t.headline}
         </h1>
 
         <p
-          className="mx-auto mt-6 max-w-[52ch] text-[16px] md:text-[18px]"
+          className="mt-6 max-w-[46ch] text-[16px] md:text-[18px]"
           style={{ fontFamily: BODY, color: NAVY_64, lineHeight: 1.7 }}
         >
           {t.body}
         </p>
-
-        {!hasContent && (
-          <p
-            className="mt-10 text-[12px] uppercase"
-            style={{
-              fontFamily: BODY,
-              fontWeight: 600,
-              letterSpacing: '0.22em',
-              color: NAVY_64,
-            }}
-          >
-            {t.soon}
-          </p>
-        )}
       </div>
     </Band>
   );

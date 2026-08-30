@@ -26,6 +26,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { motion, useReducedMotion, type Variants } from 'framer-motion';
+import type { JourneyVideo } from '@/lib/journey/types';
 
 // ── Design constants (identical to about/shared.tsx) ────────────────
 export const DISPLAY =
@@ -284,4 +285,94 @@ export function shortDate(iso: string, locale: string): string {
   const day = d.getUTCDate();
   const mon = (locale === 'uz' ? MONTHS_UZ : MONTHS_EN)[d.getUTCMonth()] ?? '';
   return locale === 'uz' ? `${day} ${mon}` : `${mon} ${day}`;
+}
+
+/** "2:34" from seconds. */
+export function clock(sec: number): string {
+  const m = Math.floor(sec / 60);
+  const s = Math.abs(sec % 60);
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+// ── VideoPlayer ────────────────────────────────────────────────────
+/**
+ * Poster-first video. Nothing loads until the visitor presses play
+ * (`preload="none"`), never autoplays, always has controls, and
+ * carries a captions track + a collapsible transcript when supplied.
+ * Self-hosted files use a native <video>; YouTube uses the
+ * privacy-preserving nocookie embed (real TALIMOON films should be
+ * `provider: 'file'` for the cleanest, un-branded experience).
+ */
+export function VideoPlayer({
+  video,
+  className = '',
+  transcriptLabel = 'Transcript',
+}: {
+  video: JourneyVideo;
+  className?: string;
+  transcriptLabel?: string;
+}) {
+  return (
+    <div className={className}>
+      {video.provider === 'file' ? (
+        <video
+          controls
+          preload="none"
+          playsInline
+          poster={video.poster.src}
+          className="aspect-video w-full bg-[#0c1116]"
+        >
+          <source src={video.src} />
+          {video.captionsSrc ? (
+            <track kind="captions" src={video.captionsSrc} srcLang="uz" default />
+          ) : null}
+        </video>
+      ) : (
+        <div className="relative aspect-video w-full overflow-hidden bg-[#0c1116]">
+          <iframe
+            src={`https://www.youtube-nocookie.com/embed/${video.src}?rel=0`}
+            title="Video"
+            loading="lazy"
+            allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            className="absolute inset-0 h-full w-full"
+          />
+        </div>
+      )}
+
+      {video.credit || video.transcript ? (
+        <div className="mt-3 space-y-2">
+          {video.credit ? (
+            <p
+              className="text-[12px]"
+              style={{ fontFamily: BODY, color: NAVY_48, letterSpacing: '0.02em' }}
+            >
+              {video.credit}
+            </p>
+          ) : null}
+          {video.transcript ? (
+            <details>
+              <summary
+                className="cursor-pointer text-[12px] uppercase"
+                style={{
+                  fontFamily: BODY,
+                  fontWeight: 600,
+                  letterSpacing: '0.14em',
+                  color: NAVY_48,
+                }}
+              >
+                {transcriptLabel}
+              </summary>
+              <p
+                className="mt-3 text-[15px]"
+                style={{ fontFamily: BODY, color: NAVY_64, lineHeight: 1.75 }}
+              >
+                {video.transcript}
+              </p>
+            </details>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  );
 }

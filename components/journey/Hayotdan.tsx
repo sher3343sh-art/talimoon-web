@@ -31,7 +31,9 @@ import {
 import { toLocale, type JourneyEntry, type JourneyFormat } from '@/lib/journey/types';
 import { useLanguage, useT } from '@/lib/i18n/LanguageContext';
 import {
+  Band,
   BODY,
+  clock,
   DISPLAY,
   GOLD,
   Kicker,
@@ -41,7 +43,6 @@ import {
   QuietLink,
   Reveal,
   Rise,
-  Band,
 } from './shared';
 
 const EN = {
@@ -55,6 +56,9 @@ const EN = {
   results: 'See the results',
   ended: 'Ended',
   detail: 'More',
+  emptyTitle: 'This space is for stories.',
+  emptyBody:
+    'Reportage, film, a small moment, a thought — from TALIMOON’s life. The first ones, soon.',
 };
 const UZ: typeof EN = {
   heading: 'Hayotdan',
@@ -67,6 +71,9 @@ const UZ: typeof EN = {
   results: "Natijalarni ko'rish",
   ended: 'Yakunlandi',
   detail: 'Batafsil',
+  emptyTitle: 'Bu yer hikoyalar uchun.',
+  emptyBody:
+    "Reportaj, video, kichik lahza, bir fikr — TALIMOON hayotidan. Ilklari tez orada.",
 };
 
 function cta(format: JourneyFormat, t: typeof EN): string {
@@ -227,9 +234,11 @@ function StreamEntry({ entry, index }: { entry: JourneyEntry; index: number }) {
     );
   }
 
-  // ── video — cinematic poster, links into the detail player ──
+  // ── video — cinematic poster + a quiet play cue (never a YouTube
+  //    chrome), linking into the detail player ──
   if (entry.format === 'video' && (photo || entry.video)) {
     const poster = photo ?? entry.video?.poster;
+    const dur = entry.video ? clock(entry.video.durationSec) : kickerDate;
     return (
       <article dir={direction} className="mx-auto max-w-[1000px]">
         <Link href={href} className="group block">
@@ -246,33 +255,49 @@ function StreamEntry({ entry, index }: { entry: JourneyEntry; index: number }) {
                 className="object-cover"
               />
             ) : null}
+            {/* a soft foot so a light poster still holds the cue + label */}
             <span
               aria-hidden="true"
-              className="absolute left-1/2 top-1/2 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full transition-transform duration-300 group-hover:scale-105"
-              style={{ backgroundColor: 'rgba(247,243,236,0.92)' }}
+              className="absolute inset-x-0 bottom-0 h-1/3"
+              style={{
+                background:
+                  'linear-gradient(to top, rgba(12,17,22,0.42), transparent)',
+              }}
+            />
+            <span
+              aria-hidden="true"
+              className="absolute left-1/2 top-1/2 flex h-[60px] w-[60px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full transition-transform duration-300 group-hover:scale-105"
+              style={{
+                backgroundColor: 'rgba(247,243,236,0.94)',
+                boxShadow: '0 6px 24px rgba(12,17,22,0.28)',
+              }}
             >
               <span
                 className="ms-1 block h-0 w-0"
                 style={{
-                  borderTop: '9px solid transparent',
-                  borderBottom: '9px solid transparent',
-                  borderLeft: `14px solid ${NAVY}`,
+                  borderTop: '8px solid transparent',
+                  borderBottom: '8px solid transparent',
+                  borderInlineStart: `13px solid ${NAVY}`,
                 }}
               />
             </span>
+            {dur ? (
+              <span
+                className="absolute bottom-3 end-3 text-[11px] uppercase"
+                style={{
+                  fontFamily: BODY,
+                  fontWeight: 600,
+                  letterSpacing: '0.14em',
+                  color: '#F7F3EC',
+                }}
+              >
+                {dur}
+              </span>
+            ) : null}
           </div>
         </Link>
         <div className="mt-5 md:max-w-[720px]">
-          <Kicker
-            label={kickerLabel ?? 'VIDEO'}
-            date={
-              entry.video
-                ? `${Math.floor(entry.video.durationSec / 60)}:${String(
-                    entry.video.durationSec % 60,
-                  ).padStart(2, '0')}`
-                : kickerDate
-            }
-          />
+          <Kicker label={kickerLabel ?? 'VIDEO'} date={kickerDate} />
           <h3
             className="mt-3 text-[24px] md:text-[30px]"
             style={{
@@ -284,6 +309,14 @@ function StreamEntry({ entry, index }: { entry: JourneyEntry; index: number }) {
           >
             {headingLink}
           </h3>
+          {content.standfirst ? (
+            <p
+              className="mt-3 max-w-[52ch] text-[15px] md:text-[16px]"
+              style={{ fontFamily: BODY, color: NAVY_64, lineHeight: 1.7 }}
+            >
+              {content.standfirst}
+            </p>
+          ) : null}
         </div>
       </article>
     );
@@ -303,14 +336,12 @@ function StreamEntry({ entry, index }: { entry: JourneyEntry; index: number }) {
     return (
       <article
         dir={direction}
-        className="mx-auto max-w-[760px] border-t border-[#1c2a3a14] pt-7 md:flex md:items-baseline md:gap-8"
+        className="mx-auto max-w-[680px] border-t border-[#1c2a3a14] pt-7"
       >
-        <div className="md:w-40 md:shrink-0">
-          <Kicker label={kickerLabel ?? ''} date={kickerDate} />
-        </div>
-        <div className="mt-2 md:mt-0">
+        <Kicker label={kickerLabel ?? ''} date={kickerDate} />
+        <div className="mt-3">
           <p
-            className="text-[18px] md:text-[20px]"
+            className="text-[19px] md:text-[21px]"
             style={{
               fontFamily: DISPLAY,
               fontWeight: 600,
@@ -404,8 +435,7 @@ export function Hayotdan() {
   const t = useT(EN, UZ);
   const [limit, setLimit] = useState(STREAM_PAGE_SIZE);
   const page = useMemo(() => getStreamEntries({ limit }), [limit]);
-
-  if (page.total === 0) return null;
+  const empty = page.total === 0;
 
   return (
     <Band
@@ -428,17 +458,60 @@ export function Hayotdan() {
           </h2>
         </Rise>
 
-        <ol className="mt-12 space-y-20 md:mt-16 md:space-y-28">
-          {page.entries.map((entry, i) => (
-            <li key={entry.id}>
-              <Rise>
-                <StreamEntry entry={entry} index={i} />
-              </Rise>
-            </li>
-          ))}
-        </ol>
+        {empty ? (
+          <Rise>
+            <div className="mx-auto mt-12 max-w-[560px] text-center md:mt-16">
+              <p
+                className="text-[24px] md:text-[30px]"
+                style={{
+                  fontFamily: DISPLAY,
+                  fontWeight: 600,
+                  color: NAVY,
+                  lineHeight: 1.2,
+                  letterSpacing: '-0.01em',
+                }}
+              >
+                {t.emptyTitle}
+              </p>
+              <p
+                className="mx-auto mt-4 max-w-[46ch] text-[15px] md:text-[16px]"
+                style={{ fontFamily: BODY, color: NAVY_64, lineHeight: 1.75 }}
+              >
+                {t.emptyBody}
+              </p>
+            </div>
+          </Rise>
+        ) : (
+          <>
+            {/* editorial choreography: heavier entries get more air
+                around them, lighter ones sit closer — the rhythm is
+                driven by format + weight, never a uniform grid. */}
+            <ol className="mt-12 md:mt-16">
+              {page.entries.map((entry, i) => {
+                const heavy =
+                  entry.weight === 'lead' || entry.weight === 'feature';
+                const light = entry.weight === 'quiet';
+                const gap =
+                  i === 0
+                    ? ''
+                    : heavy
+                      ? 'mt-24 md:mt-36'
+                      : light
+                        ? 'mt-14 md:mt-20'
+                        : 'mt-20 md:mt-28';
+                return (
+                  <li key={entry.id} className={gap}>
+                    <Rise>
+                      <StreamEntry entry={entry} index={i} />
+                    </Rise>
+                  </li>
+                );
+              })}
+            </ol>
+          </>
+        )}
 
-        {page.hasMore ? (
+        {!empty && page.hasMore ? (
           <div className="mt-20 flex justify-center md:mt-24">
             <button
               type="button"

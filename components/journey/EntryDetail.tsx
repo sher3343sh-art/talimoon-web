@@ -36,6 +36,7 @@ import {
   NAVY,
   NAVY_48,
   NAVY_64,
+  VideoPlayer,
 } from './shared';
 
 const EN = {
@@ -44,6 +45,7 @@ const EN = {
   copied: 'Link copied',
   more: 'HAYOT continues',
   otherLang: 'Shown in another language for now.',
+  transcript: 'Transcript',
 };
 const UZ: typeof EN = {
   back: 'HAYOT',
@@ -51,12 +53,34 @@ const UZ: typeof EN = {
   copied: 'Havola nusxalandi',
   more: 'HAYOT DAVOM ETADI',
   otherLang: "Hozircha boshqa tilda ko'rsatilmoqda.",
+  transcript: 'Matn (transkript)',
 };
+
+/** caption + optional credit, on one figcaption. */
+function FigMeta({ caption, credit }: { caption?: string; credit?: string }) {
+  if (!caption && !credit) return null;
+  return (
+    <figcaption
+      className="mt-3 text-[13px]"
+      style={{ fontFamily: BODY, color: NAVY_48, lineHeight: 1.6 }}
+    >
+      {caption}
+      {caption && credit ? '  ·  ' : null}
+      {credit ? <span style={{ letterSpacing: '0.02em' }}>{credit}</span> : null}
+    </figcaption>
+  );
+}
 
 const READING = 'mx-auto w-full max-w-[680px]';
 
 // ── One block ──────────────────────────────────────────────────────
-function BlockView({ block }: { block: Block }) {
+function BlockView({
+  block,
+  transcriptLabel,
+}: {
+  block: Block;
+  transcriptLabel: string;
+}) {
   switch (block.t) {
     case 'paragraph':
       return (
@@ -104,14 +128,7 @@ function BlockView({ block }: { block: Block }) {
               className="object-cover"
             />
           </div>
-          {block.caption ? (
-            <figcaption
-              className="mt-3 text-[13px]"
-              style={{ fontFamily: BODY, color: NAVY_48, lineHeight: 1.6 }}
-            >
-              {block.caption}
-            </figcaption>
-          ) : null}
+          <FigMeta caption={block.caption} credit={block.asset.credit} />
         </figure>
       );
     case 'imagePair':
@@ -136,14 +153,7 @@ function BlockView({ block }: { block: Block }) {
               </div>
             ))}
           </div>
-          {block.caption ? (
-            <figcaption
-              className="mt-3 text-[13px]"
-              style={{ fontFamily: BODY, color: NAVY_48 }}
-            >
-              {block.caption}
-            </figcaption>
-          ) : null}
+          <FigMeta caption={block.caption} />
         </figure>
       );
     case 'gallery':
@@ -165,59 +175,14 @@ function BlockView({ block }: { block: Block }) {
           ))}
         </div>
       );
-    case 'video': {
-      const v = block.video;
-      const isFile = v.provider === 'file';
+    case 'video':
       return (
-        <div className="mx-auto w-full max-w-[1000px]">
-          {isFile ? (
-            <video
-              controls
-              preload="none"
-              poster={v.poster.src}
-              className="aspect-video w-full bg-black"
-            >
-              <source src={v.src} />
-              {v.captionsSrc ? (
-                <track kind="captions" src={v.captionsSrc} default />
-              ) : null}
-            </video>
-          ) : (
-            <div className="relative aspect-video w-full overflow-hidden bg-black">
-              <iframe
-                src={`https://www.youtube-nocookie.com/embed/${v.src}`}
-                title="Video"
-                loading="lazy"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                className="absolute inset-0 h-full w-full"
-              />
-            </div>
-          )}
-          {v.transcript ? (
-            <details className="mt-4">
-              <summary
-                className="cursor-pointer text-[13px] uppercase"
-                style={{
-                  fontFamily: BODY,
-                  fontWeight: 600,
-                  letterSpacing: '0.14em',
-                  color: NAVY_48,
-                }}
-              >
-                Transcript
-              </summary>
-              <p
-                className="mt-3 text-[15px]"
-                style={{ fontFamily: BODY, color: NAVY_64, lineHeight: 1.75 }}
-              >
-                {v.transcript}
-              </p>
-            </details>
-          ) : null}
-        </div>
+        <VideoPlayer
+          video={block.video}
+          className="mx-auto w-full max-w-[1000px]"
+          transcriptLabel={transcriptLabel}
+        />
       );
-    }
     case 'quote':
       return (
         <blockquote className={`${READING} border-s py-1 ps-6`} style={{ borderColor: 'rgba(184,147,91,0.4)' }}>
@@ -330,6 +295,12 @@ export function EntryDetail({ entry }: { entry: JourneyEntry }) {
     policy.showMedia && entry.cover && entry.cover.src.trim() !== ''
       ? entry.cover
       : null;
+  // A video entry leads with the player (poster-first), not a still.
+  const leadVideo =
+    entry.format === 'video' && policy.showMedia && entry.video
+      ? entry.video
+      : null;
+  const coverCredit = content.credit ?? entry.cover?.credit;
 
   const [shared, setShared] = useState(false);
   const onShare = useCallback(async () => {
@@ -403,27 +374,56 @@ export function EntryDetail({ entry }: { entry: JourneyEntry }) {
         </div>
       </Band>
 
-      {photo ? (
-        <div className="w-full overflow-hidden bg-surface-base">
-          <div className="relative mx-auto aspect-[16/10] w-full max-w-[1200px] sm:aspect-[2/1]">
-            <Image
-              src={photo.src}
-              alt={content.coverAlt ?? ''}
-              fill
-              priority
-              sizes="(min-width:1200px) 1200px, 100vw"
-              placeholder={photo.blurDataURL ? 'blur' : undefined}
-              blurDataURL={photo.blurDataURL}
-              className="object-cover"
-            />
+      {leadVideo ? (
+        <div className="w-full bg-surface-base">
+          <div className="mx-auto w-full max-w-[1200px]">
+            <VideoPlayer video={leadVideo} transcriptLabel={t.transcript} />
           </div>
+        </div>
+      ) : photo ? (
+        <div className="w-full overflow-hidden bg-surface-base">
+          <figure className="mx-auto w-full max-w-[1200px]">
+            <div className="relative aspect-[16/10] w-full sm:aspect-[2/1]">
+              <Image
+                src={photo.src}
+                alt={content.coverAlt ?? ''}
+                fill
+                priority
+                sizes="(min-width:1200px) 1200px, 100vw"
+                placeholder={photo.blurDataURL ? 'blur' : undefined}
+                blurDataURL={photo.blurDataURL}
+                className="object-cover"
+              />
+            </div>
+            {coverCredit ? (
+              <figcaption
+                className="mt-3 text-[12px]"
+                style={{
+                  fontFamily: BODY,
+                  color: NAVY_48,
+                  letterSpacing: '0.02em',
+                }}
+              >
+                {coverCredit}
+              </figcaption>
+            ) : null}
+          </figure>
+        </div>
+      ) : coverCredit ? (
+        <div className={`${READING} pb-2`}>
+          <p
+            className="text-[12px]"
+            style={{ fontFamily: BODY, color: NAVY_48, letterSpacing: '0.02em' }}
+          >
+            {coverCredit}
+          </p>
         </div>
       ) : null}
 
       <Band className="py-14 md:py-20">
         <div className="space-y-7 md:space-y-8">
           {content.blocks.map((block, i) => (
-            <BlockView key={i} block={block} />
+            <BlockView key={i} block={block} transcriptLabel={t.transcript} />
           ))}
         </div>
 

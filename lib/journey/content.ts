@@ -1,21 +1,24 @@
 /**
- * TALIMOON HAYOT (Journey) — content source (V1 foundation).
+ * TALIMOON HAYOT (Journey) — content source.
  * ----------------------------------------------------------------
- * There is NO real published content yet, and the brief forbids
- * fabricating visits, families, events, campaigns or statistics. So
- * the seed arrays below are intentionally empty. HAYOT ships with a
- * premium empty state — never invented volume.
+ * `PRODUCTION_ENTRIES` / `PRODUCTION_PULSE` are the real public
+ * dataset. They are intentionally EMPTY until real photos, video
+ * and text are supplied — HAYOT shows elegant, intentional empty
+ * states, never invented volume, never a fabricated event, story,
+ * date, family, statistic, partnership or achievement.
  *
- * Adding the first real entry is a single object pushed to `ENTRIES`
- * (see the fully-worked example at the bottom of this file). No
- * component changes. When this grows past a handful of entries it
- * moves behind a data source (CMS / DB) exposing the exact same
- * accessors below — that is the only seam that matters.
+ * Adding the first real entry is a single object appended to
+ * `PRODUCTION_ENTRIES` — see `dev-fixtures.ts` for the exact shape
+ * of every format (photo reportage, video, thought, moment, update,
+ * campaign) and every block type. No component changes.
+ *
+ * Development fixtures (`dev-fixtures.ts`) are merged in ONLY when
+ * `process.env.NODE_ENV === 'development'`. They never reach a
+ * production build.
  *
  * These accessors are pure functions over local data with no
  * server-only imports, so they are safe to call from Server and
- * Client Components alike (the same arrangement the Story Library
- * `content.ts` uses).
+ * Client Components alike.
  */
 
 import {
@@ -28,182 +31,44 @@ import {
   type PulseSeed,
 } from './types';
 
-// ── Seed ───────────────────────────────────────────────────────────
+// ── Dataset ────────────────────────────────────────────────────────
 /**
- * EDITORIAL SEED — three genuine TALIMOON "bir fikr" pieces.
- * ----------------------------------------------------------------
- * These are real editorial reflections on childhood in TALIMOON's
- * voice — the kind of writing the brief itself describes as a HAYOT
- * content format. They make NO claim about any real child, family,
- * visit, event, partnership or statistic, and need no photograph.
- * They are the honest content HAYOT ships with until reportage,
- * interviews and film arrive.
- *
- * Each is freely replaceable: swap the object, or drop it, without
- * touching a component. `featured: true` on the first pins it to THE
- * OPENING; the other two flow into the HAYOTDAN stream. When real
- * photographic content lands, a `reportage` / `moment` entry with a
- * `cover` and `media.consent: 'granted'` exercises the photographic
- * treatments already built into TheOpening and the stream.
+ * The real public dataset. EMPTY until real content is supplied.
+ * Append a `JourneyEntry` here to publish it — the page composes
+ * itself. `featured: true` pins one entry to THE OPENING.
  */
-const SEED_THOUGHT_NEGA: JourneyEntry = {
-  id: 'jrn_thought_nega',
-  slug: 'bolaning-nega-si',
-  format: 'thought',
-  weight: 'lead',
-  status: 'published',
-  featured: true,
-  publishedAtISO: '2026-08-27T09:00:00.000Z',
-  tags: ['bir-fikr', 'tarbiya'],
-  defaultLocale: 'uz',
-  indexable: true,
-  media: { consent: 'not-applicable' },
-  translations: {
-    uz: {
-      kicker: { label: 'BIR FIKR' },
-      title: "Bolaning 'Nega?' degani ba'zan javobdan ham muhimroq.",
-      standfirst:
-        "Biz javob berishga shoshamiz. Lekin ba'zan eng qimmatlisi — bolaning savol berishdan to'xtamasligi.",
-      blocks: [
-        {
-          t: 'paragraph',
-          text: "Bola bir savol beradi. Biz unga to'g'ri, aniq javob beramiz — va shu bilan suhbat tugaydi. Savol esa bola uchun eshik edi; biz uni biroz tez yopdik.",
-        },
-        {
-          t: 'paragraph',
-          text: "Ba'zan javobni bir lahza ushlab turib, “O'zing qanday o'ylaysan?” deb so'rash — bolaning tasavvuriga qoldirilgan kichik bo'sh joy. O'sha joyda u mustaqil fikrlashni o'rganadi.",
-        },
-      ],
-    },
-    en: {
-      kicker: { label: 'A THOUGHT' },
-      title: 'A child’s "why?" can matter more than the answer.',
-      standfirst:
-        'We rush to answer. Sometimes what matters most is simply that the child keeps asking.',
-      blocks: [
-        {
-          t: 'paragraph',
-          text: 'A child asks a question. We give a clear, correct answer — and the conversation ends. But the question was a door, and we closed it a little too quickly.',
-        },
-        {
-          t: 'paragraph',
-          text: 'Sometimes holding the answer for a moment and asking “what do you think?” leaves a small open space for the child’s imagination. In that space, they learn to think for themselves.',
-        },
-      ],
-    },
-  },
-};
+const PRODUCTION_ENTRIES: readonly JourneyEntry[] = [];
 
-const SEED_THOUGHT_TASAVVUR: JourneyEntry = {
-  id: 'jrn_thought_tasavvur',
-  slug: 'tasavvurga-vaqt',
-  format: 'thought',
-  weight: 'standard',
-  status: 'published',
-  featured: false,
-  publishedAtISO: '2026-08-20T09:00:00.000Z',
-  tags: ['bir-fikr', 'tasavvur'],
-  defaultLocale: 'uz',
-  indexable: true,
-  media: { consent: 'not-applicable' },
-  translations: {
-    uz: {
-      kicker: { label: 'BIR FIKR' },
-      title: 'Farzandimizning tasavvuriga ham vaqt qoldiryapmizmi?',
-      standfirst:
-        "Bo'sh daqiqa — zerikish emas. Ko'pincha aynan o'sha yerda o'yin, hikoya va yangi fikr tug'iladi.",
-      blocks: [
-        {
-          t: 'paragraph',
-          text: "Bolaning kuni ba'zan to'liq belgilangan bo'ladi: dars, mashg'ulot, ekran. Har bir daqiqa foydali bo'lsin degan niyat — chiroyli. Lekin tasavvur bo'sh joyni talab qiladi.",
-        },
-        {
-          t: 'paragraph',
-          text: "Devor ortidagi soyani ajdarhoga aylantirish, tayoqdan qilich yasash, xayolan uzoq shaharga borish — bularning hammasi zerikish chegarasida boshlanadi. Biz shu chegarani saqlab qololsak, bola o'zi uchun butun bir olam yaratadi.",
-        },
-      ],
-    },
-    en: {
-      kicker: { label: 'A THOUGHT' },
-      title: 'Are we leaving room for our child’s imagination too?',
-      standfirst:
-        'An empty minute is not wasted time. It is often exactly where play, story and a new idea begin.',
-      blocks: [
-        {
-          t: 'paragraph',
-          text: 'A child’s day can be fully scheduled — lessons, activities, a screen. The wish to make every minute useful is a kind one. But imagination asks for empty space.',
-        },
-        {
-          t: 'paragraph',
-          text: 'Turning a shadow on the wall into a dragon, making a sword from a stick, travelling in the mind to a far city — these begin at the edge of boredom. If we can protect that edge, the child builds a whole world of their own.',
-        },
-      ],
-    },
-  },
-};
+/**
+ * Real YAQIN KUNLAR pulse items not (yet) backed by a full entry.
+ * EMPTY until there is something genuinely upcoming — never a
+ * fabricated date.
+ */
+const PRODUCTION_PULSE: readonly PulseSeed[] = [];
 
-const SEED_THOUGHT_HIKOYA: JourneyEntry = {
-  id: 'jrn_thought_hikoya',
-  slug: 'birga-oqilgan-hikoya',
-  format: 'thought',
-  weight: 'quiet',
-  status: 'published',
-  featured: false,
-  publishedAtISO: '2026-08-13T09:00:00.000Z',
-  tags: ['bir-fikr', 'birga-oqish'],
-  defaultLocale: 'uz',
-  indexable: true,
-  media: { consent: 'not-applicable' },
-  translations: {
-    uz: {
-      kicker: { label: 'BIR FIKR' },
-      title: "Birga o'qilgan hikoya qayerda tugaydi?",
-      standfirst:
-        "Kitob yopiladi, lekin suhbat davom etadi — yo'lda, kechki ovqatda, uxlashdan oldin.",
-      blocks: [
-        {
-          t: 'paragraph',
-          text: "Ko'pincha eng qimmatli qism — oxirgi sahifadan keyin boshlanadi. “Nega u shunday qildi?”, “Sen bo'lsang-chi?” — hikoya bola bilan qoladi.",
-        },
-        {
-          t: 'paragraph',
-          text: "Shu bois biz hikoyani shunchaki o'qib berish uchun emas, birga o'ylash uchun yaratamiz. Yaxshi hikoya javob bermaydi — u savolni ochiq qoldiradi.",
-        },
-      ],
-    },
-    en: {
-      kicker: { label: 'A THOUGHT' },
-      title: 'Where does a story read together actually end?',
-      standfirst:
-        'The book closes, but the conversation goes on — on the way home, at dinner, before sleep.',
-      blocks: [
-        {
-          t: 'paragraph',
-          text: 'Often the most valuable part starts after the last page. “Why did they do that?”, “What would you have done?” — the story stays with the child.',
-        },
-        {
-          t: 'paragraph',
-          text: 'That is why we make stories to think about together, not only to read aloud. A good story does not hand over an answer — it leaves the question open.',
-        },
-      ],
-    },
-  },
-};
+/**
+ * Dev fixtures are merged ONLY in development. `process.env.NODE_ENV`
+ * is statically replaced with `'production'` in a production build,
+ * so the `require('./dev-fixtures')` call below is dead code the
+ * bundler eliminates entirely — the fixture module and its strings
+ * never reach the production bundle, and `ENTRIES` / `PULSE` are
+ * exactly the (empty) production arrays.
+ */
+const DEV = (() => {
+  if (process.env.NODE_ENV !== 'development') {
+    return { entries: [] as JourneyEntry[], pulse: [] as PulseSeed[] };
+  }
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const f = require('./dev-fixtures') as typeof import('./dev-fixtures');
+  return { entries: [...f.DEV_FIXTURE_ENTRIES], pulse: [...f.DEV_FIXTURE_PULSE] };
+})();
 
-/** Published / archived / scheduled / draft entries, in any order —
- *  the accessors sort. */
 const ENTRIES: readonly JourneyEntry[] = [
-  SEED_THOUGHT_NEGA,
-  SEED_THOUGHT_TASAVVUR,
-  SEED_THOUGHT_HIKOYA,
+  ...PRODUCTION_ENTRIES,
+  ...DEV.entries,
 ];
 
-/**
- * YAQIN KUNLAR forward-pulse items not (yet) backed by a full entry.
- * Empty until there is something genuinely upcoming — the band is
- * hidden entirely while this is empty (never a placeholder).
- */
-const PULSE: readonly PulseSeed[] = [];
+const PULSE: readonly PulseSeed[] = [...PRODUCTION_PULSE, ...DEV.pulse];
 
 // ── Config ─────────────────────────────────────────────────────────
 /**
@@ -487,50 +352,15 @@ export function mediaPolicy(entry: JourneyEntry): {
   }
 }
 
-/* ============================================================
- * WORKED EXAMPLE — shape reference only. NOT real content, NOT
- * exported, NOT rendered anywhere. Delete once the first real
- * entry lands in `ENTRIES`.
- *
- * const example: JourneyEntry = {
- *   id: 'jrn_0001',
- *   slug: 'bir-kitobdan-boshlangan-suhbat',
- *   format: 'reportage',
- *   weight: 'lead',
- *   status: 'published',
- *   featured: true,
- *   publishedAtISO: '2026-08-29T09:00:00.000Z',
- *   tags: ['tashrif', 'bogcha'],
- *   defaultLocale: 'uz',
- *   cover: {
- *     id: 'jrn_0001_cover',
- *     src: '/images/journey/0001/cover.jpg',
- *     width: 2000,
- *     height: 1333,
- *     blurDataURL: 'data:image/jpeg;base64,...',
- *   },
- *   indexable: true,
- *   media: { consent: 'granted' },
- *   relatedSlugs: [],
- *   translations: {
- *     uz: {
- *       kicker: { label: 'TASHRIF', dateLabel: '29 AVGUST' },
- *       title: 'Bir kitobdan boshlangan suhbat',
- *       standfirst: 'Bir bogchada, bitta kitob va oittizta savol.',
- *       coverAlt: 'Bolalar bir kitob atrofida oltirib, sahifaga qarab turibdi.',
- *       blocks: [
- *         { t: 'paragraph', text: '…' },
- *         { t: 'image', asset: { id: 'jrn_0001_p1', src: '/images/journey/0001/p1.jpg', width: 2000, height: 1333 }, alt: '…', full: true },
- *         { t: 'quote', text: '…', attribution: '…', role: 'murabbiy' },
- *       ],
- *     },
- *     en: {
- *       kicker: { label: 'A VISIT', dateLabel: 'AUGUST 29' },
- *       title: 'A conversation that began with one book',
- *       standfirst: 'One kindergarten, one book, thirty questions.',
- *       coverAlt: 'Children gathered around a book, looking at the page.',
- *       blocks: [{ t: 'paragraph', text: '…' }],
- *     },
- *   },
- * };
- * ============================================================ */
+/**
+ * Whether HAYOT currently has ANY public content (entries or pulse).
+ * The page still renders its full structure when this is false — the
+ * movements show intentional empty states, not a broken page.
+ */
+export function hasJourneyContent(): boolean {
+  return getJourneyIndex().length > 0 || getPulse().length > 0;
+}
+
+/* The exact shape of every format and block type is in
+ * `dev-fixtures.ts` — use it as the reference when adding real
+ * entries to `PRODUCTION_ENTRIES`. */

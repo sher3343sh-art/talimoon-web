@@ -24,8 +24,16 @@ import { toLocale, type PulseStrand } from '@/lib/journey/types';
 import { useLanguage, useT } from '@/lib/i18n/LanguageContext';
 import { Band, BODY, GOLD, NAVY, NAVY_48, NAVY_64, Reveal, Rise, shortDate } from './shared';
 
-const EN = { heading: "What's near", today: 'Today' };
-const UZ: typeof EN = { heading: 'Yaqin kunlar', today: 'Bugun' };
+const EN = {
+  heading: "What's near",
+  today: 'Today',
+  empty: 'What is coming will appear here — new parts, visits, a competition.',
+};
+const UZ: typeof EN = {
+  heading: 'Yaqin kunlar',
+  today: 'Bugun',
+  empty: "Oldinda nima borligi shu yerda ko'rinadi — yangi qismlar, tashriflar, tanlov.",
+};
 
 const STRAND_EN: Record<PulseStrand, string> = {
   episode: 'New part',
@@ -49,7 +57,6 @@ export function YaqinKunlar() {
   const strand = language === 'UZ' ? STRAND_UZ : STRAND_EN;
 
   const items = useMemo(() => getPulse(locale), [locale]);
-  if (items.length === 0) return null;
 
   return (
     <Band
@@ -72,6 +79,30 @@ export function YaqinKunlar() {
           </h2>
         </Rise>
 
+        {items.length === 0 ? (
+          <Rise>
+            {/* restrained empty state — the place is established, the
+                hairline holds, one quiet line, a single faint node. */}
+            <div className="relative mt-9 md:mt-10">
+              <span
+                aria-hidden="true"
+                className="absolute inset-x-0 top-[7px] hidden h-px md:block"
+                style={{ backgroundColor: 'rgba(28,42,58,0.12)' }}
+              />
+              <span
+                aria-hidden="true"
+                className="absolute start-0 top-[7px] hidden h-[13px] w-[13px] -translate-y-1/2 rounded-full md:block"
+                style={{ backgroundColor: 'rgba(28,42,58,0.16)' }}
+              />
+              <p
+                className="max-w-[46ch] text-[15px] md:pt-8 md:text-[16px]"
+                style={{ fontFamily: BODY, color: NAVY_64, lineHeight: 1.7 }}
+              >
+                {t.empty}
+              </p>
+            </div>
+          </Rise>
+        ) : (
         <Rise>
           <ol
             className="mt-8 flex snap-x snap-mandatory gap-0 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] md:mt-10 md:snap-none md:overflow-visible [&::-webkit-scrollbar]:hidden"
@@ -147,6 +178,7 @@ export function YaqinKunlar() {
             })}
           </ol>
         </Rise>
+        )}
       </Reveal>
     </Band>
   );

@@ -77,6 +77,9 @@ export interface JourneyImage {
   /** Tiny base64 LQIP — prevents a blank frame. */
   blurDataURL?: string;
   alt?: string;
+  /** Photographer / source line, e.g. "Foto: Aziza R." — a name, so
+   *  language-neutral. Rendered small, near the image. */
+  credit?: string;
 }
 
 /**
@@ -91,8 +94,12 @@ export interface JourneyVideo {
   /** File URL, or a YouTube video id. */
   src: string;
   durationSec: number;
+  /** WebVTT captions track. Kept in the model even when empty so the
+   *  accessibility path is ready before captions are produced. */
   captionsSrc?: string;
+  /** Full text alternative, shown in a collapsible panel. */
   transcript?: string;
+  credit?: string;
 }
 
 // ── Editorial format & weight ──────────────────────────────────────
@@ -182,6 +189,10 @@ export interface EntryContent {
   standfirst?: string;
   /** Meaningful, translated alt for `entry.cover`. */
   coverAlt?: string;
+  /** Byline / photographer / source line for the whole story, e.g.
+   *  "So'z: Aziza R. · Foto: Sardor K." Shown small, near the
+   *  header. `JourneyImage.credit` handles per-image credits. */
+  credit?: string;
   /** Drives `interview` layout; also usable as a stream treatment. */
   pullQuote?: { text: string; attribution?: string; role?: string };
   /** The detail-page body. */
