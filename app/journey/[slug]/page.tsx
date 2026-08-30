@@ -77,7 +77,7 @@ export default async function JourneyEntryPage({
         <main>
           <WorldLanding world={world} />
         </main>
-        <Footer />
+        <Footer showTopCta={false} />
       </>
     );
   }
@@ -96,7 +96,7 @@ export default async function JourneyEntryPage({
       <main>
         <EntryDetail entry={entry} />
       </main>
-      <Footer />
+      <Footer showTopCta={false} />
     </>
   );
 }

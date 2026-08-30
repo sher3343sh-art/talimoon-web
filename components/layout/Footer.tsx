@@ -126,9 +126,23 @@ export interface FooterProps {
    * prop, so it can't drift out of sync with Navbar's own logic.)
    */
   ctaHref?: string;
+  /**
+   * The Footer's top area — the wordmark, the "Stories they'll
+   * remember forever." tagline and the gold "Order Now" CTA. On by
+   * default. HAYOT (Journey) sets this `false`: it is an editorial /
+   * knowledge environment for parents, not a sales funnel, so the
+   * landing ends quietly on "Hayot davom etadi." and then goes
+   * straight into the Footer's navigation columns with no commercial
+   * call to action. Nothing else about the Footer changes.
+   */
+  showTopCta?: boolean;
 }
 
-export function Footer({ showHowItWorksLink = true, ctaHref = "/begin" }: FooterProps) {
+export function Footer({
+  showHowItWorksLink = true,
+  ctaHref = "/begin",
+  showTopCta = true,
+}: FooterProps) {
   const t = useT(FOOTER_EN, FOOTER_UZ);
   const pathname = usePathname();
   const ctaLabel = pathname === PERSONALIZED_BOOKS_PATH ? t.ctaCreateStory : t.ctaOrderNow;
@@ -139,33 +153,40 @@ export function Footer({ showHowItWorksLink = true, ctaHref = "/begin" }: Footer
   return (
     <footer className="w-full bg-[var(--surface-contrast,#1C2A3A)]">
       <div className="mx-auto max-w-[1440px] px-5 md:px-10 lg:px-16">
-        {/* Top area */}
-        <div className="flex flex-col gap-8 py-16 md:flex-row md:items-center md:justify-between md:py-20">
-          <div>
-            <Link href="/" aria-label={t.talimoonHome} className="relative flex h-9 w-auto items-center">
-              <img
-                src="/logo/talimoon-logo-gold.svg"
-                alt="Talimoon"
-                draggable={false}
-                className="h-9 w-auto"
-              />
-              <span aria-hidden="true" className="tm-logo-shine pointer-events-none absolute inset-0 h-9 w-auto" />
-            </Link>
-            <p className="mt-3 font-sans text-[0.9375rem] leading-[1.6] text-[var(--text-inverse-muted,rgba(247,243,236,0.7))]">
-              {t.tagline}
-            </p>
-          </div>
+        {/* Top area — wordmark, tagline and the commercial CTA. Omitted
+            on HAYOT (Journey), which is not a sales funnel. */}
+        {showTopCta ? (
+          <div className="flex flex-col gap-8 py-16 md:flex-row md:items-center md:justify-between md:py-20">
+            <div>
+              <Link href="/" aria-label={t.talimoonHome} className="relative flex h-9 w-auto items-center">
+                <img
+                  src="/logo/talimoon-logo-gold.svg"
+                  alt="Talimoon"
+                  draggable={false}
+                  className="h-9 w-auto"
+                />
+                <span aria-hidden="true" className="tm-logo-shine pointer-events-none absolute inset-0 h-9 w-auto" />
+              </Link>
+              <p className="mt-3 font-sans text-[0.9375rem] leading-[1.6] text-[var(--text-inverse-muted,rgba(247,243,236,0.7))]">
+                {t.tagline}
+              </p>
+            </div>
 
-          <Link
-            href={ctaHref}
-            className="tm-cta-gold inline-flex h-11 shrink-0 items-center justify-center whitespace-nowrap px-4 text-[13px] font-medium tracking-[0.015em]"
-          >
-            {ctaLabel}
-          </Link>
-        </div>
+            <Link
+              href={ctaHref}
+              className="tm-cta-gold inline-flex h-11 shrink-0 items-center justify-center whitespace-nowrap px-4 text-[13px] font-medium tracking-[0.015em]"
+            >
+              {ctaLabel}
+            </Link>
+          </div>
+        ) : null}
 
         {/* Middle: four columns */}
-        <div className="grid grid-cols-1 gap-12 border-t border-[var(--border-inverse,rgba(247,243,236,0.18))] py-16 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
+        <div
+          className={`grid grid-cols-1 gap-12 py-16 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8${
+            showTopCta ? " border-t border-[var(--border-inverse,rgba(247,243,236,0.18))]" : ""
+          }`}
+        >
           <div>
             <h3 className={columnHeadingClass}>{t.exploreHeading}</h3>
             <ul className="mt-5 space-y-3">

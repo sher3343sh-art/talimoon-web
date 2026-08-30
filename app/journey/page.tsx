@@ -49,7 +49,7 @@ export default function JourneyPage() {
         <Hayotdan />
         <HayotEnding />
       </main>
-      <Footer />
+      <Footer showTopCta={false} />
     </>
   );
 }
