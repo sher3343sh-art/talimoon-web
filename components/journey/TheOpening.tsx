@@ -52,7 +52,7 @@ import {
 import { toLocale, type JourneyFormat } from '@/lib/journey/types';
 import { useLanguage, useT } from '@/lib/i18n/LanguageContext';
 import { JourneyFoundation } from './JourneyFoundation';
-import { BODY, DISPLAY, GOLD, NAVY, NAVY_48, NAVY_64 } from './shared';
+import { BODY, DISPLAY, GOLD, NAVY, NAVY_48, NAVY_64, WorldLabel } from './shared';
 
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
@@ -137,11 +137,19 @@ function Opening({ result }: { result: FeaturedResult }) {
 
   const coverText = (
     <>
+      <motion.div {...seq(0.02)}>
+        <WorldLabel
+          world={entry.world}
+          language={language}
+          as="link"
+          className="block"
+        />
+      </motion.div>
       {kicker ? (
         <>
           <motion.p
             {...seq(0.05)}
-            className="text-[13px] uppercase"
+            className="mt-2 text-[13px] uppercase"
             style={{
               fontFamily: BODY,
               fontWeight: 600,

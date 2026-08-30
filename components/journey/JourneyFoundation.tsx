@@ -16,13 +16,13 @@ import { Band, BODY, DISPLAY, GOLD, NAVY, NAVY_64 } from './shared';
 
 const EN = {
   eyebrow: 'HAYOT',
-  headline: 'Where TALIMOON’s life is written down, and kept.',
-  body: 'Visits, small moments, conversations, films — and what comes next. The first pages, soon.',
+  headline: 'TALIMOON’s living editorial and knowledge space.',
+  body: 'What TALIMOON is doing, useful ideas for parents, and everyday habits explained through evidence. The first pieces, soon.',
 };
 const UZ: typeof EN = {
   eyebrow: 'HAYOT',
-  headline: 'TALIMOON hayoti shu yerda yozib boriladi va saqlanadi.',
-  body: "Tashriflar, kichik lahzalar, suhbatlar, videolar — va oldinda nima borligi. Ilk sahifalar tez orada.",
+  headline: 'TALIMOON hayoti va bilim maydoni shu yerda yoziladi.',
+  body: "TALIMOON nima qilyapti, ota-onalar uchun foydali g‘oyalar va kundalik odatlarni dalillar asosida tushuntirish. Ilk yozuvlar tez orada.",
 };
 
 export function JourneyFoundation() {

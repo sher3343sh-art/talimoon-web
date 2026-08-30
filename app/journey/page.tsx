@@ -2,29 +2,40 @@ import type { Metadata } from 'next';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { TheOpening } from '@/components/journey/TheOpening';
+import { EditorialWorlds } from '@/components/journey/EditorialWorlds';
 import { YaqinKunlar } from '@/components/journey/YaqinKunlar';
+import { ParentFeature } from '@/components/journey/ParentFeature';
 import { Hayotdan } from '@/components/journey/Hayotdan';
 import { HayotEnding } from '@/components/journey/HayotEnding';
 
 export const metadata: Metadata = {
   title: 'Hayot — TALIMOON',
   description:
-    "TALIMOON's living journal — what we are creating, the moments along the way, and what comes next.",
+    "TALIMOON's living editorial and knowledge space for parents — what TALIMOON is doing, and useful, evidence-based ideas for family life.",
 };
 
 /**
- * HAYOT (Journey) — /journey.
+ * HAYOT (Journey) V2 — /journey.
  * ----------------------------------------------------------------
- * The living-memory page. Three movements + the site footer:
- *   THE OPENING   — the featured entry introduces the page
- *                   (`TheOpening`; falls back to the honest empty
- *                   state when nothing is published).
- *   YAQIN KUNLAR  — the forward pulse; renders nothing when there
- *                   is nothing meaningful ahead.
- *   HAYOTDAN      — the mixed-weight editorial stream; renders
- *                   nothing when the stream is empty.
- * Route stays `/journey` across locales; nav label is "Hayot" (UZ)
- * / "Journey" (EN). All content is data-driven via lib/journey.
+ * TALIMOON's living editorial + knowledge space, in three worlds
+ * (TALIMOON HAYOTI · OTA-ONALAR UCHUN · HIKMAT ORTIDAGI ILM). One
+ * shared editorial engine; the landing sequence:
+ *
+ *   A  THE OPENING        — the current editorial story (any world),
+ *                           or the refined identity state.
+ *   B  THREE WORLDS        — the editorial gateways (a contents page,
+ *                           not cards).
+ *   C  YAQIN KUNLAR        — TALIMOON HAYOTI's forward pulse
+ *                           (quiet intentional state when empty).
+ *   D  PARENT FEATURE      — one selected OTA-ONALAR UCHUN piece
+ *                           (restrained state when empty).
+ *   E  HAYOTDAN            — one mixed stream across all worlds;
+ *                           each item world-labelled; choreography
+ *                           by editorial weight, never equal cards.
+ *   F  HAYOT DAVOM ETADI   — the quiet ending, then the site Footer.
+ *
+ * Route stays `/journey` across locales; nav label "Hayot" (UZ) /
+ * "Journey" (EN). All content is data-driven via lib/journey.
  */
 export default function JourneyPage() {
   return (
@@ -32,7 +43,9 @@ export default function JourneyPage() {
       <Navbar />
       <main>
         <TheOpening />
+        <EditorialWorlds />
         <YaqinKunlar />
+        <ParentFeature />
         <Hayotdan />
         <HayotEnding />
       </main>

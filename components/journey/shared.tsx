@@ -26,7 +26,12 @@
 import React from 'react';
 import Link from 'next/link';
 import { motion, useReducedMotion, type Variants } from 'framer-motion';
-import type { JourneyVideo } from '@/lib/journey/types';
+import {
+  WORLD_NAME_KEYS,
+  WORLD_SLUG,
+  type JourneyVideo,
+  type JourneyWorld,
+} from '@/lib/journey/types';
 
 // ── Design constants (identical to about/shared.tsx) ────────────────
 export const DISPLAY =
@@ -292,6 +297,54 @@ export function clock(sec: number): string {
   const m = Math.floor(sec / 60);
   const s = Math.abs(sec % 60);
   return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+// ── Editorial worlds ──────────────────────────────────────────────
+/** Re-exported from the model so components have one import site. */
+export const WORLD_NAME = WORLD_NAME_KEYS;
+
+/** `/journey/talimoon` etc. */
+export function worldPath(world: JourneyWorld): string {
+  return `/journey/${WORLD_SLUG[world]}`;
+}
+
+/** The restrained world tag carried by stream entries and the
+ *  detail header. Small caps, gold, never a colour-coded chip. */
+export function WorldLabel({
+  world,
+  language,
+  className = '',
+  as = 'span',
+}: {
+  world: JourneyWorld;
+  language: string;
+  className?: string;
+  as?: 'span' | 'link';
+}) {
+  const name = language === 'UZ' ? WORLD_NAME[world].uz : WORLD_NAME[world].en;
+  const cls = `text-[11px] uppercase ${className}`;
+  const style = {
+    fontFamily: BODY,
+    fontWeight: 600,
+    letterSpacing: '0.2em',
+    color: GOLD,
+  } as const;
+  if (as === 'link') {
+    return (
+      <Link
+        href={worldPath(world)}
+        className={`${cls} transition-opacity duration-300 hover:opacity-60`}
+        style={style}
+      >
+        {name}
+      </Link>
+    );
+  }
+  return (
+    <span className={cls} style={style}>
+      {name}
+    </span>
+  );
 }
 
 // ── VideoPlayer ────────────────────────────────────────────────────

@@ -25,7 +25,12 @@ import {
   mediaPolicy,
   resolveEntryContent,
 } from '@/lib/journey/content';
-import { toLocale, type Block, type JourneyEntry } from '@/lib/journey/types';
+import {
+  toLocale,
+  type Block,
+  type JourneyEntry,
+  type Reference,
+} from '@/lib/journey/types';
 import { useLanguage, useT } from '@/lib/i18n/LanguageContext';
 import {
   Band,
@@ -37,6 +42,7 @@ import {
   NAVY_48,
   NAVY_64,
   VideoPlayer,
+  WorldLabel,
 } from './shared';
 
 const EN = {
@@ -46,6 +52,8 @@ const EN = {
   more: 'HAYOT continues',
   otherLang: 'Shown in another language for now.',
   transcript: 'Transcript',
+  sources: 'Sources',
+  link: 'Link',
 };
 const UZ: typeof EN = {
   back: 'HAYOT',
@@ -54,7 +62,27 @@ const UZ: typeof EN = {
   more: 'HAYOT DAVOM ETADI',
   otherLang: "Hozircha boshqa tilda ko'rsatilmoqda.",
   transcript: 'Matn (transkript)',
+  sources: 'Manbalar',
+  link: 'Havola',
 };
+
+/** One reference → a quiet bibliographic line (no URL — that is a
+ *  separate <a> so it wraps cleanly). Never fabricated. */
+function formatReference(ref: Reference): string {
+  const parts: string[] = [];
+  if (ref.author) parts.push(ref.author);
+  if (ref.title) parts.push(`“${ref.title}”`);
+  const tail: string[] = [];
+  if (ref.edition) tail.push(ref.edition);
+  if (ref.pages) tail.push(ref.pages);
+  if (ref.publisher) tail.push(ref.publisher);
+  if (ref.year) tail.push(String(ref.year));
+  if (ref.role) tail.push(ref.role);
+  let line = parts.join(', ');
+  if (tail.length) line += (line ? ' · ' : '') + tail.join(', ');
+  if (ref.note) line += (line ? ' — ' : '') + ref.note;
+  return line;
+}
 
 /** caption + optional credit, on one figcaption. */
 function FigMeta({ caption, credit }: { caption?: string; credit?: string }) {
@@ -337,8 +365,18 @@ export function EntryDetail({ entry }: { entry: JourneyEntry }) {
         </div>
 
         <div className={`${READING} mt-10`}>
+          <WorldLabel
+            world={entry.world}
+            language={language}
+            as="link"
+            className="block"
+          />
           {content.kicker ? (
-            <Kicker label={content.kicker.label} date={content.kicker.dateLabel} />
+            <Kicker
+              label={content.kicker.label}
+              date={content.kicker.dateLabel}
+              className="mt-2.5"
+            />
           ) : null}
           {content.title ? (
             <h1
@@ -361,6 +399,37 @@ export function EntryDetail({ entry }: { entry: JourneyEntry }) {
               style={{ fontFamily: BODY, color: NAVY_64, lineHeight: 1.7 }}
             >
               {content.standfirst}
+            </p>
+          ) : null}
+          {content.keyIdea ? (
+            <div
+              className="mt-6 border-s ps-5"
+              style={{ borderColor: 'rgba(184,147,91,0.4)' }}
+            >
+              <p
+                className="text-[16px] md:text-[18px]"
+                style={{
+                  fontFamily: DISPLAY,
+                  fontWeight: 600,
+                  color: NAVY,
+                  lineHeight: 1.4,
+                }}
+              >
+                {content.keyIdea}
+              </p>
+            </div>
+          ) : null}
+          {content.author ? (
+            <p
+              className="mt-6 text-[12px] uppercase"
+              style={{
+                fontFamily: BODY,
+                fontWeight: 600,
+                letterSpacing: '0.14em',
+                color: NAVY_48,
+              }}
+            >
+              {content.author}
             </p>
           ) : null}
           {isFallback ? (
@@ -426,6 +495,51 @@ export function EntryDetail({ entry }: { entry: JourneyEntry }) {
             <BlockView key={i} block={block} transcriptLabel={t.transcript} />
           ))}
         </div>
+
+        {entry.references && entry.references.length > 0 ? (
+          <div className={`${READING} mt-14 border-t border-[#1c2a3a17] pt-8`}>
+            <h2
+              className="text-[12px] uppercase"
+              style={{
+                fontFamily: BODY,
+                fontWeight: 700,
+                letterSpacing: '0.2em',
+                color: NAVY_48,
+              }}
+            >
+              {t.sources}
+            </h2>
+            <ul className="mt-4 space-y-3">
+              {entry.references.map((ref, i) => (
+                <li
+                  key={i}
+                  className="text-[14px]"
+                  style={{
+                    fontFamily: BODY,
+                    color: 'rgba(28,42,58,0.7)',
+                    lineHeight: 1.7,
+                  }}
+                >
+                  {formatReference(ref)}
+                  {ref.url || ref.doi ? (
+                    <>
+                      {'  '}
+                      <a
+                        href={ref.url ?? `https://doi.org/${ref.doi}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline"
+                        style={{ color: NAVY_64 }}
+                      >
+                        {ref.doi ? `doi:${ref.doi}` : t.link}
+                      </a>
+                    </>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
 
         <div className={`${READING} mt-14 border-t border-[#1c2a3a17] pt-6`}>
           <button

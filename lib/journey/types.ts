@@ -102,19 +102,91 @@ export interface JourneyVideo {
   credit?: string;
 }
 
+// ── Editorial world ────────────────────────────────────────────────
+/**
+ * The three editorial worlds inside Journey (V2). One shared
+ * editorial engine — the world is a label + a filter, never a
+ * separate component system or a colour theme.
+ *
+ *  • `talimoon-life`   — TALIMOON HAYOTI: what is happening in and
+ *    around TALIMOON (news, visits, reportage, events, campaigns…).
+ *    The YAQIN KUNLAR pulse belongs here.
+ *  • `parents`         — OTA-ONALAR UCHUN: concise, trustworthy
+ *    content that helps parents understand children and family life.
+ *  • `wisdom-science`  — HIKMAT ORTIDAGI ILM: everyday habits
+ *    explained through reliable modern evidence. EDITORIAL RULE —
+ *    evidence first, conclusion second; never claim the evidence
+ *    proves a predetermined (e.g. religious) conclusion it does not
+ *    support. The public article begins from the evidence/question.
+ */
+export type JourneyWorld = 'talimoon-life' | 'parents' | 'wisdom-science';
+
+export const JOURNEY_WORLDS: readonly JourneyWorld[] = [
+  'talimoon-life',
+  'parents',
+  'wisdom-science',
+];
+
+/** URL slug ⇄ world. `/journey/talimoon`, `/journey/parents`,
+ *  `/journey/wisdom` are architected; they render a minimal world
+ *  landing (identity + that world's stream, or an empty state). */
+export const WORLD_SLUG: Record<JourneyWorld, string> = {
+  'talimoon-life': 'talimoon',
+  parents: 'parents',
+  'wisdom-science': 'wisdom',
+};
+export const WORLD_BY_SLUG: Record<string, JourneyWorld> = {
+  talimoon: 'talimoon-life',
+  parents: 'parents',
+  wisdom: 'wisdom-science',
+};
+
+/** World display strings — plain data (no JSX) so server code
+ *  (`generateMetadata`, sitemaps) can use it too. Components read it
+ *  via `WORLD_NAME` in `components/journey/shared.tsx`. */
+export const WORLD_NAME_KEYS: Record<
+  JourneyWorld,
+  { uz: string; en: string; blurbUz: string; blurbEn: string }
+> = {
+  'talimoon-life': {
+    uz: 'TALIMOON HAYOTI',
+    en: 'TALIMOON LIFE',
+    blurbUz: 'TALIMOON atrofidagi haqiqiy hikoyalar, tashriflar va voqealar.',
+    blurbEn: 'Real stories, visits and what is happening around TALIMOON.',
+  },
+  parents: {
+    uz: 'OTA-ONALAR UCHUN',
+    en: 'FOR PARENTS',
+    blurbUz: 'Bolani va oila hayotini yaxshiroq tushunish uchun foydali g‘oyalar.',
+    blurbEn: 'Useful ideas for understanding children and family life.',
+  },
+  'wisdom-science': {
+    uz: 'HIKMAT ORTIDAGI ILM',
+    en: 'THE SCIENCE BEHIND WISDOM',
+    blurbUz: 'Kundalik foydali odatlarning zamonaviy dalillar asosida izohi.',
+    blurbEn: 'Everyday habits explained through reliable modern evidence.',
+  },
+};
+
 // ── Editorial format & weight ──────────────────────────────────────
 /**
  * WHAT an entry is. The renderer picks a treatment per format; none
- * of them share a card container (see the audit, §D).
+ * of them share a card container. Formats span all three worlds and
+ * all use the shared Journey editorial engine.
  */
 export type JourneyFormat =
-  | 'reportage' // visit / photo-led feature
-  | 'moment' // micro: one photo + ~20 words
+  | 'news' // short reported item
+  | 'reportage' // photo-led feature / visit
+  | 'photo-story' // photo essay (renders like reportage)
+  | 'video' // video story
   | 'thought' // "bir fikr" — type only, never an image
-  | 'video'
+  | 'guide' // practical parent guidance
+  | 'book-insight' // TALIMOON synthesis of a book, attributed
+  | 'research-explainer' // evidence-based explanation of a habit
   | 'interview' // "suhbat" — quote-led, portrait secondary
-  | 'update' // compact announcement
-  | 'campaign'; // "tanlov" — state-aware, stays as history
+  | 'event' // a visit / gathering
+  | 'campaign' // "tanlov" — state-aware, stays as history
+  | 'moment'; // micro: one photo + ~20 words
 
 /**
  * HOW MUCH space an entry claims in the stream. Editorial; a sane
@@ -148,6 +220,37 @@ export interface CampaignWindow {
   participateHref?: string;
   /** Filled once the campaign has ended and results exist. */
   resultsHref?: string;
+}
+
+// ── Sources / references ───────────────────────────────────────────
+/**
+ * A first-class reference for `parents` and `wisdom-science` content.
+ * Never fabricated. For copyrighted books the editorial approach is
+ * original TALIMOON synthesis + short attributed quotation, not
+ * reproduction of substantial passages.
+ */
+export type ReferenceKind = 'book' | 'research' | 'expert' | 'organization';
+
+export interface Reference {
+  kind: ReferenceKind;
+  /** Author(s) — book / paper / expert. */
+  author?: string;
+  /** Book title, paper title, or organisation name. */
+  title?: string;
+  /** Book edition, e.g. "2nd ed.". */
+  edition?: string;
+  /** Page or chapter reference for a short attributed quotation. */
+  pages?: string;
+  /** Journal / publisher / institution. */
+  publisher?: string;
+  /** Publication year. */
+  year?: number;
+  url?: string;
+  doi?: string;
+  /** Expert role, e.g. "child psychologist". */
+  role?: string;
+  /** One short line of context (why this source, what it says). */
+  note?: string;
 }
 
 // ── Editorial block canvas (detail page) ───────────────────────────
@@ -193,6 +296,12 @@ export interface EntryContent {
    *  "So'z: Aziza R. · Foto: Sardor K." Shown small, near the
    *  header. `JourneyImage.credit` handles per-image credits. */
   credit?: string;
+  /** Editorial attribution — who wrote / prepared this. Localisable
+   *  because the label around it is ("TALIMOON tahririyati"). */
+  author?: string;
+  /** The single "key idea" a `guide` / `research-explainer` turns on —
+   *  pulled out in the detail header and the parent feature. */
+  keyIdea?: string;
   /** Drives `interview` layout; also usable as a stream treatment. */
   pullQuote?: { text: string; attribution?: string; role?: string };
   /** The detail-page body. */
@@ -203,18 +312,28 @@ export interface EntryContent {
 export interface JourneyEntry {
   id: string;
   slug: string;
+  /** Which of the three editorial worlds this belongs to. */
+  world: JourneyWorld;
   format: JourneyFormat;
   weight: JourneyWeight;
   status: EntryStatus;
 
-  /** Editorial pin to THE OPENING. Never derived. */
+  /** Editorial pin to THE OPENING. Never derived. May be from any
+   *  world. */
   featured: boolean;
+  /** Editorial pin to the landing's PARENT FEATURE slot. Only
+   *  meaningful when `world === 'parents'`. */
+  parentFeature?: boolean;
   /** ISO. For `scheduled` entries this is in the future. */
   publishedAtISO: string;
   updatedAtISO?: string;
 
-  /** Internal taxonomy — not a filter UI in V1. */
+  /** Topics / taxonomy — not a filter UI yet, architected for later. */
   tags: string[];
+
+  /** Sources — first-class for `parents` / `wisdom-science`. Rendered
+   *  as a quiet "MANBALAR / SOURCES" section. Never fabricated. */
+  references?: Reference[];
 
   defaultLocale: Locale;
   /** One `EntryContent` per available language. `defaultLocale` is

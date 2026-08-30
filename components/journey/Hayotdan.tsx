@@ -43,6 +43,7 @@ import {
   QuietLink,
   Reveal,
   Rise,
+  WorldLabel,
 } from './shared';
 
 const EN = {
@@ -56,6 +57,7 @@ const EN = {
   results: 'See the results',
   ended: 'Ended',
   detail: 'More',
+  read: 'Read',
   emptyTitle: 'This space is for stories.',
   emptyBody:
     'Reportage, film, a small moment, a thought — from TALIMOON’s life. The first ones, soon.',
@@ -74,15 +76,22 @@ const UZ: typeof EN = {
   emptyTitle: 'Bu yer hikoyalar uchun.',
   emptyBody:
     "Reportaj, video, kichik lahza, bir fikr — TALIMOON hayotidan. Ilklari tez orada.",
+  read: "O'qish",
 };
 
 function cta(format: JourneyFormat, t: typeof EN): string {
   switch (format) {
     case 'reportage':
+    case 'photo-story':
     case 'moment':
+    case 'event':
       return t.story;
     case 'thought':
       return t.thought;
+    case 'guide':
+    case 'book-insight':
+    case 'research-explainer':
+      return t.read;
     case 'interview':
       return t.conversation;
     case 'video':
@@ -93,7 +102,13 @@ function cta(format: JourneyFormat, t: typeof EN): string {
 }
 
 // ── One entry ──────────────────────────────────────────────────────
-function StreamEntry({ entry, index }: { entry: JourneyEntry; index: number }) {
+export function StreamEntry({
+  entry,
+  index,
+}: {
+  entry: JourneyEntry;
+  index: number;
+}) {
   const { language } = useLanguage();
   const t = useT(EN, UZ);
   const { content, direction } = resolveEntryContent(entry, toLocale(language));
@@ -114,11 +129,97 @@ function StreamEntry({ entry, index }: { entry: JourneyEntry; index: number }) {
     </Link>
   );
 
+  // The restrained world tag every stream entry carries — above the
+  // kicker. `block` so it inherits the parent's text alignment
+  // (centred for thought, left otherwise).
+  const worldTag = (
+    <WorldLabel
+      world={entry.world}
+      language={language}
+      className="mb-2.5 block"
+    />
+  );
+
+  // ── knowledge — guide / book-insight / research-explainer.
+  //    Left-aligned, question headline, key idea pulled out. The
+  //    "value for parents" treatment. Optional cover. ──
+  if (
+    entry.format === 'guide' ||
+    entry.format === 'book-insight' ||
+    entry.format === 'research-explainer'
+  ) {
+    return (
+      <article dir={direction} className="mx-auto max-w-[820px]">
+        {photo ? (
+          <Link href={href} className="mb-6 block md:mb-8">
+            <div className="relative aspect-[16/9] w-full overflow-hidden">
+              <Image
+                src={photo.src}
+                alt={content.coverAlt ?? ''}
+                fill
+                sizes="(min-width:1024px) 820px, 100vw"
+                loading="lazy"
+                placeholder={photo.blurDataURL ? 'blur' : undefined}
+                blurDataURL={photo.blurDataURL}
+                className="object-cover"
+              />
+            </div>
+          </Link>
+        ) : null}
+        {worldTag}
+        {kickerLabel ? <Kicker label={kickerLabel} date={kickerDate} /> : null}
+        <h3
+          className="mt-3 text-[24px] sm:text-[28px] md:text-[33px] lg:text-[36px]"
+          style={{
+            fontFamily: DISPLAY,
+            fontWeight: 600,
+            color: NAVY,
+            lineHeight: 1.16,
+            letterSpacing: '-0.015em',
+            textWrap: 'balance',
+          }}
+        >
+          {headingLink}
+        </h3>
+        {content.standfirst ? (
+          <p
+            className="mt-4 max-w-[54ch] text-[15px] md:text-[17px]"
+            style={{ fontFamily: BODY, color: NAVY_64, lineHeight: 1.7 }}
+          >
+            {content.standfirst}
+          </p>
+        ) : null}
+        {content.keyIdea ? (
+          <div
+            className="mt-5 border-s ps-5"
+            style={{ borderColor: 'rgba(184,147,91,0.4)' }}
+          >
+            <p
+              className="text-[15px] md:text-[17px]"
+              style={{
+                fontFamily: DISPLAY,
+                fontWeight: 600,
+                color: NAVY,
+                lineHeight: 1.4,
+              }}
+            >
+              {content.keyIdea}
+            </p>
+          </div>
+        ) : null}
+        <div className="mt-6">
+          <QuietLink href={href}>{cta(entry.format, t)}</QuietLink>
+        </div>
+      </article>
+    );
+  }
+
   // ── thought — centred, type only, never an image ──
   if (entry.format === 'thought') {
     const big = entry.weight === 'lead' || entry.weight === 'standard';
     return (
       <article dir={direction} className="mx-auto max-w-[760px] text-center">
+        {worldTag}
         {kickerLabel ? (
           <div className="flex justify-center">
             <Kicker label={kickerLabel} />
@@ -178,6 +279,7 @@ function StreamEntry({ entry, index }: { entry: JourneyEntry; index: number }) {
           </div>
         ) : null}
         <div className={photo ? '' : 'md:col-span-2 md:mx-auto md:max-w-[600px] md:text-center'}>
+          {worldTag}
           <Kicker label={kickerLabel ?? 'LAHZA'} date={kickerDate} />
           <p
             className="mt-3 text-[19px] md:text-[22px]"
@@ -201,6 +303,7 @@ function StreamEntry({ entry, index }: { entry: JourneyEntry; index: number }) {
   if (entry.format === 'interview' && content.pullQuote) {
     return (
       <article dir={direction} className="mx-auto max-w-[820px]">
+        {worldTag}
         <Kicker label={kickerLabel ?? 'SUHBAT'} />
         <blockquote className="mt-5">
           <p
@@ -297,6 +400,7 @@ function StreamEntry({ entry, index }: { entry: JourneyEntry; index: number }) {
           </div>
         </Link>
         <div className="mt-5 md:max-w-[720px]">
+          {worldTag}
           <Kicker label={kickerLabel ?? 'VIDEO'} date={kickerDate} />
           <h3
             className="mt-3 text-[24px] md:text-[30px]"
@@ -322,8 +426,8 @@ function StreamEntry({ entry, index }: { entry: JourneyEntry; index: number }) {
     );
   }
 
-  // ── update / campaign — compact ──
-  if (entry.format === 'update' || entry.format === 'campaign') {
+  // ── news / campaign — compact ──
+  if (entry.format === 'news' || entry.format === 'campaign') {
     const state = entry.format === 'campaign' ? campaignState(entry) : null;
     const campaignCta =
       state === 'ended'
@@ -338,6 +442,7 @@ function StreamEntry({ entry, index }: { entry: JourneyEntry; index: number }) {
         dir={direction}
         className="mx-auto max-w-[680px] border-t border-[#1c2a3a14] pt-7"
       >
+        {worldTag}
         <Kicker label={kickerLabel ?? ''} date={kickerDate} />
         <div className="mt-3">
           <p
@@ -400,6 +505,7 @@ function StreamEntry({ entry, index }: { entry: JourneyEntry; index: number }) {
         </div>
       ) : null}
       <div className={`${photo ? 'mt-6 md:mt-8' : ''} md:max-w-[780px]`}>
+        {worldTag}
         <Kicker label={kickerLabel ?? ''} date={kickerDate} />
         <h3
           className="mt-3 text-[26px] sm:text-[30px] md:text-[36px] lg:text-[40px]"

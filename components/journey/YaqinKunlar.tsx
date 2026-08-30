@@ -22,7 +22,18 @@ import Link from 'next/link';
 import { getPulse } from '@/lib/journey/content';
 import { toLocale, type PulseStrand } from '@/lib/journey/types';
 import { useLanguage, useT } from '@/lib/i18n/LanguageContext';
-import { Band, BODY, GOLD, NAVY, NAVY_48, NAVY_64, Reveal, Rise, shortDate } from './shared';
+import {
+  Band,
+  BODY,
+  GOLD,
+  NAVY,
+  NAVY_48,
+  NAVY_64,
+  Reveal,
+  Rise,
+  shortDate,
+  WorldLabel,
+} from './shared';
 
 const EN = {
   heading: "What's near",
@@ -65,9 +76,15 @@ export function YaqinKunlar() {
     >
       <Reveal amount={0.15}>
         <Rise>
+          <WorldLabel
+            world="talimoon-life"
+            language={language}
+            as="link"
+            className="block"
+          />
           <h2
             id="journey-pulse-heading"
-            className="text-[13px] uppercase"
+            className="mt-2.5 text-[13px] uppercase"
             style={{
               fontFamily: BODY,
               fontWeight: 600,

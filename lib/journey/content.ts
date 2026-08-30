@@ -26,6 +26,7 @@ import {
   type Direction,
   type EntryContent,
   type JourneyEntry,
+  type JourneyWorld,
   type Locale,
   type PulseItem,
   type PulseSeed,
@@ -165,25 +166,69 @@ export interface StreamPage {
 }
 
 /**
- * A window into the active stream (published only, newest first),
- * excluding whichever entry is currently THE OPENING so it is not
- * shown twice.
+ * A window into the active stream (published only, newest first).
+ * By default it MIXES all three worlds and excludes the current
+ * OPENING + PARENT FEATURE entries so nothing shows twice. Pass
+ * `world` to scope it (used by the `/journey/<world>` landings) —
+ * scoped views do NOT exclude the opening/feature.
  */
 export function getStreamEntries(
-  opts: { offset?: number; limit?: number } = {},
+  opts: {
+    offset?: number;
+    limit?: number;
+    world?: JourneyWorld;
+  } = {},
 ): StreamPage {
   const offset = Math.max(0, opts.offset ?? 0);
   const limit = Math.max(0, opts.limit ?? STREAM_PAGE_SIZE);
 
-  const featuredId = getFeaturedEntry()?.entry.id;
-  const all = ENTRIES.filter(isInStream)
-    .filter((e) => e.id !== featuredId)
-    .sort(byNewest);
+  let all = ENTRIES.filter(isInStream);
+
+  if (opts.world) {
+    all = all.filter((e) => e.world === opts.world);
+  } else {
+    const excluded = new Set<string>();
+    const f = getFeaturedEntry()?.entry.id;
+    if (f) excluded.add(f);
+    const p = getParentFeature()?.id;
+    if (p) excluded.add(p);
+    all = all.filter((e) => !excluded.has(e.id));
+  }
+
+  all = all.slice().sort(byNewest);
 
   return {
     entries: all.slice(offset, offset + limit),
     total: all.length,
     hasMore: offset + limit < all.length,
+  };
+}
+
+/**
+ * The one `parents` entry for the landing's PARENT FEATURE slot.
+ * Editorial pin (`parentFeature: true`) wins, else the newest
+ * `parents` entry. `null` when there is no parents content yet.
+ */
+export function getParentFeature(now: Date = new Date()): JourneyEntry | null {
+  const parents = ENTRIES.filter(
+    (e) => isInStream(e) && e.world === 'parents',
+  ).sort(byNewest);
+  if (parents.length === 0) return null;
+  void now;
+  return parents.find((e) => e.parentFeature) ?? parents[0];
+}
+
+/** Entries for one world (public: published + archived), newest first. */
+export function getWorldEntries(world: JourneyWorld): JourneyEntry[] {
+  return ENTRIES.filter((e) => isPublic(e) && e.world === world).sort(byNewest);
+}
+
+/** Per-world count of public entries — for the editorial gateways. */
+export function getWorldCounts(): Record<JourneyWorld, number> {
+  return {
+    'talimoon-life': getWorldEntries('talimoon-life').length,
+    parents: getWorldEntries('parents').length,
+    'wisdom-science': getWorldEntries('wisdom-science').length,
   };
 }
 
