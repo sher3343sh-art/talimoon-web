@@ -29,6 +29,9 @@ import { motion, useReducedMotion, type Variants } from 'framer-motion';
 import {
   WORLD_NAME_KEYS,
   WORLD_SLUG,
+  toLocale,
+  worldBlurb,
+  worldName,
   type JourneyVideo,
   type JourneyWorld,
 } from '@/lib/journey/types';
@@ -302,6 +305,7 @@ export function clock(sec: number): string {
 // ── Editorial worlds ──────────────────────────────────────────────
 /** Re-exported from the model so components have one import site. */
 export const WORLD_NAME = WORLD_NAME_KEYS;
+export { worldName, worldBlurb };
 
 /** `/journey/talimoon` etc. */
 export function worldPath(world: JourneyWorld): string {
@@ -321,7 +325,7 @@ export function WorldLabel({
   className?: string;
   as?: 'span' | 'link';
 }) {
-  const name = language === 'UZ' ? WORLD_NAME[world].uz : WORLD_NAME[world].en;
+  const name = worldName(world, toLocale(language));
   const cls = `text-[11px] uppercase ${className}`;
   const style = {
     fontFamily: BODY,

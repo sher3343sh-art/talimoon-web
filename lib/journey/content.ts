@@ -232,6 +232,39 @@ export function getWorldCounts(): Record<JourneyWorld, number> {
   };
 }
 
+/**
+ * Everything the landing's THREE WORLDS portal needs for one world,
+ * in one call. `primary` is the newest public entry (fills the main
+ * media + latest-headline slots); `secondary` is the next one (fills
+ * the small overlapping media / fragment slot). Both are `null` until
+ * real content exists — the portal then renders its prepared
+ * empty-state frames, never invented volume.
+ */
+export interface WorldPreview {
+  world: JourneyWorld;
+  count: number;
+  primary: JourneyEntry | null;
+  secondary: JourneyEntry | null;
+}
+
+export function getWorldPreview(world: JourneyWorld): WorldPreview {
+  const all = getWorldEntries(world);
+  return {
+    world,
+    count: all.length,
+    primary: all[0] ?? null,
+    secondary: all[1] ?? null,
+  };
+}
+
+export function getWorldPreviews(): Record<JourneyWorld, WorldPreview> {
+  return {
+    'talimoon-life': getWorldPreview('talimoon-life'),
+    parents: getWorldPreview('parents'),
+    'wisdom-science': getWorldPreview('wisdom-science'),
+  };
+}
+
 export type FeaturedSource = 'featured' | 'featured-stale' | 'newest';
 
 export interface FeaturedResult {

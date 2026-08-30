@@ -13,7 +13,7 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { STREAM_PAGE_SIZE, getWorldEntries } from '@/lib/journey/content';
-import type { JourneyWorld } from '@/lib/journey/types';
+import { toLocale, worldBlurb, worldName, type JourneyWorld } from '@/lib/journey/types';
 import { useLanguage, useT } from '@/lib/i18n/LanguageContext';
 import { StreamEntry } from './Hayotdan';
 import {
@@ -25,7 +25,6 @@ import {
   NAVY_64,
   Reveal,
   Rise,
-  WORLD_NAME,
 } from './shared';
 
 const EN = {
@@ -46,9 +45,9 @@ export function WorldLanding({ world }: { world: JourneyWorld }) {
 
   const all = useMemo(() => getWorldEntries(world), [world]);
   const shown = all.slice(0, limit);
-  const name = language === 'UZ' ? WORLD_NAME[world].uz : WORLD_NAME[world].en;
-  const blurb =
-    language === 'UZ' ? WORLD_NAME[world].blurbUz : WORLD_NAME[world].blurbEn;
+  const locale = toLocale(language);
+  const name = worldName(world, locale);
+  const blurb = worldBlurb(world, locale);
 
   return (
     <Band

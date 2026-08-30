@@ -18,7 +18,7 @@ export const metadata: Metadata = {
  * HAYOT (Journey) V2 — /journey.
  * ----------------------------------------------------------------
  * TALIMOON's living editorial + knowledge space, in three worlds
- * (TALIMOON HAYOTI · OTA-ONALAR UCHUN · HIKMAT ORTIDAGI ILM). One
+ * (TALIMOON HAYOTI · OTA-ONALAR UCHUN · ODATLAR VA ILM). One
  * shared editorial engine; the landing sequence:
  *
  *   A  THE OPENING        — the current editorial story (any world),

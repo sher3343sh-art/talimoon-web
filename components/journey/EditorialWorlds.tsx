@@ -1,56 +1,641 @@
 'use client';
 
 /**
- * HAYOT — the three editorial worlds (V2, landing section B).
+ * HAYOT — THE THREE EDITORIAL WORLDS (V2, landing section B).
  * ----------------------------------------------------------------
- * A magazine contents page, not three SaaS cards: a numbered list,
- * large faint numerals in gold, world names in Cormorant navy, one
- * quiet line each, a restrained link into the world's landing. When
- * a world has no content yet its link reads "tez orada" instead of
- * a count — the structure stays established, nothing is faked.
+ * A premium editorial cover / visual table of contents, not three
+ * SaaS cards. Each world is a PORTAL with its own composition:
  *
- * The worlds are `talimoon-life` (TALIMOON HAYOTI), `parents`
- * (OTA-ONALAR UCHUN) and `wisdom-science` (HIKMAT ORTIDAGI ILM).
+ *   01  TALIMOON HAYOTI   — a wide, layered landscape portal: a
+ *       dominant media frame with a small overlapping second frame.
+ *       Cinematic, active.
+ *   02  OTA-ONALAR UCHUN   — an intimate portrait portal, reading-
+ *       oriented, warm.
+ *   03  ODATLAR VA ILM     — a precise square portal, observational.
+ *
+ * Every slot is REAL: a media frame, a facet row, a latest-content
+ * area, an entry affordance. Until real content is published the
+ * media frames render prepared editorial placeholders (warm paper,
+ * a hairline gold inset, crop-mark ticks, a quiet media-type label)
+ * and the latest-content area holds its space with one restrained
+ * line. Nothing is faked — no invented headline, date, source or
+ * count. When entries are added the portal fills itself:
+ * `getWorldPreview()` supplies the newest entry's media (via
+ * `mediaPolicy`), headline and kicker, and the second-newest for the
+ * overlapping frame. No redesign required.
  */
 
 import { useMemo } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
-import { getWorldCounts } from '@/lib/journey/content';
-import { JOURNEY_WORLDS } from '@/lib/journey/types';
-import { useLanguage, useT } from '@/lib/i18n/LanguageContext';
+import {
+  getWorldPreviews,
+  mediaPolicy,
+  resolveEntryContent,
+  type WorldPreview,
+} from '@/lib/journey/content';
+import {
+  JOURNEY_WORLDS,
+  toLocale,
+  worldBlurb,
+  worldName,
+  type JourneyEntry,
+  type JourneyWorld,
+  type Locale,
+} from '@/lib/journey/types';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 import {
   Band,
   BODY,
+  CREAM,
+  CREAM_RAISED,
   DISPLAY,
   GOLD,
+  GOLD_FAINT,
   NAVY,
   NAVY_48,
   NAVY_64,
   Reveal,
   Rise,
-  WORLD_NAME,
   worldPath,
 } from './shared';
 
-const EN = { eyebrow: 'Three worlds', open: 'Open', soon: 'Coming soon', count: (n: number) => `${n} ${n === 1 ? 'piece' : 'pieces'}` };
-const UZ: typeof EN = {
-  eyebrow: 'Uch olam',
-  open: 'Ochish',
-  soon: 'Tez orada',
-  count: (n: number) => `${n} ta yozuv`,
+// ── Copy (all four site languages authored) ───────────────────────
+type WorldCopy = {
+  mediaType: string;
+  facets: readonly string[];
+  latestLabel: string;
+  emptyLine: string;
+};
+type Copy = {
+  eyebrow: string;
+  open: string;
+  source: string;
+  worlds: Record<JourneyWorld, WorldCopy>;
 };
 
+const COPY: Record<Locale, Copy> = {
+  uz: {
+    eyebrow: 'HAYOTNING UCH TOMONI',
+    open: 'Ochish',
+    source: 'Manba',
+    worlds: {
+      'talimoon-life': {
+        mediaType: 'SURAT · VIDEO',
+        facets: ['YANGILIKLAR', 'VIDEO', 'LAHZALAR'],
+        latestLabel: "So‘nggi",
+        emptyLine: 'Yangi hikoya uchun joy.',
+      },
+      parents: {
+        mediaType: 'OILA VA BOLA',
+        facets: ['BOLA PSIXOLOGIYASI', 'TARBIYA', 'OILA'],
+        latestLabel: 'Foydali o‘qish',
+        emptyLine: 'Foydali o‘qish uchun joy.',
+      },
+      'wisdom-science': {
+        mediaType: 'YAQIN KADR',
+        facets: ['ODATLAR', 'ILM', 'TADQIQOT'],
+        latestLabel: 'Tadqiqot',
+        emptyLine: 'Keyingi kashfiyot uchun joy.',
+      },
+    },
+  },
+  en: {
+    eyebrow: 'THREE SIDES OF LIFE',
+    open: 'Open',
+    source: 'Source',
+    worlds: {
+      'talimoon-life': {
+        mediaType: 'PHOTO · FILM',
+        facets: ['NEWS', 'FILM', 'MOMENTS'],
+        latestLabel: 'Latest',
+        emptyLine: 'Space for the next story.',
+      },
+      parents: {
+        mediaType: 'FAMILY & CHILD',
+        facets: ['CHILD PSYCHOLOGY', 'UPBRINGING', 'FAMILY'],
+        latestLabel: 'Useful read',
+        emptyLine: 'Space for a useful read.',
+      },
+      'wisdom-science': {
+        mediaType: 'CLOSE OBSERVATION',
+        facets: ['HABITS', 'SCIENCE', 'RESEARCH'],
+        latestLabel: 'Research',
+        emptyLine: 'Space for the next discovery.',
+      },
+    },
+  },
+  ru: {
+    eyebrow: 'ТРИ СТОРОНЫ ЖИЗНИ',
+    open: 'Открыть',
+    source: 'Источник',
+    worlds: {
+      'talimoon-life': {
+        mediaType: 'ФОТО · ВИДЕО',
+        facets: ['НОВОСТИ', 'ВИДЕО', 'МОМЕНТЫ'],
+        latestLabel: 'Последнее',
+        emptyLine: 'Место для новой истории.',
+      },
+      parents: {
+        mediaType: 'СЕМЬЯ И РЕБЁНОК',
+        facets: ['ПСИХОЛОГИЯ', 'ВОСПИТАНИЕ', 'СЕМЬЯ'],
+        latestLabel: 'Полезное чтение',
+        emptyLine: 'Место для полезного чтения.',
+      },
+      'wisdom-science': {
+        mediaType: 'КРУПНЫЙ ПЛАН',
+        facets: ['ПРИВЫЧКИ', 'НАУКА', 'ИССЛЕДОВАНИЕ'],
+        latestLabel: 'Исследование',
+        emptyLine: 'Место для следующего открытия.',
+      },
+    },
+  },
+  ar: {
+    eyebrow: 'ثلاثة جوانب من الحياة',
+    open: 'افتح',
+    source: 'المصدر',
+    worlds: {
+      'talimoon-life': {
+        mediaType: 'صورة · فيديو',
+        facets: ['أخبار', 'فيديو', 'لحظات'],
+        latestLabel: 'الأحدث',
+        emptyLine: 'مكان للقصة القادمة.',
+      },
+      parents: {
+        mediaType: 'الأسرة والطفل',
+        facets: ['نفسية الطفل', 'التربية', 'الأسرة'],
+        latestLabel: 'قراءة مفيدة',
+        emptyLine: 'مكان لقراءة مفيدة.',
+      },
+      'wisdom-science': {
+        mediaType: 'لقطة قريبة',
+        facets: ['العادات', 'العلم', 'البحث'],
+        latestLabel: 'بحث',
+        emptyLine: 'مكان للاكتشاف القادم.',
+      },
+    },
+  },
+};
+
+const VARIANT: Record<JourneyWorld, 'wide' | 'tall' | 'compact'> = {
+  'talimoon-life': 'wide',
+  parents: 'tall',
+  'wisdom-science': 'compact',
+};
+
+// ── Prepared editorial marks (empty media frame) ──────────────────
+const TICK_COLOR = 'rgba(184,147,91,0.5)';
+
+function CornerTicks() {
+  return (
+    <>
+      {(
+        [
+          'left-2 top-2 border-s border-t',
+          'right-2 top-2 border-e border-t',
+          'left-2 bottom-2 border-s border-b',
+          'right-2 bottom-2 border-e border-b',
+        ] as const
+      ).map((pos) => (
+        <span
+          key={pos}
+          aria-hidden="true"
+          className={`pointer-events-none absolute h-3 w-3 ${pos}`}
+          style={{ borderColor: TICK_COLOR }}
+        />
+      ))}
+    </>
+  );
+}
+
+function EditorialMark({ focal }: { focal?: boolean }) {
+  if (focal) {
+    // world 03 — an observational focal ring
+    return (
+      <span
+        aria-hidden="true"
+        className="relative block h-7 w-7 rounded-full"
+        style={{ boxShadow: 'inset 0 0 0 1px rgba(184,147,91,0.4)' }}
+      >
+        <span
+          className="absolute left-1/2 top-1/2 block h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full"
+          style={{ backgroundColor: 'rgba(184,147,91,0.6)' }}
+        />
+      </span>
+    );
+  }
+  // worlds 01 / 02 — a quiet crosshair
+  return (
+    <span aria-hidden="true" className="relative block h-5 w-5">
+      <span
+        className="absolute left-0 top-1/2 h-px w-full -translate-y-1/2"
+        style={{ backgroundColor: 'rgba(184,147,91,0.5)' }}
+      />
+      <span
+        className="absolute left-1/2 top-0 h-full w-px -translate-x-1/2"
+        style={{ backgroundColor: 'rgba(184,147,91,0.5)' }}
+      />
+    </span>
+  );
+}
+
+function MediaFrame({
+  ratio,
+  src,
+  alt,
+  priority,
+  markerLabel,
+  focal,
+  playCue,
+  sizes = '(max-width: 1024px) 100vw, 50vw',
+}: {
+  ratio: string;
+  src?: string | null;
+  alt?: string;
+  priority?: boolean;
+  markerLabel?: string;
+  focal?: boolean;
+  playCue?: boolean;
+  sizes?: string;
+}) {
+  return (
+    <div
+      className={`relative w-full overflow-hidden ${ratio}`}
+      style={{ backgroundColor: CREAM_RAISED }}
+    >
+      {src ? (
+        <Image
+          src={src}
+          alt={alt ?? ''}
+          fill
+          priority={priority}
+          sizes={sizes}
+          className="object-cover motion-safe:transition-transform motion-safe:duration-[900ms] motion-safe:ease-[cubic-bezier(0.22,1,0.36,1)] motion-safe:group-hover:scale-[1.03] motion-safe:group-focus-visible:scale-[1.03]"
+        />
+      ) : (
+        <div
+          className="absolute inset-0 flex flex-col items-center justify-center gap-3"
+          style={{
+            backgroundColor: CREAM_RAISED,
+            backgroundImage:
+              'repeating-linear-gradient(135deg, rgba(184,147,91,0.05) 0 1px, transparent 1px 9px)',
+          }}
+        >
+          <EditorialMark focal={focal} />
+          {markerLabel ? (
+            <span
+              className="px-6 text-center text-[10px] uppercase"
+              style={{
+                fontFamily: BODY,
+                fontWeight: 600,
+                letterSpacing: '0.22em',
+                color: NAVY_48,
+              }}
+            >
+              {markerLabel}
+            </span>
+          ) : null}
+          <CornerTicks />
+        </div>
+      )}
+
+      {/* hairline gold inset on both states — a plate border */}
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0"
+        style={{ boxShadow: `inset 0 0 0 1px ${GOLD_FAINT}` }}
+      />
+
+      {playCue ? (
+        <span
+          aria-hidden="true"
+          className="absolute bottom-3 start-3 flex h-9 w-9 items-center justify-center rounded-full"
+          style={{ backgroundColor: 'rgba(253,251,247,0.92)' }}
+        >
+          <span
+            className="ms-0.5 block h-0 w-0"
+            style={{
+              borderTop: '5px solid transparent',
+              borderBottom: '5px solid transparent',
+              borderInlineStart: `8px solid ${NAVY}`,
+            }}
+          />
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
+// ── One world portal ─────────────────────────────────────────────
+function WorldPortal({
+  preview,
+  index,
+  language,
+}: {
+  preview: WorldPreview;
+  index: number;
+  language: string;
+}) {
+  const { world } = preview;
+  const locale = toLocale(language);
+  const c = COPY[locale] ?? COPY.en;
+  const wc = c.worlds[world];
+  const variant = VARIANT[world];
+
+  const name = worldName(world, locale);
+  const blurb = worldBlurb(world, locale);
+  const num = String(index + 1).padStart(2, '0');
+
+  const primaryView = mediaView(preview.primary, locale);
+  const secondaryView = mediaView(preview.secondary, locale);
+
+  const sourceRef =
+    world === 'wisdom-science' && preview.primary?.references?.length
+      ? preview.primary.references[0]
+      : null;
+  const sourceText = sourceRef
+    ? sourceRef.publisher ?? sourceRef.title ?? sourceRef.author ?? null
+    : null;
+
+  const numEl = (
+    <span
+      aria-hidden="true"
+      className={
+        variant === 'wide'
+          ? 'block text-[40px] leading-none sm:text-[48px] lg:text-[56px]'
+          : 'block text-[30px] leading-none lg:text-[36px]'
+      }
+      style={{ fontFamily: DISPLAY, fontWeight: 600, color: GOLD, opacity: 0.42 }}
+    >
+      {num}
+    </span>
+  );
+
+  const nameEl = (
+    <h3
+      className={
+        variant === 'wide'
+          ? 'mt-3 text-[30px] sm:text-[36px] lg:text-[44px]'
+          : 'mt-2.5 text-[24px] sm:text-[27px] lg:text-[30px]'
+      }
+      style={{
+        fontFamily: DISPLAY,
+        fontWeight: 600,
+        color: NAVY,
+        lineHeight: 1.12,
+        letterSpacing: '-0.015em',
+      }}
+    >
+      {name}
+    </h3>
+  );
+
+  const blurbEl = (
+    <p
+      className="mt-3 max-w-[46ch] text-[14px] lg:text-[15px]"
+      style={{ fontFamily: BODY, color: NAVY_64, lineHeight: 1.7 }}
+    >
+      {blurb}
+    </p>
+  );
+
+  const facetsEl = (
+    <ul className="mt-4 flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
+      {wc.facets.map((f, i) => (
+        <li key={f} className="flex items-center gap-2.5">
+          {i > 0 ? (
+            <span aria-hidden="true" style={{ color: 'rgba(184,147,91,0.55)' }}>
+              ·
+            </span>
+          ) : null}
+          <span
+            className="text-[10px] uppercase"
+            style={{
+              fontFamily: BODY,
+              fontWeight: 600,
+              letterSpacing: '0.18em',
+              color: NAVY_48,
+            }}
+          >
+            {f}
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+
+  const latestEl = (
+    <div
+      className="mt-6 border-t pt-4"
+      style={{ borderColor: GOLD_FAINT }}
+    >
+      {primaryView?.headline ? (
+        <>
+          <p
+            className="text-[10px] uppercase"
+            style={{
+              fontFamily: BODY,
+              fontWeight: 600,
+              letterSpacing: '0.22em',
+              color: GOLD,
+            }}
+          >
+            {wc.latestLabel}
+          </p>
+          <p
+            className="mt-2 text-[16px] lg:text-[18px]"
+            style={{
+              fontFamily: DISPLAY,
+              fontWeight: 600,
+              color: NAVY,
+              lineHeight: 1.28,
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+            }}
+          >
+            {primaryView.headline}
+          </p>
+          {primaryView.meta ? (
+            <p
+              className="mt-1.5 text-[10px] uppercase"
+              style={{
+                fontFamily: BODY,
+                fontWeight: 600,
+                letterSpacing: '0.16em',
+                color: NAVY_48,
+              }}
+            >
+              {primaryView.meta}
+            </p>
+          ) : null}
+        </>
+      ) : (
+        <p
+          className="text-[13px]"
+          style={{ fontFamily: BODY, color: NAVY_48, lineHeight: 1.7 }}
+        >
+          {wc.emptyLine}
+        </p>
+      )}
+      {sourceText ? (
+        <p
+          className="mt-3 text-[10px] uppercase"
+          style={{
+            fontFamily: BODY,
+            fontWeight: 600,
+            letterSpacing: '0.16em',
+            color: NAVY_48,
+          }}
+        >
+          {c.source}: {sourceText}
+        </p>
+      ) : null}
+    </div>
+  );
+
+  const affordanceEl = (
+    <div className="mt-6 flex items-center gap-3">
+      <span
+        aria-hidden="true"
+        className="block h-px w-8 motion-safe:transition-[width] motion-safe:duration-500 motion-safe:group-hover:w-14 motion-safe:group-focus-visible:w-14"
+        style={{ backgroundColor: GOLD }}
+      />
+      <span
+        className="text-[11px] uppercase"
+        style={{
+          fontFamily: BODY,
+          fontWeight: 600,
+          letterSpacing: '0.2em',
+          color: NAVY,
+        }}
+      >
+        {c.open}
+      </span>
+      <span
+        aria-hidden="true"
+        className="text-[13px] rtl:-scale-x-100 motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:translate-x-1 motion-safe:group-focus-visible:translate-x-1"
+        style={{ color: GOLD }}
+      >
+        &rarr;
+      </span>
+    </div>
+  );
+
+  const linkClass =
+    'group block rounded-[2px] outline-none focus-visible:ring-2 focus-visible:ring-[#B8935B] focus-visible:ring-offset-4 focus-visible:ring-offset-[#FDFBF7]';
+
+  if (variant === 'wide') {
+    return (
+      <Link href={worldPath(world)} aria-label={name} className={linkClass}>
+        <div className="grid gap-7 md:gap-9 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:items-center lg:gap-14">
+          <div className="relative min-w-0 pb-8 pe-6 sm:pb-12 sm:pe-12 lg:pb-14 lg:pe-14">
+            <MediaFrame
+              ratio="aspect-[4/3] sm:aspect-[3/2] lg:aspect-auto lg:h-[430px]"
+              src={primaryView?.src}
+              alt={primaryView?.alt}
+              priority
+              playCue={primaryView?.isVideo}
+              markerLabel={wc.mediaType}
+              sizes="(max-width: 1024px) 92vw, 46vw"
+            />
+            {/* the smaller overlapping frame */}
+            <div
+              className="absolute bottom-0 end-0 w-[38%] max-w-[180px] motion-safe:transition-transform motion-safe:duration-500 motion-safe:group-hover:-translate-y-1"
+            >
+              <div className="p-[6px]" style={{ backgroundColor: CREAM }}>
+                <MediaFrame
+                  ratio="aspect-[3/4]"
+                  src={secondaryView?.src}
+                  alt={secondaryView?.alt}
+                  markerLabel={undefined}
+                  sizes="180px"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="min-w-0">
+            {numEl}
+            {nameEl}
+            {blurbEl}
+            {facetsEl}
+            {latestEl}
+            {affordanceEl}
+          </div>
+        </div>
+      </Link>
+    );
+  }
+
+  // tall (02) + compact (03)
+  return (
+    <Link href={worldPath(world)} aria-label={name} className={`${linkClass} h-full`}>
+      <div className="flex h-full flex-col">
+        <MediaFrame
+          ratio={
+            variant === 'tall'
+              ? 'aspect-[4/5] sm:aspect-[3/2] lg:aspect-auto lg:h-[420px]'
+              : 'aspect-[4/3] sm:aspect-[3/2] lg:aspect-auto lg:h-[420px]'
+          }
+          src={primaryView?.src}
+          alt={primaryView?.alt}
+          playCue={primaryView?.isVideo}
+          focal={variant === 'compact'}
+          markerLabel={wc.mediaType}
+          sizes="(max-width: 1024px) 92vw, 40vw"
+        />
+        <div className="mt-6 flex flex-1 flex-col">
+          {numEl}
+          {nameEl}
+          {blurbEl}
+          {facetsEl}
+          {latestEl}
+          {affordanceEl}
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+// ── entry → what the portal shows ────────────────────────────────
+function mediaView(entry: JourneyEntry | null, locale: Locale) {
+  if (!entry) return null;
+  const { content } = resolveEntryContent(entry, locale);
+  const policy = mediaPolicy(entry);
+  const asset = entry.cover ?? entry.video?.poster ?? null;
+  const src =
+    policy.showMedia && asset && asset.src.trim() !== '' ? asset.src : null;
+  const headline = content.title ?? content.standfirst ?? '';
+  const meta = content.kicker
+    ? [content.kicker.label, content.kicker.dateLabel].filter(Boolean).join(' · ')
+    : '';
+  return {
+    src,
+    alt: content.coverAlt ?? '',
+    headline,
+    meta,
+    isVideo: Boolean(entry.video) && Boolean(src),
+  };
+}
+
+// ── Section ──────────────────────────────────────────────────────
 export function EditorialWorlds() {
   const { language } = useLanguage();
-  const t = useT(EN, UZ);
-  const counts = useMemo(() => getWorldCounts(), []);
+  const locale = toLocale(language);
+  const previews = useMemo(() => getWorldPreviews(), []);
+  const c = COPY[locale] ?? COPY.en;
+  const [w1, w2, w3] = JOURNEY_WORLDS;
 
   return (
     <Band
+      tone="raised"
       labelledBy="journey-worlds-heading"
-      className="border-t border-[#1c2a3a17] py-16 md:py-24"
+      dir={locale === 'ar' ? 'rtl' : undefined}
+      className="border-t border-[#1c2a3a17] py-16 md:py-24 lg:py-28"
     >
-      <Reveal amount={0.12}>
+      <Reveal amount={0.1}>
         <Rise>
           <h2
             id="journey-worlds-heading"
@@ -62,97 +647,22 @@ export function EditorialWorlds() {
               color: GOLD,
             }}
           >
-            {t.eyebrow}
+            {c.eyebrow}
           </h2>
         </Rise>
 
-        <ol className="mt-10 md:mt-14">
-          {JOURNEY_WORLDS.map((world, i) => {
-            const n = counts[world];
-            const name =
-              language === 'UZ' ? WORLD_NAME[world].uz : WORLD_NAME[world].en;
-            const blurb =
-              language === 'UZ'
-                ? WORLD_NAME[world].blurbUz
-                : WORLD_NAME[world].blurbEn;
-            return (
-              <li
-                key={world}
-                className={
-                  i === 0
-                    ? ''
-                    : 'mt-12 border-t border-[#1c2a3a14] pt-12 md:mt-16 md:pt-16'
-                }
-              >
-                <Rise>
-                  <Link
-                    href={worldPath(world)}
-                    className="group grid grid-cols-[auto_minmax(0,1fr)] items-start gap-x-6 md:gap-x-12"
-                  >
-                    <span
-                      aria-hidden="true"
-                      className="text-[34px] md:text-[46px] lg:text-[52px]"
-                      style={{
-                        fontFamily: DISPLAY,
-                        fontWeight: 600,
-                        color: GOLD,
-                        opacity: 0.4,
-                        lineHeight: 1,
-                      }}
-                    >
-                      {String(i + 1).padStart(2, '0')}
-                    </span>
+        <Rise className="mt-10 md:mt-14">
+          <WorldPortal preview={previews[w1]} index={0} language={language} />
+        </Rise>
 
-                    <div className="max-w-[640px]">
-                      <p
-                        className="text-[24px] sm:text-[28px] md:text-[34px] lg:text-[38px]"
-                        style={{
-                          fontFamily: DISPLAY,
-                          fontWeight: 600,
-                          color: NAVY,
-                          lineHeight: 1.12,
-                          letterSpacing: '-0.015em',
-                        }}
-                      >
-                        {name}
-                      </p>
-                      <p
-                        className="mt-3 text-[15px] md:text-[16px]"
-                        style={{
-                          fontFamily: BODY,
-                          color: NAVY_64,
-                          lineHeight: 1.7,
-                        }}
-                      >
-                        {blurb}
-                      </p>
-                      <p
-                        className="mt-5 inline-flex items-center gap-2 text-[13px] uppercase"
-                        style={{
-                          fontFamily: BODY,
-                          fontWeight: 600,
-                          letterSpacing: '0.16em',
-                          color: n > 0 ? NAVY : NAVY_48,
-                        }}
-                      >
-                        <span>{n > 0 ? t.open : t.soon}</span>
-                        {n > 0 ? (
-                          <span
-                            aria-hidden="true"
-                            className="transition-transform duration-300 group-hover:translate-x-1"
-                            style={{ color: GOLD }}
-                          >
-                            &rarr;
-                          </span>
-                        ) : null}
-                      </p>
-                    </div>
-                  </Link>
-                </Rise>
-              </li>
-            );
-          })}
-        </ol>
+        <div className="mt-14 grid gap-12 md:mt-20 lg:grid-cols-[minmax(0,1.12fr)_minmax(0,0.88fr)] lg:gap-14">
+          <Rise className="min-w-0">
+            <WorldPortal preview={previews[w2]} index={1} language={language} />
+          </Rise>
+          <Rise className="min-w-0">
+            <WorldPortal preview={previews[w3]} index={2} language={language} />
+          </Rise>
+        </div>
       </Reveal>
     </Band>
   );

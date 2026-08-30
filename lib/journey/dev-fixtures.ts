@@ -381,7 +381,7 @@ const FIX_BOOK: JourneyEntry = {
   },
 };
 
-// ── 03 · HIKMAT ORTIDAGI ILM ───────────────────────────────────────
+// ── 03 · ODATLAR VA ILM (Habits & Science) ─────────────────────────
 
 // RESEARCH-EXPLAINER — EVIDENCE FIRST, conclusion second. The public
 // article begins from the question/evidence, not from a conclusion.

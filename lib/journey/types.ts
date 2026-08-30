@@ -108,16 +108,20 @@ export interface JourneyVideo {
  * editorial engine — the world is a label + a filter, never a
  * separate component system or a colour theme.
  *
- *  • `talimoon-life`   — TALIMOON HAYOTI: what is happening in and
- *    around TALIMOON (news, visits, reportage, events, campaigns…).
- *    The YAQIN KUNLAR pulse belongs here.
- *  • `parents`         — OTA-ONALAR UCHUN: concise, trustworthy
- *    content that helps parents understand children and family life.
- *  • `wisdom-science`  — HIKMAT ORTIDAGI ILM: everyday habits
- *    explained through reliable modern evidence. EDITORIAL RULE —
- *    evidence first, conclusion second; never claim the evidence
- *    proves a predetermined (e.g. religious) conclusion it does not
- *    support. The public article begins from the evidence/question.
+ *  • `talimoon-life`   — TALIMOON HAYOTI: news, events, visits,
+ *    films, photographs, short thoughts, ideas and moments worth
+ *    sharing from the world of TALIMOON. The YAQIN KUNLAR pulse
+ *    belongs here.
+ *  • `parents`         — OTA-ONALAR UCHUN: practical thinking on
+ *    child psychology, upbringing and family life, grounded in
+ *    books, experts and trustworthy sources.
+ *  • `wisdom-science`  — ODATLAR VA ILM (Habits & Science): the
+ *    reasons behind everyday habits, explored through modern science
+ *    and research. EDITORIAL RULE — evidence first, conclusion
+ *    second; never claim the evidence proves a predetermined (e.g.
+ *    religious) conclusion it does not support. The public article
+ *    begins from the evidence/question. (The internal slug stays
+ *    `wisdom-science`; only the public name changed.)
  */
 export type JourneyWorld = 'talimoon-life' | 'parents' | 'wisdom-science';
 
@@ -143,30 +147,66 @@ export const WORLD_BY_SLUG: Record<string, JourneyWorld> = {
 
 /** World display strings — plain data (no JSX) so server code
  *  (`generateMetadata`, sitemaps) can use it too. Components read it
- *  via `WORLD_NAME` in `components/journey/shared.tsx`. */
+ *  through `worldName()` / `worldBlurb()` (below), or the
+ *  `WORLD_NAME` re-export in `components/journey/shared.tsx`.
+ *  All four site languages are authored; nothing falls back to EN. */
 export const WORLD_NAME_KEYS: Record<
   JourneyWorld,
-  { uz: string; en: string; blurbUz: string; blurbEn: string }
+  { name: Record<Locale, string>; blurb: Record<Locale, string> }
 > = {
   'talimoon-life': {
-    uz: 'TALIMOON HAYOTI',
-    en: 'TALIMOON LIFE',
-    blurbUz: 'TALIMOON atrofidagi haqiqiy hikoyalar, tashriflar va voqealar.',
-    blurbEn: 'Real stories, visits and what is happening around TALIMOON.',
+    name: {
+      uz: 'TALIMOON HAYOTI',
+      en: 'TALIMOON LIFE',
+      ru: 'ЖИЗНЬ TALIMOON',
+      ar: 'حياة TALIMOON',
+    },
+    blurb: {
+      uz: 'Yangiliklar, voqealar, videolar, suratlar, g‘oyalar va TALIMOON dunyosidan ulashishga arzigulik lahzalar.',
+      en: 'News, events, films, photographs, ideas and moments worth sharing from the world of TALIMOON.',
+      ru: 'Новости, события, видео, фотографии, идеи и моменты из мира TALIMOON, которыми хочется поделиться.',
+      ar: 'أخبار وفعاليات ومقاطع فيديو وصور وأفكار ولحظات تستحق المشاركة من عالم TALIMOON.',
+    },
   },
   parents: {
-    uz: 'OTA-ONALAR UCHUN',
-    en: 'FOR PARENTS',
-    blurbUz: 'Bolani va oila hayotini yaxshiroq tushunish uchun foydali g‘oyalar.',
-    blurbEn: 'Useful ideas for understanding children and family life.',
+    name: {
+      uz: 'OTA-ONALAR UCHUN',
+      en: 'FOR PARENTS',
+      ru: 'РОДИТЕЛЯМ',
+      ar: 'للآباء والأمهات',
+    },
+    blurb: {
+      uz: 'Bola psixologiyasi, tarbiya va oilaviy munosabatlar haqida kitoblar, mutaxassislar va ishonchli manbalarga tayangan foydali fikr va tavsiyalar.',
+      en: 'Practical thinking on child psychology, upbringing and family life — grounded in books, experts and trustworthy sources.',
+      ru: 'Полезные мысли о детской психологии, воспитании и семейных отношениях — с опорой на книги, экспертов и надёжные источники.',
+      ar: 'أفكار عملية حول نفسية الطفل والتربية والعلاقات الأسرية، مستندة إلى الكتب والخبراء والمصادر الموثوقة.',
+    },
   },
   'wisdom-science': {
-    uz: 'HIKMAT ORTIDAGI ILM',
-    en: 'THE SCIENCE BEHIND WISDOM',
-    blurbUz: 'Kundalik foydali odatlarning zamonaviy dalillar asosida izohi.',
-    blurbEn: 'Everyday habits explained through reliable modern evidence.',
+    name: {
+      uz: 'ODATLAR VA ILM',
+      en: 'HABITS & SCIENCE',
+      ru: 'ПРИВЫЧКИ И НАУКА',
+      ar: 'العادات والعلم',
+    },
+    blurb: {
+      uz: 'Kundalik odatlarimiz ortidagi sabablarni zamonaviy ilm va tadqiqotlar orqali kashf etamiz.',
+      en: 'Exploring the reasons behind our everyday habits through modern science and research.',
+      ru: 'Изучаем причины наших повседневных привычек через современную науку и исследования.',
+      ar: 'نستكشف الأسباب وراء عاداتنا اليومية من خلال العلم والأبحاث الحديثة.',
+    },
   },
 };
+
+/** The public display name of a world in a given content locale. */
+export function worldName(world: JourneyWorld, locale: Locale): string {
+  return WORLD_NAME_KEYS[world].name[locale] ?? WORLD_NAME_KEYS[world].name.en;
+}
+
+/** The one-line description of a world in a given content locale. */
+export function worldBlurb(world: JourneyWorld, locale: Locale): string {
+  return WORLD_NAME_KEYS[world].blurb[locale] ?? WORLD_NAME_KEYS[world].blurb.en;
+}
 
 // ── Editorial format & weight ──────────────────────────────────────
 /**

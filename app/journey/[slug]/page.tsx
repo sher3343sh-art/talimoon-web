@@ -12,7 +12,8 @@ import {
 import {
   WORLD_BY_SLUG,
   WORLD_SLUG,
-  WORLD_NAME_KEYS,
+  worldBlurb,
+  worldName,
 } from '@/lib/journey/types';
 
 /**
@@ -37,8 +38,8 @@ export async function generateMetadata({
   const world = WORLD_BY_SLUG[slug];
   if (world) {
     return {
-      title: `${WORLD_NAME_KEYS[world].en} — TALIMOON`,
-      description: WORLD_NAME_KEYS[world].blurbEn,
+      title: `${worldName(world, 'en')} — TALIMOON`,
+      description: worldBlurb(world, 'en'),
     };
   }
 
