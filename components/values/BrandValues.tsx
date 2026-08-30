@@ -581,11 +581,16 @@ const SECTION_COPY_UZ: typeof SECTION_COPY_EN = {
     "Bolalikda qalbga singdirilgan qadriyatlar bir umr hamroh bo'ladi. Shuning uchun Talimoon yaratgan har bir hikoya, kitob va mahsulot besh asosiy qadriyatga tayanadi.",
 };
 
-// 2026 — a quiet editorial transition to the full TALIMOON story
-// (/about). Reads as the closing sentence of Values, not a button.
-const ABOUT_LINK_EN = { aboutLink: 'Discover the TALIMOON story' };
-const ABOUT_LINK_UZ: typeof ABOUT_LINK_EN = {
-  aboutLink: 'TALIMOON hikoyasini kashf eting',
+// 2026 — a quiet editorial transition at the end of Values that
+// routes to /about. Wording is plain on purpose: the visitor should
+// know exactly where it leads (who TALIMOON is, why it exists, what
+// it believes). A quiet text link, not a button. All four site
+// languages authored.
+const ABOUT_LINK: Record<string, string> = {
+  UZ: 'TALIMOON haqida batafsil',
+  EN: 'About TALIMOON',
+  RU: 'Подробнее о TALIMOON',
+  AR: 'المزيد عن TALIMOON',
 };
 
 // ============================================================
@@ -768,9 +773,10 @@ function ReflectiveQuestions() {
 }
 
 export function BrandValues() {
+  const { language } = useLanguage();
   const sectionCopy = useT(SECTION_COPY_EN, SECTION_COPY_UZ);
   const values = useT(VALUES_EN, VALUES_UZ);
-  const aboutT = useT(ABOUT_LINK_EN, ABOUT_LINK_UZ);
+  const aboutLinkLabel = ABOUT_LINK[language] ?? ABOUT_LINK.EN;
 
   return (
     <section
@@ -897,8 +903,9 @@ export function BrandValues() {
           ))}
         </motion.div>
 
-        {/* Quiet closing sentence — the natural handoff to the full
-            TALIMOON story. A restrained text link, not a button. */}
+        {/* Quiet closing sentence — a plain, clearly-worded handoff to
+            the full TALIMOON story (/about). A restrained text link,
+            not a button. */}
         <motion.div variants={sequenceItem} className="mt-12 md:mt-16">
           <Link
             href="/about"
@@ -914,11 +921,11 @@ export function BrandValues() {
                 color: NAVY,
               }}
             >
-              {aboutT.aboutLink}
+              {aboutLinkLabel}
             </span>
             <span
               aria-hidden="true"
-              className="transition-transform duration-300 group-hover:translate-x-1"
+              className="transition-transform duration-300 group-hover:translate-x-1 rtl:-scale-x-100"
               style={{ color: GOLD, fontSize: 18 }}
             >
               &rarr;
