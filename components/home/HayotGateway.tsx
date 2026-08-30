@@ -93,6 +93,36 @@ const COPY: Record<Locale, Copy> = {
 
 const WORLD_KEYS = ['talimoon-life', 'parents', 'wisdom-science'] as const;
 
+/** The shared editorial crop marks — an inset hairline + four gold
+ *  corner ticks. Used on the card's placeholder front and its back. */
+function CropFrame() {
+  return (
+    <>
+      <span
+        className="absolute inset-5 md:inset-7"
+        style={{ boxShadow: `inset 0 0 0 1px ${HAIRLINE}` }}
+      />
+      {(
+        [
+          'left-5 top-5 border-l border-t',
+          'right-5 top-5 border-r border-t',
+          'left-5 bottom-5 border-l border-b',
+          'right-5 bottom-5 border-r border-b',
+        ] as const
+      ).map((p) => (
+        <span
+          key={p}
+          className={`absolute h-3 w-3 md:h-3.5 md:w-3.5 ${p}`}
+          style={{ borderColor: 'rgba(184,147,91,0.5)' }}
+        />
+      ))}
+    </>
+  );
+}
+
+const GRAIN =
+  'repeating-linear-gradient(135deg, rgba(28,42,58,0.022) 0 1px, transparent 1px 8px), radial-gradient(120% 90% at 78% 18%, rgba(184,147,91,0.06), transparent 60%)';
+
 // ── section ───────────────────────────────────────────────────────
 export function HayotGateway() {
   const { language } = useLanguage();
@@ -214,88 +244,107 @@ export function HayotGateway() {
     </motion.div>
   );
 
+  // The editorial image "card": a slow, continuous 3D turn on the
+  // Y axis (front = the photo / prepared frame, back = a quiet HAYOT
+  // panel). Stopped entirely under prefers-reduced-motion. The turn
+  // only foreshortens the card, never widens it — no overflow, no
+  // layout shift.
+  const faceBase =
+    'absolute inset-0 overflow-hidden [backface-visibility:hidden] [-webkit-backface-visibility:hidden]';
+
   const imageFrame = (
     <motion.div {...rise(0.1)} className="relative min-w-0">
       <Link
         href="/journey"
         tabIndex={-1}
         aria-hidden="true"
-        className="group/img relative block"
+        className="relative block [perspective:1600px]"
       >
         <div
-          className="relative aspect-[4/5] w-full overflow-hidden sm:aspect-[3/2] lg:aspect-auto lg:h-[420px]"
-          style={{ backgroundColor: PAPER }}
+          data-hg-card
+          className={`relative aspect-[4/5] w-full sm:aspect-[3/2] lg:aspect-auto lg:h-[420px] [transform-style:preserve-3d] ${
+            reduced
+              ? ''
+              : 'motion-safe:animate-[hg-gateway-turn_22s_linear_infinite]'
+          }`}
+          style={{ transformStyle: 'preserve-3d', willChange: 'transform' }}
         >
-          {HAYOT_IMAGE ? (
-            <Image
-              src={HAYOT_IMAGE.src}
-              alt={HAYOT_IMAGE.alt}
-              fill
-              loading="lazy"
-              sizes="(max-width: 1024px) 92vw, 52vw"
-              className="object-cover motion-safe:transition-transform motion-safe:duration-[1100ms] motion-safe:ease-[cubic-bezier(0.22,1,0.36,1)] motion-safe:group-hover:scale-[1.015]"
-            />
-          ) : (
-            /* prepared editorial placeholder — warm paper + a whisper
-               of grain + an inset crop frame. Never a grey/skeleton box. */
-            <div
+          {/* FRONT — the photo, or the prepared editorial placeholder */}
+          <div className={faceBase} style={{ backgroundColor: PAPER }}>
+            {HAYOT_IMAGE ? (
+              <Image
+                src={HAYOT_IMAGE.src}
+                alt={HAYOT_IMAGE.alt}
+                fill
+                loading="lazy"
+                sizes="(max-width: 1024px) 92vw, 52vw"
+                className="object-cover"
+              />
+            ) : (
+              <div
+                aria-hidden="true"
+                className="absolute inset-0"
+                style={{ backgroundImage: GRAIN }}
+              >
+                <CropFrame />
+              </div>
+            )}
+            <span
               aria-hidden="true"
-              className="absolute inset-0"
+              className="pointer-events-none absolute inset-0"
+              style={{ boxShadow: 'inset 0 0 0 1px rgba(184,147,91,0.22)' }}
+            />
+            {/* the tiny sideways editorial note — rides on the card's
+                front face. LTR / md+ only. */}
+            {!isRTL ? (
+              <span
+                aria-hidden="true"
+                className="absolute start-3.5 top-7 hidden select-none md:block"
+                style={{
+                  writingMode: 'vertical-rl',
+                  textOrientation: 'sideways',
+                  fontFamily: BODY,
+                  fontWeight: 600,
+                  fontSize: 10,
+                  letterSpacing: '0.22em',
+                  textTransform: 'uppercase',
+                  color: 'rgba(184,147,91,0.9)',
+                  textShadow: '0 1px 10px rgba(247,242,234,0.65)',
+                }}
+              >
+                {c.note}
+              </span>
+            ) : null}
+          </div>
+
+          {/* BACK — a calm HAYOT panel, so a full turn always reads as
+              one deliberate editorial card, never a blank reverse. */}
+          <div
+            aria-hidden="true"
+            className={`${faceBase} flex flex-col items-center justify-center gap-3 [transform:rotateY(180deg)]`}
+            style={{ backgroundColor: PAPER, backgroundImage: GRAIN }}
+          >
+            <span
               style={{
-                backgroundImage:
-                  'repeating-linear-gradient(135deg, rgba(28,42,58,0.022) 0 1px, transparent 1px 8px), radial-gradient(120% 90% at 78% 18%, rgba(184,147,91,0.06), transparent 60%)',
+                fontFamily: BODY,
+                fontWeight: 600,
+                fontSize: 12,
+                letterSpacing: '0.34em',
+                color: GOLD,
               }}
             >
-              <span
-                className="absolute inset-5 md:inset-7"
-                style={{ boxShadow: `inset 0 0 0 1px ${HAIRLINE}` }}
-              />
-              {(
-                [
-                  'left-5 top-5 border-l border-t',
-                  'right-5 top-5 border-r border-t',
-                  'left-5 bottom-5 border-l border-b',
-                  'right-5 bottom-5 border-r border-b',
-                ] as const
-              ).map((p) => (
-                <span
-                  key={p}
-                  className={`absolute h-3 w-3 md:h-3.5 md:w-3.5 ${p}`}
-                  style={{ borderColor: 'rgba(184,147,91,0.5)' }}
-                />
-              ))}
-            </div>
-          )}
-
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0"
-            style={{ boxShadow: 'inset 0 0 0 1px rgba(184,147,91,0.22)' }}
-          />
+              HAYOT
+            </span>
+            <span
+              style={{ width: 34, height: 1, backgroundColor: 'rgba(184,147,91,0.55)' }}
+            />
+            <CropFrame />
+            <span
+              className="pointer-events-none absolute inset-0"
+              style={{ boxShadow: 'inset 0 0 0 1px rgba(184,147,91,0.22)' }}
+            />
+          </div>
         </div>
-
-        {/* the one memorable detail — a tiny vertical editorial note
-            along the frame's leading edge. LTR / md+ only; kept out of
-            the way so the section stays minimal. */}
-        {!isRTL ? (
-          <span
-            aria-hidden="true"
-            className="absolute start-3.5 top-7 hidden select-none md:block"
-            style={{
-              writingMode: 'vertical-rl',
-              textOrientation: 'sideways',
-              fontFamily: BODY,
-              fontWeight: 600,
-              fontSize: 10,
-              letterSpacing: '0.22em',
-              textTransform: 'uppercase',
-              color: 'rgba(184,147,91,0.9)',
-              textShadow: '0 1px 10px rgba(247,242,234,0.65)',
-            }}
-          >
-            {c.note}
-          </span>
-        ) : null}
       </Link>
     </motion.div>
   );

@@ -861,3 +861,20 @@ body {
       drop-shadow(0 0 1px var(--gold-mid));
   }
 }
+
+/* ── Home HAYOT gateway — the editorial image card's slow 3D turn ──
+   A single continuous rotateY on a preserve-3d card (front = photo /
+   prepared frame, back = a quiet HAYOT panel). Transform-only, so it
+   stays on the compositor. Applied via `motion-safe:` in the
+   component, and disabled again here for anyone who slips through. */
+@keyframes hg-gateway-turn {
+  to {
+    transform: rotateY(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-hg-card] {
+    animation: none;
+  }
+}
