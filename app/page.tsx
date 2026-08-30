@@ -3,6 +3,7 @@ import { HeroSlider } from "@/components/hero/Hero";
 import { BrandValues } from "@/components/values/BrandValues";
 import { FourDoorsSection } from "@/components/our-products/FourDoorsSection";
 import { StoryLibraryPreview } from "@/components/story-library-preview/StoryLibraryPreview";
+import { HayotGateway } from "@/components/home/HayotGateway";
 import { RealTalimoonMoments } from "@/components/real-talimoon-moments/RealTalimoonMoments";
 import { FamiliesWall } from "@/components/families-wall/FamiliesWall";
 import { PartnersPreview } from "@/components/partners/PartnersPreview";
@@ -18,6 +19,7 @@ export default function Home() {
         <BrandValues />
         <FourDoorsSection />
         <StoryLibraryPreview />
+        <HayotGateway />
         <RealTalimoonMoments />
         <FamiliesWall />
         <PartnersPreview />

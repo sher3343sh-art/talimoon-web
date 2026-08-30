@@ -44,6 +44,7 @@
 
 import React from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { motion, Variants } from 'framer-motion';
 import { useLanguage, useT } from '@/lib/i18n/LanguageContext';
 
@@ -580,6 +581,13 @@ const SECTION_COPY_UZ: typeof SECTION_COPY_EN = {
     "Bolalikda qalbga singdirilgan qadriyatlar bir umr hamroh bo'ladi. Shuning uchun Talimoon yaratgan har bir hikoya, kitob va mahsulot besh asosiy qadriyatga tayanadi.",
 };
 
+// 2026 — a quiet editorial transition to the full TALIMOON story
+// (/about). Reads as the closing sentence of Values, not a button.
+const ABOUT_LINK_EN = { aboutLink: 'Discover the TALIMOON story' };
+const ABOUT_LINK_UZ: typeof ABOUT_LINK_EN = {
+  aboutLink: 'TALIMOON hikoyasini kashf eting',
+};
+
 // ============================================================
 // Reflective questions — the block that sits to the LEFT of the
 // illustration space (illustration arrives in a later step).
@@ -762,6 +770,7 @@ function ReflectiveQuestions() {
 export function BrandValues() {
   const sectionCopy = useT(SECTION_COPY_EN, SECTION_COPY_UZ);
   const values = useT(VALUES_EN, VALUES_UZ);
+  const aboutT = useT(ABOUT_LINK_EN, ABOUT_LINK_UZ);
 
   return (
     <section
@@ -886,6 +895,35 @@ export function BrandValues() {
           {values.map((value, i) => (
             <ValueColumn key={value.id} item={value} showDivider={i > 0} />
           ))}
+        </motion.div>
+
+        {/* Quiet closing sentence — the natural handoff to the full
+            TALIMOON story. A restrained text link, not a button. */}
+        <motion.div variants={sequenceItem} className="mt-12 md:mt-16">
+          <Link
+            href="/about"
+            className="group inline-flex items-center gap-2 rounded-[2px] outline-none transition-opacity duration-300 hover:opacity-70 focus-visible:ring-2 focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--surface-base,#F7F3EC)]"
+            style={{ '--tw-ring-color': GOLD } as React.CSSProperties}
+          >
+            <span
+              style={{
+                fontFamily: DISPLAY_FONT,
+                fontWeight: 600,
+                fontSize: 20,
+                letterSpacing: '-0.01em',
+                color: NAVY,
+              }}
+            >
+              {aboutT.aboutLink}
+            </span>
+            <span
+              aria-hidden="true"
+              className="transition-transform duration-300 group-hover:translate-x-1"
+              style={{ color: GOLD, fontSize: 18 }}
+            >
+              &rarr;
+            </span>
+          </Link>
         </motion.div>
       </motion.div>
     </section>
