@@ -18,8 +18,8 @@ export default function Home() {
         <HeroSlider />
         <BrandValues />
         <FourDoorsSection />
-        <StoryLibraryPreview />
         <HayotGateway />
+        <StoryLibraryPreview />
         <RealTalimoonMoments />
         <FamiliesWall />
         <PartnersPreview />
