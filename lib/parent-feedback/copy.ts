@@ -71,7 +71,7 @@ const COPY: Record<Locale, SectionCopy> = {
     submit: "Fikrni yuborish",
     submitting: "Yuborilmoqda…",
     moderationNote:
-      "Har bir fikr ommaga ko‘rsatilishidan oldin ko‘rib chiqiladi.",
+      "Tanqidiy va ijobiy fikrlar chop etiladi — faqat haqoratli va odobsiz so‘zlar ommaga chiqmasligi uchun oldindan ko‘rib chiqiladi.",
     submittedTitle: "Rahmat.",
     submittedBody:
       "Fikringiz qabul qilindi va ko‘rib chiqilgach shu yerda ko‘rinadi.",
@@ -107,7 +107,8 @@ const COPY: Record<Locale, SectionCopy> = {
     inputPlaceholder: "Leave your feedback...",
     submit: "Send feedback",
     submitting: "Sending…",
-    moderationNote: "Every comment is reviewed before it appears publicly.",
+    moderationNote:
+      "Critical and positive feedback alike is published — we review it first only to keep abusive or obscene language off the site.",
     submittedTitle: "Thank you.",
     submittedBody:
       "Your feedback has been received and will appear here after review.",
@@ -142,7 +143,8 @@ const COPY: Record<Locale, SectionCopy> = {
     inputPlaceholder: "Оставьте свой отзыв...",
     submit: "Отправить отзыв",
     submitting: "Отправляется…",
-    moderationNote: "Каждый отзыв проверяется перед публикацией.",
+    moderationNote:
+      "Публикуются и критические, и положительные отзывы — проверка нужна лишь для того, чтобы оскорбительные и нецензурные слова не попали на сайт.",
     submittedTitle: "Спасибо.",
     submittedBody: "Ваш отзыв получен и появится здесь после проверки.",
     fromParents: "ОТ РОДИТЕЛЕЙ",
@@ -175,7 +177,8 @@ const COPY: Record<Locale, SectionCopy> = {
     inputPlaceholder: "اكتب رأيك...",
     submit: "إرسال الرأي",
     submitting: "جارٍ الإرسال…",
-    moderationNote: "تتم مراجعة كل رأي قبل عرضه للعامة.",
+    moderationNote:
+      "تُنشر الآراء النقدية والإيجابية معًا — والمراجعة المسبقة فقط لمنع ظهور الألفاظ المسيئة أو البذيئة.",
     submittedTitle: "شكرًا لك.",
     submittedBody: "تم استلام رأيك وسيظهر هنا بعد المراجعة.",
     fromParents: "من الآباء والأمهات",
