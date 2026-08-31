@@ -555,10 +555,11 @@ function SceneRelationship({
   return (
     <fieldset>
       {ackName && (
-        // TALIMOON's first personal sentence — kept at its current size
-        // but given real presence: weight 600, the stronger text colour,
-        // and a comfortable gap before the question.
-        <p className="mb-6 font-sans text-[14.5px] font-semibold leading-[1.5] text-text-primary">
+        // TALIMOON's first personal sentence — deliberately given real
+        // presence (weight 600, the stronger text colour, a comfortable
+        // gap before the question) and stepped up in size so it catches
+        // the eye, while still sitting clearly below the question.
+        <p className="mb-6 font-sans text-[18px] font-semibold leading-[1.45] text-text-primary">
           {c.ackLine(ackName)}
         </p>
       )}
