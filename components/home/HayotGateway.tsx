@@ -46,23 +46,23 @@ const HAIRLINE = 'rgba(28,42,58,0.14)';
 
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
-// ── The editorial gallery — three INDEPENDENT floating cards ────────
-//    NOT faces of one object. Each card is its own absolutely-positioned
-//    panel with its OWN `perspective()` in its OWN transform and its OWN
-//    transform-origin — there is no shared 3D scene, no shared axis, no
-//    parent/track rotation. The depth read comes from position, scale,
-//    overlap, z-index, a whisper of opacity and a soft shadow — the
-//    rotateY is a barely-there ±12°, never a spin.
+// ── The editorial gallery — three INDEPENDENT cards in ONE slow,
+//    continuous orbit. NOT a slideshow: no hold, no active slide, no
+//    timer. A single CSS keyframe with LINEAR timing carries each card
+//    forever around the same path — a card grows dominant as it nears
+//    centre and eases back as it leaves, never stopping. The three
+//    cards are phased a third of the loop apart, so one is always
+//    near centre while the others flank and recede.
 //
-//    The three poses (each a self-contained transform; same six
-//    functions in the same order so the loop interpolates cleanly):
-//      LEFT   → translateX(-shift)  translateZ(0)      rotateY(+ry)  scale(side)
-//      CENTRE → translateX(0)       translateZ(fwd)    rotateY(0)    scale(1)
-//      RIGHT  → translateX(+shift)  translateZ(0)      rotateY(-ry)  scale(side)
-//    Geometry values live in globals.css (`[data-hg-card]` vars +
-//    `hg-orbit`). These strings double as the prefers-reduced-motion
-//    static composition AND as each card's exact t=0 pose, so enabling
-//    motion never jumps.
+//    Each card is its own absolutely-positioned panel with its OWN
+//    `perspective()` in its OWN transform and its OWN transform-origin
+//    — no shared 3D scene, no shared axis, no parent/track rotation.
+//    The rotateY is a barely-there ±11–12°.
+//
+//    The three "resting" poses below (LEFT · CENTRE · RIGHT) are the
+//    loop's t=0 frame for each card, so they also serve as the stable
+//    prefers-reduced-motion composition with no jump. Geometry values
+//    + the `hg-orbit` path live in globals.css.
 const POSE_LEFT =
   'perspective(var(--hg-persp)) translateX(-50%) translateX(calc(-1 * var(--hg-shift))) translateZ(0px) rotateY(var(--hg-ry)) scale(var(--hg-side-scale))';
 const POSE_CENTER =
@@ -70,17 +70,18 @@ const POSE_CENTER =
 const POSE_RIGHT =
   'perspective(var(--hg-persp)) translateX(-50%) translateX(var(--hg-shift)) translateZ(0px) rotateY(calc(-1 * var(--hg-ry))) scale(var(--hg-side-scale))';
 
-/** State 1 (spec): card 0 → LEFT · card 1 → RIGHT · card 2 → CENTRE.
- *  Delays phase each card by a third of the 18s loop so the three move
- *  together, one becoming the featured centre in turn. Each card keeps
- *  its own transform-origin (its own box — never a shared pivot). */
+/** t=0 of the orbit: card 0 → LEFT · card 1 → CENTRE · card 2 → RIGHT.
+ *  The negative delays put each card a third of the 22s loop ahead, so
+ *  the three glide together and one is always passing through centre.
+ *  Each card keeps its own transform-origin (its own box). */
 const CARD_POSE = [
-  { transform: POSE_LEFT, opacity: 'var(--hg-side-op)', zIndex: 20, origin: '56% 50%' },
-  { transform: POSE_RIGHT, opacity: 'var(--hg-side-op)', zIndex: 10, origin: '44% 50%' },
+  { transform: POSE_LEFT, opacity: 'var(--hg-side-op)', zIndex: 13, origin: '56% 50%' },
   { transform: POSE_CENTER, opacity: 1, zIndex: 30, origin: '50% 50%' },
+  { transform: POSE_RIGHT, opacity: 'var(--hg-side-op)', zIndex: 11, origin: '44% 50%' },
 ] as const;
-const CARD_DELAY = ['0s', '-12s', '-6s'] as const;
-const ORBIT_EASE = 'cubic-bezier(0.66, 0, 0.24, 1)';
+/** −22s/3 and −44s/3 — a clean third of the loop each. */
+const CARD_DELAY = ['0s', '-7.3333s', '-14.6667s'] as const;
+const ORBIT_DURATION = '22s';
 const CARD_SHADOW = '0 14px 40px -16px rgba(28,42,58,0.24), 0 3px 12px -6px rgba(28,42,58,0.12)';
 
 type FaceImage = { src: string; alt: string } | null;
@@ -301,19 +302,17 @@ export function HayotGateway() {
     </motion.div>
   );
 
-  // The editorial image area is three INDEPENDENT floating cards — a
-  // dominant, front-facing CENTRE card overlapping two smaller preview
-  // cards behind it. They are NOT faces of one object: no shared 3D
-  // scene, no shared axis, no parent/track rotation. There is no
-  // `perspective` or `preserve-3d` on any ancestor — each card carries
-  // its own `perspective()` and its own transform-origin, so the loop
-  // just interpolates each card between three self-contained poses
-  // (LEFT → CENTRE → RIGHT → behind → LEFT). Geometry + loop in
-  // globals.css (`[data-hg-card]` vars + `hg-orbit`). Under
-  // prefers-reduced-motion the loop is off and each card holds its
-  // inline base pose. Autoplay pauses on a genuine hover/focus.
-  const centerAtRest = 2; // card 2 (ODATLAR VA ILM) is the resting centre
-
+  // The editorial image area is three INDEPENDENT cards in one slow,
+  // unbroken orbit — a card grows dominant as it passes through centre
+  // and eases back as it leaves, and it never stops. NOT a slideshow:
+  // no hold, no active slide, no timer, no easing pauses. One CSS
+  // keyframe with LINEAR timing drives it forever; the three cards are
+  // phased a third of the loop apart. They are NOT faces of one object
+  // (no shared 3D scene / axis, no ancestor `perspective` or
+  // `preserve-3d`, no parent rotation) — each card carries its own
+  // `perspective()` and transform-origin. Geometry + path in
+  // globals.css (`[data-hg-card]` vars + `hg-orbit`). The motion runs
+  // through hover; prefers-reduced-motion stops it on a stable pose.
   const imageFrame = (
     <motion.div
       {...rise(0.1)}
@@ -359,7 +358,7 @@ export function HayotGateway() {
                     opacity: pose.opacity,
                     zIndex: pose.zIndex,
                     boxShadow: CARD_SHADOW,
-                    animation: `hg-orbit 18s ${ORBIT_EASE} ${CARD_DELAY[k]} infinite`,
+                    animation: `hg-orbit ${ORBIT_DURATION} linear ${CARD_DELAY[k]} infinite`,
                   }}
                 >
                   {img ? (
@@ -465,25 +464,6 @@ export function HayotGateway() {
           </span>
         ) : null}
       </Link>
-
-      {/* three extremely subtle indicator dots, beneath the gallery */}
-      <div
-        aria-hidden="true"
-        className="mt-6 flex items-center justify-center gap-[7px] lg:mt-7"
-      >
-        {HAYOT_FACES.map((_, k) => (
-          <span
-            key={k}
-            data-hg-dot
-            className="h-[5px] w-[5px] rounded-full"
-            style={{
-              backgroundColor:
-                k === centerAtRest ? GOLD : 'rgba(28,42,58,0.22)',
-              animation: `hg-dot 18s ${ORBIT_EASE} ${CARD_DELAY[k]} infinite`,
-            }}
-          />
-        ))}
-      </div>
     </motion.div>
   );
 
