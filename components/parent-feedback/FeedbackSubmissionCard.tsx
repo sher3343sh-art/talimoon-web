@@ -1,47 +1,26 @@
 "use client";
 
 /**
- * StorySubmissionCard — Families Wall
+ * FeedbackSubmissionCard — Parent Feedback section.
  * ----------------------------------------------------------------
- * Matches the reference's compact horizontal layout exactly: a
- * circular gold-outline pencil icon on the left, a single-line-look
- * write-in field in the middle (underlined, not boxed), and the
- * existing gold CTA on the right. Underneath it, it's a `<textarea
- * rows={1}>` that auto-grows on input rather than a true single-line
- * `<input>` — visually identical to the reference at rest/while
- * short, but doesn't hard-block someone actually writing a real
- * story. That's an implementation detail, not a layout change.
+ * Where a parent leaves a comment / opinion / impression / suggestion
+ * about TALIMOON. Compact horizontal layout (unchanged): a circular
+ * gold-outline pencil icon, an underlined write-in field that
+ * auto-grows, and the gold CTA.
  *
- * Submitting has no backend to send to yet — there is no API route
- * for story submissions in this codebase — so the request is
- * simulated with a short delay. The card, loading state, and success
- * transition are all real and production-ready; only the network
- * call is a stand-in for when a real endpoint exists.
+ * Moderation is preserved and is NOT bypassed: a submission never
+ * becomes public here. Conceptually submitted → pending moderation →
+ * approved / rejected → only approved feedback appears in the
+ * carousel. There is no submission endpoint in this static build, so
+ * the send is simulated with a short delay; the card, loading state
+ * and "received, pending review" confirmation are the real,
+ * production-ready behaviour — only the network call is a stand-in
+ * for a real moderation intake.
  */
 
 import { useRef, useState, type FormEvent } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { useT } from "@/lib/i18n/LanguageContext";
-
-const COPY_EN = {
-  thankYou: "Thank you.",
-  received: "Your story has been received and will appear after approval.",
-  shareLabel: "Share your family's Talimoon story",
-  placeholder: "Write your family's story...",
-  sharing: "Sharing…",
-  shareYourStory: "Share Your Story",
-  reviewedNote: "Every story is reviewed before appearing publicly.",
-};
-
-const COPY_UZ: typeof COPY_EN = {
-  thankYou: "Rahmat.",
-  received: "Hikoyangiz qabul qilindi va tasdiqlangandan so'ng ko'rinadi.",
-  shareLabel: "Oilangizning Talimoon hikoyasini baham ko'ring",
-  placeholder: "Oilangiz hikoyasini yozing...",
-  sharing: "Yuborilmoqda…",
-  shareYourStory: "Hikoyangizni ulashing",
-  reviewedNote: "Har bir hikoya ommaga ko'rsatishdan oldin ko'rib chiqiladi.",
-};
+import { useFeedbackCopy } from "@/lib/parent-feedback/copy";
 
 function PencilIcon() {
   return (
@@ -71,7 +50,7 @@ function ArrowIcon() {
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
-      className="h-3.5 w-3.5"
+      className="h-3.5 w-3.5 rtl:-scale-x-100"
     >
       <path d="M4 12h16M13 5l7 7-7 7" />
     </svg>
@@ -82,14 +61,27 @@ function ShieldIcon() {
   return (
     <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" className="h-3.5 w-3.5">
       <path d="M10 1.7 16.5 4v5c0 4.4-2.8 7.7-6.5 9.3C6.3 16.7 3.5 13.4 3.5 9V4Z" opacity="0.16" />
-      <path d="M10 1.7 16.5 4v5c0 4.4-2.8 7.7-6.5 9.3C6.3 16.7 3.5 13.4 3.5 9V4Z" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
-      <path d="M7.2 9.6 9.2 11.6 12.9 7.6" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M10 1.7 16.5 4v5c0 4.4-2.8 7.7-6.5 9.3C6.3 16.7 3.5 13.4 3.5 9V4Z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.2"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M7.2 9.6 9.2 11.6 12.9 7.6"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
 
-export function StorySubmissionCard() {
-  const t = useT(COPY_EN, COPY_UZ);
+export function FeedbackSubmissionCard() {
+  const { copy } = useFeedbackCopy();
   const [value, setValue] = useState("");
   const [status, setStatus] = useState<"idle" | "submitting" | "success">("idle");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -107,6 +99,8 @@ export function StorySubmissionCard() {
     event.preventDefault();
     if (!value.trim() || status === "submitting") return;
     setStatus("submitting");
+    // Simulated moderation intake — the comment goes to "pending",
+    // never straight to public.
     await new Promise((resolve) => setTimeout(resolve, 900));
     setStatus("success");
   }
@@ -126,10 +120,10 @@ export function StorySubmissionCard() {
               role="status"
             >
               <p className="font-serif text-[1.25rem] font-medium text-[var(--text-primary,#2A241D)]">
-                {t.thankYou}
+                {copy.submittedTitle}
               </p>
               <p className="mx-auto mt-1.5 max-w-[46ch] font-sans text-[0.9375rem] leading-[1.6] text-[var(--text-secondary,#49433C)]">
-                {t.received}
+                {copy.submittedBody}
               </p>
             </motion.div>
           ) : (
@@ -150,16 +144,16 @@ export function StorySubmissionCard() {
               </span>
 
               <div className="min-w-0 flex-1">
-                <label htmlFor="family-story" className="sr-only">
-                  {t.shareLabel}
+                <label htmlFor="parent-feedback" className="sr-only">
+                  {copy.inputLabel}
                 </label>
                 <textarea
                   ref={textareaRef}
-                  id="family-story"
-                  name="story"
+                  id="parent-feedback"
+                  name="feedback"
                   value={value}
                   onChange={handleInput}
-                  placeholder={t.placeholder}
+                  placeholder={copy.inputPlaceholder}
                   rows={1}
                   disabled={status === "submitting"}
                   className="w-full resize-none overflow-hidden border-0 border-b border-[var(--border-default,rgba(42,36,29,0.14))] bg-transparent pb-2 font-sans text-[1.0625rem] leading-[1.5] text-[var(--text-primary,#2A241D)] placeholder:text-[var(--text-muted,#8B8578)] focus:border-[var(--accent-primary,#B5764B)] focus:outline-none disabled:opacity-70"
@@ -171,7 +165,7 @@ export function StorySubmissionCard() {
                 disabled={!value.trim() || status === "submitting"}
                 className="tm-cta-gold inline-flex h-11 shrink-0 items-center justify-center gap-2 whitespace-nowrap px-5 text-[13px] font-medium tracking-[0.015em] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {status === "submitting" ? t.sharing : t.shareYourStory}
+                {status === "submitting" ? copy.submitting : copy.submit}
                 {status !== "submitting" && <ArrowIcon />}
               </button>
             </motion.form>
@@ -181,10 +175,10 @@ export function StorySubmissionCard() {
 
       <p className="mt-3 flex items-center justify-center gap-1.5 text-center font-sans text-[0.8125rem] text-[var(--text-muted,#8B8578)]">
         <ShieldIcon />
-        {t.reviewedNote}
+        {copy.moderationNote}
       </p>
     </div>
   );
 }
 
-export default StorySubmissionCard;
+export default FeedbackSubmissionCard;

@@ -1,8 +1,8 @@
 /**
  * SectionOrnament — small gold line–diamond–line flourish used under
- * both the section eyebrow and the "Featured Stories" label in the
- * reference design. Purely decorative (aria-hidden); size is the
- * only thing that varies between the two call sites.
+ * the section eyebrow, the "OTA-ONALARDAN" feedback label, and the
+ * empty state. Purely decorative (aria-hidden); size is the only
+ * thing that varies between call sites.
  */
 
 export function SectionOrnament({ size = "default" }: { size?: "default" | "small" }) {

@@ -151,7 +151,7 @@ export function RealTalimoonMoments() {
   // moment — the phone's own reaction buttons are real, not
   // decorative: a tap increments the count for good, once per
   // visitor, one emoji only, same "once per browser via localStorage"
-  // honesty already established by FamiliesWall's ReactionBar (no
+  // honesty already established by the Parent Feedback ReactionBar (no
   // backend to track it more precisely than that). Hydrated
   // post-mount, not via a lazy initializer: localStorage doesn't
   // exist during SSR, so reading it up front would mismatch the
@@ -159,7 +159,7 @@ export function RealTalimoonMoments() {
   const [reactedMap, setReactedMap] = useState<Record<string, ReactionKey | null>>({});
 
   // Deliberately an effect, not a lazy useState initializer — same
-  // documented exception as FamiliesWall's ReactionBar: reading
+  // documented exception as the Parent Feedback ReactionBar: reading
   // localStorage during the initializer would run on the client's
   // first (hydration) render and mismatch the server-rendered HTML,
   // which always renders "nothing reacted yet" since localStorage

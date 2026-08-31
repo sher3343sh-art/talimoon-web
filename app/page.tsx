@@ -5,7 +5,7 @@ import { FourDoorsSection } from "@/components/our-products/FourDoorsSection";
 import { StoryLibraryPreview } from "@/components/story-library-preview/StoryLibraryPreview";
 import { HayotGateway } from "@/components/home/HayotGateway";
 import { RealTalimoonMoments } from "@/components/real-talimoon-moments/RealTalimoonMoments";
-import { FamiliesWall } from "@/components/families-wall/FamiliesWall";
+import { ParentFeedbackSection } from "@/components/parent-feedback/ParentFeedbackSection";
 import { PartnersPreview } from "@/components/partners/PartnersPreview";
 import Footer from "@/components/layout/Footer";
 
@@ -21,7 +21,7 @@ export default function Home() {
         <HayotGateway />
         <StoryLibraryPreview />
         <RealTalimoonMoments />
-        <FamiliesWall />
+        <ParentFeedbackSection />
         <PartnersPreview />
       </main>
 
