@@ -53,9 +53,7 @@ export interface SectionCopy {
 
   /** Meta line under the "OTA-ONALARDAN" label. */
   commentCount: (n: number) => string;
-  /** Per-visitor read progress; only shown once `read > 0`. */
-  readProgress: (read: number, total: number) => string;
-  /** Real aggregate reader count — only shown when a backend supplies it. */
+  /** Shared "reads" total — shown only once `/api/feedback-views` answers. */
   audienceCount: (n: number) => string;
 
   /** Reactions. */
@@ -103,8 +101,7 @@ const COPY: Record<Locale, SectionCopy> = {
       `${label} reaksiyasini tanlash — ${count} ta${active ? ", tanlangan" : ""}`,
     reactionError: "Reaksiya saqlanmadi. Qayta urinib ko‘ring.",
     commentCount: (n) => `${n} ta izoh`,
-    readProgress: (read) => `${read} tasi o‘qildi`,
-    audienceCount: (n) => `${n} kishi kuzatmoqda`,
+    audienceCount: (n) => `${n} marta o‘qildi`,
   },
 
   en: {
@@ -142,8 +139,7 @@ const COPY: Record<Locale, SectionCopy> = {
       `React with ${label} — ${count}${active ? ", selected" : ""}`,
     reactionError: "Reaction wasn’t saved. Please try again.",
     commentCount: (n) => `${n} ${n === 1 ? "comment" : "comments"}`,
-    readProgress: (read) => `${read} read`,
-    audienceCount: (n) => `${n} following`,
+    audienceCount: (n) => `Read ${n} ${n === 1 ? "time" : "times"}`,
   },
 
   ru: {
@@ -180,8 +176,7 @@ const COPY: Record<Locale, SectionCopy> = {
       `Реакция «${label}» — ${count}${active ? ", выбрано" : ""}`,
     reactionError: "Реакция не сохранена. Попробуйте ещё раз.",
     commentCount: (n) => `Отзывов: ${n}`,
-    readProgress: (read) => `Прочитано: ${read}`,
-    audienceCount: (n) => `Читателей: ${n}`,
+    audienceCount: (n) => `Прочтений: ${n}`,
   },
 
   ar: {
@@ -217,8 +212,7 @@ const COPY: Record<Locale, SectionCopy> = {
       `تفاعل ${label} — ${count}${active ? "، محدد" : ""}`,
     reactionError: "لم يتم حفظ التفاعل. حاول مرة أخرى.",
     commentCount: (n) => `${n} رأي`,
-    readProgress: (read) => `${read} مقروء`,
-    audienceCount: (n) => `${n} متابعًا`,
+    audienceCount: (n) => `قُرئ ${n} مرة`,
   },
 };
 

@@ -22,11 +22,12 @@
  * the stable `feedback.id`, so moving through the carousel never
  * resets a selected reaction or a count.
  *
- * "Read" tracking: once the visitor has engaged with the carousel
- * (scrolled it into view or used a control), whichever comment is the
- * centre card for ~0.8s is marked read for this visitor
- * (`lib/parent-feedback/views`). That feeds the "k read" progress in
- * the section meta line — never a fabricated audience number.
+ * "Read" counter: once the visitor has engaged with the carousel
+ * (scrolled it into view or used a control) and dwelled ~0.8s, one
+ * increment is sent to the shared counter (`lib/parent-feedback/views`
+ * → `/api/feedback-views`). One per page load; a returning reader
+ * counts again. That feeds the "N read" figure in the section meta
+ * line.
  */
 
 import { motion, useReducedMotion } from "framer-motion";
@@ -34,7 +35,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { FeedbackCard } from "./FeedbackCard";
 import { useFeedbackCopy } from "@/lib/parent-feedback/copy";
 import type { ParentFeedback } from "@/lib/parent-feedback/feedback";
-import { markRead } from "@/lib/parent-feedback/views";
+import { reportRead } from "@/lib/parent-feedback/views";
 
 function ChevronIcon({ direction }: { direction: "prev" | "next" }) {
   return (
@@ -111,8 +112,9 @@ export function FeedbackCarousel({ feedback }: { feedback: ParentFeedback[] }) {
 
   useEffect(() => {
     if (!engaged) return;
-    const id = active.id;
-    const timer = window.setTimeout(() => markRead(id), 800);
+    // One increment per page load, once the visitor has actually
+    // paused on a comment. `reportRead` guards against repeats.
+    const timer = window.setTimeout(() => void reportRead(), 800);
     return () => window.clearTimeout(timer);
   }, [engaged, active.id]);
 

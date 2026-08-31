@@ -36,11 +36,7 @@ import { FeedbackCarousel } from "./FeedbackCarousel";
 import { FeedbackEmptyState } from "./FeedbackEmptyState";
 import { useFeedbackCopy } from "@/lib/parent-feedback/copy";
 import { getPublishedFeedback } from "@/lib/parent-feedback/feedback";
-import {
-  audienceCount,
-  readCountAmong,
-  subscribe as subscribeViews,
-} from "@/lib/parent-feedback/views";
+import { getCount, subscribe as subscribeViews } from "@/lib/parent-feedback/views";
 
 const sectionReveal: Variants = {
   hidden: { opacity: 0, y: 24 },
@@ -74,28 +70,19 @@ function DecorationSlot({
   );
 }
 
-/** The quiet meta line under "OTA-ONALARDAN": how many comments there
- *  are (real) and, once this visitor has read at least one, how many
- *  they have read. A true cross-visitor audience number is shown
- *  instead only if `audienceCount()` ever returns one (needs a
- *  backend) — never a fabricated figure. */
-function FeedbackMeta({ ids }: { ids: string[] }) {
+/** The quiet meta line under "OTA-ONALARDAN": the real comment count,
+ *  and — once the shared counter answers — how many times the comments
+ *  have been read (`/api/feedback-views`, backed by Redis). If that
+ *  backend isn't configured the count stays null and only the comment
+ *  total shows; never a fabricated figure. */
+function FeedbackMeta({ total }: { total: number }) {
   const { copy } = useFeedbackCopy();
-  const read = useSyncExternalStore(
-    subscribeViews,
-    () => readCountAmong(ids),
-    () => 0,
-  );
-  const audience = audienceCount();
+  const reads = useSyncExternalStore(subscribeViews, getCount, () => null);
 
   return (
     <p className="mt-2 font-sans text-[0.8125rem] text-[var(--text-muted,#8B8578)]">
-      {copy.commentCount(ids.length)}
-      {audience != null
-        ? ` · ${copy.audienceCount(audience)}`
-        : read > 0
-          ? ` · ${copy.readProgress(read, ids.length)}`
-          : null}
+      {copy.commentCount(total)}
+      {typeof reads === "number" ? ` · ${copy.audienceCount(reads)}` : null}
     </p>
   );
 }
@@ -147,9 +134,7 @@ export function ParentFeedbackSection() {
             {copy.fromParents}
           </p>
           <SectionOrnament size="small" />
-          {feedback.length > 0 ? (
-            <FeedbackMeta ids={feedback.map((item) => item.id)} />
-          ) : null}
+          {feedback.length > 0 ? <FeedbackMeta total={feedback.length} /> : null}
         </div>
 
         <div className="mt-5">

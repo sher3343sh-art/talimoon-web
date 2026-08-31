@@ -1,25 +1,25 @@
 /**
- * TALIMOON — PARENT FEEDBACK — per-visitor "read" tracking.
+ * TALIMOON — PARENT FEEDBACK — shared "reads" counter (client side).
  * ================================================================
- * Same static-site honesty ceiling as `reactions.ts`: there is no
- * server, so there is no true count of how many DISTINCT people have
- * read the comments. What this module can do honestly:
+ * Talks to `/api/feedback-views`, which keeps ONE number in Redis:
+ * how many times the approved comments have been scrolled through.
+ * No de-duplication — a returning visitor reading again counts again.
  *
- *   • record which comment ids THIS browser has actually scrolled to
- *     and dwelled on (localStorage), and
- *   • expose that as "you have read k of n" progress.
+ *   • `reportRead()` — fire once per page load, after the visitor has
+ *     actually dwelled on the comments. Sends one increment.
+ *   • `getCount()` / `subscribe()` — a tiny external store the meta
+ *     line reads via `useSyncExternalStore`.
  *
- * A read is registered only after a card has been the centre card for
- * a short dwell while the carousel is on screen — i.e. the visitor
- * actually stopped on it. Never on load, never for the faded side
- * cards, never from a click alone.
- *
- * `audienceCount()` is the seam for a real aggregate: it returns null
- * today. When a backend exists it returns the true number of distinct
- * readers and the meta line shows that instead — nothing else changes.
+ * If the backend is not configured the route returns `{ count: null }`
+ * and the count simply stays `null`, so the meta line shows only the
+ * comment total — never an invented figure.
  */
 
-const READ_KEY = "talimoon:parent-feedback-read:v1";
+const ENDPOINT = "/api/feedback-views";
+
+let count: number | null = null;
+let didFetch = false;
+let didReport = false;
 
 const listeners = new Set<() => void>();
 
@@ -27,74 +27,52 @@ function notify(): void {
   for (const listener of listeners) listener();
 }
 
-function hasStorage(): boolean {
-  try {
-    return typeof window !== "undefined" && !!window.localStorage;
-  } catch {
-    return false;
+function apply(next: unknown): void {
+  if (typeof next === "number" && Number.isFinite(next) && next !== count) {
+    count = next;
+    notify();
   }
 }
 
-function readIds(): string[] {
-  if (!hasStorage()) return [];
+/** Current shared total, or null when the backend isn't answering. */
+export function getCount(): number | null {
+  return count;
+}
+
+async function refresh(): Promise<void> {
   try {
-    const raw = window.localStorage.getItem(READ_KEY);
-    if (!raw) return [];
-    const parsed: unknown = JSON.parse(raw);
-    return Array.isArray(parsed)
-      ? parsed.filter((x): x is string => typeof x === "string")
-      : [];
+    const res = await fetch(ENDPOINT, { cache: "no-store" });
+    const data: unknown = await res.json();
+    apply((data as { count?: unknown }).count);
   } catch {
-    return [];
+    /* leave `count` as it is */
   }
-}
-
-function writeIds(ids: string[]): void {
-  if (!hasStorage()) return;
-  try {
-    window.localStorage.setItem(READ_KEY, JSON.stringify(ids));
-  } catch {
-    /* quota / disabled storage — the progress line simply won't grow */
-  }
-}
-
-/** Mark one comment as read by this visitor. Idempotent. */
-export function markRead(feedbackId: string): void {
-  const ids = readIds();
-  if (ids.includes(feedbackId)) return;
-  ids.push(feedbackId);
-  writeIds(ids);
-  notify();
-}
-
-/** How many of `ids` this visitor has already read. */
-export function readCountAmong(ids: readonly string[]): number {
-  const read = new Set(readIds());
-  return ids.reduce((n, id) => (read.has(id) ? n + 1 : n), 0);
-}
-
-export function hasRead(feedbackId: string): boolean {
-  return readIds().includes(feedbackId);
 }
 
 /**
- * The real number of distinct people who have read these comments.
- * Needs a backend to be honest — null until one exists.
+ * Record one read. Guarded so a single page load sends at most one
+ * increment no matter how many comments the visitor moves through.
  */
-export function audienceCount(): number | null {
-  return null;
+export async function reportRead(): Promise<void> {
+  if (didReport) return;
+  didReport = true;
+  try {
+    const res = await fetch(ENDPOINT, { method: "POST" });
+    const data: unknown = await res.json();
+    apply((data as { count?: unknown }).count);
+  } catch {
+    didReport = false;
+  }
 }
 
-/** Re-run `listener` when the read set changes (this tab or another). */
+/** Subscribe the meta line; the first subscriber triggers the fetch. */
 export function subscribe(listener: () => void): () => void {
-  if (typeof window === "undefined") return () => {};
-  const handler = (event: StorageEvent) => {
-    if (event.key === READ_KEY) listener();
-  };
-  window.addEventListener("storage", handler);
   listeners.add(listener);
+  if (!didFetch) {
+    didFetch = true;
+    void refresh();
+  }
   return () => {
-    window.removeEventListener("storage", handler);
     listeners.delete(listener);
   };
 }
