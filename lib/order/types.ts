@@ -38,6 +38,9 @@ export function emptyOrderer(): Orderer {
   return { honorific: null, name: "", phone: "", region: "", city: "" };
 }
 
+/** Phase 02 dream routes. `null` until the adult chooses one. */
+export type DreamStatus = "has-dream" | "not-yet" | null;
+
 export interface ChildProfile {
   /** Stable identity — assigned once, on creation. Future child data
    *  attaches to this, so it must never be derived from position. */
@@ -46,15 +49,44 @@ export interface ChildProfile {
   /** Numeric, or null until answered. */
   age: number | null;
 
-  // ── Later phases (declared, not collected in Phase 01) ──────────
-  interests?: string;
-  deepInterest?: string;
-  dreams?: string;
+  // ── Phase 02 — "the child's world" (per child) ─────────────────
+  /** Up to 2 primary interests. A value that is a known interest key
+   *  (INTEREST_KEYS) is a prepared category; anything else is the
+   *  adult's own words. */
+  interests?: string[];
+  /** The deepening detail from question 02 (optional). */
+  interestDetail?: string;
+  /** The absorbing activity, in the adult's words (question 03). */
+  favoriteActivity?: string;
+  /** Set when the adult says there is no single absorbing activity. */
+  noFavoriteActivity?: boolean;
+  /** Which dream route is active. */
+  dreamStatus?: DreamStatus;
+  /** The CHILD's own stated dream (only when dreamStatus === "has-dream"). */
+  childDream?: string;
+  /** What the ADULT hopes for the child (only when dreamStatus === "not-yet").
+   *  Never attributed to the child. */
+  adultHope?: string;
+  /** True once this child's Phase 02 conversation is finished. */
+  phase02Done?: boolean;
+
+  // ── Phase 03+ (declared, not collected yet) ────────────────────
   strengths?: string[];
   growthAreas?: string;
   desiredFutureQualities?: string[];
   specialDetails?: string;
   photos?: File[];
+}
+
+/**
+ * When the adult switches dream routes, the other route's answer is
+ * stale and must not leak into the portrait or the summary. Returns a
+ * patch that clears whatever no longer belongs to the active path.
+ */
+export function reconcileDream(status: DreamStatus): Partial<ChildProfile> {
+  if (status === "has-dream") return { dreamStatus: status, adultHope: "" };
+  if (status === "not-yet") return { dreamStatus: status, childDream: "" };
+  return { dreamStatus: null, childDream: "", adultHope: "" };
 }
 
 /** A crypto-random id with a safe fallback for older browsers / SSR. */

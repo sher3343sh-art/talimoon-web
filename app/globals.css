@@ -516,6 +516,10 @@ textarea:-webkit-autofill {
   border-color: var(--accent-primary);
   box-shadow: 0 1px 0 0 var(--accent-primary);
 }
+[data-order-flow] textarea:focus-visible {
+  outline: none;
+  border-color: var(--accent-primary);
+}
 
 /* ==========================================================================
    15. SCROLLBAR STYLING

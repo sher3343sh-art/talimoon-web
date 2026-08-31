@@ -23,6 +23,7 @@ import {
   type Orderer,
   type Phase01Result,
 } from "@/lib/order/types";
+import Phase02 from "./Phase02";
 import {
   formatRespectfulName,
   relationshipLabel,
@@ -264,7 +265,7 @@ export default function PersonalizedBookOrderForm({
   const locale = toLocale(language);
   const t = useT(CHROME_EN, CHROME_UZ);
 
-  const [phase, setPhase] = useState<"intro" | "steps">("intro");
+  const [phase, setPhase] = useState<"intro" | "world" | "steps">("intro");
   const [stepIndex, setStepIndex] = useState(0);
   const [data, setData] = useState<FormData>(emptyForm);
   const [phase01Seeded, setPhase01Seeded] = useState(false);
@@ -311,15 +312,22 @@ export default function PersonalizedBookOrderForm({
       bookType: bookTypeForChildCount(result.children.length),
     }));
     setPhase01Seeded(true);
-    setPhase("steps");
+    setPhase("world");
     setStepIndex(0);
     setShowStepError(false);
+  }
+
+  function patchChild(id: string, p: Partial<ChildProfile>) {
+    setData((prev) => ({
+      ...prev,
+      children: prev.children.map((ch) => (ch.id === id ? { ...ch, ...p } : ch)),
+    }));
   }
 
   function canContinue(): boolean {
     switch (step.id) {
       case "personalize":
-        return data.interests.trim().length > 0 && data.traits.length > 0;
+        return data.traits.length > 0;
       case "personal-touch":
         return data.giftFrom.trim().length > 0;
       case "photos":
@@ -381,6 +389,22 @@ export default function PersonalizedBookOrderForm({
               }
             : undefined
         }
+      />
+    );
+  }
+
+  // ── Phase 02: the child's world ──────────────────────────────────────────
+  if (phase === "world") {
+    return (
+      <Phase02
+        childrenIn={data.children}
+        onPatchChild={patchChild}
+        onBack={() => setPhase("intro")}
+        onComplete={() => {
+          setPhase("steps");
+          setStepIndex(0);
+          setShowStepError(false);
+        }}
       />
     );
   }
@@ -453,18 +477,9 @@ export default function PersonalizedBookOrderForm({
         <div className="space-y-5">
           {step.id === "personalize" && (
             <>
-              <Field label={t.interests} hint={t.interestsHint}>
-                <TextArea
-                  value={data.interests}
-                  onChange={(e) => update("interests", e.target.value)}
-                />
-              </Field>
-              <Field label={t.dreams}>
-                <TextArea
-                  value={data.dreams}
-                  onChange={(e) => update("dreams", e.target.value)}
-                />
-              </Field>
+              {/* interests & dreams are collected per-child in Phase 02
+                  ("the child's world"); this step keeps character/detail
+                  fields until Phase 03 restructures them. */}
               <Field label={t.qualities(MAX_TRAITS)}>
                 <div className="flex flex-wrap gap-2">
                   {TRAITS.map((trait) => {
