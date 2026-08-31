@@ -46,28 +46,42 @@ const HAIRLINE = 'rgba(28,42,58,0.14)';
 
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
-// ── The 3-panel editorial carousel — geometry lives in globals.css
-//    (`[data-hg-carousel]` custom properties + the `hg-orbit` loop).
-//    These transform strings are the three resting poses. They double
-//    as the prefers-reduced-motion static composition AND as the loop's
-//    exact t=0 pose for each panel, so enabling motion never jumps.
+// ── The editorial gallery — three INDEPENDENT floating cards ────────
+//    NOT faces of one object. Each card is its own absolutely-positioned
+//    panel with its OWN `perspective()` in its OWN transform and its OWN
+//    transform-origin — there is no shared 3D scene, no shared axis, no
+//    parent/track rotation. The depth read comes from position, scale,
+//    overlap, z-index, a whisper of opacity and a soft shadow — the
+//    rotateY is a barely-there ±12°, never a spin.
+//
+//    The three poses (each a self-contained transform; same six
+//    functions in the same order so the loop interpolates cleanly):
+//      LEFT   → translateX(-shift)  translateZ(0)      rotateY(+ry)  scale(side)
+//      CENTRE → translateX(0)       translateZ(fwd)    rotateY(0)    scale(1)
+//      RIGHT  → translateX(+shift)  translateZ(0)      rotateY(-ry)  scale(side)
+//    Geometry values live in globals.css (`[data-hg-card]` vars +
+//    `hg-orbit`). These strings double as the prefers-reduced-motion
+//    static composition AND as each card's exact t=0 pose, so enabling
+//    motion never jumps.
 const POSE_LEFT =
-  'translateX(-50%) translateX(calc(-1 * var(--hg-side-x))) translateZ(var(--hg-z-back)) rotateY(var(--hg-ry)) scale(var(--hg-side-scale))';
-const POSE_RIGHT =
-  'translateX(-50%) translateX(var(--hg-side-x)) translateZ(var(--hg-z-back)) rotateY(calc(-1 * var(--hg-ry))) scale(var(--hg-side-scale))';
+  'perspective(var(--hg-persp)) translateX(-50%) translateX(calc(-1 * var(--hg-shift))) translateZ(0px) rotateY(var(--hg-ry)) scale(var(--hg-side-scale))';
 const POSE_CENTER =
-  'translateX(-50%) translateZ(var(--hg-z-front)) rotateY(0deg) scale(1)';
+  'perspective(var(--hg-persp)) translateX(-50%) translateX(0px) translateZ(var(--hg-fwd)) rotateY(0deg) scale(1)';
+const POSE_RIGHT =
+  'perspective(var(--hg-persp)) translateX(-50%) translateX(var(--hg-shift)) translateZ(0px) rotateY(calc(-1 * var(--hg-ry))) scale(var(--hg-side-scale))';
 
-/** State 1 (spec): panel 0 → LEFT · panel 1 → RIGHT · panel 2 → CENTRE.
- *  Delays phase each panel by a third of the 18s loop so all three move
- *  together, one becoming the dominant centre in turn. */
-const PANEL_POSE = [
-  { transform: POSE_LEFT, opacity: 'var(--hg-side-op)', zIndex: 20 },
-  { transform: POSE_RIGHT, opacity: 'var(--hg-side-op)', zIndex: 10 },
-  { transform: POSE_CENTER, opacity: 1, zIndex: 30 },
+/** State 1 (spec): card 0 → LEFT · card 1 → RIGHT · card 2 → CENTRE.
+ *  Delays phase each card by a third of the 18s loop so the three move
+ *  together, one becoming the featured centre in turn. Each card keeps
+ *  its own transform-origin (its own box — never a shared pivot). */
+const CARD_POSE = [
+  { transform: POSE_LEFT, opacity: 'var(--hg-side-op)', zIndex: 20, origin: '56% 50%' },
+  { transform: POSE_RIGHT, opacity: 'var(--hg-side-op)', zIndex: 10, origin: '44% 50%' },
+  { transform: POSE_CENTER, opacity: 1, zIndex: 30, origin: '50% 50%' },
 ] as const;
-const PANEL_DELAY = ['0s', '-12s', '-6s'] as const;
+const CARD_DELAY = ['0s', '-12s', '-6s'] as const;
 const ORBIT_EASE = 'cubic-bezier(0.66, 0, 0.24, 1)';
+const CARD_SHADOW = '0 14px 40px -16px rgba(28,42,58,0.24), 0 3px 12px -6px rgba(28,42,58,0.12)';
 
 type FaceImage = { src: string; alt: string } | null;
 
@@ -287,16 +301,18 @@ export function HayotGateway() {
     </motion.div>
   );
 
-  // The editorial image area is a 3-panel 3D carousel: one dominant,
-  // almost front-facing CENTRE panel, with two narrower, gently angled
-  // side panels receded behind it. The camera never moves — the panels
-  // themselves orbit LEFT → CENTRE → RIGHT → LEFT forever, each taking
-  // its turn as the featured centre. Geometry + the slow loop live in
-  // globals.css (`[data-hg-carousel]` vars + `hg-orbit`). Under
-  // prefers-reduced-motion the loop is off and each panel holds its
-  // inline base pose — a stable premium composition. Autoplay pauses
-  // on a genuine hover/focus.
-  const centerAtRest = 2; // panel 2 (ODATLAR VA ILM) is the resting centre
+  // The editorial image area is three INDEPENDENT floating cards — a
+  // dominant, front-facing CENTRE card overlapping two smaller preview
+  // cards behind it. They are NOT faces of one object: no shared 3D
+  // scene, no shared axis, no parent/track rotation. There is no
+  // `perspective` or `preserve-3d` on any ancestor — each card carries
+  // its own `perspective()` and its own transform-origin, so the loop
+  // just interpolates each card between three self-contained poses
+  // (LEFT → CENTRE → RIGHT → behind → LEFT). Geometry + loop in
+  // globals.css (`[data-hg-card]` vars + `hg-orbit`). Under
+  // prefers-reduced-motion the loop is off and each card holds its
+  // inline base pose. Autoplay pauses on a genuine hover/focus.
+  const centerAtRest = 2; // card 2 (ODATLAR VA ILM) is the resting centre
 
   const imageFrame = (
     <motion.div
@@ -308,40 +324,42 @@ export function HayotGateway() {
         href="/journey"
         tabIndex={-1}
         aria-hidden="true"
-        className="relative block [perspective:1450px] [perspective-origin:50%_45%]"
+        className="relative block"
       >
         {/* layout box — fixed footprint, no CLS */}
-        <div className="relative aspect-[4/5] w-full [transform-style:preserve-3d] sm:aspect-[3/2] lg:aspect-auto lg:h-[420px]">
-          {/* one very soft, diffused shadow beneath the composition */}
+        <div className="relative aspect-[4/5] w-full sm:aspect-[3/2] lg:aspect-auto lg:h-[420px]">
+          {/* a faint table-contact shadow beneath the cards */}
           <span
             aria-hidden="true"
-            className="pointer-events-none absolute inset-x-[10%] bottom-[-10px] h-9"
+            className="pointer-events-none absolute inset-x-[14%] bottom-[-8px] h-7"
             style={{
               background:
-                'radial-gradient(ellipse at 50% 100%, rgba(28,42,58,0.13), transparent 72%)',
-              filter: 'blur(11px)',
+                'radial-gradient(ellipse at 50% 100%, rgba(28,42,58,0.10), transparent 74%)',
+              filter: 'blur(12px)',
             }}
           />
 
-          {/* the three panels, in a shared 3D space */}
-          <div className="absolute inset-0 [transform-style:preserve-3d]">
+          {/* three independent, absolutely-positioned cards — layered,
+              never connected. z-index alone orders them. */}
+          <div className="absolute inset-0">
             {HAYOT_FACES.map((img, k) => {
               const num = String(k + 1).padStart(2, '0');
               const label = worldName(WORLD_KEYS[k], locale);
-              const pose = PANEL_POSE[k];
+              const pose = CARD_POSE[k];
               return (
                 <div
                   key={k}
-                  data-hg-panel
+                  data-hg-card
                   className="absolute inset-y-0 left-1/2 overflow-hidden rounded-[2px] will-change-transform [backface-visibility:hidden]"
                   style={{
-                    width: 'var(--hg-panel-w)',
+                    width: 'var(--hg-card-w)',
                     backgroundColor: PAPER,
-                    transformOrigin: '50% 50%',
+                    transformOrigin: pose.origin,
                     transform: pose.transform,
                     opacity: pose.opacity,
                     zIndex: pose.zIndex,
-                    animation: `hg-orbit 18s ${ORBIT_EASE} ${PANEL_DELAY[k]} infinite`,
+                    boxShadow: CARD_SHADOW,
+                    animation: `hg-orbit 18s ${ORBIT_EASE} ${CARD_DELAY[k]} infinite`,
                   }}
                 >
                   {img ? (
@@ -461,7 +479,7 @@ export function HayotGateway() {
             style={{
               backgroundColor:
                 k === centerAtRest ? GOLD : 'rgba(28,42,58,0.22)',
-              animation: `hg-dot 18s ${ORBIT_EASE} ${PANEL_DELAY[k]} infinite`,
+              animation: `hg-dot 18s ${ORBIT_EASE} ${CARD_DELAY[k]} infinite`,
             }}
           />
         ))}

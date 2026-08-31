@@ -890,44 +890,54 @@ body {
   }
 }
 
-/* ── Home HAYOT gateway — the 3-panel editorial 3D carousel ─────────
-   Three editorial panels orbiting through a stable gallery: one
-   dominant centre, two receded and gently angled sides. The camera
-   never moves — each panel runs the SAME loop, phase-shifted by a
-   third, cycling LEFT → CENTRE → RIGHT → LEFT forever. The wrap
-   (RIGHT → LEFT) glides behind the centre. Transform + opacity only,
-   so it stays on the compositor. Paused on a genuine hover/focus; a
-   stable composition under prefers-reduced-motion (the panel keeps
-   its inline base pose, which is also the loop's t=0 pose — no jump). */
+/* ── Home HAYOT gateway — three INDEPENDENT floating editorial cards ─
+   NOT faces of one object. There is no `perspective` or `preserve-3d`
+   on any ancestor and no parent/track rotation. Each card is an
+   absolutely-positioned panel that carries its OWN `perspective()` in
+   its OWN transform, around its OWN transform-origin — so the cards
+   share no axis and can never fold into a prism / cube / V. The depth
+   read is position + scale + overlap + z-index + a whisper of opacity
+   + a soft shadow; the rotateY is a barely-there ±11–13°.
+
+   The loop interpolates each card between three self-contained poses
+   (same six functions, same order, so it interpolates cleanly):
+     LEFT   translateX(-shift) translateZ(0)    rotateY(+ry) scale(side)
+     CENTRE translateX(0)      translateZ(fwd)  rotateY(0)   scale(1)
+     RIGHT  translateX(+shift) translateZ(0)    rotateY(-ry) scale(side)
+   RIGHT → LEFT passes behind the centre (lowest z-index during the
+   wrap). Paused on a genuine hover/focus; a stable composition under
+   prefers-reduced-motion (each card holds its inline base pose, which
+   is also the loop's t=0 pose — no jump). shift/rotate are % of each
+   card's OWN width, so nothing is measured against a shared centre. */
 [data-hg-carousel] {
-  --hg-panel-w: 84%;
-  --hg-side-x: 25%;
-  --hg-z-back: -32px;
-  --hg-z-front: 18px;
-  --hg-ry: 12deg;
-  --hg-side-scale: 0.83;
-  --hg-side-op: 0.6;
+  --hg-card-w: 82%;
+  --hg-shift: 36%;
+  --hg-fwd: 30px;
+  --hg-persp: 1200px;
+  --hg-ry: 11deg;
+  --hg-side-scale: 0.87;
+  --hg-side-op: 0.78;
 }
 @media (min-width: 640px) {
   [data-hg-carousel] {
-    --hg-panel-w: 78%;
-    --hg-side-x: 26%;
-    --hg-z-back: -54px;
-    --hg-z-front: 32px;
-    --hg-ry: 17deg;
-    --hg-side-scale: 0.81;
-    --hg-side-op: 0.65;
+    --hg-card-w: 74%;
+    --hg-shift: 40%;
+    --hg-fwd: 36px;
+    --hg-persp: 1400px;
+    --hg-ry: 12deg;
+    --hg-side-scale: 0.87;
+    --hg-side-op: 0.82;
   }
 }
 @media (min-width: 1024px) {
   [data-hg-carousel] {
-    --hg-panel-w: 74%;
-    --hg-side-x: 27%;
-    --hg-z-back: -84px;
-    --hg-z-front: 46px;
-    --hg-ry: 21deg;
-    --hg-side-scale: 0.79;
-    --hg-side-op: 0.68;
+    --hg-card-w: 68%;
+    --hg-shift: 38%;
+    --hg-fwd: 42px;
+    --hg-persp: 1500px;
+    --hg-ry: 13deg;
+    --hg-side-scale: 0.86;
+    --hg-side-op: 0.8;
   }
 }
 
@@ -935,45 +945,48 @@ body {
   /* LEFT (hold) */
   0%,
   27.8% {
-    transform: translateX(-50%) translateX(calc(-1 * var(--hg-side-x)))
-      translateZ(var(--hg-z-back)) rotateY(var(--hg-ry)) scale(var(--hg-side-scale));
+    transform: perspective(var(--hg-persp)) translateX(-50%)
+      translateX(calc(-1 * var(--hg-shift))) translateZ(0px) rotateY(var(--hg-ry))
+      scale(var(--hg-side-scale));
     opacity: var(--hg-side-op);
     z-index: 20;
   }
-  /* CENTRE (hold) */
+  /* CENTRE (hold) — front-facing, lifted forward, on top */
   33.3%,
   61.1% {
-    transform: translateX(-50%) translateZ(var(--hg-z-front)) rotateY(0deg) scale(1);
+    transform: perspective(var(--hg-persp)) translateX(-50%) translateX(0px)
+      translateZ(var(--hg-fwd)) rotateY(0deg) scale(1);
     opacity: 1;
     z-index: 30;
   }
   /* RIGHT (hold) */
   66.7%,
   94.4% {
-    transform: translateX(-50%) translateX(var(--hg-side-x)) translateZ(var(--hg-z-back))
-      rotateY(calc(-1 * var(--hg-ry))) scale(var(--hg-side-scale));
+    transform: perspective(var(--hg-persp)) translateX(-50%) translateX(var(--hg-shift))
+      translateZ(0px) rotateY(calc(-1 * var(--hg-ry))) scale(var(--hg-side-scale));
     opacity: var(--hg-side-op);
     z-index: 10;
   }
   /* wrap back to LEFT — behind the centre */
   100% {
-    transform: translateX(-50%) translateX(calc(-1 * var(--hg-side-x)))
-      translateZ(var(--hg-z-back)) rotateY(var(--hg-ry)) scale(var(--hg-side-scale));
+    transform: perspective(var(--hg-persp)) translateX(-50%)
+      translateX(calc(-1 * var(--hg-shift))) translateZ(0px) rotateY(var(--hg-ry))
+      scale(var(--hg-side-scale));
     opacity: var(--hg-side-op);
     z-index: 20;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  [data-hg-panel],
+  [data-hg-card],
   [data-hg-dot] {
     animation: none !important;
   }
 }
 @media (hover: hover) and (pointer: fine) {
-  [data-hg-carousel]:hover [data-hg-panel],
+  [data-hg-carousel]:hover [data-hg-card],
   [data-hg-carousel]:hover [data-hg-dot],
-  [data-hg-carousel]:focus-within [data-hg-panel],
+  [data-hg-carousel]:focus-within [data-hg-card],
   [data-hg-carousel]:focus-within [data-hg-dot] {
     animation-play-state: paused;
   }
