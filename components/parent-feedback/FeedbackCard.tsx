@@ -48,12 +48,25 @@ export function FeedbackCard({
   return (
     <article
       className={[
-        "rounded-[24px] border border-[var(--border-subtle,rgba(42,36,29,0.08))] bg-[var(--paper-50,#FDFBF7)] transition-shadow duration-300 ease-out",
+        "relative rounded-[24px] border border-[var(--border-subtle,rgba(42,36,29,0.08))] bg-[var(--paper-50,#FDFBF7)] transition-shadow duration-300 ease-out",
         isLarge
           ? "p-6 shadow-[0_16px_40px_-16px_rgba(42,36,29,0.16)]"
           : "p-5 shadow-[0_4px_16px_-6px_rgba(42,36,29,0.08)]",
       ].join(" ")}
     >
+      {feedback.isExample ? (
+        <span
+          className={[
+            "absolute end-4 top-4 select-none rounded-full border border-dashed border-[var(--gold-500,#B8935B)] px-2 py-0.5 font-sans font-semibold uppercase text-[var(--gold-600,#9C7A47)]",
+            isLarge
+              ? "text-[0.625rem] tracking-[0.14em]"
+              : "text-[0.5625rem] tracking-[0.1em]",
+          ].join(" ")}
+        >
+          {copy.exampleBadge}
+        </span>
+      ) : null}
+
       <span
         aria-hidden="true"
         className={[

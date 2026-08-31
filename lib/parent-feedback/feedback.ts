@@ -11,11 +11,14 @@
  * not the comment. The comment itself is a `ParentFeedback`.
  *
  * Honest-data rule (see AGENTS.md / the Journey + Story Library
- * models): nothing here is fabricated. `PUBLISHED_FEEDBACK` is the
- * production source of truth and is deliberately EMPTY until real,
- * moderated parent comments exist. Zero approved comments is a valid
- * production state — the section renders its empty state, never
- * invented social proof.
+ * models): nothing is passed off as a genuine parent testimonial.
+ * `PUBLISHED_FEEDBACK` currently holds a small set of clearly-labelled
+ * EXAMPLE entries (`isExample: true`) so parents can see the finished
+ * section; every one renders a visible "NAMUNA" tag and none is shown
+ * as a verified family. They are a placeholder for layout, not social
+ * proof — delete them the moment real, moderated feedback exists.
+ * Zero approved comments is still a valid state (the section then
+ * renders its empty state).
  *
  * This module is the seam a real moderation backend / CMS drops into:
  * the section only ever reads `getPublishedFeedback()`, never a
@@ -88,6 +91,14 @@ export interface ParentFeedback {
    * defaulted to true. Gates the "TASDIQLANGAN TALIMOON OILASI" badge.
    */
   verified: boolean;
+  /**
+   * TRUE for the temporary, clearly-labelled EXAMPLE entries that
+   * currently populate the section so parents can see what it will
+   * look like. Such a card always renders a visible "NAMUNA" tag and
+   * is never shown as a genuine verified family. Remove these the
+   * moment real approved feedback exists — placeholder, not proof.
+   */
+  isExample?: boolean;
   createdAtISO: string;
   /** Set when moderation approved it. */
   publishedAtISO?: string;
@@ -100,11 +111,78 @@ export interface ParentFeedback {
 }
 
 /**
- * PRODUCTION source of truth — empty on purpose. Real approved parent
- * comments (or a CMS/back-office feed) populate this later. Do NOT add
- * placeholder comments here; visual QA uses the isolated dev fixtures.
+ * PRODUCTION list. Real approved parent comments (or a CMS / back-office
+ * feed) replace this later — a real one is just one more object with
+ * `isExample` omitted.
+ *
+ * For now it holds five TEMPORARY, clearly-labelled EXAMPLE entries so
+ * the section reads as designed instead of sitting empty. Each renders
+ * a "NAMUNA" tag, none is `verified`, and the illustrative reaction
+ * counts are deliberately tiny (no 😊 seeding) — not social proof.
+ * DELETE all five as soon as genuine moderated feedback exists.
  */
-const PUBLISHED_FEEDBACK: ParentFeedback[] = [];
+const PUBLISHED_FEEDBACK: ParentFeedback[] = [
+  {
+    id: "example-1",
+    displayName: "Dilnoza",
+    content:
+      "Farzandim o‘z ismini kitob qahramoni sifatida ko‘rganda hayratdan qotib qoldi. Endi har oqshom aynan o‘sha kitobni o‘qib berishimni so‘raydi.",
+    status: "approved",
+    verified: false,
+    isExample: true,
+    createdAtISO: "2026-08-01T00:00:00.000Z",
+    publishedAtISO: "2026-08-02T00:00:00.000Z",
+    reactions: { ...ZERO_COUNTS, love: 2 },
+  },
+  {
+    id: "example-2",
+    displayName: "Aziza",
+    content:
+      "Kitobning sifati zo‘r, rasmlari juda chiroyli chiqibdi. Yetkazib berish ham va’da qilinganidan tezroq bo‘ldi.",
+    status: "approved",
+    verified: false,
+    isExample: true,
+    createdAtISO: "2026-08-03T00:00:00.000Z",
+    publishedAtISO: "2026-08-04T00:00:00.000Z",
+    reactions: { ...ZERO_COUNTS, applause: 1 },
+  },
+  {
+    id: "example-3",
+    displayName: "Munira",
+    content:
+      "Nabiramga sovg‘a qildim. Oilada birga o‘tirib o‘qidik — bolaning ko‘zlari chaqnab ketdi, biz uchun ham unutilmas oqshom bo‘ldi.",
+    status: "approved",
+    verified: false,
+    isExample: true,
+    createdAtISO: "2026-08-05T00:00:00.000Z",
+    publishedAtISO: "2026-08-06T00:00:00.000Z",
+    reactions: { ...ZERO_COUNTS, moved: 1 },
+  },
+  {
+    id: "example-4",
+    displayName: "Shahnoza",
+    content:
+      "Mahsulot yoqdi. Kelajakda kattaroq yoshdagi bolalar uchun ham shunday kitoblar chiqsa, albatta yana buyurtma beramiz.",
+    status: "approved",
+    verified: false,
+    isExample: true,
+    createdAtISO: "2026-08-07T00:00:00.000Z",
+    publishedAtISO: "2026-08-08T00:00:00.000Z",
+    reactions: { ...ZERO_COUNTS },
+  },
+  {
+    id: "example-5",
+    displayName: "Kamola",
+    content:
+      "Bolam kitobdagi voqealarni o‘z hayoti bilan solishtira boshladi. Tarbiyaviy ta’siri sezilarli — ayniqsa mehr va halollik haqidagi qismlar.",
+    status: "approved",
+    verified: false,
+    isExample: true,
+    createdAtISO: "2026-08-09T00:00:00.000Z",
+    publishedAtISO: "2026-08-10T00:00:00.000Z",
+    reactions: { ...ZERO_COUNTS, love: 1, dislike: 1 },
+  },
+];
 
 /**
  * The public feedback list. In production this is `PUBLISHED_FEEDBACK`

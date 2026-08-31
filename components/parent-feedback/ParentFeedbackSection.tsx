@@ -15,10 +15,11 @@
  * carousel, individual cards, warm cream / deep navy / restrained
  * gold. What changed in this pass: the meaning and copy (feedback,
  * not "stories"), real per-comment reactions with a dislike, and the
- * removal of every fabricated number — the demo comments, the
- * hardcoded reaction counts, and the section-level aggregate reaction
- * strip are all gone. With no approved comments yet, the carousel
- * area shows a restrained empty state, never invented social proof.
+ * removal of the section-level aggregate reaction strip and every
+ * fabricated engagement number. The carousel currently shows five
+ * clearly-labelled "NAMUNA" example cards (see `PUBLISHED_FEEDBACK`)
+ * so the section reads as designed; with no rows at all it falls back
+ * to a restrained empty state. Neither path invents social proof.
  *
  * Same convention-2 typography/container as its neighbours
  * (font-serif/font-sans + literal rem sizes, max-w-[1440px],

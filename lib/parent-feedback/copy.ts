@@ -42,6 +42,8 @@ export interface SectionCopy {
   fromParents: string;
   emptyState: string;
   verifiedBadge: string;
+  /** Tag on the temporary placeholder cards, e.g. "NAMUNA". */
+  exampleBadge: string;
 
   /** Carousel navigation. */
   prev: string;
@@ -77,6 +79,7 @@ const COPY: Record<Locale, SectionCopy> = {
     emptyState:
       "Birinchi tasdiqlangan ota-ona fikrlari tez orada shu yerda paydo bo‘ladi.",
     verifiedBadge: "TASDIQLANGAN TALIMOON OILASI",
+    exampleBadge: "NAMUNA",
     prev: "Oldingi fikr",
     next: "Keyingi fikr",
     carouselNav: "Fikrlar navigatsiyasi",
@@ -111,6 +114,7 @@ const COPY: Record<Locale, SectionCopy> = {
     fromParents: "FROM PARENTS",
     emptyState: "The first approved parent comments will appear here soon.",
     verifiedBadge: "VERIFIED TALIMOON FAMILY",
+    exampleBadge: "EXAMPLE",
     prev: "Previous comment",
     next: "Next comment",
     carouselNav: "Feedback navigation",
@@ -144,6 +148,7 @@ const COPY: Record<Locale, SectionCopy> = {
     fromParents: "ОТ РОДИТЕЛЕЙ",
     emptyState: "Первые одобренные отзывы родителей скоро появятся здесь.",
     verifiedBadge: "ПОДТВЕРЖДЁННАЯ СЕМЬЯ TALIMOON",
+    exampleBadge: "ПРИМЕР",
     prev: "Предыдущий отзыв",
     next: "Следующий отзыв",
     carouselNav: "Навигация по отзывам",
@@ -176,6 +181,7 @@ const COPY: Record<Locale, SectionCopy> = {
     fromParents: "من الآباء والأمهات",
     emptyState: "ستظهر هنا قريبًا أول آراء الآباء والأمهات المعتمدة.",
     verifiedBadge: "عائلة TALIMOON موثّقة",
+    exampleBadge: "نموذج",
     prev: "الرأي السابق",
     next: "الرأي التالي",
     carouselNav: "التنقل بين الآراء",
