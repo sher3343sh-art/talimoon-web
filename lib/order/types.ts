@@ -18,11 +18,14 @@
  */
 
 import type { BookType } from "@/components/begin/orderFormData";
-import type { RecipientRelationship } from "./relationship";
+import type { Honorific, RecipientRelationship } from "./relationship";
 
 export type { BookType };
 
 export interface Orderer {
+  /** Form of address, chosen alongside the name in Phase 01. `null`
+   *  until answered; the plain name is used when it stays null. */
+  honorific: Honorific | null;
   /** Collected first, in Phase 01. */
   name: string;
   /** Logistics — collected at order finalization, not in Phase 01. */
@@ -32,7 +35,7 @@ export interface Orderer {
 }
 
 export function emptyOrderer(): Orderer {
-  return { name: "", phone: "", region: "", city: "" };
+  return { honorific: null, name: "", phone: "", region: "", city: "" };
 }
 
 export interface ChildProfile {
@@ -102,6 +105,7 @@ export function bookTypeForChildCount(count: number): BookType {
 
 /** What Phase 01 hands to the rest of the experience. */
 export interface Phase01Result {
+  ordererHonorific: Honorific | null;
   ordererName: string;
   recipientRelationship: RecipientRelationship;
   children: ChildProfile[];

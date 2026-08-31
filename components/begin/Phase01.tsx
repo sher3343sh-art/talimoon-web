@@ -4,49 +4,54 @@
  * TALIMOON — ORDER — Phase 01: "Siz bilan tanishamiz".
  * ----------------------------------------------------------------
  * The opening chapter of the conversational ordering experience. Not
- * a form: one thought per screen, warm and respectful ("Siz"), the
- * customer is never assumed to be a parent.
+ * a form: TALIMOON greets the customer, learns how to address them
+ * respectfully, then their relationship to the child, then meets the
+ * young protagonists one by one — and gently hands off to the child's
+ * world. Never assumes "parent". Always the respectful "Siz".
  *
- * Screens: name → acknowledgement → relationship → child count →
- * one screen per child (name + age) → a quiet transition into the
- * first child's deeper profile.
+ * Scenes (spec §9 — one visual language, a different rhythm each):
+ *   identity     — atmospheric welcome + honorific + name
+ *   relationship — a warm acknowledgement, then a typographic list
+ *   count        — a tactile number choice (nothing preselected)
+ *   child · N    — "meeting a character": the name becomes the title
+ *   completion   — a quiet editorial milestone
  *
- * Emits `Phase01Result` on completion; `onBack` is called from the
- * very first screen (returns to the product picker). Logistics
- * (phone / region / city) are NOT collected here — they belong to
- * order finalization.
+ * Emits `Phase01Result`; `onBack` returns to the product picker.
+ * Logistics (phone / region / city) are NOT collected here.
  */
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
-import { toLocale, directionFor } from "@/lib/journey/types";
+import { toLocale, directionFor, type Locale } from "@/lib/journey/types";
 import {
-  AGE_MAX,
-  AGE_MIN,
   MAX_MAIN_CHILDREN,
   QUICK_AGES,
+  AGE_MIN,
+  AGE_MAX,
   emptyChild,
   isValidAge,
   type ChildProfile,
   type Phase01Result,
 } from "@/lib/order/types";
 import {
+  honorificOptions,
   relationshipOptions,
+  formatRespectfulName,
+  type Honorific,
   type RecipientRelationship,
   type RelationshipType,
 } from "@/lib/order/relationship";
-import { phase01Copy } from "@/lib/order/phase01-copy";
+import { phase01Copy, type Phase01Copy } from "@/lib/order/phase01-copy";
 import { JourneyProgress } from "./JourneyProgress";
 
 type Screen =
-  | { kind: "name" }
-  | { kind: "ack" }
+  | { kind: "identity" }
   | { kind: "relationship" }
   | { kind: "count" }
   | { kind: "child"; index: number }
-  | { kind: "transition" };
+  | { kind: "completion" };
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -59,10 +64,8 @@ export default function Phase01({
   onBack: () => void;
   onComplete: (result: Phase01Result) => void;
   initialChildCount?: number;
-  /** Rehydration when the customer steps back into Phase 01 from a
-   *  later chapter — every prior answer is restored and the flow
-   *  resumes at the closing transition, still fully navigable. */
   initial?: {
+    ordererHonorific?: Honorific | null;
     ordererName?: string;
     recipientRelationship?: RecipientRelationship;
     children?: ChildProfile[];
@@ -75,16 +78,16 @@ export default function Phase01({
   const reduced = useReducedMotion();
 
   const resuming = Boolean(initial?.children && initial.children.length > 0);
-  const seedCount = Math.min(
-    Math.max(initial?.children?.length ?? initialChildCount ?? 1, 1),
-    MAX_MAIN_CHILDREN,
-  );
+  const seededCount = initial?.children?.length ?? initialChildCount ?? null;
 
   const [screen, setScreen] = useState<Screen>(
-    resuming ? { kind: "transition" } : { kind: "name" },
+    resuming ? { kind: "completion" } : { kind: "identity" },
   );
   const [attempted, setAttempted] = useState(false);
 
+  const [honorific, setHonorific] = useState<Honorific | null>(
+    initial?.ordererHonorific ?? null,
+  );
   const [ordererName, setOrdererName] = useState(initial?.ordererName ?? "");
   const [relType, setRelType] = useState<RelationshipType | null>(
     initial?.recipientRelationship?.type ?? null,
@@ -92,26 +95,42 @@ export default function Phase01({
   const [customLabel, setCustomLabel] = useState(
     initial?.recipientRelationship?.customLabel ?? "",
   );
-  const [count, setCount] = useState(seedCount);
-  // A pool that only grows, so toggling the count never loses a name.
+  const [count, setCount] = useState<number | null>(
+    seededCount != null
+      ? Math.min(Math.max(seededCount, 1), MAX_MAIN_CHILDREN)
+      : null,
+  );
   const [pool, setPool] = useState<ChildProfile[]>(() =>
     initial?.children && initial.children.length > 0
       ? initial.children.slice(0, MAX_MAIN_CHILDREN)
-      : Array.from({ length: seedCount }, emptyChild),
+      : Array.from(
+          { length: Math.max(seededCount ?? 1, 1) },
+          emptyChild,
+        ),
   );
 
-  const children = useMemo(() => pool.slice(0, count), [pool, count]);
+  const children = useMemo(
+    () => pool.slice(0, count ?? 0),
+    [pool, count],
+  );
   const rel: RecipientRelationship = useMemo(
-    () => ({ type: relType ?? "parent", customLabel: customLabel.trim() || undefined }),
+    () => ({
+      type: relType ?? "parent",
+      ...(relType === "other" && customLabel.trim()
+        ? { customLabel: customLabel.trim() }
+        : {}),
+    }),
     [relType, customLabel],
   );
+  const respectfulName = formatRespectfulName(locale, honorific, ordererName);
 
   function ensurePool(n: number) {
     setPool((prev) =>
-      prev.length >= n ? prev : [...prev, ...Array.from({ length: n - prev.length }, emptyChild)],
+      prev.length >= n
+        ? prev
+        : [...prev, ...Array.from({ length: n - prev.length }, emptyChild)],
     );
   }
-
   function patchChild(index: number, patch: Partial<ChildProfile>) {
     setPool((prev) => {
       const next = [...prev];
@@ -120,30 +139,35 @@ export default function Phase01({
     });
   }
 
-  // ── Move focus to the new question on every screen change ──────
+  // Move focus to the new question on every scene change (SR announce).
   const headingRef = useRef<HTMLHeadingElement>(null);
   const childIdx = screen.kind === "child" ? screen.index : -1;
   useEffect(() => {
-    const id = window.setTimeout(() => headingRef.current?.focus(), 40);
+    // `preventScroll` so a scene change never nudges the page scroll
+    // (which would flip the site's scroll-driven navbar mid-flow).
+    const id = window.setTimeout(
+      () => headingRef.current?.focus({ preventScroll: true }),
+      40,
+    );
     return () => window.clearTimeout(id);
   }, [screen.kind, childIdx]);
 
-  // ── Per-screen validity ───────────────────────────────────────
   function validity(): { ok: boolean; error?: string } {
     switch (screen.kind) {
-      case "name":
+      case "identity":
+        if (!honorific) return { ok: false, error: c.errHonorific };
         return ordererName.trim().length >= 2
           ? { ok: true }
           : { ok: false, error: c.errName };
-      case "ack":
-        return { ok: true };
       case "relationship":
         if (!relType) return { ok: false, error: c.errRelationship };
         if (relType === "other" && customLabel.trim().length < 2)
           return { ok: false, error: c.errCustomLabel };
         return { ok: true };
       case "count":
-        return { ok: count >= 1 && count <= MAX_MAIN_CHILDREN };
+        return count != null && count >= 1 && count <= MAX_MAIN_CHILDREN
+          ? { ok: true }
+          : { ok: false };
       case "child": {
         const child = children[screen.index];
         if (!child || child.name.trim().length < 1)
@@ -152,7 +176,7 @@ export default function Phase01({
         if (!isValidAge(child.age)) return { ok: false, error: c.errAgeRange };
         return { ok: true };
       }
-      case "transition":
+      case "completion":
         return { ok: true };
     }
   }
@@ -167,28 +191,26 @@ export default function Phase01({
     }
     setAttempted(false);
     switch (screen.kind) {
-      case "name":
-        setScreen({ kind: "ack" });
-        break;
-      case "ack":
+      case "identity":
         setScreen({ kind: "relationship" });
         break;
       case "relationship":
         setScreen({ kind: "count" });
         break;
       case "count":
-        ensurePool(count);
+        ensurePool(count ?? 1);
         setScreen({ kind: "child", index: 0 });
         break;
       case "child":
-        if (screen.index + 1 < count) {
-          setScreen({ kind: "child", index: screen.index + 1 });
-        } else {
-          setScreen({ kind: "transition" });
-        }
+        setScreen(
+          screen.index + 1 < (count ?? 1)
+            ? { kind: "child", index: screen.index + 1 }
+            : { kind: "completion" },
+        );
         break;
-      case "transition":
+      case "completion":
         onComplete({
+          ordererHonorific: honorific,
           ordererName: ordererName.trim().replace(/\s+/g, " "),
           recipientRelationship: {
             type: relType ?? "parent",
@@ -196,7 +218,10 @@ export default function Phase01({
               ? { customLabel: customLabel.trim().replace(/\s+/g, " ") }
               : {}),
           },
-          children: children.map((ch) => ({ ...ch, name: ch.name.trim().replace(/\s+/g, " ") })),
+          children: children.map((ch) => ({
+            ...ch,
+            name: ch.name.trim().replace(/\s+/g, " "),
+          })),
         });
         break;
     }
@@ -205,14 +230,11 @@ export default function Phase01({
   function goPrev() {
     setAttempted(false);
     switch (screen.kind) {
-      case "name":
+      case "identity":
         onBack();
         break;
-      case "ack":
-        setScreen({ kind: "name" });
-        break;
       case "relationship":
-        setScreen({ kind: "ack" });
+        setScreen({ kind: "identity" });
         break;
       case "count":
         setScreen({ kind: "relationship" });
@@ -224,26 +246,32 @@ export default function Phase01({
             : { kind: "child", index: screen.index - 1 },
         );
         break;
-      case "transition":
-        setScreen({ kind: "child", index: count - 1 });
+      case "completion":
+        setScreen({ kind: "child", index: (count ?? 1) - 1 });
         break;
     }
   }
 
-  const name = ordererName.trim() || "";
   const enterAnim = reduced
     ? {}
-    : { initial: { opacity: 0, y: 10 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.4, ease: EASE } };
-  const screenKey =
-    screen.kind === "child" ? `child-${screen.index}` : screen.kind;
+    : {
+        initial: { opacity: 0, y: 10 },
+        animate: { opacity: 1, y: 0 },
+        transition: { duration: 0.4, ease: EASE },
+      };
+  const screenKey = screen.kind === "child" ? `child-${screen.index}` : screen.kind;
+  const ctaLabel =
+    screen.kind === "completion"
+      ? c.transitionCta(children[0]?.name.trim() || "")
+      : c.continue;
 
   return (
     <section
       dir={dir}
-      className="mx-auto w-full max-w-container-content bg-surface-base px-6 pb-16 pt-8 sm:px-8 md:pb-20 md:pt-10 lg:px-16 lg:pb-24"
+      className="mx-auto w-full max-w-container-content bg-surface-base px-6 pb-16 pt-9 sm:px-8 md:pb-24 md:pt-12 lg:px-16"
     >
       <div className="mx-auto max-w-md">
-        <div className="mb-8 flex items-center justify-between gap-4">
+        <div className="mb-10 flex items-start justify-between gap-4">
           <button
             type="button"
             onClick={goPrev}
@@ -255,31 +283,29 @@ export default function Phase01({
           <JourneyProgress locale={locale} current={0} />
         </div>
 
-        <p className="mb-3 font-sans text-[12px] font-semibold uppercase tracking-[0.2em] text-accent-primary">
-          {c.eyebrow}
-        </p>
-
         <motion.div key={screenKey} {...enterAnim}>
-          {screen.kind === "name" && (
-            <ScreenName
+          {screen.kind === "identity" && (
+            <SceneIdentity
               c={c}
-              value={ordererName}
-              onChange={setOrdererName}
+              locale={locale}
+              honorific={honorific}
+              onHonorific={(h) => {
+                setHonorific(h);
+                setAttempted(false);
+              }}
+              name={ordererName}
+              onName={setOrdererName}
               onEnter={goNext}
               headingRef={headingRef}
               error={showError}
             />
           )}
 
-          {screen.kind === "ack" && (
-            <ScreenAck c={c} name={name} headingRef={headingRef} />
-          )}
-
           {screen.kind === "relationship" && (
-            <ScreenRelationship
+            <SceneRelationship
               c={c}
               locale={locale}
-              name={name}
+              ackName={respectfulName}
               value={relType}
               onSelect={(t) => {
                 setRelType(t);
@@ -293,25 +319,26 @@ export default function Phase01({
           )}
 
           {screen.kind === "count" && (
-            <ScreenCount
+            <SceneCount
               c={c}
               rel={rel}
               value={count}
               onSelect={(n) => {
                 setCount(n);
                 ensurePool(n);
+                setAttempted(false);
               }}
               headingRef={headingRef}
             />
           )}
 
           {screen.kind === "child" && (
-            <ScreenChild
+            <SceneChild
               key={screen.index}
               c={c}
               rel={rel}
               index={screen.index}
-              total={count}
+              total={count ?? 1}
               child={children[screen.index]}
               onName={(nm) => patchChild(screen.index, { name: nm })}
               onAge={(age) => patchChild(screen.index, { age })}
@@ -321,20 +348,23 @@ export default function Phase01({
             />
           )}
 
-          {screen.kind === "transition" && (
-            <ScreenTransition c={c} count={count} kids={children} headingRef={headingRef} />
+          {screen.kind === "completion" && (
+            <SceneCompletion c={c} total={count ?? 1} kids={children} headingRef={headingRef} />
           )}
         </motion.div>
 
-        <div className="mt-10 flex items-center justify-end">
+        <div
+          className={[
+            "flex items-center justify-end",
+            screen.kind === "completion" ? "mt-12" : "mt-10",
+          ].join(" ")}
+        >
           <button
             type="button"
             onClick={goNext}
             className="inline-flex items-center gap-2 rounded-md bg-accent-primary px-6 py-3 font-sans text-[14px] font-medium text-white outline-none transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-primary"
           >
-            {screen.kind === "transition"
-              ? c.transitionCta(children[0]?.name.trim() || "")
-              : c.continue}
+            {ctaLabel}
             <ArrowRight size={15} strokeWidth={1.75} className="rtl:-scale-x-100" />
           </button>
         </div>
@@ -345,21 +375,34 @@ export default function Phase01({
 
 // ── Shared pieces ────────────────────────────────────────────────
 
-function Question({
+/** The scene's focusable heading. Focused programmatically on every
+ *  scene change so a screen reader announces the new question; it is
+ *  not a tab stop, so its visible focus ring is suppressed. */
+function Heading({
   children,
   headingRef,
+  size = "lg",
 }: {
   children: React.ReactNode;
   headingRef: React.RefObject<HTMLHeadingElement | null>;
+  size?: "lg" | "xl";
 }) {
   return (
     <h2
       ref={headingRef}
       tabIndex={-1}
-      // Focused programmatically on every screen change so a screen
-      // reader announces the new question; it is not a tab stop, so
-      // the visible focus ring is suppressed.
-      className="font-display text-[26px] font-medium leading-[1.2] tracking-tight text-text-primary outline-none focus:outline-none focus-visible:outline-none sm:text-[30px]"
+      // The site-wide `:focus-visible` ring lives outside any cascade
+      // layer, so a Tailwind utility can't override it — the inline
+      // `outline: none` is what actually removes it here. This heading
+      // is focused only so a screen reader reads the new question; it
+      // is not a tab stop, so it must not look like a text field.
+      style={{ outline: "none" }}
+      className={[
+        "font-display font-medium leading-[1.18] tracking-tight text-text-primary",
+        size === "xl"
+          ? "text-[30px] sm:text-[36px]"
+          : "text-[25px] sm:text-[29px]",
+      ].join(" ")}
     >
       {children}
     </h2>
@@ -368,7 +411,7 @@ function Question({
 
 function Supporting({ children }: { children: React.ReactNode }) {
   return (
-    <p className="mt-4 font-sans text-[14.5px] leading-[1.65] text-text-secondary">
+    <p className="mt-4 max-w-[42ch] font-sans text-[14.5px] leading-[1.65] text-text-secondary">
       {children}
     </p>
   );
@@ -384,80 +427,107 @@ function ErrorLine({ children }: { children?: string }) {
 }
 
 const textInputClass =
-  "w-full rounded-md border border-border-default bg-transparent px-4 py-3 font-sans text-[16px] text-text-primary outline-none transition-colors placeholder:text-text-muted focus:border-accent-primary focus:outline focus:outline-2 focus:outline-offset-1 focus:outline-accent-primary";
+  "w-full border-0 border-b border-border-strong bg-transparent px-0 py-2.5 font-sans text-[17px] text-text-primary outline-none transition-colors placeholder:text-text-muted focus:border-accent-primary";
 
-// ── Screen: name ─────────────────────────────────────────────────
+// ── Scene: identity (welcome + honorific + name) ─────────────────
 
-function ScreenName({
+function SceneIdentity({
   c,
-  value,
-  onChange,
+  locale,
+  honorific,
+  onHonorific,
+  name,
+  onName,
   onEnter,
   headingRef,
   error,
 }: {
-  c: ReturnType<typeof phase01Copy>;
-  value: string;
-  onChange: (v: string) => void;
+  c: Phase01Copy;
+  locale: Locale;
+  honorific: Honorific | null;
+  onHonorific: (h: Honorific) => void;
+  name: string;
+  onName: (v: string) => void;
   onEnter: () => void;
   headingRef: React.RefObject<HTMLHeadingElement | null>;
   error?: string;
 }) {
   return (
     <div>
-      <Question headingRef={headingRef}>{c.namePrimary}</Question>
-      <Supporting>{c.nameSupporting}</Supporting>
-      <div className="mt-8">
-        <label htmlFor="p1-name" className="mb-2 block font-sans text-[13px] font-medium text-text-primary">
-          {c.nameQuestion}
-        </label>
-        <input
-          id="p1-name"
-          type="text"
-          autoComplete="name"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              onEnter();
-            }
-          }}
-          placeholder={c.namePlaceholder}
-          className={textInputClass}
-          aria-invalid={error ? true : undefined}
-        />
-        <ErrorLine>{error}</ErrorLine>
-      </div>
+      <Heading headingRef={headingRef} size="xl">
+        {c.greetingPrimary}
+      </Heading>
+      <p className="mt-3 font-sans text-[15px] text-text-secondary">
+        {c.greetingWelcome}
+      </p>
+
+      <span
+        aria-hidden="true"
+        className="mt-7 block h-px w-10 bg-accent-primary/60"
+      />
+      <p className="mt-5 font-display text-[18px] font-medium text-text-primary">
+        {c.greetingLead}
+      </p>
+
+      <fieldset className="mt-9">
+        <legend className="mb-3 font-sans text-[13px] font-medium text-text-primary">
+          {c.addressQuestion}
+        </legend>
+        <div className="flex gap-2.5">
+          {honorificOptions(locale).map((opt) => {
+            const active = honorific === opt.value;
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                aria-pressed={active}
+                onClick={() => onHonorific(opt.value)}
+                className={[
+                  "min-h-[44px] rounded-md border px-5 font-sans text-[14.5px] font-medium outline-none transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-primary",
+                  active
+                    ? "border-accent-primary bg-accent-primary/[0.08] text-text-primary"
+                    : "border-border-default text-text-secondary hover:border-border-strong hover:text-text-primary",
+                ].join(" ")}
+              >
+                {opt.label}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="mt-6">
+          <label htmlFor="p1-name" className="sr-only">
+            {c.addressQuestion}
+          </label>
+          <input
+            id="p1-name"
+            type="text"
+            autoComplete="name"
+            value={name}
+            onChange={(e) => onName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                onEnter();
+              }
+            }}
+            placeholder={c.namePlaceholder}
+            className={textInputClass}
+            aria-invalid={error === c.errName ? true : undefined}
+          />
+        </div>
+      </fieldset>
+      <ErrorLine>{error}</ErrorLine>
     </div>
   );
 }
 
-// ── Screen: acknowledgement ──────────────────────────────────────
+// ── Scene: relationship (acknowledgement is the lead-in) ─────────
 
-function ScreenAck({
-  c,
-  name,
-  headingRef,
-}: {
-  c: ReturnType<typeof phase01Copy>;
-  name: string;
-  headingRef: React.RefObject<HTMLHeadingElement | null>;
-}) {
-  return (
-    <div>
-      <Question headingRef={headingRef}>{c.ackGreeting(name)}</Question>
-      <Supporting>{c.ackNext}</Supporting>
-    </div>
-  );
-}
-
-// ── Screen: relationship ─────────────────────────────────────────
-
-function ScreenRelationship({
+function SceneRelationship({
   c,
   locale,
-  name,
+  ackName,
   value,
   onSelect,
   customLabel,
@@ -465,9 +535,9 @@ function ScreenRelationship({
   headingRef,
   error,
 }: {
-  c: ReturnType<typeof phase01Copy>;
-  locale: ReturnType<typeof toLocale>;
-  name: string;
+  c: Phase01Copy;
+  locale: Locale;
+  ackName: string;
   value: RelationshipType | null;
   onSelect: (t: RelationshipType) => void;
   customLabel: string;
@@ -475,14 +545,19 @@ function ScreenRelationship({
   headingRef: React.RefObject<HTMLHeadingElement | null>;
   error?: string;
 }) {
-  const options = relationshipOptions(locale);
   return (
     <fieldset>
+      {ackName && (
+        <p className="mb-3 font-sans text-[14px] text-text-secondary">
+          {c.ackLine(ackName)}
+        </p>
+      )}
       <legend className="contents">
-        <Question headingRef={headingRef}>{c.relationshipQuestion(name)}</Question>
+        <Heading headingRef={headingRef}>{c.relationshipQuestion}</Heading>
       </legend>
-      <div className="mt-7 divide-y divide-border-subtle border-y border-border-subtle">
-        {options.map((opt) => {
+
+      <div className="mt-7 border-t border-border-subtle">
+        {relationshipOptions(locale).map((opt) => {
           const active = value === opt.type;
           return (
             <button
@@ -491,25 +566,13 @@ function ScreenRelationship({
               aria-pressed={active}
               onClick={() => onSelect(opt.type)}
               className={[
-                "flex w-full items-center justify-between gap-3 py-3.5 text-start font-sans outline-none transition-colors focus-visible:bg-accent-primary/[0.06]",
-                active ? "text-text-primary" : "text-text-secondary hover:text-text-primary",
+                "flex w-full items-center border-b border-border-subtle px-3 py-4 text-start font-sans outline-none transition-colors focus-visible:bg-accent-primary/[0.05]",
+                active
+                  ? "border-s-2 border-s-accent-primary bg-accent-primary/[0.05] ps-4 font-semibold text-text-primary"
+                  : "font-medium text-text-secondary hover:text-text-primary",
               ].join(" ")}
             >
-              <span
-                className={[
-                  "text-[15.5px]",
-                  active ? "font-semibold" : "font-medium",
-                ].join(" ")}
-              >
-                {opt.label}
-              </span>
-              <span
-                aria-hidden="true"
-                className={[
-                  "h-1.5 w-1.5 shrink-0 rounded-full transition-colors",
-                  active ? "bg-accent-primary" : "bg-transparent",
-                ].join(" ")}
-              />
+              <span className="text-[16px]">{opt.label}</span>
             </button>
           );
         })}
@@ -517,7 +580,10 @@ function ScreenRelationship({
 
       {value === "other" && (
         <div className="mt-5">
-          <label htmlFor="p1-custom" className="mb-2 block font-sans text-[13px] font-medium text-text-primary">
+          <label
+            htmlFor="p1-custom"
+            className="mb-2 block font-sans text-[13px] font-medium text-text-primary"
+          >
             {c.customLabelQuestion}
           </label>
           <input
@@ -535,27 +601,27 @@ function ScreenRelationship({
   );
 }
 
-// ── Screen: child count ──────────────────────────────────────────
+// ── Scene: child count (nothing preselected) ─────────────────────
 
-function ScreenCount({
+function SceneCount({
   c,
   rel,
   value,
   onSelect,
   headingRef,
 }: {
-  c: ReturnType<typeof phase01Copy>;
+  c: Phase01Copy;
   rel: RecipientRelationship;
-  value: number;
+  value: number | null;
   onSelect: (n: number) => void;
   headingRef: React.RefObject<HTMLHeadingElement | null>;
 }) {
   return (
     <fieldset>
       <legend className="contents">
-        <Question headingRef={headingRef}>{c.countQuestion(rel)}</Question>
+        <Heading headingRef={headingRef}>{c.countQuestion(rel)}</Heading>
       </legend>
-      <div className="mt-8 flex flex-wrap gap-2.5">
+      <div className="mt-8 flex flex-wrap gap-3">
         {Array.from({ length: MAX_MAIN_CHILDREN }, (_, i) => i + 1).map((n) => {
           const active = value === n;
           return (
@@ -565,13 +631,13 @@ function ScreenCount({
               aria-pressed={active}
               onClick={() => onSelect(n)}
               className={[
-                "min-h-[44px] min-w-[56px] rounded-md border px-4 font-sans text-[15px] font-medium outline-none transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-primary",
+                "flex min-h-[56px] min-w-[56px] items-center justify-center rounded-md border font-display text-[20px] font-medium outline-none transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-primary",
                 active
                   ? "border-accent-primary bg-accent-primary/[0.08] text-text-primary"
                   : "border-border-default text-text-secondary hover:border-border-strong hover:text-text-primary",
               ].join(" ")}
             >
-              {c.countUnit(n)}
+              {n}
             </button>
           );
         })}
@@ -580,9 +646,9 @@ function ScreenCount({
   );
 }
 
-// ── Screen: child (name + age) ───────────────────────────────────
+// ── Scene: child — "meeting a character" ─────────────────────────
 
-function ScreenChild({
+function SceneChild({
   c,
   rel,
   index,
@@ -594,7 +660,7 @@ function ScreenChild({
   headingRef,
   error,
 }: {
-  c: ReturnType<typeof phase01Copy>;
+  c: Phase01Copy;
   rel: RecipientRelationship;
   index: number;
   total: number;
@@ -615,7 +681,9 @@ function ScreenChild({
 
   return (
     <div>
-      <Question headingRef={headingRef}>{c.childMoment(index, total)}</Question>
+      <Heading headingRef={headingRef}>
+        {name.trim() || c.childMoment(index, total)}
+      </Heading>
 
       <div className="mt-7">
         <label
@@ -632,7 +700,11 @@ function ScreenChild({
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               e.preventDefault();
-              (document.getElementById(`p1-age-group-${index}`)?.querySelector("button") as HTMLButtonElement | null)?.focus();
+              (
+                document
+                  .getElementById(`p1-age-group-${index}`)
+                  ?.querySelector("button") as HTMLButtonElement | null
+              )?.focus();
             }
           }}
           placeholder={c.childNamePlaceholder}
@@ -643,7 +715,7 @@ function ScreenChild({
         <ErrorLine>{nameError}</ErrorLine>
       </div>
 
-      <fieldset className="mt-6">
+      <fieldset className="mt-7">
         <legend className="mb-2 block font-sans text-[13px] font-medium text-text-primary">
           {c.childAgeQuestion(name)}
         </legend>
@@ -660,7 +732,7 @@ function ScreenChild({
                   setOtherOpen(false);
                 }}
                 className={[
-                  "min-h-[44px] min-w-[44px] rounded-md border px-3 font-sans text-[14.5px] font-medium outline-none transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-primary",
+                  "flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md border px-3 font-sans text-[15px] font-medium outline-none transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-primary",
                   active
                     ? "border-accent-primary bg-accent-primary/[0.08] text-text-primary"
                     : "border-border-default text-text-secondary hover:border-border-strong hover:text-text-primary",
@@ -707,7 +779,7 @@ function ScreenChild({
                 }
               }}
               placeholder={`${AGE_MIN}–${AGE_MAX}`}
-              className={textInputClass + " max-w-[140px]"}
+              className={textInputClass + " max-w-[120px]"}
               aria-invalid={ageError ? true : undefined}
               autoFocus
             />
@@ -719,38 +791,56 @@ function ScreenChild({
   );
 }
 
-// ── Screen: transition ───────────────────────────────────────────
+// ── Scene: completion milestone ─────────────────────────────────
 
-function ScreenTransition({
+function SceneCompletion({
   c,
-  count,
+  total,
   kids,
   headingRef,
 }: {
-  c: ReturnType<typeof phase01Copy>;
-  count: number;
+  c: Phase01Copy;
+  total: number;
   kids: ChildProfile[];
   headingRef: React.RefObject<HTMLHeadingElement | null>;
 }) {
-  if (count === 1) {
+  if (total === 1) {
     const ch = kids[0];
     const nm = ch?.name.trim() || "";
     const age = ch?.age ?? 0;
     return (
       <div>
-        <Question headingRef={headingRef}>{c.transitionOneChild(nm, age)}</Question>
-        <Supporting>{c.transitionOneChildSupport(nm)}</Supporting>
+        <Heading headingRef={headingRef} size="xl">
+          {c.completionOneChild(nm, age)}
+        </Heading>
+        <Supporting>{c.completionOneChildSupport(nm)}</Supporting>
       </div>
     );
   }
-  const names = kids.map((ch) => ch.name.trim()).filter(Boolean);
+
   return (
     <div>
-      <Question headingRef={headingRef}>{c.transitionManyChildren}</Question>
-      <p className="mt-3 font-display text-[18px] font-medium text-text-primary">
-        {c.transitionManyChildrenNames(names)}
-      </p>
-      <Supporting>{c.transitionManyChildrenSupport}</Supporting>
+      <Heading headingRef={headingRef} size="xl">
+        {c.completionManyHeading}
+      </Heading>
+
+      <ul className="mt-7 border-t border-border-subtle">
+        {kids.map((ch) => (
+          <li
+            key={ch.id}
+            className="flex items-baseline justify-between border-b border-border-subtle py-3.5"
+          >
+            <span className="font-display text-[19px] font-medium text-text-primary">
+              {ch.name.trim()}
+            </span>
+            <span className="font-sans text-[13px] text-text-secondary">
+              {ch.age != null ? c.yearsSuffix(ch.age) : ""}
+            </span>
+          </li>
+        ))}
+      </ul>
+
+      <Supporting>{c.completionManySupport}</Supporting>
     </div>
   );
 }

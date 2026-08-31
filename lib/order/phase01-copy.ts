@@ -1,12 +1,16 @@
 /**
  * TALIMOON — ORDER — Phase 01 ("Siz bilan tanishamiz") copy.
  * ================================================================
- * All four site languages authored. Relationship-aware phrasing is
- * produced through `@/lib/order/relationship` — no global string
- * replacement, no Uzbek grammar baked into components.
+ * IN SCOPE: Uzbek + English (spec §4). Russian / Arabic keys are
+ * kept so the wider localisation infrastructure doesn't break, with
+ * sensible equivalents — not the focus of this pass.
  *
- * TONE LOCK (spec §1): TALIMOON always addresses the customer with
- * the respectful "Siz". Warm, courteous, adult. Not a survey.
+ * TONE LOCK: TALIMOON greets the customer, then addresses them with
+ * the respectful "Siz" and their chosen honorific. Warm, courteous,
+ * adult. Not a survey. (spec §1–3)
+ *
+ * Relationship-aware phrasing comes from `@/lib/order/relationship`
+ * — no global string replacement, no Uzbek grammar in components.
  */
 
 import type { Locale } from "@/lib/journey/types";
@@ -27,7 +31,7 @@ function joinNames(names: string[], locale: Locale): string {
   if (clean.length <= 1) return clean[0] ?? "";
   const last = clean[clean.length - 1];
   const head = clean.slice(0, -1).join(", ");
-  const and = { uz: " va ", en: " and ", ru: " и ", ar: " و", }[locale];
+  const and = { uz: " va ", en: " and ", ru: " и ", ar: " و" }[locale];
   return `${head}${and}${last}`;
 }
 
@@ -44,30 +48,27 @@ const RU_ORDINALS = ["первый", "второй", "третий", "четвё
 const AR_ORDINALS = ["الأول", "الثاني", "الثالث", "الرابع", "الخامس", "السادس"];
 
 export interface Phase01Copy {
-  eyebrow: string;
   continue: string;
   back: string;
 
-  // 1 — name
-  namePrimary: string;
-  nameSupporting: string;
-  nameQuestion: string;
+  // 1 — welcome + identity (one scene: greeting, honorific, name)
+  greetingPrimary: string;
+  greetingWelcome: string;
+  greetingLead: string;
+  addressQuestion: string;
   namePlaceholder: string;
 
-  // 2 — acknowledgement
-  ackGreeting: (name: string) => string;
-  ackNext: string;
-
-  // 3 — relationship
-  relationshipQuestion: (name: string) => string;
+  // 2 — relationship (the acknowledgement is the lead-in here now)
+  ackLine: (respectfulName: string) => string;
+  relationshipQuestion: string;
   customLabelQuestion: string;
   customLabelPlaceholder: string;
 
-  // 4 — child count
+  // 3 — child count
   countQuestion: (rel: RecipientRelationship) => string;
   countUnit: (n: number) => string;
 
-  // 5 — child name + age
+  // 4 — child name + age ("meeting a character")
   childMoment: (index: number, total: number) => string;
   childNamePrompt: (index: number, total: number, rel: RecipientRelationship) => string;
   childNamePlaceholder: string;
@@ -75,15 +76,16 @@ export interface Phase01Copy {
   otherAge: string;
   yearsSuffix: (age: number) => string;
 
-  // 6 — transition out of Phase 01
-  transitionOneChild: (name: string, age: number) => string;
-  transitionOneChildSupport: (name: string) => string;
-  transitionManyChildren: string;
-  transitionManyChildrenNames: (names: string[]) => string;
-  transitionManyChildrenSupport: string;
+  // 5 — the completion milestone
+  completionOneChild: (name: string, age: number) => string;
+  completionOneChildSupport: (name: string) => string;
+  completionManyHeading: string;
+  completionManyNames: (names: string[]) => string;
+  completionManySupport: string;
   transitionCta: (firstName: string) => string;
 
-  // validation — human, gentle
+  // validation — human, gentle, shown only after an attempt
+  errHonorific: string;
   errName: string;
   errRelationship: string;
   errCustomLabel: string;
@@ -91,26 +93,22 @@ export interface Phase01Copy {
   errAge: string;
   errAgeRange: string;
 
-  /** Review-row label for the chosen relationship. */
   relationshipReviewLabel: (rel: RecipientRelationship) => string;
 }
 
-// ── Uzbek — the reference, richest relationship handling ──────────
+// ── Uzbek ────────────────────────────────────────────────────────
 const uz: Phase01Copy = {
-  eyebrow: "SIZ BILAN TANISHAMIZ",
   continue: "Davom etish",
   back: "Orqaga",
 
-  namePrimary: "Keling, avval Siz bilan tanishamiz.",
-  nameSupporting:
-    "Bu hikoyani kim uchun yaratayotganimizni bilishdan oldin, uni mehr bilan tayyorlayotgan insonni tanib olaylik.",
-  nameQuestion: "Ismingiz qanday?",
+  greetingPrimary: "Assalomu alaykum.",
+  greetingWelcome: "TALIMOONga xush kelibsiz.",
+  greetingLead: "Keling, avval Siz bilan tanishamiz.",
+  addressQuestion: "Sizga qanday murojaat qilsak bo‘ladi?",
   namePlaceholder: "Ismingizni yozing...",
 
-  ackGreeting: (name) => `Tanishganimdan xursandman, ${name}.`,
-  ackNext: "Endi eng muhim inson haqida gaplashamiz.",
-
-  relationshipQuestion: (name) => `${name}, bu kitobni kim uchun tayyorlayapsiz?`,
+  ackLine: (rn) => `Tanishganimdan xursandman, ${rn}.`,
+  relationshipQuestion: "Bu kitobni kim uchun tayyorlayapsiz?",
   customLabelQuestion: "U Sizga kim bo‘ladi?",
   customLabelPlaceholder: "Masalan: amakivachchamning farzandi",
 
@@ -124,7 +122,7 @@ const uz: Phase01Copy = {
   countUnit: (n) => `${n} ta`,
 
   childMoment: (index, total) => {
-    if (total === 1) return "Unda u bilan tanishamiz.";
+    if (total === 1) return "Unda qahramonimiz bilan tanishamiz.";
     if (index === 0) return "Birinchi qahramonimiz kim?";
     if (index === total - 1) return "Yana bittasi qoldi 😊";
     return `Endi ${UZ_ORDINALS[index]} qahramonimiz bilan tanishamiz.`;
@@ -141,15 +139,16 @@ const uz: Phase01Copy = {
   otherAge: "Boshqa yosh",
   yearsSuffix: (age) => `${age} yosh`,
 
-  transitionOneChild: (name, age) => `Demak, qahramonimiz — ${age} yoshli ${name}.`,
-  transitionOneChildSupport: (name) =>
-    `Endi ${name}ning o‘ziga xos dunyosiga biroz kirib ko‘ramiz.`,
-  transitionManyChildren: "Ajoyib — qahramonlarimiz bilan tanishdik.",
-  transitionManyChildrenNames: (names) => `${joinNames(names, "uz")}.`,
-  transitionManyChildrenSupport:
-    "Endi ularning har birini alohida yaxshiroq bilib olamiz.",
+  completionOneChild: (name, age) => `Demak, qahramonimiz — ${age} yoshli ${name}.`,
+  completionOneChildSupport: (name) =>
+    `Endi ${name}ning o‘ziga xos dunyosini yaxshiroq bilib olamiz.`,
+  completionManyHeading: "Qahramonlarimiz bilan tanishdik.",
+  completionManyNames: (names) => joinNames(names, "uz"),
+  completionManySupport:
+    "Endi ularning har birining o‘ziga xos dunyosini yaxshiroq bilib olamiz.",
   transitionCta: (firstName) => `${firstName} bilan tanishamiz`,
 
+  errHonorific: "Iltimos, murojaat shaklini tanlang.",
   errName: "Iltimos, ismingizni kiriting.",
   errRelationship: "Iltimos, birini tanlang.",
   errCustomLabel: "Iltimos, bir necha so‘z bilan yozing.",
@@ -162,20 +161,17 @@ const uz: Phase01Copy = {
 
 // ── English ──────────────────────────────────────────────────────
 const en: Phase01Copy = {
-  eyebrow: "GETTING TO KNOW YOU",
   continue: "Continue",
   back: "Back",
 
-  namePrimary: "First, let's get to know you.",
-  nameSupporting:
-    "Before we learn who this story is for, we'd love to know the person preparing it with such care.",
-  nameQuestion: "What's your name?",
+  greetingPrimary: "Hello, and welcome.",
+  greetingWelcome: "We're glad you're here at TALIMOON.",
+  greetingLead: "First, let's get to know you.",
+  addressQuestion: "How may we address you?",
   namePlaceholder: "Type your name...",
 
-  ackGreeting: (name) => `Lovely to meet you, ${name}.`,
-  ackNext: "Now, let's talk about the most important person.",
-
-  relationshipQuestion: (name) => `${name}, who are you making this book for?`,
+  ackLine: (rn) => `It's a pleasure to meet you, ${rn}.`,
+  relationshipQuestion: "Who are you making this book for?",
   customLabelQuestion: "Who are they to you?",
   customLabelPlaceholder: "For example: my cousin's child",
 
@@ -200,13 +196,16 @@ const en: Phase01Copy = {
   otherAge: "Another age",
   yearsSuffix: (age) => `${age} years old`,
 
-  transitionOneChild: (name, age) => `So our hero is ${name}, age ${age}.`,
-  transitionOneChildSupport: (name) => `Now let's step gently into ${name}'s own world.`,
-  transitionManyChildren: "Wonderful — we've met our heroes.",
-  transitionManyChildrenNames: (names) => `${joinNames(names, "en")}.`,
-  transitionManyChildrenSupport: "Now let's get to know each of them a little better.",
+  completionOneChild: (name, age) => `So our hero is ${name}, age ${age}.`,
+  completionOneChildSupport: (name) =>
+    `Now let's get to know ${name}'s own world a little better.`,
+  completionManyHeading: "We've met our heroes.",
+  completionManyNames: (names) => joinNames(names, "en"),
+  completionManySupport:
+    "Now let's get to know each of their worlds a little better.",
   transitionCta: (firstName) => `Meet ${firstName}`,
 
+  errHonorific: "Please choose a form of address.",
   errName: "Please enter your name.",
   errRelationship: "Please choose one.",
   errCustomLabel: "Please add a few words.",
@@ -217,22 +216,19 @@ const en: Phase01Copy = {
   relationshipReviewLabel: (rel) => relationshipLabel(rel, "en"),
 };
 
-// ── Russian ──────────────────────────────────────────────────────
+// ── Russian (infra parity, not this pass's focus) ────────────────
 const ru: Phase01Copy = {
-  eyebrow: "ЗНАКОМИМСЯ С ВАМИ",
   continue: "Продолжить",
   back: "Назад",
 
-  namePrimary: "Сначала давайте познакомимся с Вами.",
-  nameSupporting:
-    "Прежде чем узнать, для кого эта история, нам хочется познакомиться с человеком, который готовит её с такой заботой.",
-  nameQuestion: "Как Вас зовут?",
+  greetingPrimary: "Здравствуйте.",
+  greetingWelcome: "Рады видеть Вас в TALIMOON.",
+  greetingLead: "Сначала давайте познакомимся с Вами.",
+  addressQuestion: "Как к Вам можно обращаться?",
   namePlaceholder: "Напишите Ваше имя...",
 
-  ackGreeting: (name) => `Очень приятно, ${name}.`,
-  ackNext: "Теперь поговорим о самом важном человеке.",
-
-  relationshipQuestion: (name) => `${name}, для кого Вы готовите эту книгу?`,
+  ackLine: (rn) => `Очень приятно, ${rn}.`,
+  relationshipQuestion: "Для кого Вы готовите эту книгу?",
   customLabelQuestion: "Кем он(а) Вам приходится?",
   customLabelPlaceholder: "Например: ребёнок моего двоюродного брата",
 
@@ -257,14 +253,15 @@ const ru: Phase01Copy = {
   otherAge: "Другой возраст",
   yearsSuffix: (age) => `${age} лет`,
 
-  transitionOneChild: (name, age) => `Итак, наш герой — ${name}, ${age} лет.`,
-  transitionOneChildSupport: (name) =>
-    `Теперь мягко заглянем в собственный мир ${name}.`,
-  transitionManyChildren: "Прекрасно — мы познакомились с нашими героями.",
-  transitionManyChildrenNames: (names) => `${joinNames(names, "ru")}.`,
-  transitionManyChildrenSupport: "Теперь узнаем каждого из них немного лучше.",
+  completionOneChild: (name, age) => `Итак, наш герой — ${name}, ${age} лет.`,
+  completionOneChildSupport: (name) =>
+    `Теперь узнаем собственный мир ${name} немного лучше.`,
+  completionManyHeading: "Мы познакомились с нашими героями.",
+  completionManyNames: (names) => joinNames(names, "ru"),
+  completionManySupport: "Теперь узнаем мир каждого из них немного лучше.",
   transitionCta: (firstName) => `Познакомиться с ${firstName}`,
 
+  errHonorific: "Пожалуйста, выберите форму обращения.",
   errName: "Пожалуйста, введите Ваше имя.",
   errRelationship: "Пожалуйста, выберите один вариант.",
   errCustomLabel: "Пожалуйста, добавьте несколько слов.",
@@ -275,22 +272,19 @@ const ru: Phase01Copy = {
   relationshipReviewLabel: (rel) => relationshipLabel(rel, "ru"),
 };
 
-// ── Arabic (RTL) ─────────────────────────────────────────────────
+// ── Arabic (infra parity, not this pass's focus) ────────────────
 const ar: Phase01Copy = {
-  eyebrow: "لِنَتَعَرَّفْ عَلَيْك",
   continue: "متابعة",
   back: "رجوع",
 
-  namePrimary: "أولًا، دعنا نتعرّف عليك.",
-  nameSupporting:
-    "قبل أن نعرف لِمَن هذه القصة، يسعدنا أن نتعرّف على الشخص الذي يُعِدّها بكل هذا الحب.",
-  nameQuestion: "ما اسمك؟",
+  greetingPrimary: "أهلًا وسهلًا.",
+  greetingWelcome: "يسعدنا وجودك في TALIMOON.",
+  greetingLead: "أولًا، دعنا نتعرّف عليك.",
+  addressQuestion: "كيف نخاطبك؟",
   namePlaceholder: "اكتب اسمك...",
 
-  ackGreeting: (name) => `سعدتُ بلقائك يا ${name}.`,
-  ackNext: "الآن لنتحدّث عن أهمّ شخص.",
-
-  relationshipQuestion: (name) => `${name}، لِمَن تُعِدّ هذا الكتاب؟`,
+  ackLine: (rn) => `سعدتُ بلقائك يا ${rn}.`,
+  relationshipQuestion: "لِمَن تُعِدّ هذا الكتاب؟",
   customLabelQuestion: "ما صلته بك؟",
   customLabelPlaceholder: "مثال: ابن ابن عمّي",
 
@@ -310,18 +304,18 @@ const ar: Phase01Copy = {
     return "ما اسمه؟";
   },
   childNamePlaceholder: "اكتب الاسم...",
-  childAgeQuestion: (name) =>
-    name.trim() ? `كم عمر ${name.trim()}؟` : "كم عمره؟",
+  childAgeQuestion: (name) => (name.trim() ? `كم عمر ${name.trim()}؟` : "كم عمره؟"),
   otherAge: "عمر آخر",
   yearsSuffix: (age) => `${age} سنة`,
 
-  transitionOneChild: (name, age) => `إذًا بطلنا هو ${name}، ${age} سنوات.`,
-  transitionOneChildSupport: (name) => `الآن لندخل بهدوء إلى عالم ${name} الخاص.`,
-  transitionManyChildren: "رائع — تعرّفنا على أبطالنا.",
-  transitionManyChildrenNames: (names) => `${joinNames(names, "ar")}.`,
-  transitionManyChildrenSupport: "الآن لنتعرّف على كلٍّ منهم بشكل أفضل.",
+  completionOneChild: (name, age) => `إذًا بطلنا هو ${name}، ${age} سنوات.`,
+  completionOneChildSupport: (name) => `الآن لنتعرّف على عالم ${name} الخاص بشكل أفضل.`,
+  completionManyHeading: "تعرّفنا على أبطالنا.",
+  completionManyNames: (names) => joinNames(names, "ar"),
+  completionManySupport: "الآن لنتعرّف على عالم كلٍّ منهم بشكل أفضل.",
   transitionCta: (firstName) => `تعرّف على ${firstName}`,
 
+  errHonorific: "من فضلك اختر صيغة المخاطبة.",
   errName: "من فضلك أدخل اسمك.",
   errRelationship: "من فضلك اختر واحدًا.",
   errCustomLabel: "من فضلك أضف بضع كلمات.",
@@ -338,7 +332,7 @@ export function phase01Copy(locale: Locale): Phase01Copy {
   return PHASE01_COPY[locale] ?? en;
 }
 
-// ── Journey chapters (progress rail) — used by Phase 01 and later ──
+// ── Journey chapters (progress rail) — Phase 01 is chapter 0 ──────
 export interface Chapter {
   key: string;
   label: Record<Locale, string>;
@@ -347,7 +341,7 @@ export interface Chapter {
 export const JOURNEY_CHAPTERS: Chapter[] = [
   {
     key: "you",
-    label: { uz: "Siz bilan tanishamiz", en: "Getting to know you", ru: "Знакомимся с Вами", ar: "لنتعرّف عليك" },
+    label: { uz: "Siz bilan tanishamiz", en: "Getting to know you", ru: "Знакомство", ar: "لنتعرّف عليك" },
   },
   {
     key: "world",
@@ -363,7 +357,7 @@ export const JOURNEY_CHAPTERS: Chapter[] = [
   },
   {
     key: "review",
-    label: { uz: "Ko‘rib chiqamiz", en: "Review", ru: "Проверяем", ar: "المراجعة" },
+    label: { uz: "Ko‘rib chiqamiz", en: "Review", ru: "Проверка", ar: "المراجعة" },
   },
   {
     key: "finish",

@@ -24,6 +24,7 @@ import {
   type Phase01Result,
 } from "@/lib/order/types";
 import {
+  formatRespectfulName,
   relationshipLabel,
   type RecipientRelationship,
 } from "@/lib/order/relationship";
@@ -300,7 +301,11 @@ export default function PersonalizedBookOrderForm({
   function handlePhase01(result: Phase01Result) {
     setData((prev) => ({
       ...prev,
-      orderer: { ...prev.orderer, name: result.ordererName },
+      orderer: {
+        ...prev.orderer,
+        honorific: result.ordererHonorific,
+        name: result.ordererName,
+      },
       recipientRelationship: result.recipientRelationship,
       children: result.children,
       bookType: bookTypeForChildCount(result.children.length),
@@ -369,6 +374,7 @@ export default function PersonalizedBookOrderForm({
         initial={
           phase01Seeded
             ? {
+                ordererHonorific: data.orderer.honorific,
                 ordererName: data.orderer.name,
                 recipientRelationship: data.recipientRelationship,
                 children: data.children,
@@ -400,6 +406,11 @@ export default function PersonalizedBookOrderForm({
     .map((ch) => `${ch.name.trim()}${t.years(ch.age)}`)
     .filter((s) => s.trim().length > 0)
     .join(" · ");
+  const respectfulName = formatRespectfulName(
+    locale,
+    data.orderer.honorific,
+    data.orderer.name,
+  );
 
   return (
     <section className="mx-auto w-full max-w-container-content bg-surface-base px-6 py-16 sm:px-8 md:py-20 lg:px-16 lg:py-28">
@@ -594,6 +605,11 @@ export default function PersonalizedBookOrderForm({
                 <p className="font-display text-[16px] font-medium text-text-primary">
                   {heroLine}
                 </p>
+                {respectfulName && (
+                  <p className="mt-2 font-sans text-[12.5px] text-text-secondary">
+                    {respectfulName}
+                  </p>
+                )}
               </div>
 
               <p className="pt-1 font-sans text-[13px] text-text-secondary">

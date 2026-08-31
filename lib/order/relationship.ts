@@ -29,9 +29,9 @@ export type { Locale };
 export type RelationshipType =
   | "parent" // Farzandim
   | "grandparent" // Nabiram
-  | "aunt-uncle" // Jiyanim (orderer is the aunt / uncle)
-  | "sibling" // Ukam / singlim (the child is the orderer's younger sibling)
-  | "sibling-child" // Akam / opamning farzandi
+  | "aunt-uncle" // Jiyanim — the orderer is the aunt / uncle (covers
+  //                 "my brother's / sister's child" too: same kinship)
+  | "sibling" // Ukam / singlim — the child is the orderer's younger sibling
   | "friend-child" // Yaqin insonimning farzandi
   | "other"; // Boshqa — custom, `customLabel` is filled in
 
@@ -47,10 +47,74 @@ export const RELATIONSHIP_TYPES: readonly RelationshipType[] = [
   "grandparent",
   "aunt-uncle",
   "sibling",
-  "sibling-child",
   "friend-child",
   "other",
 ] as const;
+
+// ── Honorific / form of address (Phase 01 spec §13–16) ────────────
+// Stored locale-independent; the displayed word + its position
+// (before or after the name) are resolved per locale.
+export type Honorific = "mr" | "ms";
+
+interface HonorificEntry {
+  /** Selector label, e.g. "Janob" / "Xonim" / "Mr" / "Ms". */
+  label: string;
+  /** Where the word sits relative to the name in this locale. */
+  position: "before" | "after";
+}
+
+const HONORIFICS: Record<Locale, Record<Honorific, HonorificEntry>> = {
+  uz: {
+    // Selector shows "Janob" / "Xonim"; composed it's "Janob Sherzodbek"
+    // (before) and "Nilufar xonim" (after, lower-cased — see formatter).
+    mr: { label: "Janob", position: "before" },
+    ms: { label: "Xonim", position: "after" },
+  },
+  en: {
+    mr: { label: "Mr", position: "before" },
+    ms: { label: "Ms", position: "before" },
+  },
+  ru: {
+    mr: { label: "Господин", position: "before" },
+    ms: { label: "Госпожа", position: "before" },
+  },
+  ar: {
+    mr: { label: "السيد", position: "before" },
+    ms: { label: "السيدة", position: "before" },
+  },
+};
+
+/** Selector label for one honorific in one locale ("Janob" / "Ms"). */
+export function honorificLabel(h: Honorific, locale: Locale): string {
+  return HONORIFICS[locale][h].label;
+}
+
+export function honorificOptions(
+  locale: Locale,
+): { value: Honorific; label: string }[] {
+  return (["mr", "ms"] as const).map((value) => ({
+    value,
+    label: honorificLabel(value, locale),
+  }));
+}
+
+/**
+ * The one place honorific + name are composed. Uzbek puts "Janob"
+ * before the name and "xonim" after it; English/Russian/Arabic put
+ * the title before. No honorific ⇒ the plain trimmed name.
+ */
+export function formatRespectfulName(
+  locale: Locale,
+  honorific: Honorific | null | undefined,
+  name: string,
+): string {
+  const clean = name.trim().replace(/\s+/g, " ");
+  if (!honorific || !clean) return clean;
+  const { label, position } = HONORIFICS[locale][honorific];
+  if (position === "before") return `${label} ${clean}`;
+  // A trailing honorific (Uzbek "xonim") reads lower-case after the name.
+  return `${clean} ${label.toLocaleLowerCase(locale === "uz" ? "uz" : undefined)}`;
+}
 
 export function isRelationshipType(value: unknown): value is RelationshipType {
   return (
@@ -78,11 +142,6 @@ const UZ: LocaleTable = {
   grandparent: { option: "Nabiram", possessive: "nabirangiz", usesNeutralCount: false },
   "aunt-uncle": { option: "Jiyanim", possessive: "jiyaningiz", usesNeutralCount: false },
   sibling: { option: "Ukam / singlim", possessive: null, usesNeutralCount: true },
-  "sibling-child": {
-    option: "Akam / opamning farzandi",
-    possessive: "jiyaningiz",
-    usesNeutralCount: false,
-  },
   "friend-child": {
     option: "Yaqin insonimning farzandi",
     possessive: null,
@@ -101,11 +160,6 @@ const EN: LocaleTable = {
   "aunt-uncle": { option: "My niece / nephew", possessive: null, usesNeutralCount: true },
   sibling: {
     option: "My younger brother / sister",
-    possessive: null,
-    usesNeutralCount: true,
-  },
-  "sibling-child": {
-    option: "My sibling's child",
     possessive: null,
     usesNeutralCount: true,
   },
@@ -134,11 +188,6 @@ const RU: LocaleTable = {
     possessive: null,
     usesNeutralCount: true,
   },
-  "sibling-child": {
-    option: "Ребёнок моего брата / сестры",
-    possessive: null,
-    usesNeutralCount: true,
-  },
   "friend-child": {
     option: "Ребёнок близкого человека",
     possessive: null,
@@ -156,11 +205,6 @@ const AR: LocaleTable = {
     usesNeutralCount: true,
   },
   sibling: { option: "أخي الأصغر / أختي الصغرى", possessive: null, usesNeutralCount: true },
-  "sibling-child": {
-    option: "ابن أخي أو أختي",
-    possessive: null,
-    usesNeutralCount: true,
-  },
   "friend-child": {
     option: "طفل شخص عزيز عليّ",
     possessive: null,
