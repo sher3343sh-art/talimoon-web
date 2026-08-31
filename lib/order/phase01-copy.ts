@@ -69,7 +69,9 @@ export interface Phase01Copy {
   countUnit: (n: number) => string;
 
   // 4 — child name + age ("meeting a character")
-  childMoment: (index: number, total: number) => string;
+  /** Conversational scene heading — never just the bare name; once the
+   *  name is typed it is woven in naturally. */
+  childMoment: (index: number, total: number, name: string) => string;
   childNamePrompt: (index: number, total: number, rel: RecipientRelationship) => string;
   childNamePlaceholder: string;
   childAgeQuestion: (name: string) => string;
@@ -121,9 +123,15 @@ const uz: Phase01Copy = {
   },
   countUnit: (n) => `${n} ta`,
 
-  childMoment: (index, total) => {
+  childMoment: (index, total, name) => {
+    const nm = name.trim();
+    if (nm) {
+      return index === 0
+        ? `${nm} bilan tanishamiz.`
+        : `Endi ${nm} bilan tanishamiz.`;
+    }
     if (total === 1) return "Unda qahramonimiz bilan tanishamiz.";
-    if (index === 0) return "Birinchi qahramonimiz kim?";
+    if (index === 0) return "Birinchi qahramonimiz bilan tanishamiz.";
     if (index === total - 1) return "Yana bittasi qoldi 😊";
     return `Endi ${UZ_ORDINALS[index]} qahramonimiz bilan tanishamiz.`;
   },
@@ -164,8 +172,8 @@ const en: Phase01Copy = {
   continue: "Continue",
   back: "Back",
 
-  greetingPrimary: "Hello, and welcome.",
-  greetingWelcome: "We're glad you're here at TALIMOON.",
+  greetingPrimary: "Hello.",
+  greetingWelcome: "Welcome to TALIMOON.",
   greetingLead: "First, let's get to know you.",
   addressQuestion: "How may we address you?",
   namePlaceholder: "Type your name...",
@@ -178,9 +186,13 @@ const en: Phase01Copy = {
   countQuestion: () => "How many children will be the main characters of this story?",
   countUnit: (n) => `${n}`,
 
-  childMoment: (index, total) => {
+  childMoment: (index, total, name) => {
+    const nm = name.trim();
+    if (nm) {
+      return index === 0 ? `Let's meet ${nm}.` : `Now, let's meet ${nm}.`;
+    }
     if (total === 1) return "Then let's meet them.";
-    if (index === 0) return "Who is our first character?";
+    if (index === 0) return "Let's meet our first character.";
     if (index === total - 1) return "Just one more 😊";
     return `Now let's meet the ${EN_ORDINALS[index]} character.`;
   },
@@ -235,9 +247,11 @@ const ru: Phase01Copy = {
   countQuestion: () => "Сколько детей станут главными героями этой истории?",
   countUnit: (n) => `${n}`,
 
-  childMoment: (index, total) => {
+  childMoment: (index, total, name) => {
+    const nm = name.trim();
+    if (nm) return index === 0 ? `Знакомимся с ${nm}.` : `Теперь знакомимся с ${nm}.`;
     if (total === 1) return "Тогда давайте познакомимся.";
-    if (index === 0) return "Кто наш первый герой?";
+    if (index === 0) return "Знакомимся с нашим первым героем.";
     if (index === total - 1) return "Остался ещё один 😊";
     return `Теперь познакомимся с ${RU_ORDINALS[index]} героем.`;
   },
@@ -291,9 +305,11 @@ const ar: Phase01Copy = {
   countQuestion: () => "كم عدد الأطفال الذين سيكونون أبطال هذه القصة؟",
   countUnit: (n) => `${n}`,
 
-  childMoment: (index, total) => {
+  childMoment: (index, total, name) => {
+    const nm = name.trim();
+    if (nm) return index === 0 ? `لنتعرّف على ${nm}.` : `الآن لنتعرّف على ${nm}.`;
     if (total === 1) return "إذًا لنتعرّف عليه.";
-    if (index === 0) return "من هو بطلنا الأول؟";
+    if (index === 0) return "لنتعرّف على بطلنا الأول.";
     if (index === total - 1) return "بقي واحد فقط 😊";
     return `الآن لنتعرّف على البطل ${AR_ORDINALS[index]}.`;
   },

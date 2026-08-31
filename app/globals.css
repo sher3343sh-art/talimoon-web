@@ -493,6 +493,30 @@
   color: var(--text-primary);
 }
 
+/* Autofilled fields keep the TALIMOON surface instead of the browser's
+   pale-blue / yellow autofill wash (Chromium paints it via an inset
+   box-shadow, so it can only be neutralised the same way). */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill {
+  -webkit-text-fill-color: var(--text-primary);
+  -webkit-box-shadow: 0 0 0 1000px var(--surface-base) inset;
+  caret-color: var(--text-primary);
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+/* The conversational order flow uses underline-style fields; a boxed
+   focus outline would look wrong on them, so the focus state there is
+   a strengthened gold underline instead (still clearly visible). This
+   is scoped to `[data-order-flow]` and does not touch buttons, which
+   keep the site-wide focus ring. */
+[data-order-flow] input:focus-visible {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 1px 0 0 var(--accent-primary);
+}
+
 /* ==========================================================================
    15. SCROLLBAR STYLING
    ========================================================================== */

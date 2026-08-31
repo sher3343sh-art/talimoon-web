@@ -255,9 +255,9 @@ export default function Phase01({
   const enterAnim = reduced
     ? {}
     : {
-        initial: { opacity: 0, y: 10 },
+        initial: { opacity: 0, y: 8 },
         animate: { opacity: 1, y: 0 },
-        transition: { duration: 0.4, ease: EASE },
+        transition: { duration: 0.28, ease: EASE },
       };
   const screenKey = screen.kind === "child" ? `child-${screen.index}` : screen.kind;
   const ctaLabel =
@@ -268,6 +268,7 @@ export default function Phase01({
   return (
     <section
       dir={dir}
+      data-order-flow=""
       className="mx-auto w-full max-w-container-content bg-surface-base px-6 pb-16 pt-9 sm:px-8 md:pb-24 md:pt-12 lg:px-16"
     >
       <div className="mx-auto max-w-md">
@@ -362,7 +363,13 @@ export default function Phase01({
           <button
             type="button"
             onClick={goNext}
-            className="inline-flex items-center gap-2 rounded-md bg-accent-primary px-6 py-3 font-sans text-[14px] font-medium text-white outline-none transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-primary"
+            // Kept clickable even when incomplete so tapping it surfaces
+            // the gentle inline reason; it just reads as not-yet-ready.
+            aria-disabled={!v.ok || undefined}
+            className={[
+              "inline-flex items-center gap-2 rounded-md bg-accent-primary px-6 py-3 font-sans text-[14px] font-medium text-white outline-none transition-opacity duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-primary",
+              v.ok ? "opacity-100 hover:opacity-90" : "opacity-40",
+            ].join(" ")}
           >
             {ctaLabel}
             <ArrowRight size={15} strokeWidth={1.75} className="rtl:-scale-x-100" />
@@ -548,7 +555,10 @@ function SceneRelationship({
   return (
     <fieldset>
       {ackName && (
-        <p className="mb-3 font-sans text-[14px] text-text-secondary">
+        // TALIMOON's first personal sentence — kept at its current size
+        // but given real presence: weight 600, the stronger text colour,
+        // and a comfortable gap before the question.
+        <p className="mb-6 font-sans text-[14.5px] font-semibold leading-[1.5] text-text-primary">
           {c.ackLine(ackName)}
         </p>
       )}
@@ -566,13 +576,24 @@ function SceneRelationship({
               aria-pressed={active}
               onClick={() => onSelect(opt.type)}
               className={[
-                "flex w-full items-center border-b border-border-subtle px-3 py-4 text-start font-sans outline-none transition-colors focus-visible:bg-accent-primary/[0.05]",
+                "flex w-full items-center justify-between gap-3 border-b border-border-subtle px-3 py-[18px] text-start font-sans outline-none transition-colors focus-visible:bg-accent-primary/[0.05]",
                 active
-                  ? "border-s-2 border-s-accent-primary bg-accent-primary/[0.05] ps-4 font-semibold text-text-primary"
-                  : "font-medium text-text-secondary hover:text-text-primary",
+                  ? "border-s-2 border-s-accent-primary bg-accent-primary/[0.06] ps-4 text-text-primary"
+                  : "text-text-secondary hover:bg-surface-raised/60 hover:text-text-primary",
               ].join(" ")}
             >
-              <span className="text-[16px]">{opt.label}</span>
+              <span className={active ? "text-[16px] font-semibold" : "text-[16px] font-medium"}>
+                {opt.label}
+              </span>
+              <ArrowRight
+                size={15}
+                strokeWidth={1.75}
+                aria-hidden="true"
+                className={[
+                  "shrink-0 text-accent-primary rtl:-scale-x-100",
+                  active ? "opacity-100" : "opacity-0",
+                ].join(" ")}
+              />
             </button>
           );
         })}
@@ -682,7 +703,7 @@ function SceneChild({
   return (
     <div>
       <Heading headingRef={headingRef}>
-        {name.trim() || c.childMoment(index, total)}
+        {c.childMoment(index, total, name)}
       </Heading>
 
       <div className="mt-7">
@@ -779,7 +800,10 @@ function SceneChild({
                 }
               }}
               placeholder={`${AGE_MIN}–${AGE_MAX}`}
-              className={textInputClass + " max-w-[120px]"}
+              className={
+                textInputClass +
+                " max-w-[120px] [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+              }
               aria-invalid={ageError ? true : undefined}
               autoFocus
             />
@@ -824,16 +848,23 @@ function SceneCompletion({
         {c.completionManyHeading}
       </Heading>
 
-      <ul className="mt-7 border-t border-border-subtle">
-        {kids.map((ch) => (
+      <span
+        aria-hidden="true"
+        className="mt-6 block h-px w-10 bg-accent-primary/60"
+      />
+      <ul className="mt-5">
+        {kids.map((ch, i) => (
           <li
             key={ch.id}
-            className="flex items-baseline justify-between border-b border-border-subtle py-3.5"
+            className={[
+              "flex items-baseline justify-between gap-4 py-4",
+              i > 0 ? "border-t border-border-subtle" : "",
+            ].join(" ")}
           >
-            <span className="font-display text-[19px] font-medium text-text-primary">
+            <span className="font-display text-[21px] font-medium leading-none text-text-primary">
               {ch.name.trim()}
             </span>
-            <span className="font-sans text-[13px] text-text-secondary">
+            <span className="font-sans text-[13px] tabular-nums text-text-secondary">
               {ch.age != null ? c.yearsSuffix(ch.age) : ""}
             </span>
           </li>
