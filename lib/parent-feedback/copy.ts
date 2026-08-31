@@ -51,6 +51,13 @@ export interface SectionCopy {
   carouselNav: string;
   showFrom: (name: string) => string;
 
+  /** Meta line under the "OTA-ONALARDAN" label. */
+  commentCount: (n: number) => string;
+  /** Per-visitor read progress; only shown once `read > 0`. */
+  readProgress: (read: number, total: number) => string;
+  /** Real aggregate reader count — only shown when a backend supplies it. */
+  audienceCount: (n: number) => string;
+
   /** Reactions. */
   reactRowLabel: string;
   reactionLabel: Record<ReactionType, string>;
@@ -95,6 +102,9 @@ const COPY: Record<Locale, SectionCopy> = {
     reactionAria: (label, count, active) =>
       `${label} reaksiyasini tanlash — ${count} ta${active ? ", tanlangan" : ""}`,
     reactionError: "Reaksiya saqlanmadi. Qayta urinib ko‘ring.",
+    commentCount: (n) => `${n} ta izoh`,
+    readProgress: (read) => `${read} tasi o‘qildi`,
+    audienceCount: (n) => `${n} kishi kuzatmoqda`,
   },
 
   en: {
@@ -131,6 +141,9 @@ const COPY: Record<Locale, SectionCopy> = {
     reactionAria: (label, count, active) =>
       `React with ${label} — ${count}${active ? ", selected" : ""}`,
     reactionError: "Reaction wasn’t saved. Please try again.",
+    commentCount: (n) => `${n} ${n === 1 ? "comment" : "comments"}`,
+    readProgress: (read) => `${read} read`,
+    audienceCount: (n) => `${n} following`,
   },
 
   ru: {
@@ -166,6 +179,9 @@ const COPY: Record<Locale, SectionCopy> = {
     reactionAria: (label, count, active) =>
       `Реакция «${label}» — ${count}${active ? ", выбрано" : ""}`,
     reactionError: "Реакция не сохранена. Попробуйте ещё раз.",
+    commentCount: (n) => `Отзывов: ${n}`,
+    readProgress: (read) => `Прочитано: ${read}`,
+    audienceCount: (n) => `Читателей: ${n}`,
   },
 
   ar: {
@@ -200,6 +216,9 @@ const COPY: Record<Locale, SectionCopy> = {
     reactionAria: (label, count, active) =>
       `تفاعل ${label} — ${count}${active ? "، محدد" : ""}`,
     reactionError: "لم يتم حفظ التفاعل. حاول مرة أخرى.",
+    commentCount: (n) => `${n} رأي`,
+    readProgress: (read) => `${read} مقروء`,
+    audienceCount: (n) => `${n} متابعًا`,
   },
 };
 

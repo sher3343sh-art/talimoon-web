@@ -28,6 +28,7 @@
  * for Arabic.
  */
 
+import { useSyncExternalStore } from "react";
 import { motion, useReducedMotion, type Variants } from "framer-motion";
 import { FeedbackSubmissionCard } from "./FeedbackSubmissionCard";
 import { SectionOrnament } from "./SectionOrnament";
@@ -35,6 +36,11 @@ import { FeedbackCarousel } from "./FeedbackCarousel";
 import { FeedbackEmptyState } from "./FeedbackEmptyState";
 import { useFeedbackCopy } from "@/lib/parent-feedback/copy";
 import { getPublishedFeedback } from "@/lib/parent-feedback/feedback";
+import {
+  audienceCount,
+  readCountAmong,
+  subscribe as subscribeViews,
+} from "@/lib/parent-feedback/views";
 
 const sectionReveal: Variants = {
   hidden: { opacity: 0, y: 24 },
@@ -68,6 +74,32 @@ function DecorationSlot({
   );
 }
 
+/** The quiet meta line under "OTA-ONALARDAN": how many comments there
+ *  are (real) and, once this visitor has read at least one, how many
+ *  they have read. A true cross-visitor audience number is shown
+ *  instead only if `audienceCount()` ever returns one (needs a
+ *  backend) — never a fabricated figure. */
+function FeedbackMeta({ ids }: { ids: string[] }) {
+  const { copy } = useFeedbackCopy();
+  const read = useSyncExternalStore(
+    subscribeViews,
+    () => readCountAmong(ids),
+    () => 0,
+  );
+  const audience = audienceCount();
+
+  return (
+    <p className="mt-2 font-sans text-[0.8125rem] text-[var(--text-muted,#8B8578)]">
+      {copy.commentCount(ids.length)}
+      {audience != null
+        ? ` · ${copy.audienceCount(audience)}`
+        : read > 0
+          ? ` · ${copy.readProgress(read, ids.length)}`
+          : null}
+    </p>
+  );
+}
+
 export function ParentFeedbackSection() {
   const reducedMotion = useReducedMotion();
   const { copy, isRTL } = useFeedbackCopy();
@@ -77,7 +109,7 @@ export function ParentFeedbackSection() {
     <motion.section
       dir={isRTL ? "rtl" : undefined}
       aria-labelledby="parent-feedback-heading"
-      className="relative w-full overflow-hidden bg-surface-base py-8 md:py-10 lg:py-12"
+      className="relative w-full overflow-hidden bg-surface-base py-7 md:py-9 lg:py-10"
       initial={reducedMotion ? "visible" : "hidden"}
       whileInView="visible"
       viewport={{ once: true, amount: 0.15 }}
@@ -96,25 +128,28 @@ export function ParentFeedbackSection() {
           <SectionOrnament />
           <h2
             id="parent-feedback-heading"
-            className="mt-4 font-serif text-[2.25rem] font-medium leading-[1.15] tracking-[-0.01em] text-[var(--text-primary,#2A241D)]"
+            className="mt-3 font-serif text-[2.25rem] font-medium leading-[1.15] tracking-[-0.01em] text-[var(--text-primary,#2A241D)]"
           >
             {copy.headline}
           </h2>
-          <p className="mx-auto mt-4 max-w-[46ch] font-sans text-[1.125rem] leading-[1.65] text-[var(--text-secondary,#49433C)]">
+          <p className="mx-auto mt-3 max-w-[46ch] font-sans text-[1.125rem] leading-[1.6] text-[var(--text-secondary,#49433C)]">
             <span className="text-[var(--accent-primary,#B5764B)]">{copy.brand}</span>
             {copy.supporting}
           </p>
         </div>
 
-        <div className="mt-6 lg:mt-7">
+        <div className="mt-5 lg:mt-6">
           <FeedbackSubmissionCard />
         </div>
 
-        <div className="mt-7 text-center lg:mt-8">
+        <div className="mt-6 text-center lg:mt-7">
           <p className="font-sans text-[16px] font-semibold uppercase tracking-[0.16em] text-[var(--accent-primary,#B5764B)]">
             {copy.fromParents}
           </p>
           <SectionOrnament size="small" />
+          {feedback.length > 0 ? (
+            <FeedbackMeta ids={feedback.map((item) => item.id)} />
+          ) : null}
         </div>
 
         <div className="mt-5">

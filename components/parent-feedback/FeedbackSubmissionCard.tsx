@@ -173,7 +173,7 @@ export function FeedbackSubmissionCard() {
         </AnimatePresence>
       </div>
 
-      <p className="mx-auto mt-3 flex max-w-[62ch] items-start justify-center gap-1.5 text-center font-sans text-[0.875rem] leading-[1.55] text-[var(--text-secondary,#49433C)]">
+      <p className="mx-auto mt-2.5 flex max-w-[62ch] items-start justify-center gap-1.5 text-center font-sans text-[0.875rem] leading-[1.5] text-[var(--text-secondary,#49433C)]">
         <span className="mt-[0.15em] shrink-0 text-[var(--text-muted,#8B8578)]">
           <ShieldIcon />
         </span>

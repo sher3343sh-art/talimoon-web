@@ -8,11 +8,17 @@
  * then the parent's display name, then a verification badge ONLY when
  * the comment is genuinely verified through moderation
  * (`feedback.verified === true` — never inferred, never defaulted),
- * then the per-comment reaction row (secondary, kept visually quiet so
- * the emojis never overpower the words).
+ * then — on the centre card only — the per-comment reaction row
+ * (secondary, kept visually quiet so the emojis never overpower the
+ * words).
  *
- * `size` is the carousel treatment: "lg" is the elevated centre card,
- * "sm" the smaller, slightly muted card peeking in from a side.
+ * `size` is the carousel treatment:
+ *   "lg" — the elevated centre card: full text (3-line clamp), the
+ *          reaction row, the interaction target.
+ *   "sm" — a slim, faded peek from the side: 2-line clamp, no reaction
+ *          row (nothing to interact with from a card you can't focus),
+ *          so it stays short and the carousel doesn't tower over the
+ *          fold.
  */
 
 import { ReactionBar } from "./ReactionBar";
@@ -50,8 +56,8 @@ export function FeedbackCard({
       className={[
         "relative rounded-[24px] border border-[var(--border-subtle,rgba(42,36,29,0.08))] bg-[var(--paper-50,#FDFBF7)] transition-shadow duration-300 ease-out",
         isLarge
-          ? "p-6 shadow-[0_16px_40px_-16px_rgba(42,36,29,0.16)]"
-          : "p-5 shadow-[0_4px_16px_-6px_rgba(42,36,29,0.08)]",
+          ? "p-5 shadow-[0_16px_40px_-16px_rgba(42,36,29,0.16)]"
+          : "p-4 shadow-[0_4px_16px_-6px_rgba(42,36,29,0.08)]",
       ].join(" ")}
     >
       {feedback.isExample ? (
@@ -71,7 +77,7 @@ export function FeedbackCard({
         aria-hidden="true"
         className={[
           "block font-serif leading-none text-[var(--gold-500,#B8935B)]",
-          isLarge ? "text-[2.75rem]" : "text-[2.25rem]",
+          isLarge ? "text-[2.25rem]" : "text-[1.75rem]",
         ].join(" ")}
       >
         &#8220;
@@ -79,8 +85,8 @@ export function FeedbackCard({
 
       <p
         className={[
-          "line-clamp-4 font-serif font-medium leading-[1.35] text-[var(--text-primary,#2A241D)]",
-          isLarge ? "mt-1 text-[1.375rem]" : "mt-1 text-[1.0625rem]",
+          "font-serif font-medium leading-[1.35] text-[var(--text-primary,#2A241D)]",
+          isLarge ? "mt-1 line-clamp-3 text-[1.3125rem]" : "mt-0.5 line-clamp-2 text-[1rem]",
         ].join(" ")}
       >
         {feedback.content}
@@ -89,7 +95,7 @@ export function FeedbackCard({
       <div
         className={[
           "border-t border-[var(--border-subtle,rgba(42,36,29,0.08))]",
-          isLarge ? "mt-4 pt-3" : "mt-3 pt-2.5",
+          isLarge ? "mt-3 pt-2.5" : "mt-2.5 pt-2",
         ].join(" ")}
       >
         <p className="font-serif text-[0.9375rem] font-medium text-[var(--text-primary,#2A241D)]">
@@ -106,9 +112,11 @@ export function FeedbackCard({
         ) : null}
       </div>
 
-      <div className={isLarge ? "mt-3" : "mt-2.5"}>
-        <ReactionBar feedbackId={feedback.id} reactions={feedback.reactions} />
-      </div>
+      {isLarge ? (
+        <div className="mt-2.5">
+          <ReactionBar feedbackId={feedback.id} reactions={feedback.reactions} />
+        </div>
+      ) : null}
     </article>
   );
 }
