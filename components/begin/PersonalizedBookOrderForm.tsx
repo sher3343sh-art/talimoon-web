@@ -7,10 +7,8 @@ import { toLocale } from "@/lib/journey/types";
 import {
   BOOK_LANGUAGES,
   BookType,
-  MAX_TRAITS,
   PAYMENT_METHODS,
   STEPS,
-  TRAITS,
   TraitId,
   calculatePrice,
   formatSom,
@@ -24,6 +22,7 @@ import {
   type Phase01Result,
 } from "@/lib/order/types";
 import Phase02 from "./Phase02";
+import Phase03 from "./Phase03";
 import {
   formatRespectfulName,
   relationshipLabel,
@@ -265,7 +264,9 @@ export default function PersonalizedBookOrderForm({
   const locale = toLocale(language);
   const t = useT(CHROME_EN, CHROME_UZ);
 
-  const [phase, setPhase] = useState<"intro" | "world" | "steps">("intro");
+  const [phase, setPhase] = useState<
+    "intro" | "world" | "character" | "steps"
+  >("intro");
   const [stepIndex, setStepIndex] = useState(0);
   const [data, setData] = useState<FormData>(emptyForm);
   const [phase01Seeded, setPhase01Seeded] = useState(false);
@@ -326,8 +327,6 @@ export default function PersonalizedBookOrderForm({
 
   function canContinue(): boolean {
     switch (step.id) {
-      case "personalize":
-        return data.traits.length > 0;
       case "personal-touch":
         return data.giftFrom.trim().length > 0;
       case "photos":
@@ -400,6 +399,18 @@ export default function PersonalizedBookOrderForm({
         childrenIn={data.children}
         onPatchChild={patchChild}
         onBack={() => setPhase("intro")}
+        onComplete={() => setPhase("character")}
+      />
+    );
+  }
+
+  // ── Phase 03: the child's character ─────────────────────────────────────
+  if (phase === "character") {
+    return (
+      <Phase03
+        childrenIn={data.children}
+        onPatchChild={patchChild}
+        onBack={() => setPhase("world")}
         onComplete={() => {
           setPhase("steps");
           setStepIndex(0);
@@ -475,56 +486,9 @@ export default function PersonalizedBookOrderForm({
 
         {/* Step content */}
         <div className="space-y-5">
-          {step.id === "personalize" && (
-            <>
-              {/* interests & dreams are collected per-child in Phase 02
-                  ("the child's world"); this step keeps character/detail
-                  fields until Phase 03 restructures them. */}
-              <Field label={t.qualities(MAX_TRAITS)}>
-                <div className="flex flex-wrap gap-2">
-                  {TRAITS.map((trait) => {
-                    const active = data.traits.includes(trait.id);
-                    return (
-                      <button
-                        key={trait.id}
-                        type="button"
-                        aria-pressed={active}
-                        onClick={() => {
-                          update("traits", (prev) =>
-                            prev.includes(trait.id)
-                              ? prev.filter((id) => id !== trait.id)
-                              : prev.length < MAX_TRAITS
-                                ? [...prev, trait.id]
-                                : prev,
-                          );
-                        }}
-                        className={[
-                          "rounded-pill border px-3.5 py-1.5 font-sans text-[12.5px] font-medium transition-colors",
-                          active
-                            ? "border-accent-primary bg-accent-primary text-white"
-                            : "border-border-default bg-transparent text-text-primary",
-                        ].join(" ")}
-                      >
-                        {language === "UZ" ? trait.uz : trait.en}
-                      </button>
-                    );
-                  })}
-                </div>
-              </Field>
-              <Field label={t.weaknesses} hint={t.weaknessesHint}>
-                <TextArea
-                  value={data.weaknesses}
-                  onChange={(e) => update("weaknesses", e.target.value)}
-                />
-              </Field>
-              <Field label={t.extraInfo}>
-                <TextArea
-                  value={data.extraInfo}
-                  onChange={(e) => update("extraInfo", e.target.value)}
-                />
-              </Field>
-            </>
-          )}
+          {/* "personalize" step removed — qualities, growth behaviour and
+              desired values are now collected per child in Phase 03
+              ("the child's character"). */}
 
           {step.id === "personal-touch" && (
             <>

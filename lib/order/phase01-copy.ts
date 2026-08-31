@@ -364,8 +364,8 @@ export const JOURNEY_CHAPTERS: Chapter[] = [
     label: { uz: "Uning dunyosi", en: "Their world", ru: "Их мир", ar: "عالمه" },
   },
   {
-    key: "wish",
-    label: { uz: "Sizning tilagingiz", en: "Your wish", ru: "Ваше пожелание", ar: "أمنيتك" },
+    key: "character",
+    label: { uz: "Xarakteri", en: "Character", ru: "Характер", ar: "الشخصية" },
   },
   {
     key: "photos",

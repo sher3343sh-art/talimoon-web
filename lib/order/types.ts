@@ -70,10 +70,26 @@ export interface ChildProfile {
   /** True once this child's Phase 02 conversation is finished. */
   phase02Done?: boolean;
 
-  // ── Phase 03+ (declared, not collected yet) ────────────────────
-  strengths?: string[];
-  growthAreas?: string;
-  desiredFutureQualities?: string[];
+  // ── Phase 03 — "the child's character" (per child) ─────────────
+  /** Up to 3 qualities the adult appreciates. Prepared key or the
+   *  adult's own words — never a judgement, always something valued. */
+  appreciatedQualities?: string[];
+  /** A real moment those qualities show (optional free text). */
+  qualityExample?: string;
+  /** ONE behaviour the adult would gently like to support. A prepared
+   *  key, the adult's own words, or "" when there is none. Describes a
+   *  behaviour, never labels the child. */
+  growthBehavior?: string;
+  /** Set when the adult says there is nothing in particular. */
+  noGrowthArea?: boolean;
+  /** When that behaviour usually shows (free text, only with a behaviour). */
+  growthContext?: string;
+  /** Up to 3 values the story should strengthen. */
+  desiredValues?: string[];
+  /** True once this child's Phase 03 conversation is finished. */
+  phase03Done?: boolean;
+
+  // ── Later phases (declared, not collected yet) ─────────────────
   specialDetails?: string;
   photos?: File[];
 }
@@ -87,6 +103,17 @@ export function reconcileDream(status: DreamStatus): Partial<ChildProfile> {
   if (status === "has-dream") return { dreamStatus: status, adultHope: "" };
   if (status === "not-yet") return { dreamStatus: status, childDream: "" };
   return { dreamStatus: null, childDream: "", adultHope: "" };
+}
+
+/**
+ * When the adult switches to "nothing in particular", the growth
+ * behaviour + context are stale and must not reach the portrait or
+ * the summary. Returns a patch clearing whatever no longer applies.
+ */
+export function reconcileGrowth(hasBehavior: boolean): Partial<ChildProfile> {
+  return hasBehavior
+    ? { noGrowthArea: false }
+    : { noGrowthArea: true, growthBehavior: "", growthContext: "" };
 }
 
 /** A crypto-random id with a safe fallback for older browsers / SSR. */
