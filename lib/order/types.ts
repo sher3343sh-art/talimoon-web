@@ -41,6 +41,31 @@ export function emptyOrderer(): Orderer {
 /** Phase 02 dream routes. `null` until the adult chooses one. */
 export type DreamStatus = "has-dream" | "not-yet" | null;
 
+/**
+ * "Yuragingizda qolgan gaplar" — the emotional bridge. Three
+ * conceptually separate pieces, gathered per child, every one
+ * optional.
+ *
+ * `privateContext` may be a difficult adult account (distance, an
+ * argument, a delicate family matter). It stays PRIVATE: it is never
+ * shown to the child in the form and never copied into the story.
+ * It is used only to understand the safe feeling to convey — and
+ * never to blame a caregiver, take a side, or press the child to
+ * forgive or love someone.
+ */
+export interface EmotionalBridge {
+  /** Q1 — the real situation, in the adult's words. Private context. */
+  privateContext?: string;
+  /** Q2 — what the adult hopes the child feels from the story. */
+  intendedFeeling?: string;
+  /** Q3 — one sentence the adult would say from the heart. */
+  heartMessage?: string;
+  /** True once this child's section has been seen through to the end.
+   *  The section is optional, so this can be true with every field
+   *  left blank. */
+  done?: boolean;
+}
+
 export interface ChildProfile {
   /** Stable identity — assigned once, on creation. Future child data
    *  attaches to this, so it must never be derived from position. */
@@ -88,6 +113,12 @@ export interface ChildProfile {
   desiredValues?: string[];
   /** True once this child's Phase 03 conversation is finished. */
   phase03Done?: boolean;
+
+  // ── "Yuragingizda qolgan gaplar" — the emotional bridge (per child) ──
+  /** Private context + the feeling to carry across + one heartfelt
+   *  line. Kept per child; one child's private context is never shown
+   *  against another. See {@link EmotionalBridge}. */
+  emotionalBridge?: EmotionalBridge;
 
   // ── Later phases (declared, not collected yet) ─────────────────
   specialDetails?: string;

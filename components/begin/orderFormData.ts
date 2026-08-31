@@ -89,10 +89,12 @@ export const PAYMENT_METHODS = [
 /**
  * Wizard steps AFTER Phase 01 ("Siz bilan tanishamiz" — orderer name,
  * relationship, children's names + ages — handled by Phase01.tsx).
- * The conversational chapter and these steps together form the six
+ * The conversational chapters and these steps together form the seven
  * JOURNEY_CHAPTERS in `@/lib/order/phase01-copy`; the per-step
  * `chapter` index below points into that list so the progress rail
- * stays in sync.
+ * stays in sync. Chapter 3 ("Ko‘ngil so‘zlari") is its own quiet
+ * screen between "a personal touch" and the photos — see
+ * EmotionalBridge.tsx — not a wizard step, so no entry here.
  */
 export type StepId =
   | "personal-touch"
@@ -114,7 +116,7 @@ export interface StepConfig {
 
 export const STEPS: StepConfig[] = [
   { id: "personal-touch", chapter: 2, eyebrow: "A personal touch", eyebrowUz: "Shaxsiy jozibasi", title: "A personal touch", titleUz: "Shaxsiy jozibasi", icon: Heart },
-  { id: "photos", chapter: 3, eyebrow: "Photos", eyebrowUz: "Suratlar", title: "Photos for the illustrations", titleUz: "Illyustratsiyalar uchun suratlar", icon: Camera },
-  { id: "review", chapter: 4, eyebrow: "Review", eyebrowUz: "Ko'rib chiqamiz", title: "Delivery, language & review", titleUz: "Yetkazish, til va ko'rib chiqish", icon: Globe },
-  { id: "payment", chapter: 5, eyebrow: "Finish", eyebrowUz: "Yakun", title: "Payment", titleUz: "To'lov", icon: CreditCard },
+  { id: "photos", chapter: 4, eyebrow: "Photos", eyebrowUz: "Suratlar", title: "Photos for the illustrations", titleUz: "Illyustratsiyalar uchun suratlar", icon: Camera },
+  { id: "review", chapter: 5, eyebrow: "Review", eyebrowUz: "Ko'rib chiqamiz", title: "Delivery, language & review", titleUz: "Yetkazish, til va ko'rib chiqish", icon: Globe },
+  { id: "payment", chapter: 6, eyebrow: "Finish", eyebrowUz: "Yakun", title: "Payment", titleUz: "To'lov", icon: CreditCard },
 ];

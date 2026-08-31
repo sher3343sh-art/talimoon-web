@@ -368,6 +368,15 @@ export const JOURNEY_CHAPTERS: Chapter[] = [
     label: { uz: "Xarakteri", en: "Character", ru: "Характер", ar: "الشخصية" },
   },
   {
+    key: "heart",
+    label: {
+      uz: "Ko‘ngil so‘zlari",
+      en: "Heartfelt words",
+      ru: "Слова от сердца",
+      ar: "كلمات من القلب",
+    },
+  },
+  {
     key: "photos",
     label: { uz: "Suratlar", en: "Photos", ru: "Фотографии", ar: "الصور" },
   },

@@ -23,6 +23,7 @@ import {
 } from "@/lib/order/types";
 import Phase02 from "./Phase02";
 import Phase03 from "./Phase03";
+import EmotionalBridge from "./EmotionalBridge";
 import {
   formatRespectfulName,
   relationshipLabel,
@@ -30,6 +31,11 @@ import {
 } from "@/lib/order/relationship";
 import Phase01 from "./Phase01";
 import { JourneyProgress } from "./JourneyProgress";
+
+/** Where "Yuragingizda qolgan gaplar" (its own quiet screen, not a
+ *  wizard step) slots in: after "a personal touch", before the photos. */
+const PERSONAL_TOUCH_STEP = STEPS.findIndex((s) => s.id === "personal-touch");
+const PHOTOS_STEP = STEPS.findIndex((s) => s.id === "photos");
 
 // ─── Copy ───────────────────────────────────────────────────────────────────
 
@@ -265,9 +271,13 @@ export default function PersonalizedBookOrderForm({
   const t = useT(CHROME_EN, CHROME_UZ);
 
   const [phase, setPhase] = useState<
-    "intro" | "world" | "character" | "steps"
+    "intro" | "world" | "character" | "heart" | "steps"
   >("intro");
   const [stepIndex, setStepIndex] = useState(0);
+  /** Where the customer lands when the "Yuragingizda qolgan gaplar"
+   *  screen opens: "start" going forward, "end" stepping back from
+   *  the photos so edits are quick. */
+  const [heartEntry, setHeartEntry] = useState<"start" | "end">("start");
   const [data, setData] = useState<FormData>(emptyForm);
   const [phase01Seeded, setPhase01Seeded] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -350,6 +360,14 @@ export default function PersonalizedBookOrderForm({
       setShowStepError(true);
       return;
     }
+    // "Yuragingizda qolgan gaplar" lives between "a personal touch" and
+    // the photos — its own quiet screen, not a wizard step.
+    if (step.id === "personal-touch") {
+      setHeartEntry("start");
+      setPhase("heart");
+      setShowStepError(false);
+      return;
+    }
     if (isLastStep) {
       // TODO: wire to backend (upload + admin notification) once the
       // order-intake API exists. Validated form state only for now.
@@ -361,6 +379,14 @@ export default function PersonalizedBookOrderForm({
   }
 
   function goBack() {
+    // Back from the photos returns through "Yuragingizda qolgan gaplar",
+    // landing on its acknowledgement so an edit is one step away.
+    if (step.id === "photos") {
+      setHeartEntry("end");
+      setPhase("heart");
+      setShowStepError(false);
+      return;
+    }
     if (stepIndex === 0) {
       setPhase("intro");
       return;
@@ -414,6 +440,30 @@ export default function PersonalizedBookOrderForm({
         onComplete={() => {
           setPhase("steps");
           setStepIndex(0);
+          setShowStepError(false);
+        }}
+      />
+    );
+  }
+
+  // ── "Yuragingizda qolgan gaplar" — the emotional bridge ─────────────────
+  //    A quiet screen between "a personal touch" and the photo upload.
+  if (phase === "heart") {
+    return (
+      <EmotionalBridge
+        childrenIn={data.children}
+        recipientRelationship={data.recipientRelationship}
+        ordererHonorific={data.orderer.honorific}
+        entry={heartEntry}
+        onPatchChild={patchChild}
+        onBack={() => {
+          setPhase("steps");
+          setStepIndex(PERSONAL_TOUCH_STEP);
+          setShowStepError(false);
+        }}
+        onComplete={() => {
+          setPhase("steps");
+          setStepIndex(PHOTOS_STEP);
           setShowStepError(false);
         }}
       />
