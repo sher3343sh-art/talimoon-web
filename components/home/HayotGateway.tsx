@@ -46,6 +46,29 @@ const HAIRLINE = 'rgba(28,42,58,0.14)';
 
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
+// ── The 3-panel editorial carousel — geometry lives in globals.css
+//    (`[data-hg-carousel]` custom properties + the `hg-orbit` loop).
+//    These transform strings are the three resting poses. They double
+//    as the prefers-reduced-motion static composition AND as the loop's
+//    exact t=0 pose for each panel, so enabling motion never jumps.
+const POSE_LEFT =
+  'translateX(-50%) translateX(calc(-1 * var(--hg-side-x))) translateZ(var(--hg-z-back)) rotateY(var(--hg-ry)) scale(var(--hg-side-scale))';
+const POSE_RIGHT =
+  'translateX(-50%) translateX(var(--hg-side-x)) translateZ(var(--hg-z-back)) rotateY(calc(-1 * var(--hg-ry))) scale(var(--hg-side-scale))';
+const POSE_CENTER =
+  'translateX(-50%) translateZ(var(--hg-z-front)) rotateY(0deg) scale(1)';
+
+/** State 1 (spec): panel 0 → LEFT · panel 1 → RIGHT · panel 2 → CENTRE.
+ *  Delays phase each panel by a third of the 18s loop so all three move
+ *  together, one becoming the dominant centre in turn. */
+const PANEL_POSE = [
+  { transform: POSE_LEFT, opacity: 'var(--hg-side-op)', zIndex: 20 },
+  { transform: POSE_RIGHT, opacity: 'var(--hg-side-op)', zIndex: 10 },
+  { transform: POSE_CENTER, opacity: 1, zIndex: 30 },
+] as const;
+const PANEL_DELAY = ['0s', '-12s', '-6s'] as const;
+const ORBIT_EASE = 'cubic-bezier(0.66, 0, 0.24, 1)';
+
 type FaceImage = { src: string; alt: string } | null;
 
 /**
@@ -264,58 +287,61 @@ export function HayotGateway() {
     </motion.div>
   );
 
-  // The editorial image is a slow, continuously-turning triangular
-  // prism — three designed faces, one per Journey world (a large
-  // ghosted folio numeral + the world name, over the photo once one
-  // is supplied). It always reads as a solid object turning in space:
-  // strong-ish perspective, a grounding floor shadow, a soft top
-  // light on each face. Frozen on the first face under
-  // prefers-reduced-motion. Inset from the column edge so a full turn
-  // never overflows.
-  const faceBase =
-    'absolute inset-0 overflow-hidden [backface-visibility:hidden] [-webkit-backface-visibility:hidden]';
+  // The editorial image area is a 3-panel 3D carousel: one dominant,
+  // almost front-facing CENTRE panel, with two narrower, gently angled
+  // side panels receded behind it. The camera never moves — the panels
+  // themselves orbit LEFT → CENTRE → RIGHT → LEFT forever, each taking
+  // its turn as the featured centre. Geometry + the slow loop live in
+  // globals.css (`[data-hg-carousel]` vars + `hg-orbit`). Under
+  // prefers-reduced-motion the loop is off and each panel holds its
+  // inline base pose — a stable premium composition. Autoplay pauses
+  // on a genuine hover/focus.
+  const centerAtRest = 2; // panel 2 (ODATLAR VA ILM) is the resting centre
 
   const imageFrame = (
-    <motion.div {...rise(0.1)} className="relative min-w-0">
+    <motion.div
+      {...rise(0.1)}
+      data-hg-carousel
+      className="relative min-w-0"
+    >
       <Link
         href="/journey"
         tabIndex={-1}
         aria-hidden="true"
-        className="relative block [perspective:1500px] [perspective-origin:50%_40%]"
+        className="relative block [perspective:1450px] [perspective-origin:50%_45%]"
       >
         {/* layout box — fixed footprint, no CLS */}
-        <div className="relative aspect-[4/5] w-full sm:aspect-[3/2] lg:aspect-auto lg:h-[420px]">
-          {/* grounding floor shadow — gives the prism weight */}
+        <div className="relative aspect-[4/5] w-full [transform-style:preserve-3d] sm:aspect-[3/2] lg:aspect-auto lg:h-[420px]">
+          {/* one very soft, diffused shadow beneath the composition */}
           <span
             aria-hidden="true"
-            className="pointer-events-none absolute bottom-[-14px] left-1/2 h-7 w-[62%] -translate-x-1/2 lg:left-[57%]"
+            className="pointer-events-none absolute inset-x-[10%] bottom-[-10px] h-9"
             style={{
               background:
-                'radial-gradient(ellipse at center, rgba(28,42,58,0.20), transparent 72%)',
-              filter: 'blur(7px)',
+                'radial-gradient(ellipse at 50% 100%, rgba(28,42,58,0.13), transparent 72%)',
+              filter: 'blur(11px)',
             }}
           />
 
-          {/* the rotating prism, inset from the right edge on desktop */}
-          <div
-            data-hg-card
-            className={`absolute inset-0 [--hg-r:112px] [transform-style:preserve-3d] md:[--hg-r:152px] lg:left-auto lg:w-[86%] ${
-              reduced
-                ? ''
-                : 'motion-safe:animate-[hg-prism-turn_20s_linear_infinite]'
-            }`}
-            style={{ transformStyle: 'preserve-3d', willChange: 'transform' }}
-          >
+          {/* the three panels, in a shared 3D space */}
+          <div className="absolute inset-0 [transform-style:preserve-3d]">
             {HAYOT_FACES.map((img, k) => {
               const num = String(k + 1).padStart(2, '0');
               const label = worldName(WORLD_KEYS[k], locale);
+              const pose = PANEL_POSE[k];
               return (
                 <div
                   key={k}
-                  className={faceBase}
+                  data-hg-panel
+                  className="absolute inset-y-0 left-1/2 overflow-hidden rounded-[2px] will-change-transform [backface-visibility:hidden]"
                   style={{
+                    width: 'var(--hg-panel-w)',
                     backgroundColor: PAPER,
-                    transform: `rotateY(${k * 120}deg) translateZ(var(--hg-r))`,
+                    transformOrigin: '50% 50%',
+                    transform: pose.transform,
+                    opacity: pose.opacity,
+                    zIndex: pose.zIndex,
+                    animation: `hg-orbit 18s ${ORBIT_EASE} ${PANEL_DELAY[k]} infinite`,
                   }}
                 >
                   {img ? (
@@ -324,7 +350,7 @@ export function HayotGateway() {
                       alt={img.alt}
                       fill
                       loading="lazy"
-                      sizes="(max-width: 1024px) 92vw, 46vw"
+                      sizes="(min-width: 1024px) 34vw, (min-width: 640px) 56vw, 80vw"
                       className="object-cover"
                     />
                   ) : (
@@ -335,35 +361,36 @@ export function HayotGateway() {
                     />
                   )}
 
-                  {/* soft directional light so each face has a surface */}
+                  {/* soft top light so each panel has a surface */}
                   <span
                     aria-hidden="true"
                     className="pointer-events-none absolute inset-0"
                     style={{
                       background:
-                        'linear-gradient(155deg, rgba(255,255,255,0.34), rgba(255,255,255,0) 34%, rgba(28,42,58,0) 68%, rgba(28,42,58,0.10))',
+                        'linear-gradient(155deg, rgba(255,255,255,0.30), rgba(255,255,255,0) 32%, rgba(28,42,58,0) 66%, rgba(28,42,58,0.10))',
                     }}
                   />
+                  {/* a restrained bottom tone, only when an image is set */}
                   {img ? (
                     <span
                       aria-hidden="true"
                       className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5"
                       style={{
                         background:
-                          'linear-gradient(to top, rgba(18,26,36,0.62), transparent)',
+                          'linear-gradient(to top, rgba(18,26,36,0.55), transparent)',
                       }}
                     />
                   ) : null}
 
-                  {/* big ghosted folio numeral */}
+                  {/* ghosted folio numeral */}
                   <span
                     aria-hidden="true"
-                    className="absolute start-6 top-4 select-none text-[86px] leading-none sm:text-[118px] lg:top-6 lg:text-[130px]"
+                    className="absolute start-5 top-3 select-none text-[70px] leading-none sm:text-[96px] lg:top-4 lg:text-[112px]"
                     style={{
                       fontFamily: DISPLAY,
                       fontWeight: 600,
                       color: img
-                        ? 'rgba(255,255,255,0.24)'
+                        ? 'rgba(255,255,255,0.22)'
                         : 'rgba(184,147,91,0.18)',
                     }}
                   >
@@ -372,7 +399,7 @@ export function HayotGateway() {
 
                   {/* world name, lower-left */}
                   <span
-                    className="absolute bottom-6 start-6 end-6 block text-[20px] sm:text-[24px] lg:text-[26px]"
+                    className="absolute bottom-5 start-5 end-5 block text-[17px] sm:text-[21px] lg:text-[24px]"
                     style={{
                       fontFamily: DISPLAY,
                       fontWeight: 600,
@@ -386,10 +413,11 @@ export function HayotGateway() {
                   </span>
 
                   <CropFrame />
+                  {/* the subtle ~1px warm gold-tinted frame */}
                   <span
                     aria-hidden="true"
-                    className="pointer-events-none absolute inset-0"
-                    style={{ boxShadow: 'inset 0 0 0 1px rgba(184,147,91,0.28)' }}
+                    className="pointer-events-none absolute inset-0 rounded-[2px]"
+                    style={{ boxShadow: 'inset 0 0 0 1px rgba(184,147,91,0.30)' }}
                   />
                 </div>
               );
@@ -398,7 +426,7 @@ export function HayotGateway() {
         </div>
 
         {/* the tiny sideways editorial note — a fixed anchor beside the
-            turning prism. LTR / md+ only. */}
+            gallery. LTR / md+ only. */}
         {!isRTL ? (
           <span
             aria-hidden="true"
@@ -419,6 +447,25 @@ export function HayotGateway() {
           </span>
         ) : null}
       </Link>
+
+      {/* three extremely subtle indicator dots, beneath the gallery */}
+      <div
+        aria-hidden="true"
+        className="mt-6 flex items-center justify-center gap-[7px] lg:mt-7"
+      >
+        {HAYOT_FACES.map((_, k) => (
+          <span
+            key={k}
+            data-hg-dot
+            className="h-[5px] w-[5px] rounded-full"
+            style={{
+              backgroundColor:
+                k === centerAtRest ? GOLD : 'rgba(28,42,58,0.22)',
+              animation: `hg-dot 18s ${ORBIT_EASE} ${PANEL_DELAY[k]} infinite`,
+            }}
+          />
+        ))}
+      </div>
     </motion.div>
   );
 
