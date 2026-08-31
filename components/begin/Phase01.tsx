@@ -356,7 +356,10 @@ function Question({
     <h2
       ref={headingRef}
       tabIndex={-1}
-      className="font-display text-[26px] font-medium leading-[1.2] tracking-tight text-text-primary outline-none sm:text-[30px]"
+      // Focused programmatically on every screen change so a screen
+      // reader announces the new question; it is not a tab stop, so
+      // the visible focus ring is suppressed.
+      className="font-display text-[26px] font-medium leading-[1.2] tracking-tight text-text-primary outline-none focus:outline-none focus-visible:outline-none sm:text-[30px]"
     >
       {children}
     </h2>
