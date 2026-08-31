@@ -1,26 +1,34 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import {
-  ArrowLeft,
-  ArrowRight,
-  Check,
-  Upload,
-  X,
-} from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Upload, X } from "lucide-react";
 import { useLanguage, useT } from "@/lib/i18n/LanguageContext";
+import { toLocale } from "@/lib/journey/types";
 import {
   BOOK_LANGUAGES,
   BookType,
   MAX_TRAITS,
   PAYMENT_METHODS,
-  PRICING,
   STEPS,
   TRAITS,
   TraitId,
   calculatePrice,
   formatSom,
 } from "./orderFormData";
+import {
+  bookTypeForChildCount,
+  emptyChild,
+  emptyOrderer,
+  type ChildProfile,
+  type Orderer,
+  type Phase01Result,
+} from "@/lib/order/types";
+import {
+  relationshipLabel,
+  type RecipientRelationship,
+} from "@/lib/order/relationship";
+import Phase01 from "./Phase01";
+import { JourneyProgress } from "./JourneyProgress";
 
 // ─── Copy ───────────────────────────────────────────────────────────────────
 
@@ -32,13 +40,14 @@ const CHROME_EN = {
   successBody: (phone: string) =>
     `We've received every detail. Our team will reach out on ${phone} once your book is ready to begin.`,
 
-  fullName: "Full name",
-  fullNamePlaceholder: "Parent or guardian's name",
+  heroesLabel: "Heroes of this story",
+  years: (age: number | null) => (age == null ? "" : `, ${age}`),
+
   phone: "Phone number",
   region: "Region",
   city: "City",
+  deliveryHint: "Where should the finished book reach you?",
 
-  howManyChildren: "How many children?",
   namePlaceholder: "Name",
   agePlaceholder: "Age",
   pagesUnit: "pages",
@@ -48,7 +57,8 @@ const CHROME_EN = {
   dreams: "What do they dream of becoming?",
   qualities: (max: number) => `Qualities to highlight (choose up to ${max})`,
   weaknesses: "Anything to gently work on?",
-  weaknessesHint: "Optional — habits or behaviors you'd like the story to address.",
+  weaknessesHint:
+    "Optional — habits or behaviors you'd like the story to address.",
   extraInfo: "Anything else that makes the story more personal?",
 
   giftFrom: "Who is this gift from?",
@@ -56,7 +66,8 @@ const CHROME_EN = {
   wantsPersonalMessage: "Add a personal message",
   personalMessagePlaceholder: "A note that will appear at the end of the book",
   wantsCharacters: "Include other characters",
-  charactersPlaceholder: "Names and relationship — e.g. sister Madina, grandfather",
+  charactersPlaceholder:
+    "Names and relationship — e.g. sister Madina, grandfather",
 
   childPhotos: "Child photos",
   childPhotosHint: "3–5 clear, well-lit photos showing the face",
@@ -75,7 +86,7 @@ const CHROME_EN = {
   availableSoon: "Available soon",
   uploadReceipt: "Upload payment receipt",
 
-  planSelected: (label: string, price: string) => `${label} · ${price} — selected`,
+  errContact: "Please add a phone number and where to deliver.",
 };
 
 const CHROME_UZ: typeof CHROME_EN = {
@@ -86,23 +97,26 @@ const CHROME_UZ: typeof CHROME_EN = {
   successBody: (phone: string) =>
     `Barcha ma'lumotlarni qabul qildik. Kitobingiz tayyor bo'lganda jamoamiz ${phone} raqamiga bog'lanadi.`,
 
-  fullName: "To'liq ism",
-  fullNamePlaceholder: "Ota-ona yoki vasiyning ismi",
+  heroesLabel: "Hikoya qahramonlari",
+  years: (age: number | null) => (age == null ? "" : `, ${age} yosh`),
+
   phone: "Telefon raqami",
   region: "Viloyat",
   city: "Shahar",
+  deliveryHint: "Tayyor kitob Sizga qayerga yetib borsin?",
 
-  howManyChildren: "Nechta farzand?",
   namePlaceholder: "Ismi",
   agePlaceholder: "Yoshi",
   pagesUnit: "bet",
 
   interests: "Ular nimani yaxshi ko'radi?",
-  interestsHint: "Sevimli mashg'ulotlari, o'yinlari — ularni quvontiradigan narsalar.",
+  interestsHint:
+    "Sevimli mashg'ulotlari, o'yinlari — ularni quvontiradigan narsalar.",
   dreams: "Kim bo'lishni orzu qilishadi?",
   qualities: (max: number) => `Ta'kidlanadigan fazilatlar (${max} tagacha tanlang)`,
   weaknesses: "Astoydil ishlov berish kerak bo'lgan narsa bormi?",
-  weaknessesHint: "Ixtiyoriy — hikoya orqali yumshoq ishora qilinishini istagan odat yoki xatti-harakat.",
+  weaknessesHint:
+    "Ixtiyoriy — hikoya orqali yumshoq ishora qilinishini istagan odat yoki xatti-harakat.",
   extraInfo: "Hikoyani yanada shaxsiy qiladigan boshqa narsa bormi?",
 
   giftFrom: "Bu sovg'a kimdan?",
@@ -129,23 +143,22 @@ const CHROME_UZ: typeof CHROME_EN = {
   availableSoon: "Tez orada mavjud bo'ladi",
   uploadReceipt: "To'lov chekini yuklang",
 
-  planSelected: (label: string, price: string) => `${label} · ${price} — tanlandi`,
+  errContact: "Iltimos, telefon raqami va yetkazish manzilini kiriting.",
 };
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
-interface Child {
-  name: string;
-  age: string;
-}
-
 interface FormData {
-  fullName: string;
-  phone: string;
-  region: string;
-  city: string;
+  orderer: Orderer;
+  recipientRelationship: RecipientRelationship;
+  /** Derived from `children.length` (see bookTypeForChildCount); kept
+   *  on the model because pricing keys off it. The customer never
+   *  sees "single" / "multi". */
   bookType: BookType;
-  children: Child[];
+  children: ChildProfile[];
+
+  // ── Later chapters (still order-level for now; migrating to
+  //    per-ChildProfile fields is Phase 02 work) ────────────────────
   interests: string;
   dreams: string;
   traits: TraitId[];
@@ -166,32 +179,32 @@ interface FormData {
   receipt: File | null;
 }
 
-const EMPTY: FormData = {
-  fullName: "",
-  phone: "",
-  region: "",
-  city: "",
-  bookType: "single",
-  children: [{ name: "", age: "" }],
-  interests: "",
-  dreams: "",
-  traits: [],
-  weaknesses: "",
-  extraInfo: "",
-  giftFrom: "",
-  wantsPersonalMessage: false,
-  personalMessage: "",
-  wantsCharacters: false,
-  characters: "",
-  childPhotos: [],
-  wantsSpecialPhoto: false,
-  specialPhoto: null,
-  characterPhotos: [],
-  bookLanguage: "",
-  copies: 1,
-  paymentMethod: "bank_transfer",
-  receipt: null,
-};
+function emptyForm(): FormData {
+  return {
+    orderer: emptyOrderer(),
+    recipientRelationship: { type: "parent" },
+    bookType: "single",
+    children: [emptyChild()],
+    interests: "",
+    dreams: "",
+    traits: [],
+    weaknesses: "",
+    extraInfo: "",
+    giftFrom: "",
+    wantsPersonalMessage: false,
+    personalMessage: "",
+    wantsCharacters: false,
+    characters: "",
+    childPhotos: [],
+    wantsSpecialPhoto: false,
+    specialPhoto: null,
+    characterPhotos: [],
+    bookLanguage: "",
+    copies: 1,
+    paymentMethod: "bank_transfer",
+    receipt: null,
+  };
+}
 
 // ─── Shared field primitives ────────────────────────────────────────────────
 
@@ -240,71 +253,66 @@ export default function PersonalizedBookOrderForm({
 }: {
   onBack: () => void;
   /**
-   * Pre-selects a plan when this form is entered from a pricing card
-   * that already committed to a book type — e.g. PricingSection on the
-   * product page. Omitted (undefined) for the /begin flow, where the
-   * visitor hasn't chosen a plan yet and picks one on the "book" step
-   * as before.
+   * Pre-selects the child count when the form is entered from a
+   * pricing card that already committed to a book type (e.g.
+   * PricingSection on the product page). Omitted for the /begin flow.
    */
   initialBookType?: BookType;
 }) {
   const { language } = useLanguage();
+  const locale = toLocale(language);
   const t = useT(CHROME_EN, CHROME_UZ);
+
+  const [phase, setPhase] = useState<"intro" | "steps">("intro");
   const [stepIndex, setStepIndex] = useState(0);
-  const [data, setData] = useState<FormData>(() =>
-    initialBookType
-      ? {
-          ...EMPTY,
-          bookType: initialBookType,
-          children:
-            initialBookType === "multi"
-              ? [{ name: "", age: "" }, { name: "", age: "" }]
-              : [{ name: "", age: "" }],
-        }
-      : EMPTY
-  );
+  const [data, setData] = useState<FormData>(emptyForm);
+  const [phase01Seeded, setPhase01Seeded] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [showStepError, setShowStepError] = useState(false);
 
   const step = STEPS[stepIndex];
-  const stepEyebrow = language === "UZ" ? step.eyebrowUz : step.eyebrow;
   const stepTitle = language === "UZ" ? step.titleUz : step.title;
   const isLastStep = stepIndex === STEPS.length - 1;
   const price = useMemo(
     () => calculatePrice(data.bookType, data.copies),
-    [data.bookType, data.copies]
+    [data.bookType, data.copies],
   );
 
-  // Accepts either a plain value or a `(prev) => next` updater, mirroring
-  // React's own setState overload. The updater form is required for any
-  // field computed FROM its own current value (traits, children) — two
-  // clicks fired in the same tick (e.g. selecting two trait pills in
-  // quick succession) both close over the same pre-render `data`, so
-  // computing `[...data.traits, x]` from that stale snapshot lets the
-  // second click silently overwrite the first. Reading `prev[key]`
-  // instead reads React's own queued value, so both updates apply.
   function update<K extends keyof FormData>(
     key: K,
-    value: FormData[K] | ((prev: FormData[K]) => FormData[K])
+    value: FormData[K] | ((prev: FormData[K]) => FormData[K]),
   ) {
     setData((prev) => ({
       ...prev,
-      [key]: typeof value === "function" ? (value as (p: FormData[K]) => FormData[K])(prev[key]) : value,
+      [key]:
+        typeof value === "function"
+          ? (value as (p: FormData[K]) => FormData[K])(prev[key])
+          : value,
     }));
+    setShowStepError(false);
+  }
+
+  function updateOrderer<K extends keyof Orderer>(key: K, value: Orderer[K]) {
+    setData((prev) => ({ ...prev, orderer: { ...prev.orderer, [key]: value } }));
+    setShowStepError(false);
+  }
+
+  function handlePhase01(result: Phase01Result) {
+    setData((prev) => ({
+      ...prev,
+      orderer: { ...prev.orderer, name: result.ordererName },
+      recipientRelationship: result.recipientRelationship,
+      children: result.children,
+      bookType: bookTypeForChildCount(result.children.length),
+    }));
+    setPhase01Seeded(true);
+    setPhase("steps");
+    setStepIndex(0);
+    setShowStepError(false);
   }
 
   function canContinue(): boolean {
     switch (step.id) {
-      case "contact":
-        return (
-          data.fullName.trim().length > 1 &&
-          data.phone.trim().length > 5 &&
-          data.region.trim().length > 0 &&
-          data.city.trim().length > 0
-        );
-      case "book":
-        return data.children.every(
-          (c) => c.name.trim().length > 0 && c.age.trim().length > 0
-        );
       case "personalize":
         return data.interests.trim().length > 0 && data.traits.length > 0;
       case "personal-touch":
@@ -312,7 +320,12 @@ export default function PersonalizedBookOrderForm({
       case "photos":
         return data.childPhotos.length >= 3;
       case "review":
-        return data.bookLanguage.length > 0;
+        return (
+          data.bookLanguage.length > 0 &&
+          data.orderer.phone.trim().length > 5 &&
+          data.orderer.region.trim().length > 0 &&
+          data.orderer.city.trim().length > 0
+        );
       case "payment":
         return true;
       default:
@@ -321,23 +334,49 @@ export default function PersonalizedBookOrderForm({
   }
 
   function goNext() {
-    if (!canContinue()) return;
+    if (!canContinue()) {
+      setShowStepError(true);
+      return;
+    }
     if (isLastStep) {
-      // TODO: wire to backend (Drive upload + admin notification) once
-      // the order-intake API exists. For now this only demonstrates the
-      // completed, validated form state.
+      // TODO: wire to backend (upload + admin notification) once the
+      // order-intake API exists. Validated form state only for now.
       setSubmitted(true);
       return;
     }
     setStepIndex((i) => Math.min(i + 1, STEPS.length - 1));
+    setShowStepError(false);
   }
 
   function goBack() {
     if (stepIndex === 0) {
-      onBack();
+      setPhase("intro");
       return;
     }
     setStepIndex((i) => Math.max(i - 1, 0));
+    setShowStepError(false);
+  }
+
+  // ── Phase 01: the conversational opening ──────────────────────────────────
+  if (phase === "intro") {
+    return (
+      <Phase01
+        onBack={onBack}
+        onComplete={handlePhase01}
+        initialChildCount={
+          initialBookType ? (initialBookType === "multi" ? 2 : 1) : undefined
+        }
+        initial={
+          phase01Seeded
+            ? {
+                ordererName: data.orderer.name,
+                recipientRelationship: data.recipientRelationship,
+                children: data.children,
+              }
+            : undefined
+        }
+      />
+    );
   }
 
   if (submitted) {
@@ -350,52 +389,49 @@ export default function PersonalizedBookOrderForm({
           {t.successHeading}
         </h2>
         <p className="mt-2 max-w-sm font-sans text-[14px] leading-[1.6] text-text-secondary">
-          {t.successBody(data.phone)}
+          {t.successBody(data.orderer.phone)}
         </p>
       </section>
     );
   }
 
   const StepIcon = step.icon;
+  const heroLine = data.children
+    .map((ch) => `${ch.name.trim()}${t.years(ch.age)}`)
+    .filter((s) => s.trim().length > 0)
+    .join(" · ");
 
   return (
     <section className="mx-auto w-full max-w-container-content bg-surface-base px-6 py-16 sm:px-8 md:py-20 lg:px-16 lg:py-28">
       <div className="mx-auto max-w-xl">
-        {/* Progress */}
-        <div className="mb-8">
-          <div className="mb-3 flex items-center justify-between">
-            <button
-              type="button"
-              onClick={goBack}
-              className="inline-flex items-center gap-1.5 font-sans text-[13px] font-medium text-text-secondary transition-opacity hover:opacity-70"
-            >
-              <ArrowLeft size={14} strokeWidth={1.75} />
-              {t.back}
-            </button>
-            <span className="font-sans text-[12px] font-medium uppercase tracking-[0.1em] text-accent-primary">
-              {stepEyebrow}
-            </span>
-          </div>
-          <div className="h-[2px] w-full overflow-hidden rounded-pill bg-border-subtle">
-            <div
-              className="h-full rounded-pill bg-accent-primary transition-all duration-300"
-              style={{ width: `${((stepIndex + 1) / STEPS.length) * 100}%` }}
-            />
-          </div>
+        {/* Chapter header */}
+        <div className="mb-8 flex items-center justify-between gap-4">
+          <button
+            type="button"
+            onClick={goBack}
+            className="inline-flex items-center gap-1.5 font-sans text-[13px] font-medium text-text-secondary transition-opacity hover:opacity-70"
+          >
+            <ArrowLeft size={14} strokeWidth={1.75} className="rtl:-scale-x-100" />
+            {t.back}
+          </button>
+          <JourneyProgress locale={locale} current={step.chapter} />
         </div>
 
-        {initialBookType && stepIndex === 0 && (
-          <div className="mb-4 text-center">
-            <span className="inline-block rounded-pill bg-accent-primary/[0.12] px-3.5 py-1.5 font-sans text-[12px] font-medium text-accent-primary">
-              {t.planSelected(
-                language === "UZ" ? PRICING[data.bookType].labelUz : PRICING[data.bookType].label,
-                formatSom(PRICING[data.bookType].base)
-              )}
+        {/* Who this story is for — a quiet reminder from Phase 01 */}
+        {heroLine && (
+          <p className="mb-6 font-sans text-[12.5px] text-text-secondary">
+            <span className="font-medium uppercase tracking-[0.12em] text-text-muted">
+              {t.heroesLabel}
             </span>
-          </div>
+            <span className="mx-2 text-border-strong">·</span>
+            {heroLine}
+          </p>
         )}
 
-        <span className="mx-auto mb-3.5 flex h-[52px] w-[52px] items-center justify-center rounded-full bg-accent-primary/[0.12]" aria-hidden="true">
+        <span
+          className="mx-auto mb-3.5 flex h-[52px] w-[52px] items-center justify-center rounded-full bg-accent-primary/[0.12]"
+          aria-hidden="true"
+        >
           <StepIcon size={22} strokeWidth={1.5} className="text-accent-primary" />
         </span>
         <h2 className="mb-8 text-center font-display text-[26px] font-medium leading-tight text-text-primary">
@@ -404,146 +440,6 @@ export default function PersonalizedBookOrderForm({
 
         {/* Step content */}
         <div className="space-y-5">
-          {step.id === "contact" && (
-            <>
-              <Field label={t.fullName}>
-                <TextInput
-                  value={data.fullName}
-                  onChange={(e) => update("fullName", e.target.value)}
-                  placeholder={t.fullNamePlaceholder}
-                />
-              </Field>
-              <Field label={t.phone}>
-                <TextInput
-                  type="tel"
-                  value={data.phone}
-                  onChange={(e) => update("phone", e.target.value)}
-                  placeholder="+998 90 123 45 67"
-                />
-              </Field>
-              <div className="grid grid-cols-2 gap-4">
-                <Field label={t.region}>
-                  <TextInput
-                    value={data.region}
-                    onChange={(e) => update("region", e.target.value)}
-                  />
-                </Field>
-                <Field label={t.city}>
-                  <TextInput
-                    value={data.city}
-                    onChange={(e) => update("city", e.target.value)}
-                  />
-                </Field>
-              </div>
-            </>
-          )}
-
-          {step.id === "book" && (
-            <>
-              <div className="grid grid-cols-2 gap-4">
-                {(["single", "multi"] as BookType[]).map((type) => (
-                  <button
-                    key={type}
-                    type="button"
-                    onClick={() => {
-                      update("bookType", type);
-                      if (type === "single") {
-                        update("children", (prev) => [prev[0] ?? { name: "", age: "" }]);
-                      } else {
-                        update("children", (prev) =>
-                          prev.length < 2
-                            ? [{ name: "", age: "" }, { name: "", age: "" }]
-                            : prev
-                        );
-                      }
-                    }}
-                    className={[
-                      "rounded-md border p-4 text-left transition-colors",
-                      data.bookType === type
-                        ? "border-accent-primary bg-accent-primary/[0.08]"
-                        : "border-border-default bg-transparent",
-                    ].join(" ")}
-                  >
-                    <span className="block font-sans text-[13.5px] font-medium text-text-primary">
-                      {language === "UZ" ? PRICING[type].labelUz : PRICING[type].label}
-                    </span>
-                    <span className="mt-0.5 block font-sans text-[12px] text-text-secondary">
-                      {PRICING[type].pages} {t.pagesUnit} · {formatSom(PRICING[type].base)}
-                    </span>
-                  </button>
-                ))}
-              </div>
-
-              {data.bookType === "multi" && (
-                <Field label={t.howManyChildren}>
-                  <div className="flex items-center gap-4">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        update("children", (prev) => (prev.length <= 2 ? prev : prev.slice(0, -1)));
-                      }}
-                      className="flex h-9 w-9 items-center justify-center rounded-full border border-border-default font-sans text-[16px] text-text-primary"
-                    >
-                      −
-                    </button>
-                    <span className="w-6 text-center font-sans text-[15px] font-medium text-text-primary">
-                      {data.children.length}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        update("children", (prev) =>
-                          prev.length >= 6 ? prev : [...prev, { name: "", age: "" }]
-                        );
-                      }}
-                      className="flex h-9 w-9 items-center justify-center rounded-full border border-border-default font-sans text-[16px] text-text-primary"
-                    >
-                      +
-                    </button>
-                  </div>
-                </Field>
-              )}
-
-              <div className="space-y-3">
-                {data.children.map((child, i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <span className="w-4 font-sans text-[13px] text-text-secondary">
-                      {i + 1}.
-                    </span>
-                    <div className="flex-1">
-                      <TextInput
-                        placeholder={t.namePlaceholder}
-                        value={child.name}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          update("children", (prev) => {
-                            const next = [...prev];
-                            next[i] = { ...next[i], name: value };
-                            return next;
-                          });
-                        }}
-                      />
-                    </div>
-                    <div className="w-20">
-                      <TextInput
-                        placeholder={t.agePlaceholder}
-                        value={child.age}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          update("children", (prev) => {
-                            const next = [...prev];
-                            next[i] = { ...next[i], age: value };
-                            return next;
-                          });
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-
           {step.id === "personalize" && (
             <>
               <Field label={t.interests} hint={t.interestsHint}>
@@ -566,13 +462,14 @@ export default function PersonalizedBookOrderForm({
                       <button
                         key={trait.id}
                         type="button"
+                        aria-pressed={active}
                         onClick={() => {
                           update("traits", (prev) =>
                             prev.includes(trait.id)
                               ? prev.filter((id) => id !== trait.id)
                               : prev.length < MAX_TRAITS
                                 ? [...prev, trait.id]
-                                : prev
+                                : prev,
                           );
                         }}
                         className={[
@@ -686,12 +583,53 @@ export default function PersonalizedBookOrderForm({
 
           {step.id === "review" && (
             <>
+              <div className="rounded-lg border border-border-default p-4">
+                <p className="mb-3 font-sans text-[12px] font-medium uppercase tracking-[0.12em] text-text-muted">
+                  {t.heroesLabel}
+                  <span className="mx-2 text-border-strong">·</span>
+                  <span className="text-text-secondary">
+                    {relationshipLabel(data.recipientRelationship, locale)}
+                  </span>
+                </p>
+                <p className="font-display text-[16px] font-medium text-text-primary">
+                  {heroLine}
+                </p>
+              </div>
+
+              <p className="pt-1 font-sans text-[13px] text-text-secondary">
+                {t.deliveryHint}
+              </p>
+              <Field label={t.phone}>
+                <TextInput
+                  type="tel"
+                  autoComplete="tel"
+                  value={data.orderer.phone}
+                  onChange={(e) => updateOrderer("phone", e.target.value)}
+                  placeholder="+998 90 123 45 67"
+                />
+              </Field>
+              <div className="grid grid-cols-2 gap-4">
+                <Field label={t.region}>
+                  <TextInput
+                    value={data.orderer.region}
+                    onChange={(e) => updateOrderer("region", e.target.value)}
+                  />
+                </Field>
+                <Field label={t.city}>
+                  <TextInput
+                    value={data.orderer.city}
+                    onChange={(e) => updateOrderer("city", e.target.value)}
+                  />
+                </Field>
+              </div>
+
               <Field label={t.bookLanguage}>
                 <div className="grid grid-cols-2 gap-2.5">
                   {BOOK_LANGUAGES.map((lang) => (
                     <button
                       key={lang}
                       type="button"
+                      aria-pressed={data.bookLanguage === lang}
                       onClick={() => update("bookLanguage", lang)}
                       className={[
                         "rounded-md border px-3.5 py-2.5 text-left font-sans text-[13.5px] font-medium text-text-primary transition-colors",
@@ -712,6 +650,7 @@ export default function PersonalizedBookOrderForm({
                     type="button"
                     onClick={() => update("copies", Math.max(1, data.copies - 1))}
                     className="flex h-9 w-9 items-center justify-center rounded-full border border-border-default font-sans text-[16px] text-text-primary"
+                    aria-label="−"
                   >
                     −
                   </button>
@@ -722,6 +661,7 @@ export default function PersonalizedBookOrderForm({
                     type="button"
                     onClick={() => update("copies", Math.min(5, data.copies + 1))}
                     className="flex h-9 w-9 items-center justify-center rounded-full border border-border-default font-sans text-[16px] text-text-primary"
+                    aria-label="+"
                   >
                     +
                   </button>
@@ -736,6 +676,12 @@ export default function PersonalizedBookOrderForm({
                   </span>
                 </div>
               </div>
+
+              {showStepError && !canContinue() && (
+                <p role="alert" className="font-sans text-[13px] text-state-error">
+                  {t.errContact}
+                </p>
+              )}
             </>
           )}
 
@@ -763,7 +709,11 @@ export default function PersonalizedBookOrderForm({
                         {method.label}
                       </span>
                       <span className="mt-0.5 block font-sans text-[11.5px] text-text-secondary">
-                        {available ? (language === "UZ" ? method.sublabelUz : method.sublabel) : t.availableSoon}
+                        {available
+                          ? language === "UZ"
+                            ? method.sublabelUz
+                            : method.sublabel
+                          : t.availableSoon}
                       </span>
                     </button>
                   );
@@ -800,11 +750,10 @@ export default function PersonalizedBookOrderForm({
           <button
             type="button"
             onClick={goNext}
-            disabled={!canContinue()}
-            className="inline-flex items-center gap-2 rounded-md bg-accent-primary px-5 py-2.5 font-sans text-[13.5px] font-medium text-white transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex items-center gap-2 rounded-md bg-accent-primary px-5 py-2.5 font-sans text-[13.5px] font-medium text-white transition-opacity hover:opacity-90"
           >
             {isLastStep ? t.sendOrder : t.continue}
-            <ArrowRight size={14} strokeWidth={1.75} />
+            <ArrowRight size={14} strokeWidth={1.75} className="rtl:-scale-x-100" />
           </button>
         </div>
       </div>
@@ -826,11 +775,14 @@ function ToggleRow({
   return (
     <button
       type="button"
+      role="switch"
+      aria-checked={checked}
       onClick={() => onChange(!checked)}
       className="flex w-full items-center justify-between rounded-md border border-border-default px-3.5 py-3 transition-colors"
     >
       <span className="font-sans text-[13.5px] font-medium text-text-primary">{label}</span>
       <span
+        aria-hidden="true"
         className={[
           "relative h-5 w-9 rounded-pill transition-colors",
           checked ? "bg-accent-primary" : "bg-text-primary/[0.16]",
@@ -864,11 +816,9 @@ function PhotoUpload({
   max: number;
   onChange: (files: File[]) => void;
 }) {
-  // Object URLs are created once per file (not on every render) and
-  // revoked on cleanup to avoid leaking memory during a long form session.
   const previews = useMemo(
     () => files.map((file) => ({ file, url: URL.createObjectURL(file) })),
-    [files]
+    [files],
   );
   useEffect(() => {
     return () => previews.forEach((p) => URL.revokeObjectURL(p.url));

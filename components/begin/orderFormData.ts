@@ -17,7 +17,7 @@
 // a second array to keep index-aligned by hand.
 
 import type { LucideIcon } from "lucide-react";
-import { CreditCard, Globe, Heart, Camera, Sparkles, User, Users } from "lucide-react";
+import { CreditCard, Globe, Heart, Camera, Sparkles } from "lucide-react";
 
 export type BookType = "single" | "multi";
 
@@ -86,9 +86,15 @@ export const PAYMENT_METHODS = [
   },
 ] as const;
 
+/**
+ * Wizard steps AFTER Phase 01 ("Siz bilan tanishamiz" — orderer name,
+ * relationship, children's names + ages — handled by Phase01.tsx).
+ * The conversational chapter and these steps together form the six
+ * JOURNEY_CHAPTERS in `@/lib/order/phase01-copy`; the per-step
+ * `chapter` index below points into that list so the progress rail
+ * stays in sync.
+ */
 export type StepId =
-  | "contact"
-  | "book"
   | "personalize"
   | "personal-touch"
   | "photos"
@@ -101,16 +107,16 @@ export interface StepConfig {
   titleUz: string;
   eyebrow: string;
   eyebrowUz: string;
+  /** 0-based index into JOURNEY_CHAPTERS (chapter 0 is Phase 01). */
+  chapter: number;
   /** Small circular badge above the step title — see PersonalizedBookOrderForm. */
   icon: LucideIcon;
 }
 
 export const STEPS: StepConfig[] = [
-  { id: "contact", eyebrow: "Step 1 of 7", eyebrowUz: "1/7-qadam", title: "Who should we send it to", titleUz: "Kimga yuboramiz", icon: User },
-  { id: "book", eyebrow: "Step 2 of 7", eyebrowUz: "2/7-qadam", title: "About the child", titleUz: "Farzandingiz haqida", icon: Users },
-  { id: "personalize", eyebrow: "Step 3 of 7", eyebrowUz: "3/7-qadam", title: "Make it truly theirs", titleUz: "Chinakam o'ziga xos qiling", icon: Sparkles },
-  { id: "personal-touch", eyebrow: "Step 4 of 7", eyebrowUz: "4/7-qadam", title: "A personal touch", titleUz: "Shaxsiy jozibasi", icon: Heart },
-  { id: "photos", eyebrow: "Step 5 of 7", eyebrowUz: "5/7-qadam", title: "Photos for the illustrations", titleUz: "Illyustratsiyalar uchun suratlar", icon: Camera },
-  { id: "review", eyebrow: "Step 6 of 7", eyebrowUz: "6/7-qadam", title: "Language, copies & review", titleUz: "Til, nusxalar va ko'rib chiqish", icon: Globe },
-  { id: "payment", eyebrow: "Step 7 of 7", eyebrowUz: "7/7-qadam", title: "Payment", titleUz: "To'lov", icon: CreditCard },
+  { id: "personalize", chapter: 1, eyebrow: "Their world", eyebrowUz: "Uning dunyosi", title: "Make it truly theirs", titleUz: "Chinakam o'ziga xos qiling", icon: Sparkles },
+  { id: "personal-touch", chapter: 2, eyebrow: "Your wish", eyebrowUz: "Sizning tilagingiz", title: "A personal touch", titleUz: "Shaxsiy jozibasi", icon: Heart },
+  { id: "photos", chapter: 3, eyebrow: "Photos", eyebrowUz: "Suratlar", title: "Photos for the illustrations", titleUz: "Illyustratsiyalar uchun suratlar", icon: Camera },
+  { id: "review", chapter: 4, eyebrow: "Review", eyebrowUz: "Ko'rib chiqamiz", title: "Delivery, language & review", titleUz: "Yetkazish, til va ko'rib chiqish", icon: Globe },
+  { id: "payment", chapter: 5, eyebrow: "Finish", eyebrowUz: "Yakun", title: "Payment", titleUz: "To'lov", icon: CreditCard },
 ];
