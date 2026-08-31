@@ -61,8 +61,14 @@ const HAYOT_FACES: [FaceImage, FaceImage, FaceImage] = [
     src: "/images/home/hayot-gateway/talimoon-hayoti.webp",
     alt: "TALIMOON hayotidan bir lavha",
   },
-  null,
-  null,
+  {
+    src: "/images/home/hayot-gateway/ota-onalar-uchun.webp",
+    alt: "Ota-onalar uchun materiallardan bir lavha",
+  },
+  {
+    src: "/images/home/hayot-gateway/odatlar-va-ilm.webp",
+    alt: "Odatlar va ilm bo‘limidan bir lavha",
+  },
 ];
 
 // ── Copy — all four site languages authored ────────────────────────
