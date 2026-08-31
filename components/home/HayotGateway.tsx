@@ -56,7 +56,14 @@ type FaceImage = { src: string; alt: string } | null;
  * face fills — no other change. `null` → the prepared editorial
  * placeholder on that face.
  */
-const HAYOT_FACES: [FaceImage, FaceImage, FaceImage] = [null, null, null];
+const HAYOT_FACES: [FaceImage, FaceImage, FaceImage] = [
+  {
+    src: "/images/home/hayot-gateway/talimoon-hayoti.webp",
+    alt: "TALIMOON hayotidan bir lavha",
+  },
+  null,
+  null,
+];
 
 // ── Copy — all four site languages authored ────────────────────────
 type Copy = {
