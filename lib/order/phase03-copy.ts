@@ -206,14 +206,20 @@ export interface Phase03Copy {
   q3CustomPlaceholder: string;
   q3CustomHint: string;
   q3None: string;
+  /** Shown under the exclusive "no concern" row (spec §20). */
+  q3NoneHelp: string;
   errGrowth: string;
 
-  // Q4 — context (plural-safe — never built from the chosen labels)
-  q4ContextTrayTitle: string;
-  q4: (name: string) => string;
-  q4Help: string;
-  q4Placeholder: string;
-  q4NoneLabel: string;
+  // Q4 — PER-BEHAVIOUR context (spec §22–26). Each chosen behaviour
+  //      gets its own optional "when does this show up?" — one
+  //      behaviour's context can never land on another.
+  q4SectionLabel: string;
+  q4Intro: string;
+  q4ItemQuestion: string;
+  /** One universal placeholder — works for any behaviour, preset or
+   *  custom, because it never names the behaviour. */
+  q4ItemPlaceholder: string;
+  q4ItemNone: string;
 
   // Q5 — desired values
   q5: (name: string) => string;
@@ -238,7 +244,7 @@ const uz: Phase03Copy = {
   back: "Orqaga",
 
   charLabel: (name) => `${name.trim()}ning xarakteri`,
-  introLead: (name) => `Endi ${name.trim()}ning o‘ziga xos xarakterini yaxshiroq bilib olamiz.`,
+  introLead: (name) => `${name.trim()}ni yaqindan taniganlar biladigan bir-ikki narsani so‘raymiz.`,
   introSupport:
     "Uni nimalari quvontiradi, qaysi jihat biroz e’tibor so‘raydi va hikoya nimalarni qo‘llab-quvvatlashi kerak — shularni birga eslaymiz.",
 
@@ -246,8 +252,8 @@ const uz: Phase03Copy = {
   selectionCount: (n, max) => `${n} / ${max} tanlandi`,
   removeAnswer: (label) => `“${label}” ni olib tashlash`,
 
-  q1: (name) => `${name.trim()}ning qaysi jihatlari Sizni ayniqsa quvontiradi?`,
-  q1Help: "3 tagacha tanlang yoki o‘zingiz yozing.",
+  q1: (name) => `${name.trim()}ning qaysi jihatlari Sizni quvontiradi?`,
+  q1Help: "3 tagacha tanlang yoki o‘zingiz yozib qo‘shing.",
   customToggle: "＋ Boshqa jihatini yozish",
   customPlaceholder: "Masalan: xushmuomala, adolatli, tashabbuskor...",
   customAdd: "Qo‘shish",
@@ -255,26 +261,27 @@ const uz: Phase03Copy = {
   errQualities: "Davom etishdan oldin uni ifodalaydigan kamida bitta jihatni tanlang.",
 
   q2: (name) => `Bu jihatlarini ${name.trim()}da qaysi paytlarda ko‘proq sezasiz?`,
-  q2Help: "Xayolingizga bir voqea kelsa yozing — bu hikoyani yanada shaxsiy qiladi.",
+  q2Help: "Xayolingizga biror voqea kelsa yozing — bu hikoyani yanada shaxsiy qiladi.",
   q2Placeholder:
     "Masalan: ukasiga yordam beradi, o‘yinchoqlarini bo‘lishadi, kimdir xafa bo‘lsa yoniga boradi...",
   q2NoneLabel: "Hozircha aniq bir voqea esimga kelmadi",
 
   q3: (name) => `${name.trim()}ning qaysi odati yoki xatti-harakatlarini biroz yaxshilashni istardingiz?`,
   q3Help:
-    "Hikoyada ularga tanbeh bilan emas, voqealar orqali muloyim yo‘l ko‘rsatamiz. 3 tagacha tanlashingiz mumkin.",
+    "Hikoyada ularga tanbeh bilan emas, voqealar orqali muloyim yo‘l ko‘rsatamiz. 3 tagacha tanlang yoki o‘zingiz yozib qo‘shing.",
   q3CustomToggle: "＋ Boshqa odat yoki vaziyatni yozish",
   q3CustomPlaceholder: "Masalan: yutqazsa tez xafa bo‘ladi, ertalab turishga erinadi...",
   q3CustomHint: "Bolaning o‘zini emas, odat yoki vaziyatni yozing.",
-  q3None: "Hozircha alohida e’tibor beradigan jihat yo‘q",
-  errGrowth: "Iltimos, birini tanlang yoki “Hozircha alohida e’tibor beradigan jihat yo‘q”ni belgilang.",
+  q3None: "Alohida yaxshilashni istagan odat hozircha yo‘q",
+  q3NoneHelp: "Buni tanlasangiz, yuqoridagi tanlovlar bekor qilinadi.",
+  errGrowth: "Iltimos, birini tanlang yoki “Alohida yaxshilashni istagan odat hozircha yo‘q”ni belgilang.",
 
-  q4ContextTrayTitle: "SIZ BELGILAGAN HOLATLAR",
-  q4: (name) => `Siz belgilagan bu holatlar ${name.trim()}da ko‘proq qaysi vaziyatlarda seziladi?`,
-  q4Help: "Faqat qachon yoki qanday vaziyatda bo‘lishini yozsangiz yetarli — sababini izlashimiz shart emas.",
-  q4Placeholder:
-    "Masalan: navbat kutganda, o‘yinda yutqazganda, charchaganda yoki xohlagan narsasi darrov bo‘lmaganda...",
-  q4NoneLabel: "Aniq bir vaziyat yo‘q",
+  q4SectionLabel: "SIZ BELGILAGAN HOLATLAR",
+  q4Intro: "Har biriga, xohlasangiz, bu holat ko‘proq qachon sezilishini yozing.",
+  q4ItemQuestion: "Bu holat ko‘proq qachon seziladi?",
+  q4ItemPlaceholder:
+    "Masalan: o‘yinda yutqazganda yoki xohlagan narsasi darrov bo‘lmaganda...",
+  q4ItemNone: "Aniq bir vaziyat yo‘q",
 
   q5: (name) => `Hikoya orqali ${name.trim()}da qaysi qadriyatlarni yanada qo‘llab-quvvatlashni istardingiz?`,
   q5Help:
@@ -297,7 +304,7 @@ const en: Phase03Copy = {
   back: "Back",
 
   charLabel: (name) => `${name.trim()}'s character`,
-  introLead: (name) => `Now let's get to know ${name.trim()}'s own character a little better.`,
+  introLead: (name) => `We'll ask about a couple of things the people close to ${name.trim()} would know.`,
   introSupport:
     "What delights you about them, what could use a little gentle guidance, and what the story should strengthen — let's remember it together.",
 
@@ -305,7 +312,7 @@ const en: Phase03Copy = {
   selectionCount: (n, max) => `${n} / ${max} selected`,
   removeAnswer: (label) => `Remove “${label}”`,
 
-  q1: (name) => `What do you especially love about ${name.trim()}?`,
+  q1: (name) => `What do you love about ${name.trim()}?`,
   q1Help: "Choose up to 3, or write your own.",
   customToggle: "＋ Write another quality",
   customPlaceholder: "For example: thoughtful, fair, full of initiative...",
@@ -321,19 +328,20 @@ const en: Phase03Copy = {
 
   q3: (name) => `Is there a habit or behaviour of ${name.trim()}'s you'd gently like to support?`,
   q3Help:
-    "In the story we won't scold — we'll show a gentle way through events. You can choose up to 3.",
+    "In the story we won't scold — we'll show a gentle way through events. Choose up to 3, or write your own.",
   q3CustomToggle: "＋ Write another habit or situation",
   q3CustomPlaceholder: "For example: gets upset when they lose, is reluctant to get up in the morning...",
   q3CustomHint: "Describe the habit or the situation, not the child.",
-  q3None: "Nothing in particular for now",
-  errGrowth: "Please choose one, or select “Nothing in particular for now”.",
+  q3None: "Nothing I'd like to work on in particular",
+  q3NoneHelp: "Choosing this clears the selections above.",
+  errGrowth: "Please choose one, or select “Nothing I'd like to work on in particular”.",
 
-  q4ContextTrayTitle: "THE BEHAVIOURS YOU CHOSE",
-  q4: (name) => `In what situations do these tend to show up for ${name.trim()}?`,
-  q4Help: "Just when and in what situation — we don't need to look for a reason.",
-  q4Placeholder:
-    "For example: when waiting in line, when losing a game, or when something isn't available right away...",
-  q4NoneLabel: "No particular situation",
+  q4SectionLabel: "THE SITUATIONS YOU CHOSE",
+  q4Intro: "For each, if you'd like, add when it tends to show up.",
+  q4ItemQuestion: "When does this tend to show up?",
+  q4ItemPlaceholder:
+    "For example: when they lose a game, or when something isn't available right away...",
+  q4ItemNone: "No particular situation",
 
   q5: (name) => `Which values would you like the story to strengthen in ${name.trim()}?`,
   q5Help:

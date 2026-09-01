@@ -20,6 +20,13 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 
+/**
+ * Quiet 180ms opacity settle only — NO `layout`, NO scale (spec §06/§37).
+ * `layout` made chips physically slide/reflow when a sibling was removed;
+ * a scale-in read as a "pop". Chips now just fade; the row re-flows
+ * instantly with no travel.
+ */
+
 export interface TrayItem {
   id: string;
   label: string;
@@ -55,11 +62,10 @@ export function SelectionTray({
           {items.map((item) => (
             <motion.span
               key={item.id}
-              layout={!reduced}
-              initial={reduced ? undefined : { opacity: 0, scale: 0.94 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={reduced ? undefined : { opacity: 0, scale: 0.94 }}
-              transition={{ duration: 0.2 }}
+              initial={reduced ? undefined : { opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={reduced ? undefined : { opacity: 0 }}
+              transition={{ duration: 0.18 }}
               className={[
                 "inline-flex max-w-full items-center gap-1.5 rounded-md border border-accent-primary bg-accent-primary/[0.08] font-sans text-[14px] font-semibold text-text-primary",
                 interactive ? "py-1.5 pe-1.5 ps-3" : "px-3 py-1.5",

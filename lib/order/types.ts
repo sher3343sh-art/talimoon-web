@@ -22,6 +22,51 @@ import type { Honorific, RecipientRelationship } from "./relationship";
 
 export type { BookType };
 
+/**
+ * The written delivery address is the PRIMARY address (spec §42–49).
+ * `location` is optional extra precision — a pin the courier can use —
+ * and never a substitute for the written fields. Stored provider-neutral
+ * (plain lat/lng/accuracy) so a map layer can be added later without
+ * touching the order model.
+ */
+export interface DeliveryLocation {
+  latitude: number;
+  longitude: number;
+  accuracy?: number;
+}
+
+export interface DeliveryAddress {
+  /** Viloyat */
+  region: string;
+  /** Shahar / tuman */
+  cityDistrict: string;
+  /** Ko‘cha */
+  street: string;
+  /** Uy / bino */
+  building: string;
+  /** Kvartira / xonadon — optional */
+  apartment?: string;
+  /** Mo‘ljal — optional */
+  landmark?: string;
+  /** Optional GPS pin (spec §44–49). */
+  location?: DeliveryLocation;
+}
+
+export function emptyDeliveryAddress(): DeliveryAddress {
+  return { region: "", cityDistrict: "", street: "", building: "" };
+}
+
+/** The written address is enough on its own — a pin is never required
+ *  (spec §44/§70). */
+export function isDeliveryAddressComplete(a: DeliveryAddress): boolean {
+  return (
+    a.region.trim().length > 0 &&
+    a.cityDistrict.trim().length > 0 &&
+    a.street.trim().length > 0 &&
+    a.building.trim().length > 0
+  );
+}
+
 export interface Orderer {
   /** Form of address, chosen alongside the name in Phase 01. `null`
    *  until answered; the plain name is used when it stays null. */
@@ -30,12 +75,17 @@ export interface Orderer {
   name: string;
   /** Logistics — collected at order finalization, not in Phase 01. */
   phone: string;
-  region: string;
-  city: string;
+  /** Structured delivery address (+ optional pin). See {@link DeliveryAddress}. */
+  deliveryAddress: DeliveryAddress;
 }
 
 export function emptyOrderer(): Orderer {
-  return { honorific: null, name: "", phone: "", region: "", city: "" };
+  return {
+    honorific: null,
+    name: "",
+    phone: "",
+    deliveryAddress: emptyDeliveryAddress(),
+  };
 }
 
 /** Phase 02 dream routes. `null` until the adult chooses one. */
@@ -67,6 +117,40 @@ export interface SelectableAnswer {
  *  lives on the SAME interest, never a separate array keyed by position). */
 export interface InterestAnswer extends SelectableAnswer {
   detail?: string;
+}
+
+/**
+ * A growth behaviour, plus ITS OWN optional context (spec §22–26):
+ * every selected behaviour carries when/where it tends to show up.
+ * There is no single global "growth context" any more — one behaviour's
+ * context can never be attributed to another. `context` and
+ * `noSpecificContext` are mutually exclusive on the same item.
+ */
+export interface GrowthBehaviorAnswer extends SelectableAnswer {
+  context?: string;
+  noSpecificContext?: boolean;
+}
+
+/** Set one growth behaviour's context, or its "no particular situation"
+ *  flag — the two are mutually exclusive on that single item (spec §25). */
+export function setGrowthItemContext(
+  list: GrowthBehaviorAnswer[],
+  id: string,
+  patch: { context?: string; noSpecificContext?: boolean },
+): GrowthBehaviorAnswer[] {
+  return list.map((a) => {
+    if (a.id !== id) return a;
+    if (patch.noSpecificContext === true) {
+      return { ...a, noSpecificContext: true, context: "" };
+    }
+    if (patch.noSpecificContext === false && patch.context === undefined) {
+      return { ...a, noSpecificContext: false };
+    }
+    if (patch.context !== undefined) {
+      return { ...a, context: patch.context, noSpecificContext: false };
+    }
+    return a;
+  });
 }
 
 /**
@@ -140,17 +224,12 @@ export interface ChildProfile {
   noQualityExample?: boolean;
   /** Up to 3 behaviours the adult would gently like to support —
    *  preset and custom side by side. Each describes a behaviour or
-   *  situation, never labels the child. */
-  growthBehaviors?: SelectableAnswer[];
+   *  situation, never labels the child, and carries its OWN optional
+   *  context (spec §22–26). */
+  growthBehaviors?: GrowthBehaviorAnswer[];
   /** Set when the adult says there is nothing in particular right now —
-   *  exclusive with `growthBehaviors` (spec §27). */
+   *  exclusive with `growthBehaviors` (spec §19–21). */
   noGrowthArea?: boolean;
-  /** When those behaviours usually show (free text, only with at least
-   *  one behaviour selected). */
-  growthContext?: string;
-  /** Set when the adult says there's no particular situation —
-   *  mutually exclusive with `growthContext` (spec §31). */
-  noSpecificGrowthContext?: boolean;
   /** Up to 3 values the story should strengthen. */
   desiredValues?: string[];
   /** True once this child's Phase 03 conversation is finished. */
@@ -179,35 +258,23 @@ export function reconcileDream(status: DreamStatus): Partial<ChildProfile> {
 }
 
 /**
- * When the adult switches to "nothing in particular", the growth
- * behaviours + context are stale and must not reach the portrait or
- * the summary. Returns a patch clearing whatever no longer applies.
+ * When the adult switches to "nothing in particular" (spec §19–21), the
+ * growth behaviours — and the per-item contexts that live on them — are
+ * stale and must not reach the portrait or the summary. Clearing the
+ * array clears every attached context with it.
  */
 export function reconcileGrowth(hasBehavior: boolean): Partial<ChildProfile> {
   return hasBehavior
     ? { noGrowthArea: false }
-    : {
-        noGrowthArea: true,
-        growthBehaviors: [],
-        growthContext: "",
-        noSpecificGrowthContext: false,
-      };
+    : { noGrowthArea: true, growthBehaviors: [] };
 }
 
 /** Quality example ↔ "no example comes to mind" are mutually exclusive
- *  (spec §22/§31) — entering one always clears the other. */
+ *  (spec §15/§52) — entering one always clears the other. */
 export function reconcileQualityExample(hasExample: boolean): Partial<ChildProfile> {
   return hasExample
     ? { noQualityExample: false }
     : { noQualityExample: true, qualityExample: "" };
-}
-
-/** Growth context ↔ "no particular situation" are mutually exclusive
- *  (spec §30/§31) — entering one always clears the other. */
-export function reconcileGrowthContext(hasContext: boolean): Partial<ChildProfile> {
-  return hasContext
-    ? { noSpecificGrowthContext: false }
-    : { noSpecificGrowthContext: true, growthContext: "" };
 }
 
 /** A stable id for a CUSTOM selectable answer — the normalized text

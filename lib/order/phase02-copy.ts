@@ -82,6 +82,61 @@ export function interestOptions(
   return INTEREST_KEYS.map((key) => ({ key, label: INTEREST_LABELS[key][locale] }));
 }
 
+/**
+ * A small CURATED per-preset example for the "a closer look" screen
+ * (spec §08–09). Only known presets get one — an arbitrary custom
+ * interest falls back to the universal placeholder. No AI, no
+ * classification of custom text.
+ */
+const INTEREST_DETAIL_EXAMPLES: Partial<Record<InterestKey, Record<Locale, string>>> = {
+  football: {
+    uz: "Masalan: o‘zi o‘ynash, Real Madridni kuzatish, jamoalar...",
+    en: "For example: playing it, following Real Madrid, the teams...",
+  },
+  cars: {
+    uz: "Masalan: o‘yinchoq mashinalar, chizish, markalar yoki modellar...",
+    en: "For example: toy cars, drawing them, the brands or models...",
+  },
+  planes: {
+    uz: "Masalan: qanday uchishi, turlari yoki modellarini yig‘ish...",
+    en: "For example: how they fly, the types, or building models...",
+  },
+  kittens: {
+    uz: "Masalan: parvarish qilish, o‘ynash yoki ularning xatti-harakati...",
+    en: "For example: caring for them, playing, or how they behave...",
+  },
+  wildAnimals: {
+    uz: "Masalan: qaysi hayvon, ularning yashashi yoki xatti-harakati...",
+    en: "For example: which animal, how they live, or how they behave...",
+  },
+  books: {
+    uz: "Masalan: hikoyalar, rasmlar yoki muayyan mavzular...",
+    en: "For example: the stories, the illustrations, or certain topics...",
+  },
+  nature: {
+    uz: "Masalan: o‘simliklar, hasharotlar, tosh yig‘ish yoki sayr...",
+    en: "For example: plants, insects, collecting stones, or walks...",
+  },
+  music: {
+    uz: "Masalan: tinglash, kuylash yoki biror cholg‘u...",
+    en: "For example: listening, singing, or a particular instrument...",
+  },
+  drawings: {
+    uz: "Masalan: nima chizadi, ranglar yoki chizib bo‘lib so‘zlab berish...",
+    en: "For example: what they draw, the colours, or telling a story about it...",
+  },
+};
+
+/** Placeholder for one interest's detail input — its curated example
+ *  when the id is a known preset, otherwise the universal one. */
+export function interestDetailPlaceholder(
+  id: string,
+  locale: Locale,
+  fallback: string,
+): string {
+  return isInterestKey(id) ? INTEREST_DETAIL_EXAMPLES[id]?.[locale] ?? fallback : fallback;
+}
+
 function joinList(items: string[], locale: Locale): string {
   const clean = items.map((s) => s.trim()).filter(Boolean);
   if (clean.length <= 1) return clean[0] ?? "";
@@ -147,9 +202,13 @@ export interface Phase02Copy {
   q2SkipSupport: string;
 
   // Q3 — SEVIMLI MASHG‘ULOTI: WHAT does the child actually love DOING?
+  //      Deliberately NOT "what about the interest attracts them" (that
+  //      is Q2) — this is the thing they choose to do again and again
+  //      (spec §10–11).
   q3Label: string;
   q3: (name: string) => string;
   q3Help: string;
+  q3Example: string;
   q3Placeholder: string;
   q3None: string;
   errActivity: string;
@@ -201,9 +260,8 @@ const uz: Phase02Copy = {
   removeAnswer: (label) => `“${label}” ni olib tashlash`,
 
   q1Label: "QIZIQISHLARI",
-  q1: (name) => `${name.trim()}ni ayniqsa nimalar qiziqtiradi?`,
-  q1Help:
-    "Ko‘rsa, eshitsa yoki gap ochilsa darrov e’tiborini tortadigan narsalarni tanlang yoki o‘zingiz yozing. 3 tagacha tanlashingiz mumkin.",
+  q1: (name) => `${name.trim()}ni nimalar qiziqtiradi?`,
+  q1Help: "3 tagacha tanlang yoki o‘zingiz yozib qo‘shing.",
   customToggle: "＋ Boshqa qiziqishini yozish",
   customPlaceholder: "Masalan: dinozavrlar, poyezdlar, kosmos...",
   customAdd: "Qo‘shish",
@@ -214,7 +272,7 @@ const uz: Phase02Copy = {
   q2: (name) => `Tanlaganlaringizning aynan nimasi ${name.trim()}ga ko‘proq yoqadi?`,
   q2Help: "Har biriga bir necha so‘z bilan aniqlik kiritsangiz yetarli.",
   q2Example:
-    "Masalan: qaysi turi, qanday xususiyati yoki undagi aynan nima uning e’tiborini tortishini yozishingiz mumkin.",
+    "Masalan: qaysi turi, qanday xususiyati yoki undagi nima uning e’tiborini tortadi. (Futbol — o‘zi o‘ynash, futbolchilar yoki jamoalar; mashinalar — o‘ynash, chizish, markalari yoki modellari.)",
   q2ItemQuestion: (name) => `Bunda aynan nima ${name.trim()}ga ko‘proq yoqadi?`,
   q2Placeholder: "Bir necha so‘z bilan yozing...",
   q2SkipLabel: "Asosiylarini esladik",
@@ -223,7 +281,9 @@ const uz: Phase02Copy = {
   q3Label: "SEVIMLI MASHG‘ULOTI",
   q3: (name) => `${name.trim()} nima qilayotganda vaqtni ham unutib qo‘yadi?`,
   q3Help:
-    "Uning eng berilib qiladigan mashg‘ulotini eslang. Masalan: futbol o‘ynash, LEGOdan mashina yasash, rasm chizish, velosiped minish, kitob varaqlash yoki o‘yinchoqlarini tartib bilan terish.",
+    "Bo‘sh vaqti bo‘lsa, hech kim eslatmasdan o‘zi qayta-qayta tanlaydigan mashg‘ulotini eslang.",
+  q3Example:
+    "Masalan: hovliga chiqib to‘p tepadi, konstruktor bilan uzoq o‘tiradi, rasm chizadi yoki bir narsani qayta-qayta yasab ko‘radi.",
   q3Placeholder: "Masalan: hovlida futbol o‘ynasa, vaqtni unutib qo‘yadi...",
   q3None: "Aniq bir mashg‘uloti yo‘q",
   errActivity: "Iltimos, yozing yoki “Aniq bir mashg‘uloti yo‘q”ni tanlang.",
@@ -271,9 +331,8 @@ const en: Phase02Copy = {
   removeAnswer: (label) => `Remove “${label}”`,
 
   q1Label: "INTERESTS",
-  q1: (name) => `What especially interests ${name.trim()}?`,
-  q1Help:
-    "Choose whatever grabs their attention right away — something they love seeing, hearing about, or talking about — or write your own. You can pick up to 3.",
+  q1: (name) => `What interests ${name.trim()}?`,
+  q1Help: "Choose up to 3, or write your own.",
   customToggle: "＋ Write another interest",
   customPlaceholder: "For example: dinosaurs, trains, space...",
   customAdd: "Add",
@@ -284,7 +343,7 @@ const en: Phase02Copy = {
   q2: (name) => `What exactly about the ones you picked does ${name.trim()} enjoy most?`,
   q2Help: "A few words for each is enough.",
   q2Example:
-    "For example, you can write which kind, what particular trait, or exactly what about it catches their attention.",
+    "For example: which kind, what particular trait, or exactly what catches their attention. (Football — playing it, the players, or the teams; cars — playing, drawing, the brands or models.)",
   q2ItemQuestion: (name) => `What exactly about this does ${name.trim()} enjoy most?`,
   q2Placeholder: "A few words is enough...",
   q2SkipLabel: "We've got the main ones",
@@ -293,7 +352,9 @@ const en: Phase02Copy = {
   q3Label: "FAVOURITE ACTIVITY",
   q3: (name) => `What does ${name.trim()} do that makes them lose all track of time?`,
   q3Help:
-    "Think of the activity they get most absorbed in. For example: playing football, building LEGO cars, drawing, cycling, flipping through a book, or lining up their toys just so.",
+    "Think of what they choose to do again and again in their free time, without anyone prompting them.",
+  q3Example:
+    "For example: goes out to kick a ball, sits for ages with building blocks, draws, or makes the same thing over and over.",
   q3Placeholder: "For example: playing football in the yard, they lose all track of time...",
   q3None: "No single activity like that",
   errActivity: "Please write something, or choose “No single activity like that”.",

@@ -37,6 +37,7 @@ import {
 import { addCustomAnswer, removeAnswer, togglePreset } from "@/lib/order/selectableAnswers";
 import {
   MAX_PRIMARY_INTERESTS,
+  interestDetailPlaceholder,
   interestLabel,
   interestOptions,
   phase02Copy,
@@ -366,7 +367,7 @@ export default function Phase02({
                               type="text"
                               value={a.detail ?? ""}
                               onChange={(e) => setInterestDetail(a.id, e.target.value)}
-                              placeholder={c.q2Placeholder}
+                              placeholder={interestDetailPlaceholder(a.id, locale, c.q2Placeholder)}
                               className={underline + " w-full"}
                             />
                           </div>
@@ -391,6 +392,7 @@ export default function Phase02({
                     <EditorialLabel>{c.q3Label}</EditorialLabel>
                     <Heading headingRef={headingRef}>{c.q3(child.name)}</Heading>
                     <Help>{c.q3Help}</Help>
+                    <Help>{c.q3Example}</Help>
                     <div className="mt-6">
                       <textarea
                         rows={2}

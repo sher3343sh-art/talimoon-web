@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, Check, Upload, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, MapPin, Upload, X } from "lucide-react";
 import { useLanguage, useT } from "@/lib/i18n/LanguageContext";
 import { toLocale } from "@/lib/journey/types";
 import {
-  BOOK_LANGUAGES,
+  BOOK_LANGUAGE_OPTIONS,
+  BookLanguageCode,
   BookType,
   PAYMENT_METHODS,
   STEPS,
@@ -17,13 +18,18 @@ import {
   bookTypeForChildCount,
   emptyChild,
   emptyOrderer,
+  isDeliveryAddressComplete,
   type ChildProfile,
+  type DeliveryAddress,
+  type DeliveryLocation,
   type Orderer,
   type Phase01Result,
 } from "@/lib/order/types";
 import Phase02 from "./Phase02";
 import Phase03 from "./Phase03";
 import EmotionalBridge from "./EmotionalBridge";
+import { ChildWorld } from "./ChildWorld";
+import { growthFull } from "@/lib/order/phase03-copy";
 import {
   formatRespectfulName,
   relationshipLabel,
@@ -51,9 +57,23 @@ const CHROME_EN = {
   years: (age: number | null) => (age == null ? "" : `, ${age}`),
 
   phone: "Phone number",
-  region: "Region",
-  city: "City",
   deliveryHint: "Where should the finished book reach you?",
+  addrRegion: "Region",
+  addrCityDistrict: "City / district",
+  addrStreet: "Street",
+  addrBuilding: "House / building",
+  addrApartment: "Flat / unit",
+  addrLandmark: "Landmark",
+  optional: "(optional)",
+  locationCta: "Set the delivery location",
+  locationHint:
+    "If you'd like, you can attach a location so the courier finds the address more easily.",
+  locationAttached: "Location attached",
+  locationClear: "Remove location",
+  locationDenied: "Couldn't get the location. You can carry on with the written address.",
+  locationUnsupported:
+    "This device can't share a location. The written address is enough.",
+  locationLoading: "Getting location…",
 
   namePlaceholder: "Name",
   agePlaceholder: "Age",
@@ -79,21 +99,34 @@ const CHROME_EN = {
   childPhotos: "Child photos",
   childPhotosHint: "3–5 clear, well-lit photos showing the face",
   wantsSpecialPhoto: "Add a special photo for the closing page",
-  specialPhoto: "Special photo",
-  specialPhotoHint: "Kept in its natural form — not stylized",
-  characterPhotos: "Character photos",
-  characterPhotosHint: "1–3 photos per additional character",
+  specialPhoto: "Special photo for the closing page",
+  specialPhotoHint:
+    "This photo is used on the book's final page as it really looks — it is not turned into an anime or cartoon drawing. So choose one that's as clear and bright as possible: a family photo, or one that means a lot to you.",
+  specialPhotoNote: "The photo is used exactly as it is.",
+  characterPhotos: "Photos of the other characters",
+  characterPhotosHint: "1–3 photos for each additional character in the story",
   atLeastPhotos: (min: number) => `At least ${min} photos required`,
   removePhoto: "Remove photo",
+  photoTooLarge: "That photo is too large. Please choose one under 15 MB.",
+  photoNotImage: "Please choose an image file.",
+  photoBroken: "This image couldn't be read. Please choose another.",
 
-  bookLanguage: "Book language",
+  bookLanguageQ: "Which language would you like the book in?",
+  languageSoon: "Coming soon",
   numberOfCopies: "Number of copies",
   total: "Total",
 
   availableSoon: "Available soon",
   uploadReceipt: "Upload payment receipt",
 
-  errContact: "Please add a phone number and where to deliver.",
+  reviewLanguage: "Book language",
+  reviewAddress: "Delivery address",
+  reviewCharacters: "Other characters",
+  reviewPrivateNote: "Private note for TALIMOON",
+  reviewPrivateHint: "Only used to understand the situation — not shown in the book.",
+  reviewGrowthContext: "Situations",
+
+  errContact: "Please add a phone number and the full delivery address.",
 };
 
 const CHROME_UZ: typeof CHROME_EN = {
@@ -108,9 +141,23 @@ const CHROME_UZ: typeof CHROME_EN = {
   years: (age: number | null) => (age == null ? "" : `, ${age} yosh`),
 
   phone: "Telefon raqami",
-  region: "Viloyat",
-  city: "Shahar",
   deliveryHint: "Tayyor kitob Sizga qayerga yetib borsin?",
+  addrRegion: "Viloyat",
+  addrCityDistrict: "Shahar / tuman",
+  addrStreet: "Ko‘cha",
+  addrBuilding: "Uy / bino",
+  addrApartment: "Kvartira / xonadon",
+  addrLandmark: "Mo‘ljal",
+  optional: "(ixtiyoriy)",
+  locationCta: "Yetkazib berish joyini belgilash",
+  locationHint:
+    "Istasangiz, kuryer manzilni osonroq topishi uchun lokatsiyani ham biriktirishingiz mumkin.",
+  locationAttached: "Lokatsiya biriktirilgan",
+  locationClear: "Lokatsiyani olib tashlash",
+  locationDenied: "Lokatsiya olinmadi. Manzilni yozib davom etishingiz mumkin.",
+  locationUnsupported:
+    "Bu qurilma lokatsiyani ulasholmaydi. Yozilgan manzil yetarli.",
+  locationLoading: "Lokatsiya olinmoqda…",
 
   namePlaceholder: "Ismi",
   agePlaceholder: "Yoshi",
@@ -130,27 +177,40 @@ const CHROME_UZ: typeof CHROME_EN = {
   giftFromHint: "Ism va qarindoshlik — masalan: Onasi, Nilufar",
   wantsPersonalMessage: "Shaxsiy xabar qo'shish",
   personalMessagePlaceholder: "Kitob oxirida chiqadigan yozuv",
-  wantsCharacters: "Boshqa qahramonlarni qo'shish",
+  wantsCharacters: "Hikoyaga boshqa qahramonlarni qo'shish",
   charactersPlaceholder: "Ism va qarindoshlik — masalan: opasi Madina, bobosi",
 
   childPhotos: "Farzand suratlari",
   childPhotosHint: "Yuzi aniq ko'rinadigan, yaxshi yoritilgan 3–5 ta surat",
   wantsSpecialPhoto: "Yakuniy sahifa uchun maxsus surat qo'shish",
-  specialPhoto: "Maxsus surat",
-  specialPhotoHint: "Tabiiy holida saqlanadi — stilizatsiya qilinmaydi",
-  characterPhotos: "Qahramonlar suratlari",
-  characterPhotosHint: "Har bir qo'shimcha qahramon uchun 1–3 ta surat",
+  specialPhoto: "Yakuniy sahifa uchun maxsus surat",
+  specialPhotoHint:
+    "Bu surat kitobning yakuniy sahifasida o'zining haqiqiy ko'rinishida ishlatiladi — anime yoki multfilm rasmiga aylantirilmaydi. Shuning uchun imkon qadar tiniq, yorug' va Siz uchun chiroyli oilaviy yoki esda qolarli surat tanlang.",
+  specialPhotoNote: "Surat qanday bo'lsa, shunday ishlatiladi.",
+  characterPhotos: "Boshqa qahramonlar suratlari",
+  characterPhotosHint: "Hikoyadagi har bir qo'shimcha qahramon uchun 1–3 ta surat",
   atLeastPhotos: (min: number) => `Kamida ${min} ta surat kerak`,
   removePhoto: "Suratni o'chirish",
+  photoTooLarge: "Bu surat juda katta. Iltimos, 15 MB dan kichigini tanlang.",
+  photoNotImage: "Iltimos, rasm faylini tanlang.",
+  photoBroken: "Bu suratni o'qib bo'lmadi. Iltimos, boshqasini tanlang.",
 
-  bookLanguage: "Kitob tili",
+  bookLanguageQ: "Kitob qaysi tilda bo'lishini xohlaysiz?",
+  languageSoon: "Tez orada",
   numberOfCopies: "Nusxalar soni",
   total: "Jami",
 
   availableSoon: "Tez orada mavjud bo'ladi",
   uploadReceipt: "To'lov chekini yuklang",
 
-  errContact: "Iltimos, telefon raqami va yetkazish manzilini kiriting.",
+  reviewLanguage: "Kitob tili",
+  reviewAddress: "Yetkazish manzili",
+  reviewCharacters: "Boshqa qahramonlar",
+  reviewPrivateNote: "TALIMOON uchun shaxsiy izoh",
+  reviewPrivateHint: "Faqat vaziyatni tushunish uchun — kitobda ko'rsatilmaydi.",
+  reviewGrowthContext: "Vaziyatlar",
+
+  errContact: "Iltimos, telefon raqami va to'liq yetkazish manzilini kiriting.",
 };
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -180,7 +240,8 @@ interface FormData {
   wantsSpecialPhoto: boolean;
   specialPhoto: File | null;
   characterPhotos: File[];
-  bookLanguage: string;
+  /** Stable machine code (spec §41) — "" until chosen. */
+  bookLanguageCode: BookLanguageCode | "";
   copies: number;
   paymentMethod: string;
   receipt: File | null;
@@ -206,7 +267,7 @@ function emptyForm(): FormData {
     wantsSpecialPhoto: false,
     specialPhoto: null,
     characterPhotos: [],
-    bookLanguage: "",
+    bookLanguageCode: "",
     copies: 1,
     paymentMethod: "bank_transfer",
     receipt: null,
@@ -268,6 +329,9 @@ export default function PersonalizedBookOrderForm({
 }) {
   const { language } = useLanguage();
   const locale = toLocale(language);
+  /** The order sub-components (ChildWorld, phase copy helpers) only
+   *  speak uz / en; everything else falls back to en. */
+  const bookLoc: "uz" | "en" = locale === "uz" ? "uz" : "en";
   const t = useT(CHROME_EN, CHROME_UZ);
 
   const [phase, setPhase] = useState<
@@ -278,6 +342,9 @@ export default function PersonalizedBookOrderForm({
    *  screen opens: "start" going forward, "end" stepping back from
    *  the photos so edits are quick. */
   const [heartEntry, setHeartEntry] = useState<"start" | "end">("start");
+  /** "end" when the customer steps BACK from the first wizard step into
+   *  Phase 03, so it opens on its completion screen (spec §03). */
+  const [charEntry, setCharEntry] = useState<"start" | "end">("start");
   const [data, setData] = useState<FormData>(emptyForm);
   const [phase01Seeded, setPhase01Seeded] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -308,6 +375,55 @@ export default function PersonalizedBookOrderForm({
   function updateOrderer<K extends keyof Orderer>(key: K, value: Orderer[K]) {
     setData((prev) => ({ ...prev, orderer: { ...prev.orderer, [key]: value } }));
     setShowStepError(false);
+  }
+
+  function updateAddress<K extends keyof DeliveryAddress>(
+    key: K,
+    value: DeliveryAddress[K],
+  ) {
+    setData((prev) => ({
+      ...prev,
+      orderer: {
+        ...prev.orderer,
+        deliveryAddress: { ...prev.orderer.deliveryAddress, [key]: value },
+      },
+    }));
+    setShowStepError(false);
+  }
+
+  // ── Optional delivery location (spec §44–49). Permission is requested
+  //    ONLY on an explicit tap — never on load. A denial / no support
+  //    never blocks checkout; the written address is always enough.
+  const [locState, setLocState] = useState<
+    "idle" | "loading" | "denied" | "unsupported"
+  >("idle");
+
+  function requestLocation() {
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      setLocState("unsupported");
+      return;
+    }
+    setLocState("loading");
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const loc: DeliveryLocation = {
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+          accuracy: Number.isFinite(pos.coords.accuracy)
+            ? pos.coords.accuracy
+            : undefined,
+        };
+        updateAddress("location", loc);
+        setLocState("idle");
+      },
+      () => setLocState("denied"),
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 },
+    );
+  }
+
+  function clearLocation() {
+    updateAddress("location", undefined);
+    setLocState("idle");
   }
 
   function handlePhase01(result: Phase01Result) {
@@ -343,10 +459,9 @@ export default function PersonalizedBookOrderForm({
         return data.childPhotos.length >= 3;
       case "review":
         return (
-          data.bookLanguage.length > 0 &&
+          data.bookLanguageCode.length > 0 &&
           data.orderer.phone.trim().length > 5 &&
-          data.orderer.region.trim().length > 0 &&
-          data.orderer.city.trim().length > 0
+          isDeliveryAddressComplete(data.orderer.deliveryAddress)
         );
       case "payment":
         return true;
@@ -387,8 +502,13 @@ export default function PersonalizedBookOrderForm({
       setShowStepError(false);
       return;
     }
+    // Back from the FIRST wizard step goes to the immediately previous
+    // screen — the end of Phase 03 ("the child's character") — NOT all
+    // the way back to Phase 01 (spec §03).
     if (stepIndex === 0) {
-      setPhase("intro");
+      setCharEntry("end");
+      setPhase("character");
+      setShowStepError(false);
       return;
     }
     setStepIndex((i) => Math.max(i - 1, 0));
@@ -425,7 +545,10 @@ export default function PersonalizedBookOrderForm({
         childrenIn={data.children}
         onPatchChild={patchChild}
         onBack={() => setPhase("intro")}
-        onComplete={() => setPhase("character")}
+        onComplete={() => {
+          setCharEntry("start");
+          setPhase("character");
+        }}
       />
     );
   }
@@ -436,7 +559,11 @@ export default function PersonalizedBookOrderForm({
       <Phase03
         childrenIn={data.children}
         onPatchChild={patchChild}
-        onBack={() => setPhase("world")}
+        entry={charEntry}
+        onBack={() => {
+          setCharEntry("start");
+          setPhase("world");
+        }}
         onComplete={() => {
           setPhase("steps");
           setStepIndex(0);
@@ -584,6 +711,9 @@ export default function PersonalizedBookOrderForm({
                 hint={t.childPhotosHint}
                 removeLabel={t.removePhoto}
                 atLeastLabel={t.atLeastPhotos}
+                tooLargeLabel={t.photoTooLarge}
+                notImageLabel={t.photoNotImage}
+                brokenLabel={t.photoBroken}
                 files={data.childPhotos}
                 min={3}
                 max={5}
@@ -596,15 +726,23 @@ export default function PersonalizedBookOrderForm({
                 onChange={(v) => update("wantsSpecialPhoto", v)}
               />
               {data.wantsSpecialPhoto && (
-                <PhotoUpload
-                  label={t.specialPhoto}
-                  hint={t.specialPhotoHint}
-                  removeLabel={t.removePhoto}
-                  atLeastLabel={t.atLeastPhotos}
-                  files={data.specialPhoto ? [data.specialPhoto] : []}
-                  max={1}
-                  onChange={(files) => update("specialPhoto", files[0] ?? null)}
-                />
+                <div className="space-y-2">
+                  <PhotoUpload
+                    label={t.specialPhoto}
+                    hint={t.specialPhotoHint}
+                    removeLabel={t.removePhoto}
+                    atLeastLabel={t.atLeastPhotos}
+                    tooLargeLabel={t.photoTooLarge}
+                    notImageLabel={t.photoNotImage}
+                    brokenLabel={t.photoBroken}
+                    files={data.specialPhoto ? [data.specialPhoto] : []}
+                    max={1}
+                    onChange={(files) => update("specialPhoto", files[0] ?? null)}
+                  />
+                  <p className="font-sans text-[12px] text-text-secondary">
+                    {t.specialPhotoNote}
+                  </p>
+                </div>
               )}
 
               {data.wantsCharacters && (
@@ -613,6 +751,9 @@ export default function PersonalizedBookOrderForm({
                   hint={t.characterPhotosHint}
                   removeLabel={t.removePhoto}
                   atLeastLabel={t.atLeastPhotos}
+                  tooLargeLabel={t.photoTooLarge}
+                  notImageLabel={t.photoNotImage}
+                  brokenLabel={t.photoBroken}
                   files={data.characterPhotos}
                   max={9}
                   onChange={(files) => update("characterPhotos", files)}
@@ -641,6 +782,122 @@ export default function PersonalizedBookOrderForm({
                 )}
               </div>
 
+              {/* What we gathered per child — the full portrait, plus the
+                  per-behaviour situations and (collapsed, never exposed)
+                  the private note (spec §50). */}
+              {data.children.map((ch) => {
+                const contexts = (ch.growthBehaviors ?? [])
+                  .filter((b) => (b.context ?? "").trim().length > 0)
+                  .map((b) => ({
+                    label: growthFull(b.id, bookLoc),
+                    context: (b.context ?? "").trim(),
+                  }));
+                const eb = ch.emotionalBridge;
+                const hasPrivate =
+                  !!eb &&
+                  [eb.privateContext, eb.intendedFeeling, eb.heartMessage].some(
+                    (s) => (s ?? "").trim().length > 0,
+                  );
+                return (
+                  <div key={ch.id} className="space-y-3">
+                    <ChildWorld
+                      child={ch}
+                      locale={bookLoc}
+                      variant="full"
+                      phase="character"
+                    />
+                    {contexts.length > 0 && (
+                      <div className="rounded-md border border-border-subtle px-4 py-3">
+                        <p className="mb-1.5 font-sans text-[10.5px] font-semibold uppercase tracking-[0.16em] text-text-muted">
+                          {t.reviewGrowthContext}
+                        </p>
+                        <ul className="space-y-1">
+                          {contexts.map((c2, i) => (
+                            <li
+                              key={i}
+                              className="font-sans text-[13px] leading-[1.5] text-text-secondary"
+                            >
+                              <span className="text-text-primary">{c2.label}</span> —{" "}
+                              {c2.context}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {hasPrivate && (
+                      <details className="rounded-md border border-border-subtle px-4 py-3">
+                        <summary className="cursor-pointer font-sans text-[12px] font-medium text-text-secondary">
+                          {t.reviewPrivateNote}
+                        </summary>
+                        <p className="mt-2 font-sans text-[12px] text-text-muted">
+                          {t.reviewPrivateHint}
+                        </p>
+                        <div className="mt-2 space-y-1.5 font-sans text-[13px] leading-[1.55] text-text-secondary">
+                          {(eb?.privateContext ?? "").trim() && (
+                            <p>{eb!.privateContext!.trim()}</p>
+                          )}
+                          {(eb?.intendedFeeling ?? "").trim() && (
+                            <p>{eb!.intendedFeeling!.trim()}</p>
+                          )}
+                          {(eb?.heartMessage ?? "").trim() && (
+                            <p>“{eb!.heartMessage!.trim()}”</p>
+                          )}
+                        </div>
+                      </details>
+                    )}
+                  </div>
+                );
+              })}
+
+              {data.wantsCharacters && data.characters.trim() && (
+                <div className="rounded-md border border-border-subtle px-4 py-3">
+                  <p className="mb-1 font-sans text-[10.5px] font-semibold uppercase tracking-[0.16em] text-text-muted">
+                    {t.reviewCharacters}
+                  </p>
+                  <p className="font-sans text-[13.5px] leading-[1.5] text-text-secondary">
+                    {data.characters.trim()}
+                  </p>
+                </div>
+              )}
+
+              {/* Book language — a human question, stable codes (spec §39–41) */}
+              <Field label={t.bookLanguageQ}>
+                <div className="grid grid-cols-2 gap-2.5">
+                  {BOOK_LANGUAGE_OPTIONS.map((opt) => {
+                    const soon = opt.status === "soon";
+                    const active = data.bookLanguageCode === opt.code;
+                    return (
+                      <button
+                        key={opt.code}
+                        type="button"
+                        disabled={soon}
+                        aria-pressed={active}
+                        onClick={() => !soon && update("bookLanguageCode", opt.code)}
+                        className={[
+                          "flex items-center justify-between rounded-md border px-3.5 py-2.5 text-left font-sans text-[13.5px] font-medium transition-colors disabled:cursor-not-allowed",
+                          active
+                            ? "border-accent-primary bg-accent-primary/[0.08] text-text-primary"
+                            : "border-border-default bg-transparent text-text-primary",
+                          soon ? "opacity-45" : "",
+                        ].join(" ")}
+                      >
+                        <span>{opt.label}</span>
+                        {soon && (
+                          <span className="ms-2 shrink-0 font-sans text-[10.5px] font-semibold uppercase tracking-[0.08em] text-text-muted">
+                            {t.languageSoon}
+                          </span>
+                        )}
+                        {active && !soon && (
+                          <Check size={14} strokeWidth={2.5} className="text-accent-primary" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </Field>
+
+              {/* Delivery — the written address is primary; the pin is
+                  extra precision and never required (spec §42–49). */}
               <p className="pt-1 font-sans text-[13px] text-text-secondary">
                 {t.deliveryHint}
               </p>
@@ -654,40 +911,86 @@ export default function PersonalizedBookOrderForm({
                 />
               </Field>
               <div className="grid grid-cols-2 gap-4">
-                <Field label={t.region}>
+                <Field label={t.addrRegion}>
                   <TextInput
-                    value={data.orderer.region}
-                    onChange={(e) => updateOrderer("region", e.target.value)}
+                    autoComplete="address-level1"
+                    value={data.orderer.deliveryAddress.region}
+                    onChange={(e) => updateAddress("region", e.target.value)}
                   />
                 </Field>
-                <Field label={t.city}>
+                <Field label={t.addrCityDistrict}>
                   <TextInput
-                    value={data.orderer.city}
-                    onChange={(e) => updateOrderer("city", e.target.value)}
+                    autoComplete="address-level2"
+                    value={data.orderer.deliveryAddress.cityDistrict}
+                    onChange={(e) => updateAddress("cityDistrict", e.target.value)}
                   />
                 </Field>
               </div>
-
-              <Field label={t.bookLanguage}>
-                <div className="grid grid-cols-2 gap-2.5">
-                  {BOOK_LANGUAGES.map((lang) => (
-                    <button
-                      key={lang}
-                      type="button"
-                      aria-pressed={data.bookLanguage === lang}
-                      onClick={() => update("bookLanguage", lang)}
-                      className={[
-                        "rounded-md border px-3.5 py-2.5 text-left font-sans text-[13.5px] font-medium text-text-primary transition-colors",
-                        data.bookLanguage === lang
-                          ? "border-accent-primary bg-accent-primary/[0.08]"
-                          : "border-border-default bg-transparent",
-                      ].join(" ")}
-                    >
-                      {lang}
-                    </button>
-                  ))}
-                </div>
+              <Field label={t.addrStreet}>
+                <TextInput
+                  autoComplete="address-line1"
+                  value={data.orderer.deliveryAddress.street}
+                  onChange={(e) => updateAddress("street", e.target.value)}
+                />
               </Field>
+              <div className="grid grid-cols-2 gap-4">
+                <Field label={t.addrBuilding}>
+                  <TextInput
+                    value={data.orderer.deliveryAddress.building}
+                    onChange={(e) => updateAddress("building", e.target.value)}
+                  />
+                </Field>
+                <Field label={`${t.addrApartment} ${t.optional}`}>
+                  <TextInput
+                    value={data.orderer.deliveryAddress.apartment ?? ""}
+                    onChange={(e) => updateAddress("apartment", e.target.value)}
+                  />
+                </Field>
+              </div>
+              <Field label={`${t.addrLandmark} ${t.optional}`}>
+                <TextInput
+                  value={data.orderer.deliveryAddress.landmark ?? ""}
+                  onChange={(e) => updateAddress("landmark", e.target.value)}
+                  placeholder=""
+                />
+              </Field>
+
+              <div className="rounded-md border border-border-default p-4">
+                {data.orderer.deliveryAddress.location ? (
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="inline-flex items-center gap-2 font-sans text-[13px] font-medium text-text-primary">
+                      <MapPin size={15} strokeWidth={1.75} className="text-accent-primary" />
+                      {t.locationAttached}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={clearLocation}
+                      className="font-sans text-[12.5px] font-medium text-text-secondary underline underline-offset-4 hover:text-text-primary"
+                    >
+                      {t.locationClear}
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={requestLocation}
+                      disabled={locState === "loading"}
+                      className="inline-flex items-center gap-2 rounded-md border border-border-strong px-3.5 py-2 font-sans text-[13px] font-medium text-text-primary transition-colors hover:border-accent-primary disabled:opacity-60"
+                    >
+                      <MapPin size={15} strokeWidth={1.75} className="text-accent-primary" />
+                      {locState === "loading" ? t.locationLoading : t.locationCta}
+                    </button>
+                    <p className="mt-2 font-sans text-[12px] leading-[1.5] text-text-secondary">
+                      {locState === "denied"
+                        ? t.locationDenied
+                        : locState === "unsupported"
+                          ? t.locationUnsupported
+                          : t.locationHint}
+                    </p>
+                  </>
+                )}
+              </div>
 
               <Field label={t.numberOfCopies}>
                 <div className="flex items-center gap-4">
@@ -842,11 +1145,16 @@ function ToggleRow({
   );
 }
 
+const MAX_PHOTO_BYTES = 15 * 1024 * 1024;
+
 function PhotoUpload({
   label,
   hint,
   removeLabel,
   atLeastLabel,
+  tooLargeLabel,
+  notImageLabel,
+  brokenLabel,
   files,
   min,
   max,
@@ -856,6 +1164,9 @@ function PhotoUpload({
   hint?: string;
   removeLabel: string;
   atLeastLabel: (min: number) => string;
+  tooLargeLabel?: string;
+  notImageLabel?: string;
+  brokenLabel?: string;
   files: File[];
   min?: number;
   max: number;
@@ -869,6 +1180,31 @@ function PhotoUpload({
     return () => previews.forEach((p) => URL.revokeObjectURL(p.url));
   }, [previews]);
 
+  // Client-side guards (spec §35): image type, a sane size ceiling, and
+  // a "couldn't read this file" state for a corrupt image.
+  const [notice, setNotice] = useState<string | null>(null);
+  const [broken, setBroken] = useState<Record<number, boolean>>({});
+
+  function accept(incoming: File[]) {
+    setNotice(null);
+    const ok: File[] = [];
+    for (const f of incoming) {
+      if (!f.type.startsWith("image/")) {
+        setNotice(notImageLabel ?? "Please choose an image file.");
+        continue;
+      }
+      if (f.size > MAX_PHOTO_BYTES) {
+        setNotice(tooLargeLabel ?? "That photo is too large.");
+        continue;
+      }
+      ok.push(f);
+    }
+    if (ok.length) {
+      setBroken({});
+      onChange([...files, ...ok].slice(0, max));
+    }
+  }
+
   return (
     <Field label={label} hint={hint}>
       <div className="flex flex-wrap gap-2.5">
@@ -877,7 +1213,18 @@ function PhotoUpload({
             key={i}
             className="relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-md border border-border-default"
           >
-            <img src={url} alt="" className="h-full w-full object-cover" />
+            {broken[i] ? (
+              <span className="px-1 text-center font-sans text-[10px] leading-[1.2] text-state-error">
+                {brokenLabel ?? "Couldn't read this image"}
+              </span>
+            ) : (
+              <img
+                src={url}
+                alt=""
+                className="h-full w-full object-cover"
+                onError={() => setBroken((b) => ({ ...b, [i]: true }))}
+              />
+            )}
             <button
               type="button"
               onClick={() => onChange(files.filter((_, idx) => idx !== i))}
@@ -897,13 +1244,18 @@ function PhotoUpload({
               multiple={max > 1}
               className="hidden"
               onChange={(e) => {
-                const selectedFiles = Array.from(e.target.files ?? []);
-                onChange([...files, ...selectedFiles].slice(0, max));
+                accept(Array.from(e.target.files ?? []));
+                e.target.value = "";
               }}
             />
           </label>
         )}
       </div>
+      {notice && (
+        <span role="alert" className="mt-1.5 block font-sans text-[12px] text-state-error">
+          {notice}
+        </span>
+      )}
       {min && files.length < min && (
         <span className="mt-1.5 block font-sans text-[12px] text-accent-primary">
           {atLeastLabel(min)}

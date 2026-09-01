@@ -20,9 +20,10 @@ import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { toLocale, directionFor } from "@/lib/journey/types";
 import {
   reconcileGrowth,
-  reconcileGrowthContext,
   reconcileQualityExample,
+  setGrowthItemContext,
   type ChildProfile,
+  type GrowthBehaviorAnswer,
   type SelectableAnswer,
 } from "@/lib/order/types";
 import { addCustomAnswer, removeAnswer, togglePreset } from "@/lib/order/selectableAnswers";
@@ -59,11 +60,16 @@ export default function Phase03({
   onPatchChild,
   onComplete,
   onBack,
+  entry = "start",
 }: {
   childrenIn: ChildProfile[];
   onPatchChild: (id: string, patch: Partial<ChildProfile>) => void;
   onComplete: () => void;
   onBack: () => void;
+  /** "end" when the customer steps BACK into Phase 03 from the first
+   *  wizard step — land on the last child's completion screen so Back
+   *  really is one screen (spec §03), not a jump to the phase start. */
+  entry?: "start" | "end";
 }) {
   const { language } = useLanguage();
   const locale: Locale = toLocale(language) === "uz" ? "uz" : "en";
@@ -71,8 +77,8 @@ export default function Phase03({
   const c = phase03Copy(locale);
   const reduced = useReducedMotion();
 
-  const [idx, setIdx] = useState(0);
-  const [screen, setScreen] = useState<Screen>("intro");
+  const [idx, setIdx] = useState(entry === "end" ? childrenIn.length - 1 : 0);
+  const [screen, setScreen] = useState<Screen>(entry === "end" ? "child-done" : "intro");
   const [attempted, setAttempted] = useState(false);
   const [customOpen, setCustomOpen] = useState(false);
   const [customDraft, setCustomDraft] = useState("");
@@ -138,23 +144,25 @@ export default function Phase03({
     setAttempted(false);
   }
 
-  // ── growth behaviours — up to 3, preset and custom share one array
-  //    (context-aware-selection spec §23–27) ──────────────────────
-  const growthBehaviors = child.growthBehaviors ?? [];
+  // ── growth behaviours — up to 3, preset and custom share one array;
+  //    each carries its OWN optional context (spec §22–26) ──────────
+  const growthBehaviors: GrowthBehaviorAnswer[] = child.growthBehaviors ?? [];
   const atGrowthLimit = growthBehaviors.length >= MAX_GROWTH_BEHAVIORS;
   const resolveGrowthLabel = (id: string) => growthFull(id, locale);
 
   function toggleGrowth(key: string) {
-    const next = togglePreset<SelectableAnswer>(growthBehaviors, key, MAX_GROWTH_BEHAVIORS, (id) => ({
-      id,
-      source: "preset",
-    }));
+    const next = togglePreset<GrowthBehaviorAnswer>(
+      growthBehaviors,
+      key,
+      MAX_GROWTH_BEHAVIORS,
+      (id) => ({ id, source: "preset" }),
+    );
     if (next === null) return;
     patch({ growthBehaviors: next, noGrowthArea: false });
     setAttempted(false);
   }
   function addCustomGrowth() {
-    const next = addCustomAnswer<SelectableAnswer>(
+    const next = addCustomAnswer<GrowthBehaviorAnswer>(
       growthBehaviors,
       growthCustomDraft,
       MAX_GROWTH_BEHAVIORS,
@@ -169,6 +177,16 @@ export default function Phase03({
   }
   function removeGrowth(id: string) {
     patch({ growthBehaviors: removeAnswer(growthBehaviors, id) });
+  }
+  /** Per-behaviour context edits (spec §25) — context ↔ "no situation"
+   *  are exclusive on that single item, never applied globally. */
+  function setBehaviorContext(id: string, context: string) {
+    patch({ growthBehaviors: setGrowthItemContext(growthBehaviors, id, { context }) });
+  }
+  function setBehaviorNoContext(id: string, noSpecificContext: boolean) {
+    patch({
+      growthBehaviors: setGrowthItemContext(growthBehaviors, id, { noSpecificContext }),
+    });
   }
   const hasGrowth = !child.noGrowthArea && growthBehaviors.length > 0;
 
@@ -494,12 +512,16 @@ export default function Phase03({
                       </p>
                     )}
 
-                    <div className="mt-4">
+                    {/* The exclusive alternative — set apart from the
+                        behaviour list so it never reads as one more of
+                        them (spec §19–20). */}
+                    <div className="mt-6 border-t border-border-subtle pt-5">
                       <CheckRow
                         id="p3-no-growth"
                         checked={!!child.noGrowthArea}
                         onChange={(checked) => patch(reconcileGrowth(!checked))}
                         label={c.q3None}
+                        support={c.q3NoneHelp}
                       />
                     </div>
                     <ErrorLine>{showError}</ErrorLine>
@@ -508,33 +530,46 @@ export default function Phase03({
 
                 {screen === "context" && (
                   <div>
-                    <SelectionTray
-                      title={c.q4ContextTrayTitle}
-                      items={growthBehaviors.map((a) => ({ id: a.id, label: resolveGrowthLabel(a.id) }))}
-                      reduced={!!reduced}
-                    />
-                    <div className="mt-5">
-                      <Heading headingRef={headingRef}>{c.q4(child.name)}</Heading>
-                      <Help>{c.q4Help}</Help>
-                      <div className="mt-5">
-                        <textarea
-                          rows={2}
-                          value={child.growthContext ?? ""}
-                          onChange={(e) =>
-                            patch({ ...reconcileGrowthContext(true), growthContext: e.target.value })
-                          }
-                          placeholder={c.q4Placeholder}
-                          className={box}
-                        />
-                      </div>
-                      <div className="mt-4">
-                        <CheckRow
-                          id="p3-no-context"
-                          checked={!!child.noSpecificGrowthContext}
-                          onChange={(checked) => patch(reconcileGrowthContext(!checked))}
-                          label={c.q4NoneLabel}
-                        />
-                      </div>
+                    <p className="font-sans text-[12px] font-semibold uppercase tracking-[0.18em] text-accent-primary">
+                      {c.q4SectionLabel}
+                    </p>
+                    <Heading headingRef={headingRef}>{c.q4Intro}</Heading>
+
+                    {/* One block PER chosen behaviour — its own textarea
+                        and its own "no situation" toggle. A context
+                        typed here can only ever attach to THIS behaviour
+                        (spec §22–26). */}
+                    <div className="mt-7 space-y-7">
+                      {growthBehaviors.map((a) => (
+                        <div
+                          key={a.id}
+                          className="rounded-md border border-border-subtle bg-surface-raised/40 px-4 py-4"
+                        >
+                          <p className="font-display text-[16px] leading-[1.35] text-text-primary">
+                            {resolveGrowthLabel(a.id)}
+                          </p>
+                          <p className="mt-2.5 font-sans text-[13.5px] font-medium text-text-secondary">
+                            {c.q4ItemQuestion}
+                          </p>
+                          <div className="mt-2.5">
+                            <textarea
+                              rows={2}
+                              value={a.context ?? ""}
+                              onChange={(e) => setBehaviorContext(a.id, e.target.value)}
+                              placeholder={c.q4ItemPlaceholder}
+                              className={box}
+                            />
+                          </div>
+                          <div className="mt-3">
+                            <CheckRow
+                              id={`p3-no-context-${a.id}`}
+                              checked={!!a.noSpecificContext}
+                              onChange={(checked) => setBehaviorNoContext(a.id, checked)}
+                              label={c.q4ItemNone}
+                            />
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}

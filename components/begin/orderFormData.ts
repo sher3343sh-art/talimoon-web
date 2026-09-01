@@ -51,9 +51,33 @@ export type TraitId = (typeof TRAITS)[number]["id"];
 
 export const MAX_TRAITS = 3;
 
-// Native script per language, not translated — a language name is always
-// shown in its own script regardless of the UI's current language.
-export const BOOK_LANGUAGES = ["O'zbek", "Русский", "English", "العربية"] as const;
+// ── Book output language (spec §39–41) — the language the printed book
+//    is written in, NOT the site UI language. Stable machine `code` is
+//    the backend identity; `label` is shown in the language's own
+//    script, never translated. `status: "soon"` renders disabled with a
+//    "Tez orada" tag and cannot be ordered (spec §40). Every language
+//    here is confirmed deliverable at production quality.
+export type BookLanguageCode = "uz" | "en" | "ru" | "kk" | "ky" | "tg" | "ar";
+
+export interface BookLanguageOption {
+  code: BookLanguageCode;
+  label: string;
+  status: "available" | "soon";
+}
+
+export const BOOK_LANGUAGE_OPTIONS: readonly BookLanguageOption[] = [
+  { code: "uz", label: "O‘zbekcha", status: "available" },
+  { code: "en", label: "English", status: "available" },
+  { code: "ru", label: "Русский", status: "available" },
+  { code: "kk", label: "Қазақша", status: "available" },
+  { code: "ky", label: "Кыргызча", status: "available" },
+  { code: "tg", label: "Тоҷикӣ", status: "available" },
+  { code: "ar", label: "العربية", status: "available" },
+] as const;
+
+export function bookLanguageLabel(code: string): string {
+  return BOOK_LANGUAGE_OPTIONS.find((l) => l.code === code)?.label ?? "";
+}
 
 export const PAYMENT_METHODS = [
   {

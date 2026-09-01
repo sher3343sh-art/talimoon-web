@@ -102,8 +102,8 @@ const uz: EmotionalBridgeCopy = {
     "Agar bolangiz bilishini yoki his qilishini istagan gaplaringiz bo‘lsa, ularni bu yerda biz bilan bo‘lishishingiz mumkin.",
   ],
   trustNote: [
-    "Bu yerda yozgan shaxsiy tafsilotlaringiz bolaga aynan shu shaklda ko‘rsatilmaydi va hikoyaga so‘zma-so‘z ko‘chirilmaydi.",
-    "TALIMOON ularning ortidagi mehr, sog‘inch, umid va aytilmay qolgan tuyg‘ularni bolaga mos, ehtiyotkor hikoya yaratishda tushunish uchun foydalanadi.",
+    "Xohlaganingizcha yozishingiz mumkin. Bu ma’lumot vaziyatingizni yaxshiroq tushunishimiz uchun.",
+    "Shaxsiy tafsilotlar hikoyaga aynan ko‘chirilmaydi va bolaga ko‘rsatilmaydi. Ular hikoyadagi tuyg‘u va yondashuvni ehtiyotkor tanlashimiz uchun xizmat qiladi.",
   ],
   nextChildLead: (name) =>
     `${name.trim()} uchun ham — yuragingizda qolgan gaplar bo‘lsa, shu yerda bo‘lishishingiz mumkin.`,
@@ -114,7 +114,7 @@ const uz: EmotionalBridgeCopy = {
       : "Siz bilan uning orasida biz bilishimiz foydali bo‘lgan biror holat bormi?",
   q1Help:
     "Masalan: undan uzoqda yashashingiz yoki safarda bo‘lishingiz, ish tufayli birga kamroq vaqt o‘tkazishingiz, aytilmay qolgan gaplaringiz, orangizdagi araz yoki boshqa nozik bir vaziyat.",
-  q1Placeholder: "Xohlagancha yozing — bu faqat biz uchun.",
+  q1Placeholder: "Xohlaganingizcha yozishingiz mumkin.",
   q1Skip: "Alohida holat yo‘q",
 
   q2: (name, multi) =>
@@ -157,8 +157,8 @@ const en: EmotionalBridgeCopy = {
     "If there's something you'd like your child to know, or to feel, you can share it with us here.",
   ],
   trustNote: [
-    "The personal details you write here are never shown to the child as they are, and are never copied word-for-word into the story.",
-    "TALIMOON uses them only to understand the love, longing, hope and unspoken feeling behind them, so it can shape a gentle, age-appropriate story for the child.",
+    "Write as much as you like. This is only so we can understand your situation better.",
+    "Personal details are not copied into the story and are not shown to the child. They only help us choose the feeling and the approach in the story with care.",
   ],
   nextChildLead: (name) =>
     `And for ${name.trim()} — if there's something still in your heart, you can share it here too.`,
@@ -169,7 +169,7 @@ const en: EmotionalBridgeCopy = {
       : "Is there something between you and them that would help us to understand?",
   q1Help:
     "For example: living far from them or being away travelling, less time together because of work, things left unsaid, a rift between you, or another delicate situation.",
-  q1Placeholder: "Write as much as you like — this is just for us.",
+  q1Placeholder: "Write as much as you like.",
   q1Skip: "Nothing in particular",
 
   q2: (name, multi) =>
