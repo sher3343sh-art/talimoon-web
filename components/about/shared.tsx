@@ -38,13 +38,18 @@ export const GOLD_FAINT = 'rgba(184,147,91,0.14)';
 
 // ── Vertical rhythm ─────────────────────────────────────────────────
 // Not every section is a hero. Three tiers keep the page moving without
-// feeling cramped (mobile → md → lg):
-//   MAJOR   ~64 / 96 / 112px  — the page's big emotional beats
-//   NORMAL  ~56 / 80 /  96px  — most editorial sections
-//   COMPACT ~48 / 64 /  80px  — structural / list / process sections
-export const SPACE_MAJOR = 'py-16 md:py-24 lg:py-28';
-export const SPACE_NORMAL = 'py-14 md:py-20 lg:py-24';
-export const SPACE_COMPACT = 'py-12 md:py-16 lg:py-20';
+// feeling cramped (mobile → md → lg). Tightened hard from the earlier
+// values so the story reads as one continuous editorial piece rather
+// than a stack of full-height panels — the section-to-section
+// transition (one section's pb + the next section's pt) now lands around
+// MAJOR ~112px / NORMAL ~80px / COMPACT ~64px on desktop instead of the
+// old ~200–224px. Premium is not the same as large empty cream zones.
+//   MAJOR   ~40 / 48 / 56px  — the page's big emotional beats
+//   NORMAL  ~32 / 36 / 40px  — most editorial sections
+//   COMPACT ~24 / 32 / 32px  — structural / list / process sections
+export const SPACE_MAJOR = 'py-10 md:py-12 lg:py-14';
+export const SPACE_NORMAL = 'py-8 md:py-9 lg:py-10';
+export const SPACE_COMPACT = 'py-6 md:py-8 lg:py-8';
 
 // ── Scroll reveal ───────────────────────────────────────────────────
 // One calm container→children stagger. Sections apply `revealContainer`
@@ -199,7 +204,7 @@ export function Section({
       className={`relative w-full overflow-hidden px-6 md:px-10 lg:px-16 ${className}`}
       style={{ backgroundColor: bg, color }}
     >
-      <div className={`mx-auto w-full max-w-[1200px] ${railInset ? 'xl:ps-[236px]' : ''}`}>
+      <div className={`mx-auto w-full max-w-[1200px] ${railInset ? 'xl:ps-[256px]' : ''}`}>
         {children}
       </div>
     </section>

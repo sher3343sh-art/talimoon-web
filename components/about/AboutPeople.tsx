@@ -98,7 +98,7 @@ function PersonFrame({
           alt={alt}
           fill
           quality={100}
-          sizes={size === 'large' ? '(max-width: 1024px) 88vw, 340px' : '(max-width: 1024px) 80vw, 320px'}
+          sizes={size === 'large' ? '(max-width: 1024px) 88vw, 340px' : '(max-width: 1024px) 82vw, 340px'}
           className="object-cover"
         />
       ) : (
@@ -143,7 +143,7 @@ export function AboutPeople() {
       </div>
 
       {/* Founder — the larger, primary editorial treatment */}
-      <div className="mt-12 grid items-center gap-10 md:mt-14 lg:grid-cols-[minmax(0,360px)_1fr] lg:gap-16">
+      <div className="mt-10 grid items-center gap-10 md:mt-12 lg:grid-cols-[minmax(0,360px)_1fr] lg:gap-16">
         <motion.div
           initial={reduced ? undefined : { opacity: 0, y: 22 }}
           whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
@@ -180,19 +180,19 @@ export function AboutPeople() {
       </div>
 
       {/* A quiet hairline between the two — different weight, same respect */}
-      <div className="mx-auto my-12 h-px w-full max-w-[1000px] md:my-14" style={{ background: 'rgba(28,42,58,0.10)' }} />
+      <div className="mx-auto my-10 h-px w-full max-w-[1000px] md:my-12" style={{ background: 'rgba(28,42,58,0.10)' }} />
 
       {/* Partner — a real, dignified secondary treatment. The portrait
-          footprint is ~20% larger than the earlier square slot so Oybek
-          reads as a real person with presence — still clearly secondary
-          to the founder's taller lead portrait. */}
-      <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,316px)_1fr] lg:gap-14">
+          footprint grew again here so Oybek reads as a real person with
+          presence — still clearly secondary to the founder's taller lead
+          portrait (2:3 vs. 4:5, so the founder stays visually dominant). */}
+      <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,340px)_1fr] lg:gap-14">
         <motion.div
           initial={reduced ? undefined : { opacity: 0, y: 18 }}
           whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.5 }}
           transition={{ duration: 0.8, ease: EASE }}
-          className="mx-auto w-full max-w-[288px] sm:max-w-[316px] lg:mx-0 lg:max-w-[316px]"
+          className="mx-auto w-full max-w-[300px] sm:max-w-[340px] lg:mx-0 lg:max-w-[340px]"
         >
           <PersonFrame src={PORTRAITS.partner} alt={t.partner.alt} size="medium" ratio={PARTNER_RATIO} />
         </motion.div>
@@ -222,7 +222,7 @@ export function AboutPeople() {
         whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.6 }}
         transition={{ duration: 0.7, ease: EASE }}
-        className="mx-auto mt-12 max-w-[620px] text-center text-[14.5px] md:mt-14 md:text-[15px]"
+        className="mx-auto mt-10 max-w-[620px] text-center text-[14.5px] md:mt-12 md:text-[15px]"
         style={{ fontFamily: BODY, color: NAVY_48, lineHeight: 1.75 }}
       >
         {t.today}

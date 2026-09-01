@@ -70,7 +70,7 @@ export function AboutChildPerspective() {
           {t.headline}
         </motion.h2>
 
-        <div className="mt-10 flex flex-col items-center gap-3 md:mt-12">
+        <div className="mt-8 flex flex-col items-center gap-3 md:mt-10">
           {t.lines.map(([a, b], i) => (
             <motion.p
               key={i}
@@ -93,7 +93,7 @@ export function AboutChildPerspective() {
         whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.3 }}
         transition={{ duration: 1, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-        className="mx-auto mt-10 w-full max-w-[900px] md:mt-12"
+        className="mx-auto mt-8 w-full max-w-[840px] md:mt-10"
       >
         <Image
           src="/images/about/about-child-perspective.webp"

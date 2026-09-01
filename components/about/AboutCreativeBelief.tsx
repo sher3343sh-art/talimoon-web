@@ -92,7 +92,7 @@ export function AboutCreativeBelief() {
         </motion.h2>
       </div>
 
-      <div className="mt-10 md:mt-12">
+      <div className="mt-8 md:mt-10">
         {t.principles.map((p, i) => (
           <motion.div
             key={p.n}
@@ -100,7 +100,7 @@ export function AboutCreativeBelief() {
             whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.55 }}
             transition={{ duration: 0.75, delay: 0.06 * i, ease: [0.22, 1, 0.36, 1] }}
-            className="grid grid-cols-[auto_1fr] items-baseline gap-x-6 gap-y-2 py-6 md:grid-cols-[120px_260px_1fr] md:gap-x-10 md:py-7"
+            className="grid grid-cols-[auto_1fr] items-baseline gap-x-6 gap-y-2 py-5 md:grid-cols-[120px_260px_1fr] md:gap-x-10 md:py-5"
             style={{
               borderTop: `1px solid ${i === 0 ? GOLD_SOFT : 'rgba(28,42,58,0.10)'}`,
             }}

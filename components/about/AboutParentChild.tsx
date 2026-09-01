@@ -109,7 +109,7 @@ export function AboutParentChild() {
         whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.5 }}
         transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-        className="mx-auto mt-14 max-w-[820px] text-center text-[22px] sm:text-[26px] md:mt-16 md:text-[32px]"
+        className="mx-auto mt-10 max-w-[820px] text-center text-[22px] sm:text-[26px] md:mt-12 md:text-[32px]"
         style={{
           fontFamily: DISPLAY,
           fontWeight: 600,

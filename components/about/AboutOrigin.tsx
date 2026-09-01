@@ -314,7 +314,7 @@ export function AboutOrigin() {
           whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.5 }}
           transition={{ duration: 0.9, ease: EASE }}
-          className="mx-auto mt-14 max-w-[760px] text-center md:mt-16"
+          className="mx-auto mt-10 max-w-[760px] text-center md:mt-12"
         >
           <p className="text-[24px] sm:text-[28px] md:text-[34px]" style={{ fontFamily: DISPLAY, fontWeight: 600, color: NAVY, lineHeight: 1.32 }}>
             {t.m2.statement[0]}
@@ -350,7 +350,7 @@ export function AboutOrigin() {
           whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.5 }}
           transition={{ duration: 0.9, delay: 0.1, ease: EASE }}
-          className="mx-auto mt-12 max-w-[760px] text-center md:mt-14"
+          className="mx-auto mt-10 max-w-[760px] text-center md:mt-12"
         >
           <p className="text-[24px] sm:text-[28px] md:text-[34px]" style={{ fontFamily: DISPLAY, fontWeight: 600, color: NAVY, lineHeight: 1.32 }}>
             {t.m3.statement}
@@ -365,7 +365,7 @@ export function AboutOrigin() {
           whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.5 }}
           transition={{ duration: 0.7, ease: EASE }}
-          className="mx-auto mt-12 max-w-[560px] text-center text-[15px] md:mt-14 md:text-[16px]"
+          className="mx-auto mt-10 max-w-[560px] text-center text-[15px] md:mt-12 md:text-[16px]"
           style={{ fontFamily: BODY, color: NAVY_48, lineHeight: 1.7 }}
         >
           {t.m3.transition}

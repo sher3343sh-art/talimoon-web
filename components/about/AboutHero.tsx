@@ -35,8 +35,8 @@ export function AboutHero() {
   const reduced = useReducedMotion();
 
   return (
-    <Section labelledBy="about-hero-heading" className="pt-24 pb-16 md:pt-32 md:pb-24 lg:pt-36 lg:pb-28" railInset>
-      <div className="grid items-center gap-12 md:gap-10 lg:grid-cols-[1fr_minmax(0,520px)] lg:gap-16 xl:grid-cols-[1fr_minmax(0,440px)]">
+    <Section labelledBy="about-hero-heading" className="pt-20 pb-10 md:pt-20 md:pb-14 lg:pt-24 lg:pb-16" railInset>
+      <div className="grid items-center gap-10 md:gap-10 lg:grid-cols-[1fr_minmax(0,564px)] lg:gap-14 xl:grid-cols-[1fr_minmax(0,496px)] xl:gap-10">
         <motion.div
           initial={reduced ? undefined : { opacity: 0, y: 18 }}
           animate={reduced ? undefined : { opacity: 1, y: 0 }}
@@ -53,7 +53,7 @@ export function AboutHero() {
               lineHeight: 1.08,
               letterSpacing: '-0.02em',
             }}
-            className="mt-4 text-[34px] sm:text-[42px] md:text-[52px] lg:text-[58px]"
+            className="mt-4 text-[34px] sm:text-[42px] md:text-[52px] lg:text-[56px] xl:text-[50px]"
           >
             {t.headline}
           </h1>
@@ -70,12 +70,10 @@ export function AboutHero() {
           </p>
         </motion.div>
 
-        <motion.div
-          initial={reduced ? undefined : { opacity: 0, y: 22 }}
-          animate={reduced ? undefined : { opacity: 1, y: 0 }}
-          transition={{ duration: 1.1, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-          className="mx-auto w-full max-w-[520px] lg:mx-0 lg:max-w-none"
-        >
+        {/* The hero artwork is the LCP element and must be visible on the
+            first paint — it is intentionally NOT gated behind a JS mount
+            animation (a stuck opacity:0 was hiding it in production). */}
+        <div className="mx-auto w-full max-w-[600px] lg:mx-0 lg:max-w-none">
           <Image
             src="/images/about/about-hero-world.webp"
             alt={t.artAlt}
@@ -83,10 +81,10 @@ export function AboutHero() {
             height={1024}
             quality={100}
             priority
-            sizes="(max-width: 1024px) 90vw, 560px"
+            sizes="(max-width: 1024px) 92vw, (max-width: 1280px) 564px, 496px"
             className="h-auto w-full"
           />
-        </motion.div>
+        </div>
       </div>
     </Section>
   );

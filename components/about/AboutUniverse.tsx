@@ -74,7 +74,7 @@ export function AboutUniverse() {
 
       {/* One editorial index of five worlds — number · name · line.
           Renders once; the row rule is decorative only. */}
-      <ol className="mx-auto mt-10 max-w-[920px] md:mt-12">
+      <ol className="mx-auto mt-8 max-w-[920px] md:mt-10">
         {t.worlds.map((w, i) => (
           <motion.li
             key={w.key}
@@ -82,7 +82,7 @@ export function AboutUniverse() {
             whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.6 }}
             transition={{ duration: 0.6, delay: 0.05 * i, ease: EASE }}
-            className="grid gap-x-8 gap-y-1.5 py-5 md:grid-cols-[auto_minmax(0,300px)_1fr] md:items-baseline md:py-6"
+            className="grid gap-x-8 gap-y-1.5 py-4 md:grid-cols-[auto_minmax(0,300px)_1fr] md:items-baseline md:py-5"
             style={{ borderTop: `1px solid ${i === 0 ? GOLD_SOFT : 'rgba(28,42,58,0.10)'}` }}
           >
             <span

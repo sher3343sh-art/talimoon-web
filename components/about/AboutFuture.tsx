@@ -76,7 +76,7 @@ export function AboutFuture() {
         whileInView={reduced ? undefined : { opacity: 1 }}
         viewport={{ once: true, amount: 0.3 }}
         transition={{ duration: 1.2, ease: 'easeOut' }}
-        className="mx-auto mt-10 w-full max-w-[1000px] md:mt-12"
+        className="mx-auto mt-8 w-full max-w-[920px] md:mt-10"
       >
         <Image
           src="/images/about/about-future.webp"

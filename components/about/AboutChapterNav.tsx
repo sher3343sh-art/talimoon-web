@@ -184,10 +184,10 @@ export function AboutChapterNav() {
         className={`fixed top-1/2 z-40 hidden -translate-y-1/2 xl:block ${
           visible ? 'opacity-100' : 'pointer-events-none opacity-0'
         } transition-opacity duration-500 motion-reduce:transition-none`}
-        style={{ left: 'max(1.5rem, calc(50vw - 600px + 1.5rem))' }}
+        style={{ left: 'max(1rem, calc(50vw - 600px - 0.25rem))' }}
       >
         <p
-          className="mb-5 ps-8 text-[10.5px] uppercase"
+          className="mb-6 ps-9 text-[11px] uppercase"
           style={{
             fontFamily: BODY,
             fontWeight: 600,
@@ -197,7 +197,7 @@ export function AboutChapterNav() {
         >
           {t.eyebrow}
         </p>
-        <ul className="flex flex-col gap-[20px]">
+        <ul className="flex flex-col gap-[24px]">
           {t.items.map((label, i) => {
             const on = i === active;
             return (
@@ -209,19 +209,19 @@ export function AboutChapterNav() {
                   className="group flex items-baseline gap-0 rounded-[3px] py-0.5 text-start outline-none focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-[6px] focus-visible:outline-[rgba(184,147,91,0.55)]"
                 >
                   {/* the marker gutter — a short gold line only on the
-                      active row; a fixed 32px cell so nothing shifts */}
-                  <span aria-hidden="true" className="block w-8 shrink-0 self-center">
+                      active row; a fixed 36px cell so nothing shifts */}
+                  <span aria-hidden="true" className="block w-9 shrink-0 self-center">
                     <span
                       className="block h-[1.5px] transition-all duration-[220ms] ease-out motion-reduce:transition-none"
                       style={{
-                        width: on ? 28 : 0,
+                        width: on ? 30 : 0,
                         background: on ? GOLD : 'transparent',
                       }}
                     />
                   </span>
                   <span
                     aria-hidden="true"
-                    className="shrink-0 text-[11.5px] tabular-nums transition-colors duration-200 motion-reduce:transition-none"
+                    className="shrink-0 text-[12.5px] tabular-nums transition-colors duration-200 motion-reduce:transition-none"
                     style={{
                       fontFamily: BODY,
                       fontWeight: 600,
@@ -232,7 +232,7 @@ export function AboutChapterNav() {
                     {num(i)}
                   </span>
                   <span
-                    className="ms-3 max-w-[160px] text-[13.5px] leading-[1.35] transition-colors duration-200 motion-reduce:transition-none"
+                    className="ms-2.5 max-w-[172px] text-[15px] leading-[1.4] transition-colors duration-200 motion-reduce:transition-none"
                     style={{
                       fontFamily: BODY,
                       fontWeight: on ? 600 : 500,
@@ -295,23 +295,30 @@ export function AboutChapterNav() {
             >
               {t.items[active]}
             </span>
-            <svg
+            {/* Chevron — sits in a faint round affordance so it reads
+                clearly as "this opens". Rotates on open. */}
+            <span
               aria-hidden="true"
-              viewBox="0 0 16 16"
-              className={`h-[18px] w-[18px] shrink-0 transition-transform duration-200 ease-out motion-reduce:transition-none ${
-                showSheet ? '-rotate-180' : ''
-              }`}
-              style={{ color: NAVY }}
+              className="grid h-[30px] w-[30px] shrink-0 place-items-center rounded-full"
+              style={{ background: 'rgba(28,42,58,0.06)' }}
             >
-              <path
-                d="M4 6l4 4 4-4"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.75"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+              <svg
+                viewBox="0 0 16 16"
+                className={`h-[21px] w-[21px] transition-transform duration-200 ease-out motion-reduce:transition-none ${
+                  showSheet ? '-rotate-180' : ''
+                }`}
+                style={{ color: NAVY }}
+              >
+                <path
+                  d="M4 6l4 4 4-4"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.25"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
           </button>
 
           {/* hairline + barely-there progress through the current chapter */}

@@ -95,7 +95,7 @@ export function AboutHowWeCreate() {
       {/* Seven stages as one editorial timeline — big typographic
           numerals, a hairline per step, disciplined vertical spacing so
           seven steps never turn into a long scroll (spec §38). */}
-      <ol className="mx-auto mt-12 max-w-[880px] md:mt-14">
+      <ol className="mx-auto mt-9 max-w-[880px] md:mt-10">
         {t.steps.map((s, i) => (
           <motion.li
             key={s.n}
@@ -103,7 +103,7 @@ export function AboutHowWeCreate() {
             whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.55 }}
             transition={{ duration: 0.6, delay: 0.04 * i, ease: EASE }}
-            className="grid grid-cols-[44px_1fr] gap-x-5 gap-y-1 py-5 md:grid-cols-[72px_220px_1fr] md:gap-x-8 md:py-6"
+            className="grid grid-cols-[44px_1fr] gap-x-5 gap-y-1 py-4 md:grid-cols-[72px_220px_1fr] md:gap-x-8 md:py-[18px]"
             style={{ borderTop: `1px solid ${i === 0 ? GOLD_SOFT : 'rgba(28,42,58,0.10)'}` }}
           >
             <span
