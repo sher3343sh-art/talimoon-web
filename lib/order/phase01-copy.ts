@@ -61,6 +61,8 @@ export interface Phase01Copy {
   // 2 — relationship (the acknowledgement is the lead-in here now)
   ackLine: (respectfulName: string) => string;
   relationshipQuestion: string;
+  /** Shown once, under the options — real families are often mixed. */
+  relationshipMultiHelper: string;
   customLabelQuestion: string;
   customLabelPlaceholder: string;
 
@@ -78,7 +80,10 @@ export interface Phase01Copy {
   otherAge: string;
   yearsSuffix: (age: number) => string;
 
-  // 5 — the completion milestone
+  // 4b — per-child relationship (only shown when 2–3 types were chosen)
+  childRelationshipQuestion: (name: string) => string;
+
+  // 5 — the completion milestone (also the merged Phase 02 intro, spec §2)
   completionOneChild: (name: string, age: number) => string;
   completionOneChildSupport: (name: string) => string;
   completionManyHeading: string;
@@ -111,6 +116,7 @@ const uz: Phase01Copy = {
 
   ackLine: (rn) => `Tanishganimdan xursandman, ${rn}.`,
   relationshipQuestion: "Bu kitobni kim uchun tayyorlayapsiz?",
+  relationshipMultiHelper: "Bir nechta munosabat bo‘lsa, 3 tagacha tanlashingiz mumkin.",
   customLabelQuestion: "U Sizga kim bo‘ladi?",
   customLabelPlaceholder: "Masalan: amakivachchamning farzandi",
 
@@ -147,14 +153,16 @@ const uz: Phase01Copy = {
   otherAge: "Boshqa yosh",
   yearsSuffix: (age) => `${age} yosh`,
 
+  childRelationshipQuestion: (name) => `${name.trim()} Sizga kim bo‘ladi?`,
+
   completionOneChild: (name, age) => `Demak, qahramonimiz — ${age} yoshli ${name}.`,
   completionOneChildSupport: (name) =>
-    `Endi ${name}ning o‘ziga xos dunyosini yaxshiroq bilib olamiz.`,
+    `Endi ${name}ning dunyosiga biroz yaqinlashamiz. Uni qiziqtiradigan, quvontiradigan va orzu qilishga undaydigan narsalarni birga eslab ko‘ramiz.`,
   completionManyHeading: "Qahramonlarimiz bilan tanishdik.",
   completionManyNames: (names) => joinNames(names, "uz"),
   completionManySupport:
-    "Endi ularning har birining o‘ziga xos dunyosini yaxshiroq bilib olamiz.",
-  transitionCta: (firstName) => `${firstName} bilan tanishamiz`,
+    "Endi ularning har birining dunyosiga biroz yaqinlashamiz. Ularni qiziqtiradigan, quvontiradigan va orzu qilishga undaydigan narsalarni birma-bir eslab ko‘ramiz.",
+  transitionCta: (firstName) => `${firstName.trim()}ning dunyosini kashf etamiz`,
 
   errHonorific: "Iltimos, murojaat shaklini tanlang.",
   errName: "Iltimos, ismingizni kiriting.",
@@ -180,6 +188,7 @@ const en: Phase01Copy = {
 
   ackLine: (rn) => `It's a pleasure to meet you, ${rn}.`,
   relationshipQuestion: "Who are you making this book for?",
+  relationshipMultiHelper: "If more than one applies, you can choose up to 3.",
   customLabelQuestion: "Who are they to you?",
   customLabelPlaceholder: "For example: my cousin's child",
 
@@ -208,14 +217,16 @@ const en: Phase01Copy = {
   otherAge: "Another age",
   yearsSuffix: (age) => `${age} years old`,
 
+  childRelationshipQuestion: (name) => `Who is ${name.trim()} to you?`,
+
   completionOneChild: (name, age) => `So our hero is ${name}, age ${age}.`,
   completionOneChildSupport: (name) =>
-    `Now let's get to know ${name}'s own world a little better.`,
+    `Now let's get a little closer to ${name}'s world — the things that delight them, hold their attention, and give them something to dream about.`,
   completionManyHeading: "We've met our heroes.",
   completionManyNames: (names) => joinNames(names, "en"),
   completionManySupport:
-    "Now let's get to know each of their worlds a little better.",
-  transitionCta: (firstName) => `Meet ${firstName}`,
+    "Now let's get a little closer to each of their worlds, one at a time.",
+  transitionCta: (firstName) => `Let's discover ${firstName.trim()}'s world`,
 
   errHonorific: "Please choose a form of address.",
   errName: "Please enter your name.",
@@ -241,6 +252,7 @@ const ru: Phase01Copy = {
 
   ackLine: (rn) => `Очень приятно, ${rn}.`,
   relationshipQuestion: "Для кого Вы готовите эту книгу?",
+  relationshipMultiHelper: "Если подходит несколько вариантов, можно выбрать до 3.",
   customLabelQuestion: "Кем он(а) Вам приходится?",
   customLabelPlaceholder: "Например: ребёнок моего двоюродного брата",
 
@@ -266,6 +278,8 @@ const ru: Phase01Copy = {
     name.trim() ? `Сколько лет ${name.trim()}?` : "Сколько ему(ей) лет?",
   otherAge: "Другой возраст",
   yearsSuffix: (age) => `${age} лет`,
+
+  childRelationshipQuestion: (name) => `Кем Вам приходится ${name.trim()}?`,
 
   completionOneChild: (name, age) => `Итак, наш герой — ${name}, ${age} лет.`,
   completionOneChildSupport: (name) =>
@@ -299,6 +313,7 @@ const ar: Phase01Copy = {
 
   ackLine: (rn) => `سعدتُ بلقائك يا ${rn}.`,
   relationshipQuestion: "لِمَن تُعِدّ هذا الكتاب؟",
+  relationshipMultiHelper: "إذا انطبق أكثر من علاقة، يمكنك اختيار حتى 3.",
   customLabelQuestion: "ما صلته بك؟",
   customLabelPlaceholder: "مثال: ابن ابن عمّي",
 
@@ -323,6 +338,8 @@ const ar: Phase01Copy = {
   childAgeQuestion: (name) => (name.trim() ? `كم عمر ${name.trim()}؟` : "كم عمره؟"),
   otherAge: "عمر آخر",
   yearsSuffix: (age) => `${age} سنة`,
+
+  childRelationshipQuestion: (name) => `ما صلة ${name.trim()} بك؟`,
 
   completionOneChild: (name, age) => `إذًا بطلنا هو ${name}، ${age} سنوات.`,
   completionOneChildSupport: (name) => `الآن لنتعرّف على عالم ${name} الخاص بشكل أفضل.`,

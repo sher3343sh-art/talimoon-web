@@ -73,6 +73,15 @@ export interface ChildProfile {
   name: string;
   /** Numeric, or null until answered. */
   age: number | null;
+  /**
+   * THIS child's relationship to the orderer. Families are often mixed
+   * (a own child and a nephew growing up together as the two main
+   * characters) — never assume every child shares the order-level
+   * `recipientRelationship`. Set directly from Phase 01 when the
+   * orderer chose a single relationship type for everyone; asked per
+   * child, right after names/ages, when 2–3 types were chosen.
+   */
+  relationship?: RecipientRelationship;
 
   // ── Phase 02 — "the child's world" (per child) ─────────────────
   /** Up to 2 primary interests. A value that is a known interest key

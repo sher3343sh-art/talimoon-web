@@ -3,11 +3,21 @@
 /**
  * TALIMOON — ORDER — Phase 02: "The child's world".
  * ----------------------------------------------------------------
- * A short, warm conversation about each child in turn — what makes
- * their eyes light up, one telling detail, what absorbs them, and a
- * dream (told by the child, or hoped by the adult). Alongside it a
- * quiet portrait — "FAYZBEKNING DUNYOSI" — fills in as the adult
- * answers. Ends with a bridge toward the child's character.
+ * A short, warm conversation about each child in turn — every question
+ * opens a NEW layer, never the last one in different words:
+ *   QIZIQISHLARI (interests) → BIR OZ ANIQROQ (one deepened detail,
+ *   optional) → SEVIMLI MASHG‘ULOTI (the activity they actually do)
+ *   → ORZUSI (their dream, told directly — or, if there isn't one
+ *   yet, the adult's own hope). Alongside it a quiet portrait —
+ *   "FAYZBEKNING DUNYOSI" — fills in as the adult answers. Ends with a
+ *   bridge toward the child's character.
+ *
+ * There is no per-child intro screen here any more (spec §02): the
+ * merged "Demak, qahramonimiz — N yoshli X... Endi uning dunyosiga
+ * yaqinlashamiz" milestone lives once, in Phase 01's completion scene,
+ * and for every child after the first, the previous child's
+ * "child-done" milestone already carries the same job — so `interests`
+ * is this component's true first screen, not a second "let's begin".
  *
  * Child-centric: every answer is written straight onto the child by
  * stable id, so back-navigation and multi-child order never lose a
@@ -15,17 +25,14 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { ArrowLeft, ArrowRight, X } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { toLocale, directionFor } from "@/lib/journey/types";
-import {
-  reconcileDream,
-  type ChildProfile,
-  type DreamStatus,
-} from "@/lib/order/types";
+import { reconcileDream, type ChildProfile } from "@/lib/order/types";
 import {
   MAX_PRIMARY_INTERESTS,
+  deepenHelp,
   interestLabel,
   interestOptions,
   isInterestKey,
@@ -35,15 +42,7 @@ import {
 import { JourneyProgress } from "./JourneyProgress";
 import { ChildWorld } from "./ChildWorld";
 
-type Screen =
-  | "intro"
-  | "interests"
-  | "deepen"
-  | "activity"
-  | "dream-route"
-  | "child-dream"
-  | "adult-hope"
-  | "child-done";
+type Screen = "interests" | "deepen" | "activity" | "dream" | "child-done";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -65,7 +64,7 @@ export default function Phase02({
   const reduced = useReducedMotion();
 
   const [idx, setIdx] = useState(0);
-  const [screen, setScreen] = useState<Screen>("intro");
+  const [screen, setScreen] = useState<Screen>("interests");
   const [attempted, setAttempted] = useState(false);
   const [customOpen, setCustomOpen] = useState(false);
   const [customDraft, setCustomDraft] = useState("");
@@ -85,7 +84,9 @@ export default function Phase02({
       40,
     );
     return () => window.clearTimeout(t);
-  }, [screen, idx]);
+    // `child.dreamStatus` re-focuses when the "dream" screen swaps
+    // between the direct-dream input and the adult-hope branch.
+  }, [screen, idx, child.dreamStatus]);
 
   // ── interests ─────────────────────────────────────────────────
   const interests = child.interests ?? [];
@@ -132,18 +133,14 @@ export default function Phase02({
         return child.noFavoriteActivity || (child.favoriteActivity ?? "").trim().length > 0
           ? { ok: true }
           : { ok: false, error: c.errActivity };
-      case "dream-route":
-        return child.dreamStatus
-          ? { ok: true }
-          : { ok: false, error: c.errDreamRoute };
-      case "child-dream":
-        return (child.childDream ?? "").trim().length > 0
-          ? { ok: true }
-          : { ok: false, error: c.errChildDream };
-      case "adult-hope":
-        return (child.adultHope ?? "").trim().length > 0
-          ? { ok: true }
-          : { ok: false, error: c.errAdultHope };
+      case "dream":
+        return child.dreamStatus === "not-yet"
+          ? (child.adultHope ?? "").trim().length > 0
+            ? { ok: true }
+            : { ok: false, error: c.errAdultHope }
+          : (child.childDream ?? "").trim().length > 0
+            ? { ok: true }
+            : { ok: false, error: c.errChildDream };
       default:
         return { ok: true };
     }
@@ -159,9 +156,6 @@ export default function Phase02({
     setAttempted(false);
     setLimitHint(false);
     switch (screen) {
-      case "intro":
-        setScreen("interests");
-        break;
       case "interests":
         setScreen("deepen");
         break;
@@ -169,13 +163,9 @@ export default function Phase02({
         setScreen("activity");
         break;
       case "activity":
-        setScreen("dream-route");
+        setScreen("dream");
         break;
-      case "dream-route":
-        setScreen(child.dreamStatus === "has-dream" ? "child-dream" : "adult-hope");
-        break;
-      case "child-dream":
-      case "adult-hope":
+      case "dream":
         patch({ phase02Done: true });
         setScreen("child-done");
         break;
@@ -184,7 +174,7 @@ export default function Phase02({
           onComplete();
         } else {
           setIdx((i) => i + 1);
-          setScreen("intro");
+          setScreen("interests");
         }
         break;
     }
@@ -194,15 +184,12 @@ export default function Phase02({
     setAttempted(false);
     setLimitHint(false);
     switch (screen) {
-      case "intro":
+      case "interests":
         if (idx === 0) onBack();
         else {
           setIdx((i) => i - 1);
           setScreen("child-done");
         }
-        break;
-      case "interests":
-        setScreen("intro");
         break;
       case "deepen":
         setScreen("interests");
@@ -210,15 +197,11 @@ export default function Phase02({
       case "activity":
         setScreen("deepen");
         break;
-      case "dream-route":
+      case "dream":
         setScreen("activity");
         break;
-      case "child-dream":
-      case "adult-hope":
-        setScreen("dream-route");
-        break;
       case "child-done":
-        setScreen(child.dreamStatus === "has-dream" ? "child-dream" : "adult-hope");
+        setScreen("dream");
         break;
     }
   }
@@ -285,18 +268,9 @@ export default function Phase02({
           {!worldOnly && (
             <div>
               <motion.div key={`${idx}-${screen}`} {...enter}>
-                {screen === "intro" && (
-                  <div>
-                    <p className="mb-3 font-sans text-[12px] font-semibold uppercase tracking-[0.18em] text-accent-primary">
-                      {c.worldLabel(child.name)}
-                    </p>
-                    <Heading headingRef={headingRef}>{c.introLead(child.name)}</Heading>
-                    <Supporting>{c.introSupport}</Supporting>
-                  </div>
-                )}
-
                 {screen === "interests" && (
                   <fieldset>
+                    <EditorialLabel>{c.q1Label}</EditorialLabel>
                     <legend className="contents">
                       <Heading headingRef={headingRef}>{c.q1(child.name)}</Heading>
                     </legend>
@@ -391,12 +365,9 @@ export default function Phase02({
 
                 {screen === "deepen" && (
                   <div>
-                    {interestsText && (
-                      <p className="mb-4 font-sans text-[15px] font-semibold text-text-primary">
-                        {c.q2Ack(interestsText)}
-                      </p>
-                    )}
-                    <Heading headingRef={headingRef}>{c.q2(child.name)}</Heading>
+                    <EditorialLabel>{c.q2Label}</EditorialLabel>
+                    <Heading headingRef={headingRef}>{c.q2(child.name, interestsText)}</Heading>
+                    <Help>{deepenHelp(child.interests, locale)}</Help>
                     <div className="mt-6">
                       <textarea
                         rows={2}
@@ -419,6 +390,7 @@ export default function Phase02({
 
                 {screen === "activity" && (
                   <div>
+                    <EditorialLabel>{c.q3Label}</EditorialLabel>
                     <Heading headingRef={headingRef}>{c.q3(child.name)}</Heading>
                     <Help>{c.q3Help}</Help>
                     <div className="mt-6">
@@ -454,90 +426,91 @@ export default function Phase02({
                   </div>
                 )}
 
-                {screen === "dream-route" && (
-                  <fieldset>
-                    <p className="mb-3 font-sans text-[15px] text-text-secondary">
-                      {c.q4Lead(child.name)}
-                    </p>
-                    <legend className="contents">
-                      <Heading headingRef={headingRef}>{c.q4(child.name)}</Heading>
-                    </legend>
-                    <div className="mt-7 flex flex-col gap-2.5">
-                      {(
-                        [
-                          ["has-dream", c.q4HasDream],
-                          ["not-yet", c.q4NotYet],
-                        ] as [DreamStatus, string][]
-                      ).map(([status, label]) => {
-                        const active = child.dreamStatus === status;
-                        return (
-                          <button
-                            key={status}
-                            type="button"
-                            aria-pressed={active}
-                            onClick={() => {
-                              patch(reconcileDream(status));
-                              setAttempted(false);
-                            }}
-                            className={[
-                              "flex w-full items-center rounded-md border px-4 py-3.5 text-start font-sans text-[15px] outline-none transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-primary",
-                              active
-                                ? "border-accent-primary bg-accent-primary/[0.08] font-semibold text-text-primary"
-                                : "border-border-default text-text-secondary hover:border-border-strong hover:text-text-primary",
-                            ].join(" ")}
-                          >
-                            {label}
-                          </button>
-                        );
-                      })}
-                    </div>
-                    <ErrorLine>{showError}</ErrorLine>
-                  </fieldset>
-                )}
-
-                {screen === "child-dream" && (
-                  <div>
-                    <Heading headingRef={headingRef}>{c.q4a(child.name)}</Heading>
-                    <Help>{c.q4aHelp}</Help>
-                    <div className="mt-6">
-                      <textarea
-                        rows={2}
-                        value={child.childDream ?? ""}
-                        onChange={(e) => patch({ childDream: e.target.value })}
-                        placeholder={c.q4aPlaceholder}
-                        className={box}
-                        aria-invalid={showError ? true : undefined}
-                      />
-                    </div>
-                    <ErrorLine>{showError}</ErrorLine>
-                  </div>
-                )}
-
-                {screen === "adult-hope" && (
-                  <div>
-                    <p className="mb-3 font-sans text-[15px] text-text-secondary">
-                      {c.q4bTransition}
-                    </p>
-                    <p className="mb-4 font-display text-[17px] font-medium text-text-primary">
-                      {c.q4bLead}
-                    </p>
-                    <Heading headingRef={headingRef}>{c.q4b(child.name)}</Heading>
-                    <Help>{c.q4bHelp}</Help>
-                    <p className="mt-2 font-serif text-[13.5px] italic leading-[1.55] text-text-muted">
-                      {c.q4bExample}
-                    </p>
-                    <div className="mt-5">
-                      <textarea
-                        rows={3}
-                        value={child.adultHope ?? ""}
-                        onChange={(e) => patch({ adultHope: e.target.value })}
-                        placeholder={c.q4bPlaceholder}
-                        className={box}
-                        aria-invalid={showError ? true : undefined}
-                      />
-                    </div>
-                    <ErrorLine>{showError}</ErrorLine>
-                  </div>
+                {screen === "dream" && (
+                  <AnimatePresence mode="wait" initial={false}>
+                    {child.dreamStatus === "not-yet" ? (
+                      <motion.div
+                        key="hope"
+                        {...(reduced
+                          ? {}
+                          : {
+                              initial: { opacity: 0, height: 0 },
+                              animate: { opacity: 1, height: "auto" },
+                              exit: { opacity: 0, height: 0 },
+                              transition: { duration: 0.22, ease: EASE },
+                            })}
+                      >
+                        {/* This is the ADULT's own hope — never phrased
+                            as though the child chose it (spec §09). */}
+                        <EditorialLabel>{c.pHope}</EditorialLabel>
+                        <p className="mb-4 font-sans text-[15px] text-text-secondary">
+                          {c.q4bTransition}
+                        </p>
+                        <Heading headingRef={headingRef}>{c.q4b(child.name)}</Heading>
+                        <Help>{c.q4bHelp(child.name)}</Help>
+                        <div className="mt-5">
+                          <textarea
+                            rows={3}
+                            value={child.adultHope ?? ""}
+                            onChange={(e) => patch({ adultHope: e.target.value })}
+                            placeholder={c.q4bPlaceholder}
+                            className={box}
+                            aria-invalid={showError ? true : undefined}
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            patch(reconcileDream("has-dream"));
+                            setAttempted(false);
+                          }}
+                          className="mt-3 inline-flex items-center gap-1.5 font-sans text-[13.5px] font-medium text-text-secondary hover:text-text-primary"
+                        >
+                          {c.q4BackToDream}
+                        </button>
+                        <ErrorLine>{showError}</ErrorLine>
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key="dream"
+                        {...(reduced
+                          ? {}
+                          : {
+                              initial: { opacity: 0, height: 0 },
+                              animate: { opacity: 1, height: "auto" },
+                              exit: { opacity: 0, height: 0 },
+                              transition: { duration: 0.22, ease: EASE },
+                            })}
+                      >
+                        <EditorialLabel>{c.q4Label}</EditorialLabel>
+                        <Heading headingRef={headingRef}>{c.q4(child.name)}</Heading>
+                        <Help>{c.q4Help}</Help>
+                        <div className="mt-6">
+                          <textarea
+                            rows={2}
+                            value={child.childDream ?? ""}
+                            onChange={(e) =>
+                              patch({ ...reconcileDream("has-dream"), childDream: e.target.value })
+                            }
+                            placeholder={c.q4Placeholder}
+                            className={box}
+                            aria-invalid={showError ? true : undefined}
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            patch(reconcileDream("not-yet"));
+                            setAttempted(false);
+                          }}
+                          className="mt-3 inline-flex items-center gap-1.5 font-sans text-[13.5px] font-medium text-text-secondary hover:text-text-primary"
+                        >
+                          {c.q4NotYet}
+                        </button>
+                        <ErrorLine>{showError}</ErrorLine>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 )}
               </motion.div>
             </div>
@@ -650,6 +623,18 @@ function Help({
         tone === "hint" ? "text-accent-primary" : "text-text-secondary",
       ].join(" ")}
     >
+      {children}
+    </p>
+  );
+}
+
+/** The small eyebrow naming exactly what a screen is asking about —
+ *  QIZIQISHLARI / BIR OZ ANIQROQ / SEVIMLI MASHG‘ULOTI / ORZUSI / SIZNING
+ *  TILAGINGIZ — so the user never has to interpret the question (spec's
+ *  Core UX Law). */
+function EditorialLabel({ children }: { children: string }) {
+  return (
+    <p className="mb-3 font-sans text-[12px] font-semibold uppercase tracking-[0.18em] text-accent-primary">
       {children}
     </p>
   );

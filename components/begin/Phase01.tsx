@@ -51,7 +51,12 @@ type Screen =
   | { kind: "relationship" }
   | { kind: "count" }
   | { kind: "child"; index: number }
+  /** Only visited when 2–3 relationship types were chosen (spec §01). */
+  | { kind: "child-relationship"; index: number }
   | { kind: "completion" };
+
+/** Highest relationship types a single order may mix (spec §01). */
+const MAX_RELATIONSHIP_TYPES = 3;
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -89,9 +94,20 @@ export default function Phase01({
     initial?.ordererHonorific ?? null,
   );
   const [ordererName, setOrdererName] = useState(initial?.ordererName ?? "");
-  const [relType, setRelType] = useState<RelationshipType | null>(
-    initial?.recipientRelationship?.type ?? null,
-  );
+  // Real families are often mixed (spec §01): up to 3 relationship types,
+  // one per some subset of children. Resuming prefers whatever distinct
+  // types the children already carry over the single order-level default.
+  const [relTypes, setRelTypes] = useState<RelationshipType[]>(() => {
+    const fromChildren = Array.from(
+      new Set(
+        (initial?.children ?? [])
+          .map((ch) => ch.relationship?.type)
+          .filter((t): t is RelationshipType => !!t),
+      ),
+    );
+    if (fromChildren.length > 0) return fromChildren.slice(0, MAX_RELATIONSHIP_TYPES);
+    return initial?.recipientRelationship?.type ? [initial.recipientRelationship.type] : [];
+  });
   const [customLabel, setCustomLabel] = useState(
     initial?.recipientRelationship?.customLabel ?? "",
   );
@@ -113,15 +129,19 @@ export default function Phase01({
     () => pool.slice(0, count ?? 0),
     [pool, count],
   );
-  const rel: RecipientRelationship = useMemo(
-    () => ({
-      type: relType ?? "parent",
-      ...(relType === "other" && customLabel.trim()
-        ? { customLabel: customLabel.trim() }
-        : {}),
-    }),
-    [relType, customLabel],
-  );
+  // Used only to phrase the count / child-name-prompt copy. A single
+  // chosen type gets its real kinship noun; 2–3 mixed types fall back to
+  // "other"'s neutral phrasing — no single noun could fit every child.
+  const rel: RecipientRelationship = useMemo(() => {
+    if (relTypes.length === 1) {
+      const t = relTypes[0];
+      return {
+        type: t,
+        ...(t === "other" && customLabel.trim() ? { customLabel: customLabel.trim() } : {}),
+      };
+    }
+    return { type: "other" };
+  }, [relTypes, customLabel]);
   const respectfulName = formatRespectfulName(locale, honorific, ordererName);
 
   function ensurePool(n: number) {
@@ -141,7 +161,8 @@ export default function Phase01({
 
   // Move focus to the new question on every scene change (SR announce).
   const headingRef = useRef<HTMLHeadingElement>(null);
-  const childIdx = screen.kind === "child" ? screen.index : -1;
+  const childIdx =
+    screen.kind === "child" || screen.kind === "child-relationship" ? screen.index : -1;
   useEffect(() => {
     // `preventScroll` so a scene change never nudges the page scroll
     // (which would flip the site's scroll-driven navbar mid-flow).
@@ -160,8 +181,8 @@ export default function Phase01({
           ? { ok: true }
           : { ok: false, error: c.errName };
       case "relationship":
-        if (!relType) return { ok: false, error: c.errRelationship };
-        if (relType === "other" && customLabel.trim().length < 2)
+        if (relTypes.length < 1) return { ok: false, error: c.errRelationship };
+        if (relTypes.includes("other") && customLabel.trim().length < 2)
           return { ok: false, error: c.errCustomLabel };
         return { ok: true };
       case "count":
@@ -175,6 +196,12 @@ export default function Phase01({
         if (child.age == null) return { ok: false, error: c.errAge };
         if (!isValidAge(child.age)) return { ok: false, error: c.errAgeRange };
         return { ok: true };
+      }
+      case "child-relationship": {
+        const t = children[screen.index]?.relationship?.type;
+        return t && relTypes.includes(t)
+          ? { ok: true }
+          : { ok: false, error: c.errRelationship };
       }
       case "completion":
         return { ok: true };
@@ -205,25 +232,47 @@ export default function Phase01({
         setScreen(
           screen.index + 1 < (count ?? 1)
             ? { kind: "child", index: screen.index + 1 }
+            : relTypes.length > 1
+              ? { kind: "child-relationship", index: 0 }
+              : { kind: "completion" },
+        );
+        break;
+      case "child-relationship":
+        setScreen(
+          screen.index + 1 < (count ?? 1)
+            ? { kind: "child-relationship", index: screen.index + 1 }
             : { kind: "completion" },
         );
         break;
-      case "completion":
+      case "completion": {
+        const primaryType = relTypes[0] ?? "parent";
+        const primaryCustom =
+          primaryType === "other" && customLabel.trim()
+            ? customLabel.trim().replace(/\s+/g, " ")
+            : undefined;
         onComplete({
           ordererHonorific: honorific,
           ordererName: ordererName.trim().replace(/\s+/g, " "),
           recipientRelationship: {
-            type: relType ?? "parent",
-            ...(relType === "other" && customLabel.trim()
-              ? { customLabel: customLabel.trim().replace(/\s+/g, " ") }
-              : {}),
+            type: primaryType,
+            ...(primaryCustom ? { customLabel: primaryCustom } : {}),
           },
           children: children.map((ch) => ({
             ...ch,
             name: ch.name.trim().replace(/\s+/g, " "),
+            // A single chosen type always applies to everyone — even if
+            // stale per-child data lingers from a since-abandoned mixed
+            // selection, so the UI and the stored state never disagree
+            // (spec §18). With 2–3 types, each child already carries its
+            // own answer from the child-relationship screens.
+            relationship:
+              relTypes.length <= 1
+                ? { type: primaryType, ...(primaryCustom ? { customLabel: primaryCustom } : {}) }
+                : ch.relationship,
           })),
         });
         break;
+      }
     }
   }
 
@@ -246,8 +295,19 @@ export default function Phase01({
             : { kind: "child", index: screen.index - 1 },
         );
         break;
+      case "child-relationship":
+        setScreen(
+          screen.index === 0
+            ? { kind: "child", index: (count ?? 1) - 1 }
+            : { kind: "child-relationship", index: screen.index - 1 },
+        );
+        break;
       case "completion":
-        setScreen({ kind: "child", index: (count ?? 1) - 1 });
+        setScreen(
+          relTypes.length > 1
+            ? { kind: "child-relationship", index: (count ?? 1) - 1 }
+            : { kind: "child", index: (count ?? 1) - 1 },
+        );
         break;
     }
   }
@@ -259,7 +319,10 @@ export default function Phase01({
         animate: { opacity: 1, y: 0 },
         transition: { duration: 0.28, ease: EASE },
       };
-  const screenKey = screen.kind === "child" ? `child-${screen.index}` : screen.kind;
+  const screenKey =
+    screen.kind === "child" || screen.kind === "child-relationship"
+      ? `${screen.kind}-${screen.index}`
+      : screen.kind;
   const ctaLabel =
     screen.kind === "completion"
       ? c.transitionCta(children[0]?.name.trim() || "")
@@ -307,9 +370,15 @@ export default function Phase01({
               c={c}
               locale={locale}
               ackName={respectfulName}
-              value={relType}
-              onSelect={(t) => {
-                setRelType(t);
+              value={relTypes}
+              onToggle={(t) => {
+                setRelTypes((prev) =>
+                  prev.includes(t)
+                    ? prev.filter((v) => v !== t)
+                    : prev.length < MAX_RELATIONSHIP_TYPES
+                      ? [...prev, t]
+                      : prev,
+                );
                 setAttempted(false);
               }}
               customLabel={customLabel}
@@ -344,6 +413,30 @@ export default function Phase01({
               onName={(nm) => patchChild(screen.index, { name: nm })}
               onAge={(age) => patchChild(screen.index, { age })}
               onEnter={goNext}
+              headingRef={headingRef}
+              error={showError}
+            />
+          )}
+
+          {screen.kind === "child-relationship" && (
+            <SceneChildRelationship
+              key={screen.index}
+              c={c}
+              locale={locale}
+              relTypes={relTypes}
+              child={children[screen.index]}
+              value={children[screen.index]?.relationship?.type ?? null}
+              onSelect={(t) => {
+                patchChild(screen.index, {
+                  relationship: {
+                    type: t,
+                    ...(t === "other" && customLabel.trim()
+                      ? { customLabel: customLabel.trim() }
+                      : {}),
+                  },
+                });
+                setAttempted(false);
+              }}
               headingRef={headingRef}
               error={showError}
             />
@@ -536,7 +629,7 @@ function SceneRelationship({
   locale,
   ackName,
   value,
-  onSelect,
+  onToggle,
   customLabel,
   onCustomLabel,
   headingRef,
@@ -545,8 +638,9 @@ function SceneRelationship({
   c: Phase01Copy;
   locale: Locale;
   ackName: string;
-  value: RelationshipType | null;
-  onSelect: (t: RelationshipType) => void;
+  /** Up to 3 selected types — real families are often mixed (spec §01). */
+  value: RelationshipType[];
+  onToggle: (t: RelationshipType) => void;
   customLabel: string;
   onCustomLabel: (v: string) => void;
   headingRef: React.RefObject<HTMLHeadingElement | null>;
@@ -569,13 +663,13 @@ function SceneRelationship({
 
       <div className="mt-7 border-t border-border-subtle">
         {relationshipOptions(locale).map((opt) => {
-          const active = value === opt.type;
+          const active = value.includes(opt.type);
           return (
             <button
               key={opt.type}
               type="button"
               aria-pressed={active}
-              onClick={() => onSelect(opt.type)}
+              onClick={() => onToggle(opt.type)}
               className={[
                 "flex w-full items-center justify-between gap-3 border-b border-border-subtle px-3 py-[18px] text-start font-sans outline-none transition-colors focus-visible:bg-accent-primary/[0.05]",
                 active
@@ -600,7 +694,14 @@ function SceneRelationship({
         })}
       </div>
 
-      {value === "other" && (
+      {/* Progressive complexity: this line is the only hint that mixing
+       *  relationships is possible — nothing else about the screen
+       *  changes for the common single-relationship case. */}
+      <p className="mt-3 font-sans text-[13px] text-text-secondary">
+        {c.relationshipMultiHelper}
+      </p>
+
+      {value.includes("other") && (
         <div className="mt-5">
           <label
             htmlFor="p1-custom"
@@ -813,6 +914,63 @@ function SceneChild({
         <ErrorLine>{ageError}</ErrorLine>
       </fieldset>
     </div>
+  );
+}
+
+// ── Scene: per-child relationship (only when 2–3 types were chosen) ──
+
+function SceneChildRelationship({
+  c,
+  locale,
+  relTypes,
+  child,
+  value,
+  onSelect,
+  headingRef,
+  error,
+}: {
+  c: Phase01Copy;
+  locale: Locale;
+  /** The types chosen on the relationship scene — never offer one the
+   *  orderer didn't pick (spec §01). */
+  relTypes: RelationshipType[];
+  child: ChildProfile | undefined;
+  value: RelationshipType | null;
+  onSelect: (t: RelationshipType) => void;
+  headingRef: React.RefObject<HTMLHeadingElement | null>;
+  error?: string;
+}) {
+  const name = child?.name.trim() || "";
+  const options = relationshipOptions(locale).filter((opt) => relTypes.includes(opt.type));
+
+  return (
+    <fieldset>
+      <legend className="contents">
+        <Heading headingRef={headingRef}>{c.childRelationshipQuestion(name)}</Heading>
+      </legend>
+      <div className="mt-7 flex flex-wrap gap-2.5">
+        {options.map((opt) => {
+          const active = value === opt.type;
+          return (
+            <button
+              key={opt.type}
+              type="button"
+              aria-pressed={active}
+              onClick={() => onSelect(opt.type)}
+              className={[
+                "min-h-[44px] rounded-md border px-5 font-sans text-[14.5px] font-medium outline-none transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-primary",
+                active
+                  ? "border-accent-primary bg-accent-primary/[0.08] text-text-primary"
+                  : "border-border-default text-text-secondary hover:border-border-strong hover:text-text-primary",
+              ].join(" ")}
+            >
+              {opt.label}
+            </button>
+          );
+        })}
+      </div>
+      <ErrorLine>{error}</ErrorLine>
+    </fieldset>
   );
 }
 

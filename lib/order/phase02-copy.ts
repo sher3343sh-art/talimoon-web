@@ -1,17 +1,26 @@
 /**
  * TALIMOON — ORDER — Phase 02 ("The child's world") copy + helpers.
  * ================================================================
- * IN SCOPE: Uzbek + English (respectful "Siz" throughout). RU / AR
- * are added later; the shape below is ready for them.
+ * IN SCOPE: Uzbek + English (respectful "Siz" throughout).
  *
  * TALIMOON SAVOL BERMAYDI — SUHBAT OCHADI.
  * SAVOL CHUQUR BO‘LISHI MUMKIN — JAVOB BERISH HECH QACHON QIYIN
  * BO‘LMASLIGI KERAK.
  *
- * The conversation, per child: interests (≤ 2 primary, prepared or
- * the adult's own words) → an optional deepening detail → the
- * absorbing activity, in the adult's words → a dream, told either by
- * the child or, if they haven't thought about it, hoped by the adult.
+ * Every question opens a NEW layer of the child — never the previous
+ * one in different words (spec §20):
+ *   QIZIQISHLARI     — WHAT interests the child? (≤ 2, prepared or the
+ *                       adult's own words)
+ *   BIR OZ ANIQROQ    — WHAT specifically about those interests? (an
+ *                       optional deepening of Q1's own answer, not a
+ *                       third interest)
+ *   SEVIMLI MASHG‘ULOTI — WHAT does the child actually love DOING?
+ *                       (an action, in the adult's words)
+ *   ORZUSI            — WHAT does the child dream of becoming — asked
+ *                       and answered directly, no "does a dream exist?"
+ *                       pre-question. "Hali bu haqda o‘ylab ko‘rmagan"
+ *                       swaps this for SIZNING TILAGINGIZ, the ADULT's
+ *                       own hope — never presented as the child's own.
  * Then a quiet portrait — "FAYZBEKNING DUNYOSI" — and a bridge toward
  * the child's character.
  */
@@ -20,34 +29,100 @@ import type { ChildProfile } from "./types";
 
 export type Locale = "uz" | "en";
 
-// ── Prepared interest categories ─────────────────────────────────
+// ── Prepared interest categories — all NOUNS/topics, never activities
+//    (an activity is Q3's job; mixing the two blurs Q1 and Q3 into the
+//    same question in different words) ────────────────────────────
 export const INTEREST_KEYS = [
-  "sport",
+  "football",
   "cars",
-  "art",
-  "building",
-  "books",
+  "planes",
   "animals",
+  "books",
   "nature",
   "music",
+  "drawings",
 ] as const;
 export type InterestKey = (typeof INTEREST_KEYS)[number];
 
 export const MAX_PRIMARY_INTERESTS = 2;
 
 const INTEREST_LABELS: Record<InterestKey, Record<Locale, string>> = {
-  sport: { uz: "Sport", en: "Sport" },
+  football: { uz: "Futbol", en: "Football" },
   cars: { uz: "Mashinalar", en: "Cars" },
-  art: { uz: "Rasm va ijod", en: "Art & making" },
-  building: { uz: "Yasash va qurish", en: "Building" },
-  books: { uz: "Kitoblar", en: "Books" },
+  planes: { uz: "Samolyotlar", en: "Planes" },
   animals: { uz: "Hayvonlar", en: "Animals" },
+  books: { uz: "Kitoblar", en: "Books" },
   nature: { uz: "Tabiat", en: "Nature" },
   music: { uz: "Musiqa", en: "Music" },
+  drawings: { uz: "Rasmlar", en: "Drawings" },
+};
+
+/** Q2's per-topic "what specifically" example — short, concrete, and
+ *  joined (spec §05) into the deepening question's helper text. */
+const DEEPEN_EXAMPLES: Record<InterestKey, Record<Locale, string>> = {
+  football: {
+    uz: "darvozabonlik yoki sevimli jamoasi",
+    en: "playing in goal, or their favourite team",
+  },
+  cars: {
+    uz: "markalari, tezligi yoki qanday ishlashi",
+    en: "the brands, the speed, or how they work",
+  },
+  planes: {
+    uz: "turlari yoki qanday parvoz qilishi",
+    en: "the types, or how they fly",
+  },
+  animals: {
+    uz: "qaysi hayvon yoki ularning odatlari",
+    en: "which animal, or their habits",
+  },
+  books: {
+    uz: "qanday hikoyalar yoki qahramonlar",
+    en: "the stories, or the characters",
+  },
+  nature: {
+    uz: "qanday joylar yoki mavsumlar",
+    en: "which places, or seasons",
+  },
+  music: {
+    uz: "qanday ohang yoki cholg‘u asboblari",
+    en: "the sound, or an instrument",
+  },
+  drawings: {
+    uz: "nimalarni chizishni yoki qanday ranglar",
+    en: "what they draw, or the colours",
+  },
 };
 
 export function isInterestKey(v: string): v is InterestKey {
   return (INTEREST_KEYS as readonly string[]).includes(v);
+}
+
+/**
+ * Q2's helper — built from the actual interests chosen in Q1, so the
+ * example always matches what the adult just told us instead of a
+ * generic one (spec §07: "examples exist to answer 'what should I
+ * write here'"). Falls back to a topic-neutral line when every chosen
+ * interest is the adult's own custom words (no prepared example
+ * exists for free text).
+ */
+export function deepenHelp(interests: string[] | undefined, locale: Locale): string {
+  const known = (interests ?? []).filter(isInterestKey);
+  if (known.length === 0) {
+    return locale === "uz"
+      ? "Masalan: bu narsaning aynan qaysi tomoni ko‘proq e’tiborini tortishini yozing."
+      : "For example, describe exactly which part of it catches their attention most.";
+  }
+  if (locale === "uz") {
+    const parts = known.map((k, i) => {
+      const topic = INTEREST_LABELS[k].uz.toLocaleLowerCase("uz");
+      const detail = DEEPEN_EXAMPLES[k].uz;
+      return i === 1 ? `${topic}da esa ${detail}` : `${topic}da ${detail}`;
+    });
+    return `Masalan: ${parts.join("; ")}.`;
+  }
+  const parts = known.map((k) => `in ${INTEREST_LABELS[k].en.toLowerCase()}, ${DEEPEN_EXAMPLES[k].en}`);
+  return `For example: ${parts.join("; ")}.`;
 }
 
 /** Display label for one stored interest — a prepared category maps to
@@ -79,11 +154,13 @@ export interface Phase02Copy {
   continue: string;
   back: string;
 
+  /** Portrait title only now — the old per-child "intro" screen that
+   *  duplicated this eyebrow is gone (spec §02); Phase 01's completion
+   *  screen is the merged introduction into Phase 02. */
   worldLabel: (name: string) => string;
-  introLead: (name: string) => string;
-  introSupport: string;
 
-  // Q1 — interests
+  // Q1 — QIZIQISHLARI: WHAT interests the child?
+  q1Label: string;
   q1: (name: string) => string;
   q1Help: string;
   customToggle: string;
@@ -93,43 +170,43 @@ export interface Phase02Copy {
   removeInterest: (label: string) => string;
   errInterests: string;
 
-  // Q2 — deepen
-  q2Ack: (interestsText: string) => string;
-  q2: (name: string) => string;
+  // Q2 — BIR OZ ANIQROQ: WHAT specifically about those interests?
+  //      Deepens Q1's own answer — never a second broad interest.
+  q2Label: string;
+  q2: (name: string, interestsText: string) => string;
   q2Placeholder: string;
   q2Skip: string;
 
-  // Q3 — absorbing activity
+  // Q3 — SEVIMLI MASHG‘ULOTI: WHAT does the child actually love DOING?
+  q3Label: string;
   q3: (name: string) => string;
   q3Help: string;
   q3Placeholder: string;
   q3None: string;
   errActivity: string;
 
-  // Q4 — dream
-  q4Lead: (name: string) => string;
+  // Q4 — ORZUSI: WHAT does the child dream of becoming? Answered
+  //      directly — no "does a dream exist?" pre-question (spec §07).
+  q4Label: string;
   q4: (name: string) => string;
-  q4HasDream: string;
+  q4Help: string;
+  q4Placeholder: string;
   q4NotYet: string;
-  errDreamRoute: string;
-
-  // Q4a — the child's dream
-  q4a: (name: string) => string;
-  q4aHelp: string;
-  q4aPlaceholder: string;
   errChildDream: string;
 
-  // Q4b — the adult's hope
+  // The adult's hope — swaps in when "Hali bu haqda o‘ylab ko‘rmagan"
+  // is chosen. NEVER the child's own words (spec §09).
   q4bTransition: string;
-  q4bLead: string;
   q4b: (name: string) => string;
-  q4bHelp: string;
-  q4bExample: string;
+  q4bHelp: (name: string) => string;
   q4bPlaceholder: string;
+  /** The quiet way back to the dream input, if the adult changes their mind. */
+  q4BackToDream: string;
   errAdultHope: string;
 
   // Portrait section labels
   pLoves: string;
+  pDetail: string;
   pAbsorbs: string;
   pDreams: string;
   pHope: string;
@@ -149,13 +226,11 @@ const uz: Phase02Copy = {
   back: "Orqaga",
 
   worldLabel: (name) => `${name.trim()}ning dunyosi`,
-  introLead: (name) => `Endi ${name.trim()}ning dunyosiga biroz yaqinlashamiz.`,
-  introSupport:
-    "Uni quvontiradigan, qiziqtiradigan va orzu qilishga undaydigan narsalarni birga eslab ko‘ramiz.",
 
-  q1: (name) => `${name.trim()}ning ko‘zlari nimani ko‘rganda yonib ketadi? 😊`,
+  q1Label: "QIZIQISHLARI",
+  q1: (name) => `${name.trim()}ni ayniqsa nimalar qiziqtiradi?`,
   q1Help:
-    "Uni darrov qiziqtirib qo‘yadigan narsalardan 2 tagacha tanlashingiz mumkin — yoki ro‘yxatda bo‘lmasa, o‘zingiz ham yozishingiz mumkin.",
+    "Ko‘rsa, eshitsa yoki gap ochilsa darrov e’tiborini tortadigan narsalarni o‘ylab ko‘ring.",
   customToggle: "Ro‘yxatda yo‘qmi? O‘zingiz yozing",
   customPlaceholder: "Masalan: shaxmat, samolyotlar, pishirish...",
   customAdd: "Qo‘shish",
@@ -164,45 +239,39 @@ const uz: Phase02Copy = {
   removeInterest: (label) => `“${label}” ni olib tashlash`,
   errInterests: "Iltimos, kamida bittasini belgilang yoki yozing.",
 
-  q2Ack: (t) => `${t}ni yaxshi ko‘rishini bildik.`,
-  q2: (name) =>
-    `Yana bir oz o‘ylab ko‘ring — ${name.trim()} haqida esdan chiqib qolgan yana bir muhim detal yo‘qmi?`,
-  q2Placeholder:
-    "Masalan: futbolda darvozabon bo‘lib o‘ynaydi, mashinalarning markalarini yoddan biladi...",
+  q2Label: "BIR OZ ANIQROQ",
+  q2: (name, interestsText) =>
+    `${name.trim()} uchun ${interestsText}ning aynan nimasi ko‘proq yoqadi?`,
+  q2Placeholder: "Bir necha so‘z bilan yozing...",
   q2Skip: "Asosiylarini esladik",
 
-  q3: (name) => `${name.trim()} nimaga berilib ketsa, vaqtni ham unutadi?`,
+  q3Label: "SEVIMLI MASHG‘ULOTI",
+  q3: (name) => `${name.trim()} nima qilayotganda vaqtni ham unutib qo‘yadi?`,
   q3Help:
-    "Masalan: futbol o‘ynash, LEGOdan mashina yasash, rasm chizish, velosiped minish yoki o‘yinchoqlarini birma-bir terib chiqish.",
-  q3Placeholder: "Bir-ikki jumlada yozing...",
+    "Uning eng berilib qiladigan mashg‘ulotini eslang. Masalan: futbol o‘ynash, LEGOdan mashina yasash, rasm chizish, velosiped minish, kitob varaqlash yoki o‘yinchoqlarini tartib bilan terish.",
+  q3Placeholder: "Masalan: hovlida futbol o‘ynasa, vaqtni unutib qo‘yadi...",
   q3None: "Aniq bir mashg‘uloti yo‘q",
   errActivity: "Iltimos, yozing yoki “Aniq bir mashg‘uloti yo‘q”ni tanlang.",
 
-  q4Lead: (name) => `Bir kuni ${name.trim()} katta bo‘ladi...`,
+  q4Label: "ORZUSI",
   q4: (name) => `${name.trim()} katta bo‘lganda kim bo‘lmoqchi?`,
-  q4HasDream: "Orzusi bor",
+  q4Help: "Masalan: futbolchi, uchuvchi, shifokor, muhandis, rassom...",
+  q4Placeholder: "Masalan: uchuvchi...",
   q4NotYet: "Hali bu haqda o‘ylab ko‘rmagan",
-  errDreamRoute: "Iltimos, birini tanlang.",
-
-  q4a: (name) => `${name.trim()} kim bo‘lmoqchi?`,
-  q4aHelp:
-    "Masalan: futbolchi, shifokor, uchuvchi bo‘lishni yoki o‘z biznesini yaratishni... Kasb bo‘lishi shart emas — dunyoni sayohat qilish yoki odamlarga yordam berish ham bo‘ladi.",
-  q4aPlaceholder: "Uning o‘z so‘zlari bilan yozing...",
   errChildDream: "Iltimos, orzusini yozing.",
 
   q4bTransition: "Mayli, hali oldinda vaqt ko‘p. 😊",
-  q4bLead: "Unda Sizning tilagingizni eshitaylik.",
-  q4b: (name) =>
-    `Siz ${name.trim()} katta bo‘lganda kim bo‘lishini yoki qanday inson bo‘lib ulg‘ayishini istardingiz?`,
-  q4bHelp:
-    "Kasbni ham, qalbingizdagi tilakni ham yozishingiz mumkin. Bir-ikki jumla kifoya.",
-  q4bExample:
-    "Masalan: «Shifokor bo‘lishini istardim. Lekin eng muhimi — mehribon, halol va o‘zi sevgan yo‘lni topgan inson bo‘lib ulg‘aysin.»",
-  q4bPlaceholder: "O‘z so‘zlaringiz bilan...",
+  q4b: (name) => `Siz ${name.trim()}ning kelajagini qanday tasavvur qilasiz?`,
+  q4bHelp: (name) =>
+    `${name.trim()} kelajakda qaysi kasb egasi bo‘lishini istashingizni yozishingiz mumkin. Yoki uning mehribon, halol, o‘ziga ishongan va o‘zi sevgan yo‘lini topgan inson bo‘lib ulg‘ayishini istashingizni yozing. Istasangiz, qalbingizdagi boshqa tilakni ham o‘z so‘zlaringiz bilan erkin yozishingiz mumkin.`,
+  q4bPlaceholder:
+    "Masalan: Shifokor bo‘lishini istardim. Eng muhimi, yaxshi inson bo‘lib, o‘zi sevgan yo‘lini topishini xohlayman...",
+  q4BackToDream: "Aslida, orzusi bor",
   errAdultHope: "Iltimos, tilagingizni yozing.",
 
   pLoves: "QIZIQADI",
-  pAbsorbs: "BERILIB KETADI",
+  pDetail: "AYNIQSA YOQADI",
+  pAbsorbs: "BERILIB QILADI",
   pDreams: "ORZU QILADI",
   pHope: "SIZNING TILAGINGIZ",
   portraitEmpty: "Uni birga kashf etamiz.",
@@ -221,13 +290,11 @@ const en: Phase02Copy = {
   back: "Back",
 
   worldLabel: (name) => `${name.trim()}'s world`,
-  introLead: (name) => `Now let's get a little closer to ${name.trim()}'s world.`,
-  introSupport:
-    "Let's remember together the things that delight them, hold their attention, and give them something to dream about.",
 
-  q1: (name) => `What makes ${name.trim()}'s eyes light up? 😊`,
+  q1Label: "INTERESTS",
+  q1: (name) => `What especially interests ${name.trim()}?`,
   q1Help:
-    "Pick up to 2 things that catch their attention right away — or, if it isn't on the list, write your own.",
+    "Think of what grabs their attention right away — something they love seeing, hearing about, or talking about.",
   customToggle: "Not on the list? Write your own",
   customPlaceholder: "For example: chess, planes, baking...",
   customAdd: "Add",
@@ -236,44 +303,37 @@ const en: Phase02Copy = {
   removeInterest: (label) => `Remove “${label}”`,
   errInterests: "Please choose at least one, or write your own.",
 
-  q2Ack: (t) => `So they love ${t}.`,
-  q2: (name) =>
-    `Think for a moment — is there another small but telling detail about ${name.trim()} we haven't remembered yet?`,
-  q2Placeholder:
-    "For example: plays in goal at football, knows every car badge by heart...",
+  q2Label: "A CLOSER LOOK",
+  q2: (name, interestsText) => `What exactly about ${interestsText} does ${name.trim()} enjoy most?`,
+  q2Placeholder: "A few words is enough...",
   q2Skip: "We've got the main ones",
 
-  q3: (name) => `What does ${name.trim()} get so absorbed in that they lose track of time?`,
+  q3Label: "FAVOURITE ACTIVITY",
+  q3: (name) => `What does ${name.trim()} do that makes them lose all track of time?`,
   q3Help:
-    "For example: playing football, building LEGO cars, drawing, cycling, or lining up every toy one by one.",
-  q3Placeholder: "A sentence or two...",
+    "Think of the activity they get most absorbed in. For example: playing football, building LEGO cars, drawing, cycling, flipping through a book, or lining up their toys just so.",
+  q3Placeholder: "For example: playing football in the yard, they lose all track of time...",
   q3None: "No single activity like that",
   errActivity: "Please write something, or choose “No single activity like that”.",
 
-  q4Lead: (name) => `One day ${name.trim()} will grow up...`,
+  q4Label: "DREAM",
   q4: (name) => `What does ${name.trim()} want to be when they grow up?`,
-  q4HasDream: "They have a dream",
+  q4Help: "For example: a footballer, a pilot, a doctor, an engineer, an artist...",
+  q4Placeholder: "For example: a pilot...",
   q4NotYet: "They haven't thought about it yet",
-  errDreamRoute: "Please choose one.",
-
-  q4a: (name) => `What does ${name.trim()} want to become?`,
-  q4aHelp:
-    "For example: a footballer, a doctor, a pilot, or to build their own business... It doesn't have to be a job — travelling the world or helping people counts too.",
-  q4aPlaceholder: "In their own words...",
   errChildDream: "Please write their dream.",
 
   q4bTransition: "That's alright — there's plenty of time ahead. 😊",
-  q4bLead: "Then let's hear your own hope.",
-  q4b: (name) =>
-    `What would you wish for ${name.trim()} — what they might become, or the kind of person they grow into?`,
-  q4bHelp:
-    "You can name a profession, or a wish from the heart. A sentence or two is enough.",
-  q4bExample:
-    "For example: “I'd love them to be a doctor. But most of all — to grow into someone kind, honest, and doing what they love.”",
-  q4bPlaceholder: "In your own words...",
+  q4b: (name) => `How do you picture ${name.trim()}'s future?`,
+  q4bHelp: (name) =>
+    `You're welcome to write which profession you'd hope ${name.trim()} might have. Or that you hope they grow up kind, honest, self-assured, and doing what they love. Feel free to write any other hope from the heart, in your own words too.`,
+  q4bPlaceholder:
+    "For example: I'd love for them to become a doctor. But most of all, I hope they grow into a good person who finds what they love...",
+  q4BackToDream: "Actually, they do have a dream",
   errAdultHope: "Please write your hope.",
 
-  pLoves: "LOVES",
+  pLoves: "INTERESTED IN",
+  pDetail: "ESPECIALLY LIKES",
   pAbsorbs: "LOSES TIME IN",
   pDreams: "DREAMS OF",
   pHope: "YOUR HOPE",

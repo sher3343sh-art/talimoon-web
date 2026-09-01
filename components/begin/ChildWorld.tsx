@@ -41,12 +41,10 @@ function worldRows(child: ChildProfile, locale: Locale): Row[] {
   const rows: Row[] = [];
   const interests = interestsDisplay(child.interests, locale);
   if (interests) {
-    rows.push({
-      key: "loves",
-      label: c.pLoves,
-      value: interests,
-      sub: child.interestDetail?.trim() || undefined,
-    });
+    rows.push({ key: "loves", label: c.pLoves, value: interests });
+  }
+  if (child.interestDetail?.trim()) {
+    rows.push({ key: "detail", label: c.pDetail, value: child.interestDetail.trim() });
   }
   if (child.favoriteActivity?.trim() && !child.noFavoriteActivity) {
     rows.push({ key: "absorbs", label: c.pAbsorbs, value: child.favoriteActivity.trim() });
