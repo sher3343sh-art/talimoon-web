@@ -10,21 +10,34 @@
 import React from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useT } from '@/lib/i18n/LanguageContext';
-import { BODY, DISPLAY, GOLD, NAVY, NAVY_64, Section } from './shared';
+import { BODY, DISPLAY, GOLD, NAVY, NAVY_64, Section, SPACE_NORMAL } from './shared';
 
-const EN = {
-  headline: 'Made for children. Together with parents.',
-  body: 'TALIMOON isn’t built just to keep a child busy. We build experiences a parent and child can read, listen to, play and talk through together — and make new memories.',
+type PC = {
+  headline: readonly [string, string];
+  body: readonly string[];
+  closing: string;
+  artAlt: string;
+};
+
+const EN: PC = {
+  headline: ['Created for the child.', 'Made meaningful with a parent.'],
+  body: [
+    'TALIMOON creates the experience that reaches the child — without leaving out the most important people in their life.',
+    'Because a good story is worth more when it becomes conversation, closeness and time spent together between a child and a parent.',
+  ],
   closing:
     'Because more precious than a child’s favourite story is having lived it with you.',
   artAlt: 'A parent and child sit close together from behind, sharing an open book.',
 };
-const UZ: typeof EN = {
-  headline: "Bolalar uchun yaratilgan. Ota-onalar bilan birga.",
-  body: "TALIMOON bolani shunchaki band qilish uchun yaratilmaydi. Biz ota-ona va farzand birga o'qishi, tinglashi, o'ynashi, suhbatlashishi va yangi xotiralar yaratishi mumkin bo'lgan tajribalarni quramiz.",
+const UZ: PC = {
+  headline: ['Bola uchun yaratiladi.', 'Ota-ona bilan ma’no kasb etadi.'],
+  body: [
+    'TALIMOON bolaga yetib boradigan tajribani yaratadi, lekin uning hayotidagi eng muhim insonlarni chetda qoldirmaydi.',
+    'Chunki yaxshi hikoya bola bilan ota-ona o‘rtasida suhbat, yaqinlik va birga o‘tkazilgan vaqtga aylanganda uning qadri yanada ortadi.',
+  ],
   closing:
-    "Chunki bolaning eng sevimli hikoyasidan ham qadrlirog'i — uni siz bilan birga boshdan kechirganidir.",
-  artAlt: "Ota-ona va bola orqa tomondan, bir-biriga yaqin o'tirib, ochiq kitobni birga ko'rmoqda.",
+    'Chunki bolaning eng sevimli hikoyasidan ham qadrlirog‘i — uni Siz bilan birga boshdan kechirganidir.',
+  artAlt: 'Ota-ona va bola orqa tomondan, bir-biriga yaqin o‘tirib, ochiq kitobni birga ko‘rmoqda.',
 };
 
 function ReadingTogether({ title }: { title: string }) {
@@ -68,8 +81,8 @@ export function AboutParentChild() {
   const reduced = useReducedMotion();
 
   return (
-    <Section labelledBy="about-pc-heading" className="py-24 md:py-32 lg:py-40">
-      <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,460px)_1fr] lg:gap-20">
+    <Section labelledBy="about-pc-heading" className={SPACE_NORMAL}>
+      <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,440px)_1fr] lg:gap-20">
         <motion.div
           initial={reduced ? undefined : { opacity: 0, y: 22 }}
           whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
@@ -92,22 +105,29 @@ export function AboutParentChild() {
               fontFamily: DISPLAY,
               fontWeight: 600,
               color: NAVY,
-              lineHeight: 1.14,
+              lineHeight: 1.16,
               letterSpacing: '-0.015em',
             }}
           >
-            {t.headline}
+            {t.headline[0]}
+            <br />
+            <span style={{ color: GOLD }}>{t.headline[1]}</span>
           </motion.h2>
-          <motion.p
-            initial={reduced ? undefined : { opacity: 0, y: 16 }}
-            whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.6 }}
-            transition={{ duration: 0.8, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-6 text-[16px] md:text-[18px]"
-            style={{ fontFamily: BODY, color: NAVY_64, lineHeight: 1.78 }}
-          >
-            {t.body}
-          </motion.p>
+          <div className="mt-6 space-y-4">
+            {t.body.map((line, i) => (
+              <motion.p
+                key={i}
+                initial={reduced ? undefined : { opacity: 0, y: 16 }}
+                whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.6 }}
+                transition={{ duration: 0.8, delay: 0.1 + 0.08 * i, ease: [0.22, 1, 0.36, 1] }}
+                className="text-[16px] md:text-[17px]"
+                style={{ fontFamily: BODY, color: NAVY_64, lineHeight: 1.78 }}
+              >
+                {line}
+              </motion.p>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -116,7 +136,7 @@ export function AboutParentChild() {
         whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.5 }}
         transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-        className="mx-auto mt-20 max-w-[820px] text-center text-[22px] sm:text-[26px] md:mt-24 md:text-[32px]"
+        className="mx-auto mt-14 max-w-[820px] text-center text-[22px] sm:text-[26px] md:mt-16 md:text-[32px]"
         style={{
           fontFamily: DISPLAY,
           fontWeight: 600,

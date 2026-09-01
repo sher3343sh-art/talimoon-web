@@ -1,94 +1,55 @@
 'use client';
 
 /**
- * About 03 — ONE TALIMOON UNIVERSE.  A WOW moment, placed right after
- * Origin (spec §09): the visitor has just understood WHY TALIMOON
- * exists — now sees WHAT that belief is becoming.
+ * About 05 — ONE TALIMOON UNIVERSE.  Placed after Creative Belief: the
+ * visitor now knows WHY TALIMOON exists and WHAT every experience must
+ * carry — this is what that belief is becoming.
  *
- * Not four product cards: four worlds strung on one continuous golden
- * thread — book → story world → characters → physical play → library.
- * ONE list of four items renders once; only the connecting thread
- * (purely decorative, `aria-hidden`) and layout direction change
- * between mobile (vertical) and desktop (horizontal) — the accessible
- * content is never duplicated in the DOM.
+ * Five worlds, not five product cards (spec §17–20): the child-facing
+ * four plus HAYOT, the parent-facing knowledge layer. Set as one
+ * editorial index — number · name · one line — so it reads as
+ * "one philosophy, many expressions", never a pricing/features grid.
+ * A single <ol> renders once; only the decorative connecting rule
+ * (aria-hidden) changes between breakpoints — the accessible content
+ * is never duplicated in the DOM (spec §55).
  */
 
 import React from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useT } from '@/lib/i18n/LanguageContext';
-import { BODY, DISPLAY, GOLD, NAVY, NAVY_64, Eyebrow, GoldRule, Section } from './shared';
+import { BODY, DISPLAY, GOLD, GOLD_SOFT, NAVY, NAVY_64, Eyebrow, GoldRule, Section, SPACE_NORMAL } from './shared';
+
+const EASE = [0.22, 1, 0.36, 1] as const;
 
 const EN = {
   eyebrow: 'One universe',
   headline: 'From one story to a whole world.',
   worlds: [
-    { key: 'books', name: 'Personalized Books', line: 'The child becomes part of the story.' },
-    { key: 'yy', name: 'Yusuf & Yasmina', line: 'Stories and adventures continue through the characters.' },
+    { key: 'books', name: 'Personalized Books', line: 'The child becomes the hero of their own story.' },
+    { key: 'yy', name: 'Yusuf & Yasmina', line: 'Values come alive through stories and adventures.' },
     { key: 'toys', name: 'TALIMOON Toys', line: 'The story leaves the page and reaches the child’s hands.' },
-    { key: 'library', name: 'Story Library', line: 'Reading, listening and watching meet in one place.' },
+    { key: 'library', name: 'Story Library', line: 'Reading, listening and watching stories meet in one experience.' },
+    { key: 'hayot', name: 'HAYOT — For Parents', line: 'Knowledge and reflections on parenting, a child’s world and everyday habits — grounded in trustworthy sources.' },
   ],
 };
 const UZ: typeof EN = {
-  eyebrow: 'Bitta olam',
+  eyebrow: 'BITTA OLAM',
   headline: 'Bir hikoyadan butun bir olamga.',
   worlds: [
-    { key: 'books', name: 'Shaxsiylashtirilgan kitoblar', line: 'Bola hikoyaning bir qismiga aylanadi.' },
-    { key: 'yy', name: 'Yusuf va Yasmina', line: 'Qahramonlar orqali hikoyalar va sarguzashtlar davom etadi.' },
-    { key: 'toys', name: "TALIMOON o'yinchoqlari", line: "Hikoya sahifadan chiqib, bolaning qo'liga keladi." },
-    { key: 'library', name: 'Hikoyalar kutubxonasi', line: "O'qish, tinglash va tomosha qilish tajribalari bir joyda uchrashadi." },
+    { key: 'books', name: 'Shaxsiylashtirilgan kitoblar', line: 'Bola o‘z hikoyasining bosh qahramoniga aylanadi.' },
+    { key: 'yy', name: 'Yusuf va Yasmina', line: 'Qadriyatlar hikoya va sarguzashtlar orqali yashaydi.' },
+    { key: 'toys', name: 'TALIMOON o‘yinchoqlari', line: 'Hikoya sahifadan chiqib, bolaning qo‘liga keladi.' },
+    { key: 'library', name: 'Hikoyalar kutubxonasi', line: 'Hikoyalarni o‘qish, tinglash va tomosha qilish bir tajribada uchrashadi.' },
+    { key: 'hayot', name: 'HAYOT — ota-onalar uchun', line: 'Tarbiya, bola dunyosi va kundalik odatlar haqida ishonchli manbalarga tayangan bilim va fikrlar.' },
   ],
 };
-
-function WorldIcon({ k }: { k: string }) {
-  const common = {
-    width: 30,
-    height: 30,
-    viewBox: '0 0 30 30',
-    fill: 'none',
-    stroke: GOLD,
-    strokeWidth: 1.4,
-    strokeLinecap: 'round' as const,
-    strokeLinejoin: 'round' as const,
-  };
-  if (k === 'books')
-    return (
-      <svg {...common}>
-        <path d="M6 8c3-1.6 6-1.6 9 0 3-1.6 6-1.6 9 0v14c-3-1.6-6-1.6-9 0-3-1.6-6-1.6-9 0V8Z" />
-        <path d="M15 8v14" />
-      </svg>
-    );
-  if (k === 'yy')
-    return (
-      <svg {...common}>
-        <circle cx="11" cy="10" r="3" />
-        <circle cx="19" cy="10" r="3" />
-        <path d="M6 24c0-4 2.5-6 5-6s5 2 5 6M14 24c0-4 2.5-6 5-6s5 2 5 6" />
-      </svg>
-    );
-  if (k === 'toys')
-    return (
-      <svg {...common}>
-        <rect x="6" y="14" width="10" height="10" rx="1.5" />
-        <circle cx="20.5" cy="19" r="4.5" />
-        <path d="M15 6l1.6 3.4L20 11l-3.4 1.6L15 16l-1.6-3.4L10 11l3.4-1.6L15 6Z" />
-      </svg>
-    );
-  return (
-    <svg {...common}>
-      <rect x="5" y="6" width="4.5" height="18" rx="1" />
-      <rect x="11" y="6" width="4.5" height="18" rx="1" />
-      <path d="M17.5 8l5 1.4-4 16.2-5-1.4" />
-    </svg>
-  );
-}
 
 export function AboutUniverse() {
   const t = useT(EN, UZ);
   const reduced = useReducedMotion();
-  const drawn = { pathLength: 1 };
 
   return (
-    <Section labelledBy="about-universe-heading" className="py-24 md:py-32 lg:py-40">
+    <Section labelledBy="about-universe-heading" className={SPACE_NORMAL} tone="raised">
       <div className="mx-auto max-w-[720px] text-center">
         <Eyebrow>{t.eyebrow}</Eyebrow>
         <motion.h2
@@ -96,7 +57,7 @@ export function AboutUniverse() {
           initial={reduced ? undefined : { opacity: 0, y: 18 }}
           whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.6 }}
-          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.8, ease: EASE }}
           className="mt-4 text-[28px] sm:text-[34px] md:text-[42px] lg:text-[46px]"
           style={{
             fontFamily: DISPLAY,
@@ -108,71 +69,45 @@ export function AboutUniverse() {
         >
           {t.headline}
         </motion.h2>
-        <GoldRule className="mt-8" />
+        <GoldRule className="mt-7" />
       </div>
 
-      {/* ONE list of four worlds — only the connecting thread (purely
-          decorative, aria-hidden) and each item's internal layout
-          change by breakpoint; the accessible content renders once. */}
-      <div className="relative mt-12 md:mt-16">
-        <span
-          aria-hidden="true"
-          className="absolute bottom-6 left-[31px] top-6 w-px md:hidden"
-          style={{ background: `linear-gradient(to bottom, transparent, ${GOLD}, ${GOLD}, transparent)` }}
-        />
-        <svg
-          viewBox="0 0 1000 80"
-          preserveAspectRatio="none"
-          aria-hidden="true"
-          className="absolute inset-x-0 top-[28px] hidden h-20 w-full md:block"
-        >
-          <motion.path
-            d="M40 40 C170 6 210 74 340 40 C470 6 530 74 660 40 C790 6 830 74 960 40"
-            fill="none"
-            stroke={GOLD}
-            strokeWidth="1.4"
-            strokeLinecap="round"
-            initial={reduced ? drawn : { pathLength: 0 }}
-            whileInView={drawn}
-            viewport={{ once: true, amount: 0.4 }}
-            transition={{ duration: 2.4, ease: [0.22, 1, 0.36, 1] }}
-          />
-        </svg>
-
-        <ol className="relative grid grid-cols-1 md:grid-cols-4 md:gap-8">
-          {t.worlds.map((w, i) => (
-            <motion.li
-              key={w.key}
-              initial={reduced ? undefined : { opacity: 0, y: 18 }}
-              whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.5 }}
-              transition={{ duration: 0.7, delay: 0.08 * i, ease: [0.22, 1, 0.36, 1] }}
-              className="relative flex gap-5 py-5 md:flex-col md:items-center md:gap-0 md:py-0 md:text-center"
+      {/* One editorial index of five worlds — number · name · line.
+          Renders once; the row rule is decorative only. */}
+      <ol className="mx-auto mt-10 max-w-[920px] md:mt-12">
+        {t.worlds.map((w, i) => (
+          <motion.li
+            key={w.key}
+            initial={reduced ? undefined : { opacity: 0, y: 16 }}
+            whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.6 }}
+            transition={{ duration: 0.6, delay: 0.05 * i, ease: EASE }}
+            className="grid gap-x-8 gap-y-1.5 py-5 md:grid-cols-[auto_minmax(0,300px)_1fr] md:items-baseline md:py-6"
+            style={{ borderTop: `1px solid ${i === 0 ? GOLD_SOFT : 'rgba(28,42,58,0.10)'}` }}
+          >
+            <span
+              aria-hidden="true"
+              className="text-[12px] md:text-[13px]"
+              style={{ fontFamily: BODY, fontWeight: 600, letterSpacing: '0.16em', color: GOLD }}
             >
-              <span
-                className="z-[1] grid h-16 w-16 shrink-0 place-items-center rounded-full"
-                style={{ background: '#FDFBF7', border: `1px solid ${GOLD}` }}
-              >
-                <WorldIcon k={w.key} />
-              </span>
-              <div className="pt-2 md:pt-0">
-                <h3
-                  className="text-[19px] md:mt-5"
-                  style={{ fontFamily: DISPLAY, fontWeight: 600, color: NAVY, lineHeight: 1.2 }}
-                >
-                  {w.name}
-                </h3>
-                <p
-                  className="mt-1.5 text-[15px] md:mx-auto md:mt-2 md:max-w-[220px] md:text-[14px]"
-                  style={{ fontFamily: BODY, color: NAVY_64, lineHeight: 1.65 }}
-                >
-                  {w.line}
-                </p>
-              </div>
-            </motion.li>
-          ))}
-        </ol>
-      </div>
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            <h3
+              className="text-[19px] md:text-[22px]"
+              style={{ fontFamily: DISPLAY, fontWeight: 600, color: NAVY, lineHeight: 1.22 }}
+            >
+              {w.name}
+            </h3>
+            <p
+              className="max-w-[460px] text-[15px] md:text-[15.5px]"
+              style={{ fontFamily: BODY, color: NAVY_64, lineHeight: 1.7 }}
+            >
+              {w.line}
+            </p>
+          </motion.li>
+        ))}
+        <div style={{ borderTop: '1px solid rgba(28,42,58,0.10)' }} />
+      </ol>
     </Section>
   );
 }

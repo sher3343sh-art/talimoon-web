@@ -10,7 +10,7 @@
 import React from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useT } from '@/lib/i18n/LanguageContext';
-import { BODY, DISPLAY, GOLD, NAVY, NAVY_64, Section } from './shared';
+import { BODY, DISPLAY, GOLD, NAVY, NAVY_64, Section, SPACE_NORMAL } from './shared';
 
 type CP = {
   headline: string;
@@ -123,7 +123,7 @@ export function AboutChildPerspective() {
   const reduced = useReducedMotion();
 
   return (
-    <Section labelledBy="about-cp-heading" className="py-24 md:py-32 lg:py-40" tone="raised">
+    <Section labelledBy="about-cp-heading" className={SPACE_NORMAL} tone="raised">
       <div className="mx-auto max-w-[760px] text-center">
         <motion.h2
           id="about-cp-heading"
@@ -166,7 +166,7 @@ export function AboutChildPerspective() {
         whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.3 }}
         transition={{ duration: 1, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-        className="mx-auto mt-14 w-full max-w-[900px] md:mt-16"
+        className="mx-auto mt-10 w-full max-w-[900px] md:mt-12"
       >
         <BookToWorld title={t.artAlt} />
       </motion.div>

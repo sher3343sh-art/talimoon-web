@@ -36,6 +36,16 @@ export const GOLD = '#B8935B';
 export const GOLD_SOFT = 'rgba(184,147,91,0.35)';
 export const GOLD_FAINT = 'rgba(184,147,91,0.14)';
 
+// ── Vertical rhythm ─────────────────────────────────────────────────
+// Not every section is a hero. Three tiers keep the page moving without
+// feeling cramped (mobile → md → lg):
+//   MAJOR   ~64 / 96 / 112px  — the page's big emotional beats
+//   NORMAL  ~56 / 80 /  96px  — most editorial sections
+//   COMPACT ~48 / 64 /  80px  — structural / list / process sections
+export const SPACE_MAJOR = 'py-16 md:py-24 lg:py-28';
+export const SPACE_NORMAL = 'py-14 md:py-20 lg:py-24';
+export const SPACE_COMPACT = 'py-12 md:py-16 lg:py-20';
+
 // ── Scroll reveal ───────────────────────────────────────────────────
 // One calm container→children stagger. Sections apply `revealContainer`
 // to a wrapper (initial/whileInView) and `revealItem` to each child.

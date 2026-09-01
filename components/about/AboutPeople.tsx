@@ -22,7 +22,7 @@ import React from 'react';
 import Image from 'next/image';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useT } from '@/lib/i18n/LanguageContext';
-import { BODY, DISPLAY, GOLD, GOLD_SOFT, NAVY, NAVY_64, NAVY_48, Eyebrow, Section } from './shared';
+import { BODY, DISPLAY, GOLD, GOLD_SOFT, NAVY, NAVY_64, NAVY_48, Eyebrow, Section, SPACE_MAJOR } from './shared';
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -34,7 +34,7 @@ const EN = {
     title: 'Founder of TALIMOON',
     body: 'He shapes TALIMOON’s core concept, story world, product direction, design and digital experience as one coherent vision, and leads the project’s creative and technical development.',
     reflection:
-      'He thinks less about what a story should tell a child, and more about what a child will carry away from it.',
+      'He thinks less about what a story should tell a child, and more about what a child feels — and which values they carry away in their heart.',
     alt: 'Sherzodbek Yunusov, founder of TALIMOON.',
   },
   partner: {
@@ -43,6 +43,8 @@ const EN = {
     body: 'Part of TALIMOON since its earliest days — he helped the first book reach the children as a printed copy, and played an important role in choosing the TALIMOON name. Today he coordinates printing, orders, customer communication, sales and delivery.',
     alt: 'Oybek Ubaydullayev.',
   },
+  today:
+    'Today TALIMOON is a small team that works hands-on. Its creative and digital direction is led by the founder; the practical side — from printing an order to customer communication and delivery — is coordinated by Oybek.',
 };
 
 const UZ: typeof EN = {
@@ -53,7 +55,7 @@ const UZ: typeof EN = {
     title: 'TALIMOON asoschisi',
     body: "TALIMOONning asosiy konsepsiyasi, hikoya dunyosi, mahsulot yo'nalishlari, dizayni va raqamli tajribasini bir butun qarash atrofida shakllantiradi. Loyihaning ijodiy va texnologik rivojlanishini boshqaradi.",
     reflection:
-      "U bolaga nimani aytish kerakligidan ko'ra, bola nimani his qilib olib ketishi haqida ko'proq o'ylaydi.",
+      "U faqat bolaga nima aytish kerakligini emas, bola hikoyadan nimani his qilib, qanday qadriyatni qalbida olib ketishini ko'proq o'ylaydi.",
     alt: 'Sherzodbek Yunusov, TALIMOON asoschisi.',
   },
   partner: {
@@ -62,6 +64,8 @@ const UZ: typeof EN = {
     body: "TALIMOONning ilk kunlaridan beri loyiha yonida. Birinchi kitobning chop etilib bolalarga yetib borishida yordam bergan va TALIMOON nomining tanlanishida muhim rol o'ynagan. Bugun chop etish jarayonlari, buyurtmalar, mijozlar bilan aloqa, sotuv va yetkazib berish ishlarini muvofiqlashtiradi.",
     alt: 'Oybek Ubaydullayev.',
   },
+  today:
+    "Hozir TALIMOON kichik va bevosita ishlaydigan jamoa. Ijodiy va raqamli yo'nalish asoschi tomonidan boshqariladi; buyurtmaning chop etilishidan mijoz bilan muloqot va yetkazib berishgacha bo'lgan amaliy jarayonlar esa Oybek tomonidan muvofiqlashtiriladi.",
 };
 
 /** Honest portrait slot — a real photo when `src` is set, otherwise a
@@ -111,7 +115,7 @@ export function AboutPeople() {
   const reduced = useReducedMotion();
 
   return (
-    <Section labelledBy="about-people-heading" className="py-24 md:py-32 lg:py-40" tone="raised">
+    <Section labelledBy="about-people-heading" className={SPACE_MAJOR} tone="raised">
       <div className="mx-auto max-w-[640px] text-center">
         <Eyebrow>{t.eyebrow}</Eyebrow>
         <motion.h2
@@ -128,7 +132,7 @@ export function AboutPeople() {
       </div>
 
       {/* Founder — the larger, primary editorial treatment */}
-      <div className="mt-16 grid items-center gap-10 md:mt-20 lg:grid-cols-[minmax(0,380px)_1fr] lg:gap-16">
+      <div className="mt-12 grid items-center gap-10 md:mt-14 lg:grid-cols-[minmax(0,360px)_1fr] lg:gap-16">
         <motion.div
           initial={reduced ? undefined : { opacity: 0, y: 22 }}
           whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
@@ -165,7 +169,7 @@ export function AboutPeople() {
       </div>
 
       {/* A quiet hairline between the two — different weight, same respect */}
-      <div className="mx-auto my-16 h-px w-full max-w-[1000px] md:my-20" style={{ background: 'rgba(28,42,58,0.10)' }} />
+      <div className="mx-auto my-12 h-px w-full max-w-[1000px] md:my-14" style={{ background: 'rgba(28,42,58,0.10)' }} />
 
       {/* Partner — a real, dignified secondary treatment */}
       <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,220px)_1fr] lg:gap-14">
@@ -197,6 +201,18 @@ export function AboutPeople() {
           </p>
         </motion.div>
       </div>
+
+      {/* Today's TALIMOON — small, direct, no apology for being small */}
+      <motion.p
+        initial={reduced ? undefined : { opacity: 0, y: 14 }}
+        whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.6 }}
+        transition={{ duration: 0.7, ease: EASE }}
+        className="mx-auto mt-12 max-w-[620px] text-center text-[14.5px] md:mt-14 md:text-[15px]"
+        style={{ fontFamily: BODY, color: NAVY_48, lineHeight: 1.75 }}
+      >
+        {t.today}
+      </motion.p>
     </Section>
   );
 }

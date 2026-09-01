@@ -130,7 +130,7 @@ export function AboutHero() {
   const reduced = useReducedMotion();
 
   return (
-    <Section labelledBy="about-hero-heading" className="pt-28 pb-20 md:pt-36 md:pb-28 lg:pt-40 lg:pb-32">
+    <Section labelledBy="about-hero-heading" className="pt-24 pb-16 md:pt-32 md:pb-24 lg:pt-36 lg:pb-28">
       <div className="grid items-center gap-12 md:gap-10 lg:grid-cols-[1fr_minmax(0,560px)] lg:gap-16">
         <motion.div
           initial={reduced ? undefined : { opacity: 0, y: 18 }}

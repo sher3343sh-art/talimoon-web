@@ -10,25 +10,25 @@
 import React from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useT } from '@/lib/i18n/LanguageContext';
-import { BODY, DISPLAY, GOLD, NAVY, NAVY_64, Eyebrow, Section } from './shared';
+import { BODY, DISPLAY, GOLD, NAVY, NAVY_64, Eyebrow, Section, SPACE_NORMAL } from './shared';
 
 const EN = {
   eyebrow: 'Ahead',
   headline: 'A world that began with one book is still being built.',
-  body: 'We see TALIMOON’s future not as separate products, but as one world that grows alongside a child. Stories, characters, books, digital experiences and what comes next all serve one purpose: creating what stays in a child’s heart — meaningful, beautiful, and memorable.',
+  body: 'We see TALIMOON’s future not as separate products, but as one world that grows as a child grows.',
   closing: [
     'Our goal isn’t to make more products.',
-    'It’s to make better experiences that stay with childhood.',
+    'It’s to make better experiences that become a meaningful part of childhood and family life.',
   ],
   artAlt: 'A wide horizon with a golden path continuing outward and small far shapes suggesting new worlds.',
 };
 const UZ: typeof EN = {
   eyebrow: 'OLDINDA',
   headline: 'Bir kitobdan boshlangan dunyo hali qurilmoqda.',
-  body: "TALIMOONning kelajagini alohida mahsulotlarda emas, bolaning ulg'ayishi bilan birga rivojlanadigan yagona olamda ko'ramiz. Hikoyalar, qahramonlar, kitoblar, raqamli tajribalar va kelajakdagi mahsulotlar bir maqsad atrofida birlashadi: bolalikda qalbga singadigan narsalarni mazmunli, go'zal va esda qoladigan shaklda yaratish.",
+  body: "TALIMOONning kelajagini alohida mahsulotlar sifatida emas, bolaning ulg'ayishi bilan birga o'sadigan yagona olam sifatida ko'ramiz.",
   closing: [
     "Maqsadimiz ko'proq mahsulot yaratish emas.",
-    "Bolalikda qoladigan yaxshiroq tajribalar yaratish.",
+    "Bolalik va oila hayotining mazmunli qismiga aylanadigan yaxshiroq tajribalar yaratish.",
   ],
   artAlt: "Keng ufq; oltin yo'l tashqariga davom etadi, uzoqdagi kichik shakllar yangi olamlarni eslatadi.",
 };
@@ -74,7 +74,7 @@ export function AboutFuture() {
   const reduced = useReducedMotion();
 
   return (
-    <Section labelledBy="about-future-heading" className="py-24 md:py-32 lg:py-40">
+    <Section labelledBy="about-future-heading" className={SPACE_NORMAL}>
       <div className="mx-auto max-w-[720px] text-center">
         <Eyebrow>{t.eyebrow}</Eyebrow>
         <motion.h2
@@ -111,7 +111,7 @@ export function AboutFuture() {
         whileInView={reduced ? undefined : { opacity: 1 }}
         viewport={{ once: true, amount: 0.3 }}
         transition={{ duration: 1.2, ease: 'easeOut' }}
-        className="mx-auto mt-12 w-full max-w-[1000px] md:mt-16"
+        className="mx-auto mt-10 w-full max-w-[1000px] md:mt-12"
       >
         <Horizon title={t.artAlt} />
       </motion.div>
@@ -121,7 +121,7 @@ export function AboutFuture() {
         whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.5 }}
         transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-        className="mx-auto mt-10 max-w-[760px] text-center text-[22px] sm:text-[26px] md:mt-14 md:text-[32px]"
+        className="mx-auto mt-8 max-w-[760px] text-center text-[22px] sm:text-[26px] md:mt-10 md:text-[32px]"
         style={{ fontFamily: DISPLAY, fontWeight: 600, color: NAVY, lineHeight: 1.32 }}
       >
         {t.closing[0]}

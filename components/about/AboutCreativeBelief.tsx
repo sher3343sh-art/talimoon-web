@@ -12,7 +12,7 @@
 import React from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useT } from '@/lib/i18n/LanguageContext';
-import { BODY, DISPLAY, GOLD, GOLD_SOFT, NAVY, NAVY_64, Eyebrow, Section } from './shared';
+import { BODY, DISPLAY, GOLD, GOLD_SOFT, NAVY, NAVY_64, Eyebrow, Section, SPACE_COMPACT } from './shared';
 
 const EN = {
   eyebrow: 'What we believe',
@@ -68,7 +68,7 @@ export function AboutCreativeBelief() {
   const reduced = useReducedMotion();
 
   return (
-    <Section labelledBy="about-belief-heading" className="py-24 md:py-32 lg:py-40">
+    <Section labelledBy="about-belief-heading" className={SPACE_COMPACT}>
       <div className="max-w-[820px]">
         <Eyebrow align="start">{t.eyebrow}</Eyebrow>
         <motion.h2
@@ -92,7 +92,7 @@ export function AboutCreativeBelief() {
         </motion.h2>
       </div>
 
-      <div className="mt-16 md:mt-20">
+      <div className="mt-10 md:mt-12">
         {t.principles.map((p, i) => (
           <motion.div
             key={p.n}
@@ -100,7 +100,7 @@ export function AboutCreativeBelief() {
             whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.55 }}
             transition={{ duration: 0.75, delay: 0.06 * i, ease: [0.22, 1, 0.36, 1] }}
-            className="grid grid-cols-[auto_1fr] items-baseline gap-x-6 gap-y-2 py-8 md:grid-cols-[120px_260px_1fr] md:gap-x-10 md:py-10"
+            className="grid grid-cols-[auto_1fr] items-baseline gap-x-6 gap-y-2 py-6 md:grid-cols-[120px_260px_1fr] md:gap-x-10 md:py-7"
             style={{
               borderTop: `1px solid ${i === 0 ? GOLD_SOFT : 'rgba(28,42,58,0.10)'}`,
             }}

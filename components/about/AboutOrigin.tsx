@@ -28,7 +28,7 @@ import React from 'react';
 import Image from 'next/image';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useT } from '@/lib/i18n/LanguageContext';
-import { BODY, DISPLAY, GOLD, GOLD_SOFT, NAVY, NAVY_64, NAVY_48, Eyebrow, Section } from './shared';
+import { BODY, DISPLAY, GOLD, GOLD_SOFT, NAVY, NAVY_64, NAVY_48, Eyebrow, Section, SPACE_MAJOR } from './shared';
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -42,14 +42,14 @@ const EN = {
       'He had love, guidance and things he wanted them to understand — but ordinary conversation didn’t feel like enough.',
     ],
     question:
-      'How do you make something important you want to tell a child live in their heart a little longer?',
+      'How do you make something important you want to tell a child stay with them a little longer?',
   },
   m2: {
     headline: 'Advice became a story.',
     body: [
-      'Sherzodbek and his children had always enjoyed turning their photos into illustrated, animated-style pictures — a small, playful idea with no purpose behind it yet.',
-      'Distance gave it one: what if his children weren’t just being told something — what if they became the heroes who lived it?',
-      'He made his children the main characters of an adventure. Their photographs became illustrated versions of themselves, and his guidance and affection became part of what happened in the story.',
+      'Sherzodbek and his children had always enjoyed turning family photos into anime-style illustrations — a small, playful habit with no purpose behind it yet.',
+      'Distance gave him a new thought: what if guidance didn’t arrive as advice, but lived inside a story where the child was the hero?',
+      'He made his children the main characters of an adventure. Their real photographs were turned into anime-inspired story characters — they no longer watched the story from the outside; they lived inside it. His love, and the things he wanted to say, became part of what happened.',
     ],
     statement: ['The first book was not made to be sold.', 'It was made to carry a father’s love, and what he wanted to say, to his children.'],
     artifactCaption: 'The first TALIMOON book',
@@ -57,15 +57,15 @@ const EN = {
   },
   m3: {
     body: [
-      'The first book was printed and reached the children with the help of Sherzodbek’s close friend, Oybek Ubaydullayev.',
-      'The children saw themselves inside the story. They were proud of their father.',
-      'Later, when they missed him, they went back to the book and looked through it again.',
+      'Once the first book was finished digitally, one problem remained: turning it into a real, printed book and getting it to the children. Sherzodbek was far away at the time.',
+      'His close friend Oybek Ubaydullayev helped print the book and get it into the children’s hands.',
+      'The children saw themselves inside the story, and they were proud of their father. Later, when they missed him, they would open the book and look through it again.',
     ],
     statement: 'A story made for one family raised a bigger question.',
     question: 'If one story could mean this much to one family, how many children could a meaningful story reach?',
     transition:
-      'Sherzodbek shared the idea with Oybek. Oybek believed in it from the start — and helped it find its name.',
-    reveal: 'And slowly, the idea found a name.',
+      'In time, Oybek became one of the first people to take the idea seriously. They exchanged thoughts and worked through its weak points together — and what began as one book slowly grew into something larger.',
+    reveal: 'Eventually that world was given a name — and Oybek had a real hand in choosing it.',
     afterReveal: 'What began with one book is becoming a whole world for children.',
   },
 };
@@ -80,14 +80,14 @@ const UZ: typeof EN = {
       'Ularga aytmoqchi bo‘lgan mehri va nasihati bor edi — lekin oddiy muloqot bunga yetarli tuyulmadi.',
     ],
     question:
-      'Bolaga aytmoqchi bo‘lgan muhim gaplaringni qanday qilib uning qalbida uzoqroq yashaydigan qilish mumkin?',
+      'Bolaga aytmoqchi bo‘lgan muhim gap uning qalbida qanday qilib uzoqroq yashab qoladi?',
   },
   m2: {
     headline: 'Nasihat hikoyaga aylandi.',
     body: [
-      'Sherzodbek va farzandlari oilaviy suratlarini rasm/anime uslubidagi tasvirlarga aylantirishni yaxshi ko‘rishardi — hali maqsadi bo‘lmagan kichik, quvnoq bir g‘oya.',
-      'Masofa unga maqsad berdi: agar farzandlari shunchaki nasihat eshitmasdan, uni yashaydigan qahramonga aylansachi?',
-      'U farzandlarini bir sarguzashtning bosh qahramonlariga aylantirdi. Ularning suratlari o‘zlarining rasmiy qiyofasiga aylandi, otaning mehri va aytmoqchi bo‘lgan gaplari esa hikoya voqealarining bir qismiga aylandi.',
+      'Sherzodbek va farzandlari oilaviy suratlarini anime uslubidagi tasvirlarga aylantirishni yoqtirishardi — hali maqsadi bo‘lmagan kichik, quvnoq bir odat.',
+      'Masofa unga yangi bir fikr berdi: agar nasihat shunchaki aytilmasa, balki bola o‘zi bosh qahramon bo‘lgan hikoyaning ichiga singdirilsa-chi?',
+      'U farzandlarini bir sarguzashtning bosh qahramonlariga aylantirdi. Ularning haqiqiy suratlari anime uslubidagi ertak qahramonlariga aylantirildi — endi ular hikoyani chetdan kuzatmas, uning ichida yashardi. Otaning mehri va aytmoqchi bo‘lgan gaplari esa voqealarning bir qismiga aylandi.',
     ],
     statement: [
       'Birinchi kitob sotish uchun yaratilmagan edi.',
@@ -98,15 +98,15 @@ const UZ: typeof EN = {
   },
   m3: {
     body: [
-      'Birinchi kitob Sherzodbekning yaqin do‘sti Oybek Ubaydullayev yordamida chop etilib, farzandlariga yetib bordi.',
-      'Bolalar o‘zlarini hikoya ichida ko‘rishdi. Ular otalaridan faxrlanishdi.',
-      'Keyinchalik, otalarini sog‘ingan paytlarida, ular yana kitobni ochib qarab chiqishardi.',
+      'Birinchi kitob elektron shaklda tayyor bo‘lgach, uni haqiqiy kitobga aylantirib, farzandlariga yetkazish masalasi qoldi. Sherzodbek o‘sha paytda uzoqda edi.',
+      'Uning yaqin do‘sti Oybek Ubaydullayev kitobni chop ettirish va bolalarga yetkazishda yordam berdi.',
+      'Bolalar o‘zlarini hikoya ichida ko‘rishdi va otalaridan faxrlanishdi. Keyinchalik, uni sog‘ingan paytlarida, ular yana kitobni ochib qarab chiqishardi.',
     ],
     statement: 'Bir oilaga atalgan hikoya kattaroq savolni tug‘dirdi.',
     question: 'Agar bitta hikoya bir oilada shunday qiymat yarata olsa, yana qancha bola uchun mazmunli hikoyalar yaratish mumkin?',
     transition:
-      'Sherzodbek bu g‘oyani yaqin do‘sti Oybek bilan bo‘lishdi. Oybek uni boshidanoq qo‘llab-quvvatladi — va nomini topishga yordam berdi.',
-    reveal: 'Va asta-sekin bu fikr o‘z nomini topdi.',
+      'Keyinchalik aynan Oybek bu g‘oyani jiddiy qo‘llab-quvvatlagan ilk insonlardan biriga aylandi. Ular fikr almashdi, kamchiliklarni birga muhokama qildi — va bir kitob sifatida boshlangan g‘oya asta-sekin kattaroq dunyoga aylandi.',
+    reveal: 'Keyinchalik bu dunyo o‘z nomini oldi — bu nomning tanlanishida ham Oybekning hissasi katta bo‘ldi.',
     afterReveal: 'Bir kitobdan boshlangan fikr endi butun bir bolalar olamiga aylanmoqda.',
   },
 };
@@ -175,7 +175,7 @@ export function AboutOrigin() {
   return (
     <>
       {/* MOMENT 01 — DISTANCE ------------------------------------------------ */}
-      <Section labelledBy="about-origin-heading" className="py-24 md:py-32 lg:py-40">
+      <Section labelledBy="about-origin-heading" className={SPACE_MAJOR}>
         <div className="grid gap-10 md:grid-cols-[60px_1fr] md:gap-12 lg:gap-16">
           <div className="hidden md:block" aria-hidden="true">
             <div className="sticky top-24 h-[420px]">
@@ -205,7 +205,7 @@ export function AboutOrigin() {
               </h2>
             </motion.div>
 
-            <div className="mt-10 space-y-4 md:mt-12">
+            <div className="mt-8 space-y-4 md:mt-10">
               {t.m1.body.map((line, i) => (
                 <motion.p
                   key={i}
@@ -226,7 +226,7 @@ export function AboutOrigin() {
               whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.5 }}
               transition={{ duration: 0.8, delay: 0.1, ease: EASE }}
-              className="mt-10 border-0 pl-5 md:mt-12"
+              className="mt-8 border-0 pl-5 md:mt-10"
               style={{ borderLeft: `2px solid ${GOLD}` }}
             >
               <p
@@ -241,7 +241,7 @@ export function AboutOrigin() {
       </Section>
 
       {/* MOMENT 02 — THE FIRST STORY ------------------------------------------ */}
-      <Section tone="raised" className="py-24 md:py-32 lg:py-40">
+      <Section tone="raised" className={SPACE_MAJOR}>
         <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,380px)_1fr] lg:gap-20">
           <motion.div
             initial={reduced ? undefined : { opacity: 0, y: 22 }}
@@ -288,7 +288,7 @@ export function AboutOrigin() {
           whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.5 }}
           transition={{ duration: 0.9, ease: EASE }}
-          className="mx-auto mt-20 max-w-[760px] text-center md:mt-24"
+          className="mx-auto mt-14 max-w-[760px] text-center md:mt-16"
         >
           <p className="text-[24px] sm:text-[28px] md:text-[34px]" style={{ fontFamily: DISPLAY, fontWeight: 600, color: NAVY, lineHeight: 1.32 }}>
             {t.m2.statement[0]}
@@ -300,7 +300,7 @@ export function AboutOrigin() {
       </Section>
 
       {/* MOMENT 03 — THE RESPONSE + the TALIMOON name -------------------------- */}
-      <Section className="py-24 md:py-32 lg:py-40">
+      <Section className={SPACE_MAJOR}>
         <div className="mx-auto max-w-[600px]">
           <div className="space-y-4">
             {t.m3.body.map((line, i) => (
@@ -324,7 +324,7 @@ export function AboutOrigin() {
           whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.5 }}
           transition={{ duration: 0.9, delay: 0.1, ease: EASE }}
-          className="mx-auto mt-16 max-w-[760px] text-center md:mt-20"
+          className="mx-auto mt-12 max-w-[760px] text-center md:mt-14"
         >
           <p className="text-[24px] sm:text-[28px] md:text-[34px]" style={{ fontFamily: DISPLAY, fontWeight: 600, color: NAVY, lineHeight: 1.32 }}>
             {t.m3.statement}
@@ -339,7 +339,7 @@ export function AboutOrigin() {
           whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.5 }}
           transition={{ duration: 0.7, ease: EASE }}
-          className="mx-auto mt-16 max-w-[560px] text-center text-[15px] md:mt-20 md:text-[16px]"
+          className="mx-auto mt-12 max-w-[560px] text-center text-[15px] md:mt-14 md:text-[16px]"
           style={{ fontFamily: BODY, color: NAVY_48, lineHeight: 1.7 }}
         >
           {t.m3.transition}

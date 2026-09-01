@@ -3,9 +3,9 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { AboutHero } from '@/components/about/AboutHero';
 import { AboutOrigin } from '@/components/about/AboutOrigin';
-import { AboutUniverse } from '@/components/about/AboutUniverse';
 import { AboutChildPerspective } from '@/components/about/AboutChildPerspective';
 import { AboutCreativeBelief } from '@/components/about/AboutCreativeBelief';
+import { AboutUniverse } from '@/components/about/AboutUniverse';
 import { AboutParentChild } from '@/components/about/AboutParentChild';
 import { AboutPeople } from '@/components/about/AboutPeople';
 import { AboutHowWeCreate } from '@/components/about/AboutHowWeCreate';
@@ -29,10 +29,10 @@ export const metadata: Metadata = {
  *   Hero        — curiosity, restrained
  *   Origin      — WHY TALIMOON exists (three moments: distance, the
  *                 first story, the response) + the TALIMOON name
- *   Universe    — placed right after Origin on purpose: the visitor
- *                 has just understood WHY; now sees WHAT it's becoming
  *   Child persp.— HOW TALIMOON looks at childhood (not a repeat of Origin)
  *   Creative belief — the PRINCIPLES behind what gets made
+ *   Universe    — WHAT the belief is becoming: one philosophy, five
+ *                 worlds (the child-facing four + HAYOT for parents)
  *   Parent+child— the family the brand is actually for
  *   People      — who is building it, in their own weight
  *   How we create — the PROCESS that makes it (not the same as belief)
@@ -51,9 +51,9 @@ export default function AboutPage() {
       <main>
         <AboutHero />
         <AboutOrigin />
-        <AboutUniverse />
         <AboutChildPerspective />
         <AboutCreativeBelief />
+        <AboutUniverse />
         <AboutParentChild />
         <AboutPeople />
         <AboutHowWeCreate />

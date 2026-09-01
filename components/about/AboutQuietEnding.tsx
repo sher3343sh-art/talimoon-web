@@ -56,7 +56,7 @@ export function AboutQuietEnding() {
   const reduced = useReducedMotion();
 
   return (
-    <Section labelledBy="about-end-heading" className="pt-28 pb-32 md:pt-36 md:pb-44">
+    <Section labelledBy="about-end-heading" className="pt-20 pb-28 md:pt-28 md:pb-36">
       <motion.div
         initial={reduced ? undefined : { opacity: 0, y: 20 }}
         whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
