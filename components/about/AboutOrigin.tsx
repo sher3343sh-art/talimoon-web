@@ -167,7 +167,11 @@ function ArtifactFrame({ src, alt, caption }: { src?: string; alt: string; capti
   );
 }
 
-// Real asset, when it exists — drop the file and set `src`.
+// The real photo of the first TALIMOON book. Once the file exists at
+// `public/images/about/first-book.png` (4:5 portrait crops best; any
+// orientation still works — object-cover fills the frame), set
+// `src: '/images/about/first-book.png'` here. Until then ArtifactFrame
+// shows the composed placeholder.
 const FIRST_BOOK: { src?: string } = {};
 
 export function AboutOrigin() {

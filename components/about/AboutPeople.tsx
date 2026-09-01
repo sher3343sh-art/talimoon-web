@@ -107,7 +107,12 @@ function PersonFrame({
   );
 }
 
-// Real portraits, when they exist — drop the files and set `src`.
+// The real portraits. Once the files are in `public/images/about/`
+// (sherzodbek.png — founder, 4:5 portrait; oybek.png — partner, 1:1
+// square), set the paths here:
+//   founder: '/images/about/sherzodbek.png'
+//   partner: '/images/about/oybek.png'
+// Until then PersonFrame shows its composed placeholder.
 const PORTRAITS: { founder?: string; partner?: string } = {};
 
 export function AboutPeople() {
@@ -171,14 +176,17 @@ export function AboutPeople() {
       {/* A quiet hairline between the two — different weight, same respect */}
       <div className="mx-auto my-12 h-px w-full max-w-[1000px] md:my-14" style={{ background: 'rgba(28,42,58,0.10)' }} />
 
-      {/* Partner — a real, dignified secondary treatment */}
-      <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,220px)_1fr] lg:gap-14">
+      {/* Partner — a real, dignified secondary treatment. The portrait
+          footprint is ~20% larger than a plain thumbnail so Oybek reads
+          as a real person, not an avatar — still clearly secondary to
+          the founder's 4:5 lead portrait. */}
+      <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,264px)_1fr] lg:gap-14">
         <motion.div
           initial={reduced ? undefined : { opacity: 0, y: 18 }}
           whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.5 }}
           transition={{ duration: 0.8, ease: EASE }}
-          className="mx-auto w-full max-w-[200px] lg:mx-0"
+          className="mx-auto w-full max-w-[240px] sm:max-w-[264px] lg:mx-0 lg:max-w-[264px]"
         >
           <PersonFrame src={PORTRAITS.partner} alt={t.partner.alt} size="medium" />
         </motion.div>
