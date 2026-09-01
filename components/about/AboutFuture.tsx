@@ -2,12 +2,13 @@
 
 /**
  * About 09 — THE FUTURE.
- * Direction, not hype. No roadmap, no unshipped products. The TALIMOON
- * world quietly expands toward the horizon — the golden line from the
- * Origin section continuing outward past the frame.
+ * Direction, not hype. No roadmap, no unshipped products. The prepared
+ * editorial image of the TALIMOON world quietly expanding toward the
+ * horizon.
  */
 
 import React from 'react';
+import Image from 'next/image';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useT } from '@/lib/i18n/LanguageContext';
 import { BODY, DISPLAY, GOLD, NAVY, NAVY_64, Eyebrow, Section, SPACE_NORMAL } from './shared';
@@ -32,42 +33,6 @@ const UZ: typeof EN = {
   ],
   artAlt: "Keng ufq; oltin yo'l tashqariga davom etadi, uzoqdagi kichik shakllar yangi olamlarni eslatadi.",
 };
-
-function Horizon({ title }: { title: string }) {
-  const reduced = useReducedMotion();
-  return (
-    <svg viewBox="0 0 1000 220" role="img" aria-label={title} className="h-auto w-full">
-      <defs>
-        <linearGradient id="ab-fut-fade" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor="#fff" stopOpacity="0" />
-          <stop offset="16%" stopColor="#fff" stopOpacity="1" />
-          <stop offset="78%" stopColor="#fff" stopOpacity="1" />
-          <stop offset="100%" stopColor="#fff" stopOpacity="0" />
-        </linearGradient>
-        <mask id="ab-fut-mask">
-          <rect width="1000" height="220" fill="url(#ab-fut-fade)" />
-        </mask>
-      </defs>
-      <g mask="url(#ab-fut-mask)" fill="none" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M40 150 H960" stroke={NAVY} strokeOpacity="0.14" strokeWidth="1.25" />
-        <motion.path
-          d="M120 150 C300 150 360 128 520 120 C700 111 780 96 940 78"
-          stroke={GOLD}
-          strokeWidth="1.5"
-          initial={reduced ? { pathLength: 1 } : { pathLength: 0 }}
-          whileInView={{ pathLength: 1 }}
-          viewport={{ once: true, amount: 0.4 }}
-          transition={{ duration: 2.4, ease: [0.22, 1, 0.36, 1] }}
-        />
-        <g stroke={GOLD} strokeWidth="1.3" strokeOpacity="0.7">
-          <circle cx="620" cy="112" r="9" />
-          <path d="M700 100 v-14 a8 8 0 0 1 16 0 v14 M694 100 h28" strokeOpacity="0.6" />
-          <path d="M812 84 l2.4 5.4 l5.4 2.4 l-5.4 2.4 l-2.4 5.4 l-2.4 -5.4 l-5.4 -2.4 l5.4 -2.4 Z" fill={GOLD} stroke="none" fillOpacity="0.7" />
-        </g>
-      </g>
-    </svg>
-  );
-}
 
 export function AboutFuture() {
   const t = useT(EN, UZ);
@@ -113,7 +78,15 @@ export function AboutFuture() {
         transition={{ duration: 1.2, ease: 'easeOut' }}
         className="mx-auto mt-10 w-full max-w-[1000px] md:mt-12"
       >
-        <Horizon title={t.artAlt} />
+        <Image
+          src="/images/about/about-future.webp"
+          alt={t.artAlt}
+          width={2204}
+          height={713}
+          quality={100}
+          sizes="(max-width: 1024px) 92vw, 1000px"
+          className="h-auto w-full"
+        />
       </motion.div>
 
       <motion.p

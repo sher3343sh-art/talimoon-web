@@ -137,22 +137,41 @@ function GoldenThread() {
   );
 }
 
-/** Honest artifact slot — a real photo when `src` is set, otherwise a
- *  composed frame that never pretends the asset exists (spec §16/§37). */
-function ArtifactFrame({ src, alt, caption }: { src?: string; alt: string; caption: string }) {
+/** The first-story artifact — a real photo when `src` is set, otherwise
+ *  a composed frame that never pretends the asset exists. `ratio` keeps
+ *  the frame at the asset's native aspect so the prepared composition
+ *  shows without any crop. */
+function ArtifactFrame({
+  src,
+  alt,
+  caption,
+  ratio = '4 / 5',
+}: {
+  src?: string;
+  alt: string;
+  caption: string;
+  ratio?: string;
+}) {
   return (
     <figure>
       <div
         className="relative w-full overflow-hidden"
         style={{
-          aspectRatio: '4 / 5',
+          aspectRatio: src ? ratio : '4 / 5',
           background: '#FDFBF7',
           border: `1px solid ${GOLD_SOFT}`,
           borderRadius: 2,
         }}
       >
         {src ? (
-          <Image src={src} alt={alt} fill sizes="(max-width: 768px) 90vw, 40vw" className="object-cover" />
+          <Image
+            src={src}
+            alt={alt}
+            fill
+            quality={100}
+            sizes="(max-width: 1024px) 90vw, 340px"
+            className="object-cover"
+          />
         ) : (
           <>
             <span aria-hidden="true" className="absolute left-4 top-4 h-5 w-5" style={{ borderTop: `1px solid ${GOLD}`, borderLeft: `1px solid ${GOLD}` }} />
@@ -167,12 +186,8 @@ function ArtifactFrame({ src, alt, caption }: { src?: string; alt: string; capti
   );
 }
 
-// The real photo of the first TALIMOON book. Once the file exists at
-// `public/images/about/first-book.png` (4:5 portrait crops best; any
-// orientation still works — object-cover fills the frame), set
-// `src: '/images/about/first-book.png'` here. Until then ArtifactFrame
-// shows the composed placeholder.
-const FIRST_BOOK: { src?: string } = {};
+// The prepared photo of the first TALIMOON story (1088×1445).
+const FIRST_BOOK = { src: '/images/about/about-origin-story.webp', ratio: '1088 / 1445' };
 
 export function AboutOrigin() {
   const t = useT(EN, UZ);
@@ -256,7 +271,12 @@ export function AboutOrigin() {
             transition={{ duration: 0.9, ease: EASE }}
             className="mx-auto w-full max-w-[320px] lg:mx-0"
           >
-            <ArtifactFrame src={FIRST_BOOK.src} alt={t.m2.artifactAlt} caption={t.m2.artifactCaption} />
+            <ArtifactFrame
+              src={FIRST_BOOK.src}
+              ratio={FIRST_BOOK.ratio}
+              alt={t.m2.artifactAlt}
+              caption={t.m2.artifactCaption}
+            />
           </motion.div>
 
           <div className="max-w-[600px]">

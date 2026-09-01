@@ -2,12 +2,13 @@
 
 /**
  * About 06 — PARENT + CHILD.
- * A quiet, intimate moment — a parent and child seen from behind,
- * close together over a story — not stock photography. Line-art in
- * navy on cream; the emotional closing line carries the section.
+ * A quiet, intimate moment — the prepared editorial image of a parent
+ * and child close together over a story; the emotional closing line
+ * carries the section.
  */
 
 import React from 'react';
+import Image from 'next/image';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useT } from '@/lib/i18n/LanguageContext';
 import { BODY, DISPLAY, GOLD, NAVY, NAVY_64, Section, SPACE_NORMAL } from './shared';
@@ -40,42 +41,6 @@ const UZ: PC = {
   artAlt: 'Ota-ona va bola orqa tomondan, bir-biriga yaqin o‘tirib, ochiq kitobni birga ko‘rmoqda.',
 };
 
-function ReadingTogether({ title }: { title: string }) {
-  return (
-    <svg viewBox="0 0 520 320" role="img" aria-label={title} className="h-auto w-full">
-      <defs>
-        <radialGradient id="ab-pc-fade" cx="50%" cy="58%" r="62%">
-          <stop offset="0%" stopColor="#fff" stopOpacity="1" />
-          <stop offset="66%" stopColor="#fff" stopOpacity="1" />
-          <stop offset="100%" stopColor="#fff" stopOpacity="0" />
-        </radialGradient>
-        <mask id="ab-pc-mask">
-          <rect width="520" height="320" fill="url(#ab-pc-fade)" />
-        </mask>
-      </defs>
-      <g mask="url(#ab-pc-mask)" fill="none" strokeLinecap="round" strokeLinejoin="round">
-        {/* warm light behind them */}
-        <circle cx="260" cy="150" r="120" fill={GOLD} fillOpacity="0.05" />
-        {/* parent — larger, left */}
-        <g stroke={NAVY} strokeOpacity="0.6" strokeWidth="2.2">
-          <circle cx="212" cy="112" r="26" fill={NAVY} fillOpacity="0.55" />
-          <path d="M212 138 C176 146 164 210 168 288 L262 288 C266 208 250 148 212 138 Z" fill={NAVY} fillOpacity="0.55" />
-        </g>
-        {/* child — smaller, right, leaning in */}
-        <g stroke={NAVY} strokeOpacity="0.6" strokeWidth="2">
-          <circle cx="300" cy="150" r="19" fill={NAVY} fillOpacity="0.55" />
-          <path d="M300 169 C276 175 268 224 270 288 L336 288 C340 226 326 178 300 169 Z" fill={NAVY} fillOpacity="0.55" />
-        </g>
-        {/* the shared book, held low between them — gold */}
-        <g stroke={GOLD} strokeWidth="1.6">
-          <path d="M232 250 C252 238 276 238 296 250 C276 262 252 262 232 250 Z" />
-          <path d="M264 242 V258" strokeOpacity="0.7" />
-        </g>
-      </g>
-    </svg>
-  );
-}
-
 export function AboutParentChild() {
   const t = useT(EN, UZ);
   const reduced = useReducedMotion();
@@ -90,7 +55,15 @@ export function AboutParentChild() {
           transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
           className="order-2 mx-auto w-full max-w-[460px] lg:order-1"
         >
-          <ReadingTogether title={t.artAlt} />
+          <Image
+            src="/images/about/about-parent-child.webp"
+            alt={t.artAlt}
+            width={1536}
+            height={1024}
+            quality={100}
+            sizes="(max-width: 1024px) 92vw, 460px"
+            className="h-auto w-full"
+          />
         </motion.div>
 
         <div className="order-1 max-w-[560px] lg:order-2">
