@@ -21,10 +21,18 @@
  */
 
 import { useState } from "react";
-import { Book, Clock, Copy, Image as ImageIcon, Users, User } from "lucide-react";
+import { Book, Clock, Copy, Globe, Image as ImageIcon, Users, User } from "lucide-react";
 import { useLanguage, useT } from "@/lib/i18n/LanguageContext";
 import PersonalizedBookOrderForm from "@/components/begin/PersonalizedBookOrderForm";
-import { BookType, PRICING, formatSom } from "@/components/begin/orderFormData";
+import {
+  ANCHOR_PRICE,
+  BookType,
+  MARKET_PRICING,
+  PRICING,
+  formatMoney,
+  type Market,
+} from "@/components/begin/orderFormData";
+import { useMarketPreference } from "@/lib/order/market";
 
 const PLANS: Array<{
   type: BookType;
@@ -58,14 +66,6 @@ const PLANS: Array<{
   },
 ];
 
-// Struck-through "was" price — a display-only anchor value, not a real
-// prior price point tracked anywhere else, so it lives here rather than
-// in orderFormData.ts alongside the real PRICING numbers.
-const ORIGINAL_PRICE: Record<BookType, number> = {
-  single: 600_000,
-  multi: 850_000,
-};
-
 const CHROME_EN = {
   eyebrow: "Pricing",
   heading: "Simple, transparent pricing",
@@ -75,6 +75,11 @@ const CHROME_EN = {
   mostChosen: "Most chosen",
   extraCopies: (amount: string) => `Extra copies: +${amount} each`,
   readyIn: "Ready in 5–7 business days",
+  marketUz: "Uzbekistan",
+  marketIntl: "International",
+  marketAria: "Order region",
+  deliveryUz: "Tashkent city — free · other regions — 40 000 so‘m",
+  deliveryIntl: "International postal delivery — $15 per order",
 };
 
 const CHROME_UZ: typeof CHROME_EN = {
@@ -86,10 +91,21 @@ const CHROME_UZ: typeof CHROME_EN = {
   mostChosen: "Eng ko'p tanlanadi",
   extraCopies: (amount) => `Qo'shimcha nusxalar: har biri +${amount}`,
   readyIn: "5–7 ish kunida tayyor",
+  marketUz: "O‘zbekiston",
+  marketIntl: "Xalqaro",
+  marketAria: "Buyurtma hududi",
+  deliveryUz: "Toshkent shahri — bepul · boshqa viloyatlar — 40 000 so‘m",
+  deliveryIntl: "Xalqaro pochta orqali yetkazib berish — buyurtmasiga $15",
 };
 
-function formatUzs(amount: number): string {
-  return amount.toLocaleString("en-US").replace(/,/g, " ");
+/** "499 000" — the bare number; the currency word is rendered
+ *  separately so it can sit smaller. USD prices carry their own "$" and
+ *  need no suffix. */
+function priceParts(amount: number, market: Market): { value: string; unit: string } {
+  if (market === "INTERNATIONAL") {
+    return { value: formatMoney(amount, "USD"), unit: "" };
+  }
+  return { value: amount.toLocaleString("en-US").replace(/,/g, " "), unit: "so'm" };
 }
 
 // The exact same gold recipe as .tm-cta-gold (globals.css §27), so the
@@ -107,9 +123,21 @@ export default function PricingSection() {
   const [selectedPlan, setSelectedPlan] = useState<BookType | null>(null);
   const { language } = useLanguage();
   const t = useT(CHROME_EN, CHROME_UZ);
+  // Which MARKET the visitor is pricing for — not a currency picker.
+  // Persisted so the choice carries across the page, and handed to the
+  // order flow so "Order Now" opens in the same market the price shows
+  // (spec §5, §8, §9, §31). Default to the home market.
+  const { preference, setPreference } = useMarketPreference();
+  const market: Market = preference ?? "UZ";
 
   if (selectedPlan) {
-    return <PersonalizedBookOrderForm initialBookType={selectedPlan} onBack={() => setSelectedPlan(null)} />;
+    return (
+      <PersonalizedBookOrderForm
+        initialBookType={selectedPlan}
+        initialMarket={market}
+        onBack={() => setSelectedPlan(null)}
+      />
+    );
   }
 
   return (
@@ -125,10 +153,44 @@ export default function PricingSection() {
           <p className="mt-3 font-sans text-[14px] leading-[1.6] text-text-secondary">{t.subheading}</p>
         </div>
 
-        <div className="mx-auto mt-12 grid max-w-3xl gap-6 sm:grid-cols-2">
+        {/* Market selector — small, editorial, obviously a choice of
+            where the order is for, not a currency toggle (spec §5). */}
+        <div
+          role="radiogroup"
+          aria-label={t.marketAria}
+          className="mx-auto mt-7 flex w-fit items-center gap-1 rounded-full border border-border-default p-1"
+        >
+          {(["UZ", "INTERNATIONAL"] as const).map((m) => {
+            const on = market === m;
+            return (
+              <button
+                key={m}
+                type="button"
+                role="radio"
+                aria-checked={on}
+                onClick={() => setPreference(m)}
+                className={[
+                  "rounded-full px-4 py-1.5 font-sans text-[12.5px] font-medium transition-colors duration-200 motion-reduce:transition-none",
+                  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-primary",
+                  on
+                    ? "bg-accent-primary/[0.12] text-text-primary"
+                    : "text-text-secondary hover:text-text-primary",
+                ].join(" ")}
+              >
+                {m === "UZ" ? t.marketUz : t.marketIntl}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="mx-auto mt-10 grid max-w-3xl gap-6 sm:grid-cols-2">
           {PLANS.map((plan) => {
             const info = PRICING[plan.type];
             const label = language === "UZ" ? info.labelUz : info.label;
+            const base = MARKET_PRICING[market][plan.type];
+            const anchor = ANCHOR_PRICE[market][plan.type];
+            const priced = priceParts(base, market);
+            const anchorText = priceParts(anchor, market).value;
             return (
               <div
                 key={plan.type}
@@ -168,11 +230,13 @@ export default function PricingSection() {
 
                 <div className="mt-2.5 flex items-baseline gap-2.5">
                   <span className="font-sans text-[15px] text-text-secondary line-through">
-                    {formatUzs(ORIGINAL_PRICE[plan.type])}
+                    {anchorText}
                   </span>
                   <span className="font-display text-[30px] font-medium text-text-primary">
-                    {formatUzs(info.base)}
-                    <span className="font-sans text-[14px] font-normal"> {"so'm"}</span>
+                    {priced.value}
+                    {priced.unit && (
+                      <span className="font-sans text-[14px] font-normal"> {priced.unit}</span>
+                    )}
                   </span>
                 </div>
 
@@ -213,7 +277,18 @@ export default function PricingSection() {
           <div className="flex items-center gap-2">
             <Copy size={16} strokeWidth={1.5} className="text-text-secondary" />
             <span className="font-sans text-[13px] text-text-secondary">
-              {t.extraCopies(formatSom(PRICING.extraCopy))}
+              {t.extraCopies(
+                (() => {
+                  const p = priceParts(MARKET_PRICING[market].extraCopy, market);
+                  return p.unit ? `${p.value} ${p.unit}` : p.value;
+                })(),
+              )}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Globe size={16} strokeWidth={1.5} className="text-text-secondary" />
+            <span className="font-sans text-[13px] text-text-secondary">
+              {market === "UZ" ? t.deliveryUz : t.deliveryIntl}
             </span>
           </div>
           <div className="flex items-center gap-2">

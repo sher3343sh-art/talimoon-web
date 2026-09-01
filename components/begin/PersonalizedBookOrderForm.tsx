@@ -8,20 +8,27 @@ import {
   BOOK_LANGUAGE_OPTIONS,
   BookLanguageCode,
   BookType,
+  COUNTRIES,
   DELIVERY_REGIONS,
-  PAYMENT_METHODS,
   STEPS,
   TraitId,
+  buildPricingSnapshot,
   calculateOrderTotal,
+  countryLabel,
   deliveryRegionLabel,
-  formatSom,
+  formatMoney,
+  marketHasOnlinePayment,
+  paymentMethodsForMarket,
+  type Market,
 } from "./orderFormData";
+import { setMarketPreference, useMarketPreference, marketFromLocation } from "@/lib/order/market";
 import {
   bookTypeForChildCount,
   deliveryRequired,
   emptyChild,
   emptyOrderer,
   isDeliveryComplete,
+  resetDeliveryForMarket,
   type ChildProfile,
   type DeliveryAddress,
   type DeliveryLocation,
@@ -147,8 +154,27 @@ const CHROME_EN = {
   reviewPrivateHint: "Only used to understand the situation — not shown in the book.",
   reviewGrowthContext: "Situations",
 
+  // Market / destination
+  orderRegion: "Order region",
+  marketUz: "Uzbekistan",
+  marketIntl: "International",
+  change: "Change",
+  countryQ: "Which country is this order for?",
+  countryField: "Country",
+  countrySelect: "Select…",
+  addrState: "State / province / region",
+  addrCity: "City",
+  addrLine: "Street / address",
+  addrPostal: "Postal / ZIP code",
+  addrNote: "Delivery note",
+  intlDelivery: "International postal delivery",
+  intlDeliveryHelp: "One flat postal charge for the whole order.",
+  intlPayHeading: "International payment",
+  intlPayNotice:
+    "Online payment for international orders isn't available yet. Send your order and the TALIMOON team will contact you to arrange payment before your book is prepared.",
+
   errReview:
-    "Please add a phone number, choose the book language, and answer the delivery question (with a full address if you'd like delivery).",
+    "Please add a phone number, choose the book language, choose the destination country, and answer the delivery question (with a full address if you'd like delivery).",
 };
 
 const CHROME_UZ: typeof CHROME_EN = {
@@ -246,8 +272,27 @@ const CHROME_UZ: typeof CHROME_EN = {
   reviewPrivateHint: "Faqat vaziyatni tushunish uchun — kitobda ko'rsatilmaydi.",
   reviewGrowthContext: "Vaziyatlar",
 
+  // Market / destination
+  orderRegion: "Buyurtma hududi",
+  marketUz: "O‘zbekiston",
+  marketIntl: "Xalqaro",
+  change: "O‘zgartirish",
+  countryQ: "Buyurtmangiz qaysi davlat uchun?",
+  countryField: "Davlat",
+  countrySelect: "Tanlang…",
+  addrState: "Shtat / viloyat / hudud",
+  addrCity: "Shahar",
+  addrLine: "Ko‘cha / manzil",
+  addrPostal: "Pochta indeksi",
+  addrNote: "Yetkazib berish izohi",
+  intlDelivery: "Xalqaro pochta orqali yetkazib berish",
+  intlDeliveryHelp: "Butun buyurtma uchun bir martalik pochta to‘lovi.",
+  intlPayHeading: "Xalqaro to‘lov",
+  intlPayNotice:
+    "Xalqaro buyurtmalar uchun onlayn to‘lov hozircha mavjud emas. Buyurtmani yuboring — TALIMOON jamoasi kitob tayyorlanishidan oldin to‘lovni kelishish uchun Siz bilan bog‘lanadi.",
+
   errReview:
-    "Iltimos, telefon raqamini kiriting, kitob tilini tanlang va yetkazib berish savoliga javob bering (yetkazib berish kerak bo‘lsa, to‘liq manzil bilan).",
+    "Iltimos, telefon raqamini kiriting, kitob tilini tanlang, yetkazib beriladigan davlatni tanlang va yetkazib berish savoliga javob bering (yetkazib berish kerak bo‘lsa, to‘liq manzil bilan).",
 };
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -255,6 +300,11 @@ const CHROME_UZ: typeof CHROME_EN = {
 interface FormData {
   orderer: Orderer;
   recipientRelationship: RecipientRelationship;
+  /** Commercial market for this order — decides the currency and the
+   *  whole price list. Set from the "Order Now" that started the
+   *  checkout, then editable via the "Buyurtma hududi" control on the
+   *  review step. UZ ⇒ UZS, INTERNATIONAL ⇒ USD; the two never mix. */
+  market: Market;
   /** Derived from `children.length` (see bookTypeForChildCount); kept
    *  on the model because pricing keys off it. The customer never
    *  sees "single" / "multi". */
@@ -284,10 +334,14 @@ interface FormData {
   receipt: File | null;
 }
 
-function emptyForm(): FormData {
+function emptyForm(market: Market = "UZ"): FormData {
+  const orderer = emptyOrderer();
+  if (market === "UZ") orderer.deliveryAddress.countryCode = "UZ";
   return {
-    orderer: emptyOrderer(),
+    orderer,
     recipientRelationship: { type: "parent" },
+    market,
+    paymentMethod: paymentMethodsForMarket(market)[0]?.id ?? "bank_transfer",
     bookType: "single",
     children: [emptyChild()],
     interests: "",
@@ -306,7 +360,6 @@ function emptyForm(): FormData {
     characterPhotos: [],
     bookLanguageCode: "",
     copies: 1,
-    paymentMethod: "bank_transfer",
     receipt: null,
   };
 }
@@ -355,6 +408,7 @@ function TextArea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
 export default function PersonalizedBookOrderForm({
   onBack,
   initialBookType,
+  initialMarket,
 }: {
   onBack: () => void;
   /**
@@ -363,6 +417,15 @@ export default function PersonalizedBookOrderForm({
    * PricingSection on the product page). Omitted for the /begin flow.
    */
   initialBookType?: BookType;
+  /**
+   * The commercial market the customer had selected when they pressed
+   * "Order Now" (spec §9–10). When present it ALWAYS wins over any
+   * saved preference (spec §12) and is what the whole order inherits.
+   * Omitted for a generic /begin entry — the flow then resolves the
+   * market from a `?market=` hint, the saved preference, or the review
+   * step's "Buyurtma hududi" control.
+   */
+  initialMarket?: Market;
 }) {
   const { language } = useLanguage();
   const locale = toLocale(language);
@@ -370,6 +433,16 @@ export default function PersonalizedBookOrderForm({
    *  speak uz / en; everything else falls back to en. */
   const bookLoc: "uz" | "en" = locale === "uz" ? "uz" : "en";
   const t = useT(CHROME_EN, CHROME_UZ);
+
+  // ── Market resolution (spec §11–12). Priority: the explicit market
+  //    from the Order Now that started this checkout (prop) > a
+  //    `?market=` URL hint > the saved preference > UZ. Once the
+  //    customer touches the region control, seeding stops — an explicit
+  //    action always beats stale saved state (spec §12).
+  const { preference: savedMarket } = useMarketPreference();
+  const [marketTouched, setMarketTouched] = useState(false);
+  const resolvedInitialMarket: Market =
+    initialMarket ?? marketFromLocation() ?? savedMarket ?? "UZ";
 
   const [phase, setPhase] = useState<
     "intro" | "world" | "character" | "heart" | "steps"
@@ -382,34 +455,95 @@ export default function PersonalizedBookOrderForm({
   /** "end" when the customer steps BACK from the first wizard step into
    *  Phase 03, so it opens on its completion screen (spec §03). */
   const [charEntry, setCharEntry] = useState<"start" | "end">("start");
-  const [data, setData] = useState<FormData>(emptyForm);
+  const [data, setData] = useState<FormData>(() => emptyForm(resolvedInitialMarket));
   const [phase01Seeded, setPhase01Seeded] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [showStepError, setShowStepError] = useState(false);
+
+  // Switching market is ONE atomic transition (spec §17): currency,
+  // every price, the delivery rules AND any stale delivery/address
+  // state for the other market change together. Nothing is left that
+  // could still feed the total.
+  function changeMarket(next: Market) {
+    setMarketTouched(true);
+    setMarketPreference(next);
+    setData((prev) => {
+      if (prev.market === next) return prev;
+      return {
+        ...prev,
+        market: next,
+        orderer: {
+          ...prev.orderer,
+          deliveryAddress: resetDeliveryForMarket(prev.orderer.deliveryAddress, next),
+        },
+        paymentMethod: paymentMethodsForMarket(next)[0]?.id ?? prev.paymentMethod,
+        receipt: null,
+      };
+    });
+    setShowStepError(false);
+  }
+
+  // Seed the market from a `?market=` hint or the saved preference for a
+  // plain /begin entry. The saved value is invisible to the `useState`
+  // initializer (it only lands after hydration), so this reconciles it
+  // in during render — React's supported "adjust state while rendering"
+  // pattern, no effect, no cascading-render lint. It stops the moment
+  // the customer has an explicit market: a prop, a URL hint, or a tap
+  // on the region control (spec §12 — an explicit action always wins).
+  const seedMarket = !initialMarket && !marketTouched
+    ? marketFromLocation() ?? savedMarket
+    : null;
+  if (seedMarket && seedMarket !== data.market) {
+    setData((prev) =>
+      prev.market === seedMarket
+        ? prev
+        : {
+            ...prev,
+            market: seedMarket,
+            orderer: {
+              ...prev.orderer,
+              deliveryAddress: resetDeliveryForMarket(
+                prev.orderer.deliveryAddress,
+                seedMarket,
+              ),
+            },
+            paymentMethod:
+              paymentMethodsForMarket(seedMarket)[0]?.id ?? prev.paymentMethod,
+          },
+    );
+  }
 
   const step = STEPS[stepIndex];
   const stepTitle = language === "UZ" ? step.titleUz : step.title;
   const isLastStep = stepIndex === STEPS.length - 1;
 
-  // THE order total — one deterministic derivation the review breakdown
-  // AND the payment amount both read (spec D/F). Delivery is only ever
-  // billed when the customer actively chose it.
+  // THE order total — one deterministic, market-aware derivation the
+  // review breakdown AND the payment amount both read (spec §26). The
+  // whole result is in ONE currency (UZS or USD, from `data.market`);
+  // delivery is only ever billed when the customer actively chose it.
   const wantsDelivery = deliveryRequired(data.orderer.deliveryAddress);
   const totals = useMemo(
     () =>
       calculateOrderTotal({
+        market: data.market,
         bookType: data.bookType,
         copies: data.copies,
         deliveryRequired: wantsDelivery,
         regionCode: data.orderer.deliveryAddress.regionCode,
       }),
     [
+      data.market,
       data.bookType,
       data.copies,
       wantsDelivery,
       data.orderer.deliveryAddress.regionCode,
     ],
   );
+  /** Every money figure in this flow prints through here, so one order
+   *  is always shown in one currency. */
+  const money = (n: number) => formatMoney(n, totals.currency);
+  const deliveryRowLabel =
+    data.market === "INTERNATIONAL" ? t.intlDelivery : t.rowDelivery;
 
   function update<K extends keyof FormData>(
     key: K,
@@ -510,15 +644,23 @@ export default function PersonalizedBookOrderForm({
         return data.giftFrom.trim().length > 0;
       case "photos":
         return data.childPhotos.length >= 3;
-      case "review":
+      case "review": {
         // Phone + book language + an answered delivery question. If the
-        // customer wants delivery, a region + core written address too;
-        // pickup needs nothing further (spec H).
+        // customer wants INTERNATIONAL delivery, a destination country
+        // and the postal address are required; UZ delivery needs a
+        // region + written address; pickup needs nothing further.
+        const wantsDel = deliveryRequired(data.orderer.deliveryAddress);
+        const countryOk =
+          !wantsDel ||
+          data.market === "UZ" ||
+          data.orderer.deliveryAddress.countryCode.trim().length > 0;
         return (
           data.bookLanguageCode.length > 0 &&
           data.orderer.phone.trim().length > 5 &&
-          isDeliveryComplete(data.orderer.deliveryAddress)
+          countryOk &&
+          isDeliveryComplete(data.orderer.deliveryAddress, data.market)
         );
+      }
       case "payment":
         return true;
       default:
@@ -540,8 +682,25 @@ export default function PersonalizedBookOrderForm({
       return;
     }
     if (isLastStep) {
-      // TODO: wire to backend (upload + admin notification) once the
-      // order-intake API exists. Validated form state only for now.
+      // A submitted order PRESERVES the prices that applied right now —
+      // never recalculated from a later config (spec §35–37). This is
+      // the payload shape the order-intake API will store.
+      const snapshot = buildPricingSnapshot({
+        market: data.market,
+        countryCode:
+          data.orderer.deliveryAddress.countryCode ||
+          (data.market === "UZ" ? "UZ" : ""),
+        bookType: data.bookType,
+        copies: data.copies,
+        deliveryRequired: wantsDelivery,
+        regionCode: data.orderer.deliveryAddress.regionCode,
+      });
+      // TODO: POST this to the order-intake API once it exists (upload +
+      // admin notification). Validated form state + pricing snapshot
+      // only for now.
+      if (typeof console !== "undefined") {
+        console.info("[order] pricing snapshot", snapshot);
+      }
       setSubmitted(true);
       return;
     }
@@ -973,6 +1132,56 @@ export default function PersonalizedBookOrderForm({
                 />
               </Field>
 
+              {/* Order region — the commercial market (spec §13, §16,
+                  §44). Doubles as the destination question for a direct
+                  /begin entry and the "change it without restarting"
+                  control. Quiet, one row, not a dashboard. */}
+              <Field label={t.orderRegion}>
+                <div
+                  role="radiogroup"
+                  aria-label={t.orderRegion}
+                  className="grid grid-cols-2 gap-2.5"
+                >
+                  {(["UZ", "INTERNATIONAL"] as const).map((m) => {
+                    const on = data.market === m;
+                    return (
+                      <button
+                        key={m}
+                        type="button"
+                        role="radio"
+                        aria-checked={on}
+                        onClick={() => changeMarket(m)}
+                        className={[
+                          "rounded-md border px-3.5 py-2.5 text-left font-sans text-[13.5px] font-medium transition-colors",
+                          on
+                            ? "border-accent-primary bg-accent-primary/[0.08] font-semibold text-text-primary"
+                            : "border-border-default text-text-primary",
+                        ].join(" ")}
+                      >
+                        {m === "UZ" ? t.marketUz : t.marketIntl}
+                      </button>
+                    );
+                  })}
+                </div>
+              </Field>
+
+              {data.market === "INTERNATIONAL" && (
+                <Field label={t.countryField}>
+                  <select
+                    className={inputClass}
+                    value={data.orderer.deliveryAddress.countryCode}
+                    onChange={(e) => updateAddress("countryCode", e.target.value)}
+                  >
+                    <option value="">{t.countrySelect}</option>
+                    {COUNTRIES.filter((c) => c.code !== "UZ").map((c) => (
+                      <option key={c.code} value={c.code}>
+                        {bookLoc === "uz" ? c.labelUz : c.label}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+              )}
+
               {/* Delivery — an explicit choice, never assumed (spec C1). */}
               <Field label={t.deliveryQ}>
                 <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
@@ -1004,7 +1213,7 @@ export default function PersonalizedBookOrderForm({
                 </p>
               )}
 
-              {wantsDelivery && (
+              {wantsDelivery && data.market === "UZ" && (
                 <>
                   {/* Region CODE drives the fee — never a free-text string.
                       Toshkent shahri is free; every other region is 40 000. */}
@@ -1102,9 +1311,74 @@ export default function PersonalizedBookOrderForm({
                     <span className="font-medium text-text-primary">
                       {totals.deliveryFee === 0
                         ? t.deliveryFree
-                        : formatSom(totals.deliveryFee)}
+                        : money(totals.deliveryFee)}
                     </span>
                   </div>
+                </>
+              )}
+
+              {/* International postal address (spec §23) — a general
+                  structure, not the Uzbek viloyat/tuman/mahalla shape. */}
+              {wantsDelivery && data.market === "INTERNATIONAL" && (
+                <>
+                  <Field label={t.addrCity}>
+                    <TextInput
+                      autoComplete="address-level2"
+                      value={data.orderer.deliveryAddress.intlCity ?? ""}
+                      onChange={(e) => updateAddress("intlCity", e.target.value)}
+                    />
+                  </Field>
+                  <Field label={`${t.addrState} ${t.optional}`}>
+                    <TextInput
+                      autoComplete="address-level1"
+                      value={data.orderer.deliveryAddress.intlState ?? ""}
+                      onChange={(e) => updateAddress("intlState", e.target.value)}
+                    />
+                  </Field>
+                  <Field label={t.addrLine}>
+                    <TextInput
+                      autoComplete="address-line1"
+                      value={data.orderer.deliveryAddress.intlLine1 ?? ""}
+                      onChange={(e) => updateAddress("intlLine1", e.target.value)}
+                    />
+                  </Field>
+                  <div className="grid grid-cols-2 gap-4">
+                    <Field label={t.addrBuilding}>
+                      <TextInput
+                        value={data.orderer.deliveryAddress.intlBuilding ?? ""}
+                        onChange={(e) => updateAddress("intlBuilding", e.target.value)}
+                      />
+                    </Field>
+                    <Field label={`${t.addrApartment} ${t.optional}`}>
+                      <TextInput
+                        value={data.orderer.deliveryAddress.intlApartment ?? ""}
+                        onChange={(e) => updateAddress("intlApartment", e.target.value)}
+                      />
+                    </Field>
+                  </div>
+                  <Field label={`${t.addrPostal} ${t.optional}`}>
+                    <TextInput
+                      autoComplete="postal-code"
+                      value={data.orderer.deliveryAddress.intlPostalCode ?? ""}
+                      onChange={(e) => updateAddress("intlPostalCode", e.target.value)}
+                    />
+                  </Field>
+                  <Field label={`${t.addrNote} ${t.optional}`}>
+                    <TextArea
+                      value={data.orderer.deliveryAddress.intlNote ?? ""}
+                      onChange={(e) => updateAddress("intlNote", e.target.value)}
+                    />
+                  </Field>
+
+                  <div className="flex items-center justify-between rounded-md border border-border-subtle px-4 py-3 font-sans text-[13px]">
+                    <span className="text-text-secondary">{t.intlDelivery}</span>
+                    <span className="font-medium text-text-primary">
+                      {money(totals.deliveryFee)}
+                    </span>
+                  </div>
+                  <p className="font-sans text-[12px] text-text-secondary">
+                    {t.intlDeliveryHelp}
+                  </p>
                 </>
               )}
 
@@ -1139,7 +1413,7 @@ export default function PersonalizedBookOrderForm({
                   <div className="flex items-center justify-between">
                     <span className="text-text-secondary">{t.rowBook}</span>
                     <span className="text-text-primary">
-                      {formatSom(totals.bookSubtotal)}
+                      {money(totals.bookSubtotal)}
                     </span>
                   </div>
                   {data.copies > 1 && (
@@ -1148,24 +1422,24 @@ export default function PersonalizedBookOrderForm({
                         {t.rowExtraCopies(data.copies - 1)}
                       </span>
                       <span className="text-text-primary">
-                        {formatSom(totals.extraCopiesSubtotal)}
+                        {money(totals.extraCopiesSubtotal)}
                       </span>
                     </div>
                   )}
                   {wantsDelivery && (
                     <div className="flex items-center justify-between">
-                      <span className="text-text-secondary">{t.rowDelivery}</span>
+                      <span className="text-text-secondary">{deliveryRowLabel}</span>
                       <span className="text-text-primary">
                         {totals.deliveryFee === 0
                           ? t.deliveryFree
-                          : formatSom(totals.deliveryFee)}
+                          : money(totals.deliveryFee)}
                       </span>
                     </div>
                   )}
                   <div className="mt-1 flex items-center justify-between border-t border-border-subtle pt-2">
                     <span className="text-text-secondary">{t.total}</span>
                     <span className="font-display text-[20px] font-medium text-text-primary">
-                      {formatSom(totals.grandTotal)}
+                      {money(totals.grandTotal)}
                     </span>
                   </div>
                 </div>
@@ -1181,6 +1455,16 @@ export default function PersonalizedBookOrderForm({
 
           {step.id === "payment" && (
             <>
+              {/* A quiet reminder of which market's prices these are —
+                  the full control lives one step back on Review. */}
+              <p className="font-sans text-[12px] text-text-secondary">
+                <span className="font-medium uppercase tracking-[0.12em] text-text-muted">
+                  {t.orderRegion}
+                </span>
+                <span className="mx-2 text-border-strong">·</span>
+                {data.market === "UZ" ? t.marketUz : t.marketIntl}
+              </p>
+
               {/* The amount to pay IS the order grand total — same
                   deterministic figure as the review breakdown (spec F). */}
               <div className="rounded-lg border border-border-default p-5">
@@ -1188,7 +1472,7 @@ export default function PersonalizedBookOrderForm({
                   <div className="flex items-center justify-between">
                     <span className="text-text-secondary">{t.rowBook}</span>
                     <span className="text-text-primary">
-                      {formatSom(totals.bookSubtotal)}
+                      {money(totals.bookSubtotal)}
                     </span>
                   </div>
                   {data.copies > 1 && (
@@ -1197,17 +1481,25 @@ export default function PersonalizedBookOrderForm({
                         {t.rowExtraCopies(data.copies - 1)}
                       </span>
                       <span className="text-text-primary">
-                        {formatSom(totals.extraCopiesSubtotal)}
+                        {money(totals.extraCopiesSubtotal)}
                       </span>
                     </div>
                   )}
                   <div className="flex items-center justify-between">
                     <span className="text-text-secondary">
-                      {t.rowDelivery}
+                      {deliveryRowLabel}
                       {wantsDelivery &&
+                        data.market === "UZ" &&
                         data.orderer.deliveryAddress.regionCode &&
                         ` · ${deliveryRegionLabel(
                           data.orderer.deliveryAddress.regionCode,
+                          bookLoc,
+                        )}`}
+                      {wantsDelivery &&
+                        data.market === "INTERNATIONAL" &&
+                        data.orderer.deliveryAddress.countryCode &&
+                        ` · ${countryLabel(
+                          data.orderer.deliveryAddress.countryCode,
                           bookLoc,
                         )}`}
                     </span>
@@ -1215,7 +1507,7 @@ export default function PersonalizedBookOrderForm({
                       {wantsDelivery
                         ? totals.deliveryFee === 0
                           ? t.deliveryFree
-                          : formatSom(totals.deliveryFee)
+                          : money(totals.deliveryFee)
                         : t.pickupSummary}
                     </span>
                   </div>
@@ -1224,14 +1516,14 @@ export default function PersonalizedBookOrderForm({
                       {t.payAmount}
                     </span>
                     <span className="font-display text-[20px] font-medium text-text-primary">
-                      {formatSom(totals.grandTotal)}
+                      {money(totals.grandTotal)}
                     </span>
                   </div>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                {PAYMENT_METHODS.map((method) => {
+                {paymentMethodsForMarket(data.market).map((method) => {
                   const active = data.paymentMethod === method.id;
                   const available = method.status === "available";
                   return (
@@ -1263,7 +1555,7 @@ export default function PersonalizedBookOrderForm({
                 })}
               </div>
 
-              {data.paymentMethod === "bank_transfer" && (
+              {data.market === "UZ" && data.paymentMethod === "bank_transfer" && (
                 <div className="rounded-lg border border-border-default p-5">
                   <div className="mb-4 space-y-2 font-sans text-[13.5px]">
                     <p className="text-text-secondary">
@@ -1282,6 +1574,21 @@ export default function PersonalizedBookOrderForm({
                     max={1}
                     onChange={(files) => update("receipt", files[0] ?? null)}
                   />
+                </div>
+              )}
+
+              {/* International online payment isn't switched on yet —
+                  say so honestly, never convert the order to UZS or
+                  fake a successful charge (spec §33, §65). The order is
+                  still captured; payment is arranged after submit. */}
+              {!marketHasOnlinePayment(data.market) && (
+                <div className="rounded-lg border border-border-default bg-surface-raised/40 p-5">
+                  <p className="font-sans text-[13px] font-medium text-text-primary">
+                    {t.intlPayHeading}
+                  </p>
+                  <p className="mt-1.5 font-sans text-[12.5px] leading-[1.6] text-text-secondary">
+                    {t.intlPayNotice}
+                  </p>
                 </div>
               )}
             </>

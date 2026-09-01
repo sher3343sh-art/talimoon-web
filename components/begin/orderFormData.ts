@@ -21,28 +21,126 @@ import { CreditCard, Globe, Heart, Camera } from "lucide-react";
 
 export type BookType = "single" | "multi";
 
-// ── Pricing — the single source of truth. PricingSection (product
-//    page) and the /begin order flow both read from here; nothing
-//    hardcodes a price. Book prices, extra-copy price and the regional
-//    delivery fee all live here so a change is a one-line diff.
-export const PRICING = {
-  single: { base: 499_000, pages: "15–20", label: "One child", labelUz: "Bitta farzand" },
-  multi: { base: 699_000, pages: "25–30", label: "Multiple children", labelUz: "Bir nechta farzand" },
-  extraCopy: 300_000,
-  /** Flat fee for delivery to any supported region except Toshkent city. */
-  regionalDelivery: 40_000,
-} as const;
+// ════════════════════════════════════════════════════════════════════
+//  MARKET-AWARE COMMERCIAL PRICING — the single source of truth.
+// ════════════════════════════════════════════════════════════════════
+// TALIMOON is an international product with TWO commercial markets and
+// two INDEPENDENTLY defined price lists. These are business prices, not
+// an FX conversion — nothing here fetches a rate or derives USD from
+// UZS. One order is always ONE market and ONE currency; the two never
+// mix. `market` follows from the destination country ("UZ" for
+// Uzbekistan, "INTERNATIONAL" for everywhere else), never from the
+// site UI language.
+export type Market = "UZ" | "INTERNATIONAL";
+export type Currency = "UZS" | "USD";
 
-/** Book price only — base + each ADDITIONAL copy (the first copy is
- *  included in the base). Delivery is added separately, see
- *  {@link calculateOrderTotal}. */
-export function calculatePrice(bookType: BookType, copies: number): number {
-  const base = PRICING[bookType].base;
-  return base + Math.max(0, copies - 1) * PRICING.extraCopy;
+interface MarketPricing {
+  currency: Currency;
+  /** One-child personalised book — the first printed copy is included. */
+  single: number;
+  /** Multi-child personalised book — the first printed copy is included. */
+  multi: number;
+  /** Each ADDITIONAL printed copy beyond the included first one. */
+  extraCopy: number;
+  delivery: {
+    /** UZ: flat fee for any supported region EXCEPT Toshkent city
+     *  (which is free). INTERNATIONAL: flat postal fee PER ORDER —
+     *  never multiplied by copies or children. */
+    fee: number;
+  };
 }
 
+export const MARKET_PRICING: Record<Market, MarketPricing> = {
+  UZ: {
+    currency: "UZS",
+    single: 499_000,
+    multi: 699_000,
+    extraCopy: 300_000,
+    delivery: { fee: 40_000 },
+  },
+  INTERNATIONAL: {
+    currency: "USD",
+    single: 49,
+    multi: 69,
+    extraCopy: 30,
+    delivery: { fee: 15 },
+  },
+} as const;
+
+/** Struck-through "was" price — a display-only anchor shown ONLY on the
+ *  product page pricing cards (the /begin flow always bills the real
+ *  price). Not a real prior price point tracked anywhere else. */
+export const ANCHOR_PRICE: Record<Market, Record<BookType, number>> = {
+  UZ: { single: 600_000, multi: 850_000 },
+  INTERNATIONAL: { single: 59, multi: 84 },
+};
+
+/** Book meta (page counts, labels) is market-independent; the numeric
+ *  base/extra-copy/delivery live in {@link MARKET_PRICING}. Kept as
+ *  `PRICING` for the many call sites that only need the UZ numbers or
+ *  the labels — its numbers deliberately mirror `MARKET_PRICING.UZ`. */
+export const PRICING = {
+  single: {
+    base: MARKET_PRICING.UZ.single,
+    pages: "15–20",
+    label: "One child",
+    labelUz: "Bitta farzand",
+  },
+  multi: {
+    base: MARKET_PRICING.UZ.multi,
+    pages: "25–30",
+    label: "Multiple children",
+    labelUz: "Bir nechta farzand",
+  },
+  extraCopy: MARKET_PRICING.UZ.extraCopy,
+  /** Flat fee for delivery to any supported region except Toshkent city. */
+  regionalDelivery: MARKET_PRICING.UZ.delivery.fee,
+} as const;
+
+export function currencyForMarket(market: Market): Currency {
+  return MARKET_PRICING[market].currency;
+}
+
+/** Destination country → commercial market. Uzbekistan is the only
+ *  country in the UZ market; every other supported country is
+ *  INTERNATIONAL. `""` / unknown defaults to UZ (the home market). */
+export function marketForCountry(countryCode: string): Market {
+  return countryCode.toUpperCase() === "UZ" || countryCode === ""
+    ? "UZ"
+    : "INTERNATIONAL";
+}
+
+/** Base book price for a market + book type (the included first copy). */
+export function bookBasePrice(market: Market, bookType: BookType): number {
+  return MARKET_PRICING[market][bookType];
+}
+
+/** Book price only — base + each ADDITIONAL copy. Delivery is separate,
+ *  see {@link calculateOrderTotal}. Defaults to the UZ market so the
+ *  older call sites keep working unchanged. */
+export function calculatePrice(
+  bookType: BookType,
+  copies: number,
+  market: Market = "UZ",
+): number {
+  const p = MARKET_PRICING[market];
+  return p[bookType] + Math.max(0, copies - 1) * p.extraCopy;
+}
+
+/** "499 000 so'm" — Uzbek-market money. */
 export function formatSom(amount: number): string {
   return amount.toLocaleString("en-US").replace(/,/g, " ") + " so'm";
+}
+
+/** Currency-aware formatting. UZS → "499 000 so'm"; USD → "$49" (whole
+ *  dollars — every international price is an integer, so no decimals in
+ *  the UI and no floating-point money maths anywhere). */
+export function formatMoney(amount: number, currency: Currency): string {
+  if (currency === "USD") {
+    const n = Math.round(amount);
+    return "$" + n.toLocaleString("en-US");
+  }
+  return formatSom(amount);
 }
 
 // ── Delivery regions (Uzbekistan) — stable codes are the business
@@ -109,29 +207,164 @@ export function deliveryFeeFor(regionCode: string): number {
 }
 
 export interface OrderTotals {
+  market: Market;
+  currency: Currency;
   bookSubtotal: number;
+  extraCopyUnitPrice: number;
+  extraCopyCount: number;
   extraCopiesSubtotal: number;
   deliveryFee: number;
   grandTotal: number;
 }
 
 /** THE deterministic order total. Every UI surface (review breakdown,
- *  payment amount, any future submitted-order payload) derives from
- *  this one function — no component recomputes pieces on its own. */
+ *  payment amount, the submitted-order pricing snapshot) derives from
+ *  this one function — no component recomputes pieces on its own. The
+ *  whole result is in ONE currency, decided by `market`. */
 export function calculateOrderTotal(opts: {
+  /** Defaults to the home market so pre-market call sites keep working. */
+  market?: Market;
+  bookType: BookType;
+  copies: number;
+  deliveryRequired: boolean;
+  /** UZ market only — region CODE drives the fee. Ignored elsewhere. */
+  regionCode?: string;
+}): OrderTotals {
+  const market: Market = opts.market ?? "UZ";
+  const p = MARKET_PRICING[market];
+  const bookSubtotal = p[opts.bookType];
+  const extraCopyCount = Math.max(0, opts.copies - 1);
+  const extraCopiesSubtotal = extraCopyCount * p.extraCopy;
+
+  let deliveryFee = 0;
+  if (opts.deliveryRequired) {
+    // UZ: Toshkent city is free, every other region is the flat fee.
+    // INTERNATIONAL: one flat postal fee for the whole order.
+    deliveryFee =
+      market === "UZ"
+        ? deliveryFeeFor(opts.regionCode ?? "")
+        : p.delivery.fee;
+  }
+
+  return {
+    market,
+    currency: p.currency,
+    bookSubtotal,
+    extraCopyUnitPrice: p.extraCopy,
+    extraCopyCount,
+    extraCopiesSubtotal,
+    deliveryFee,
+    grandTotal: bookSubtotal + extraCopiesSubtotal + deliveryFee,
+  };
+}
+
+// ── Destination countries ───────────────────────────────────────────
+// Stable ISO 3166-1 alpha-2 codes are the business identity; the
+// display label is localised and never drives logic. Uzbekistan maps
+// to the UZ market; every other country maps to INTERNATIONAL. New
+// markets (GCC, US, EU, UK …) can be split out later without touching
+// the order flow — they would just stop resolving to INTERNATIONAL here.
+export interface CountryOption {
+  code: string;
+  label: string;
+  labelUz: string;
+}
+
+export const COUNTRIES: readonly CountryOption[] = [
+  { code: "UZ", label: "Uzbekistan", labelUz: "O‘zbekiston" },
+  { code: "KZ", label: "Kazakhstan", labelUz: "Qozog‘iston" },
+  { code: "KG", label: "Kyrgyzstan", labelUz: "Qirg‘iziston" },
+  { code: "TJ", label: "Tajikistan", labelUz: "Tojikiston" },
+  { code: "TM", label: "Turkmenistan", labelUz: "Turkmaniston" },
+  { code: "RU", label: "Russia", labelUz: "Rossiya" },
+  { code: "TR", label: "Türkiye", labelUz: "Turkiya" },
+  { code: "AE", label: "United Arab Emirates", labelUz: "Birlashgan Arab Amirliklari" },
+  { code: "SA", label: "Saudi Arabia", labelUz: "Saudiya Arabistoni" },
+  { code: "QA", label: "Qatar", labelUz: "Qatar" },
+  { code: "KW", label: "Kuwait", labelUz: "Quvayt" },
+  { code: "US", label: "United States", labelUz: "AQSH" },
+  { code: "GB", label: "United Kingdom", labelUz: "Buyuk Britaniya" },
+  { code: "DE", label: "Germany", labelUz: "Germaniya" },
+  { code: "FR", label: "France", labelUz: "Fransiya" },
+  { code: "KR", label: "South Korea", labelUz: "Janubiy Koreya" },
+  { code: "CA", label: "Canada", labelUz: "Kanada" },
+  { code: "OTHER", label: "Another country", labelUz: "Boshqa davlat" },
+];
+
+export function countryLabel(code: string, locale: "uz" | "en"): string {
+  const c = COUNTRIES.find((x) => x.code === code);
+  if (!c) return "";
+  return locale === "uz" ? c.labelUz : c.label;
+}
+
+// ── Payment methods per market ──────────────────────────────────────
+// Availability is market-specific and NOT assumed. UZ has a working
+// local method; the international online methods are not switched on
+// yet — the flow must say so honestly and must never convert a USD
+// order back to UZS to force it through (spec §33–34, §65).
+export function paymentMethodsForMarket(
+  market: Market,
+): readonly (typeof PAYMENT_METHODS)[number][] {
+  return market === "UZ"
+    ? [...PAYMENT_METHODS]
+    : PAYMENT_METHODS.filter((m) => m.id === "visa_mc" || m.id === "paypal");
+}
+
+/** True when the market currently has at least one method the customer
+ *  can actually pay with online right now. */
+export function marketHasOnlinePayment(market: Market): boolean {
+  return paymentMethodsForMarket(market).some((m) => m.status === "available");
+}
+
+// ── Submitted-order pricing snapshot ───────────────────────────────
+// A submitted order must PRESERVE the prices that applied when it was
+// sent — never recalculated from a later config (spec §36–37). This is
+// the shape the backend/order payload stores alongside the order.
+export interface OrderPricingSnapshot {
+  market: Market;
+  countryCode: string;
+  currency: Currency;
+  bookType: BookType;
+  baseBookPrice: number;
+  extraCopyCount: number;
+  extraCopyUnitPrice: number;
+  extraCopiesSubtotal: number;
+  deliveryRequired: boolean;
+  deliveryType: "pickup" | "regional" | "tashkent_city" | "international_postal" | "none";
+  deliveryFee: number;
+  grandTotal: number;
+}
+
+export function buildPricingSnapshot(opts: {
+  market: Market;
+  countryCode: string;
   bookType: BookType;
   copies: number;
   deliveryRequired: boolean;
   regionCode?: string;
-}): OrderTotals {
-  const bookSubtotal = PRICING[opts.bookType].base;
-  const extraCopiesSubtotal = Math.max(0, opts.copies - 1) * PRICING.extraCopy;
-  const deliveryFee = opts.deliveryRequired ? deliveryFeeFor(opts.regionCode ?? "") : 0;
+}): OrderPricingSnapshot {
+  const totals = calculateOrderTotal(opts);
+  let deliveryType: OrderPricingSnapshot["deliveryType"] = "none";
+  if (opts.deliveryRequired) {
+    if (opts.market === "INTERNATIONAL") deliveryType = "international_postal";
+    else if (opts.regionCode === "tashkent_city") deliveryType = "tashkent_city";
+    else deliveryType = "regional";
+  } else {
+    deliveryType = "pickup";
+  }
   return {
-    bookSubtotal,
-    extraCopiesSubtotal,
-    deliveryFee,
-    grandTotal: bookSubtotal + extraCopiesSubtotal + deliveryFee,
+    market: totals.market,
+    countryCode: opts.countryCode,
+    currency: totals.currency,
+    bookType: opts.bookType,
+    baseBookPrice: totals.bookSubtotal,
+    extraCopyCount: totals.extraCopyCount,
+    extraCopyUnitPrice: totals.extraCopyUnitPrice,
+    extraCopiesSubtotal: totals.extraCopiesSubtotal,
+    deliveryRequired: opts.deliveryRequired,
+    deliveryType,
+    deliveryFee: totals.deliveryFee,
+    grandTotal: totals.grandTotal,
   };
 }
 

@@ -17,10 +17,10 @@
  * already child-centric so that work is additive, not a refactor.
  */
 
-import type { BookType } from "@/components/begin/orderFormData";
+import type { BookType, Market } from "@/components/begin/orderFormData";
 import type { Honorific, RecipientRelationship } from "./relationship";
 
-export type { BookType };
+export type { BookType, Market };
 
 /**
  * The written delivery address is the PRIMARY address (spec §42–49).
@@ -39,9 +39,14 @@ export interface DeliveryAddress {
   /** The customer's EXPLICIT choice — `undefined` until they answer
    *  "Kitobni Sizga yetkazib beraylikmi?". Delivery is never assumed. */
   choice?: "delivery" | "pickup";
+  /** Destination country ISO code. "" until resolved. UZ market ⇒
+   *  "UZ"; INTERNATIONAL market ⇒ the chosen country. */
+  countryCode: string;
+
+  // ── Uzbekistan address (market = UZ) ──────────────────────────────
   /** Region CODE (see orderFormData `DELIVERY_REGIONS`). This — not any
    *  free-text string — drives the delivery fee. Toshkent shahri
-   *  (`tashkent_city`) is free; every other region is `regionalDelivery`.
+   *  (`tashkent_city`) is free; every other region is the flat fee.
    *  `""` until chosen. */
   regionCode: string;
   /** Shahar / tuman */
@@ -56,10 +61,25 @@ export interface DeliveryAddress {
   landmark?: string;
   /** Optional GPS pin — never a substitute for the written address. */
   location?: DeliveryLocation;
+
+  // ── International postal address (market = INTERNATIONAL) ──────────
+  /** State / province / region — used where the country has one. */
+  intlState?: string;
+  intlCity?: string;
+  /** Street / address line. */
+  intlLine1?: string;
+  /** Building / house. */
+  intlBuilding?: string;
+  /** Apartment / unit — optional. */
+  intlApartment?: string;
+  /** Postal / ZIP code — used where the country has one. */
+  intlPostalCode?: string;
+  /** Additional delivery note — optional. */
+  intlNote?: string;
 }
 
 export function emptyDeliveryAddress(): DeliveryAddress {
-  return { regionCode: "", district: "", street: "", building: "" };
+  return { countryCode: "", regionCode: "", district: "", street: "", building: "" };
 }
 
 /** True only when the customer actively asked for delivery. */
@@ -67,18 +87,49 @@ export function deliveryRequired(a: DeliveryAddress): boolean {
   return a.choice === "delivery";
 }
 
-/** Whether the delivery section is answered enough to continue:
- *  pickup needs nothing; delivery needs a region + the core written
- *  address (a pin is never required). */
-export function isDeliveryComplete(a: DeliveryAddress): boolean {
+/** Whether the delivery section is answered enough to continue, given
+ *  the order's market. Pickup needs nothing. UZ delivery needs a
+ *  region + the core written address; INTERNATIONAL delivery needs a
+ *  country + city + address line + building (a pin/state/postcode are
+ *  never hard-required — some countries have no postcode). */
+export function isDeliveryComplete(a: DeliveryAddress, market: Market = "UZ"): boolean {
   if (a.choice === "pickup") return true;
   if (a.choice !== "delivery") return false;
+  if (market === "INTERNATIONAL") {
+    return (
+      a.countryCode.trim().length > 0 &&
+      (a.intlCity ?? "").trim().length > 0 &&
+      (a.intlLine1 ?? "").trim().length > 0 &&
+      (a.intlBuilding ?? "").trim().length > 0
+    );
+  }
   return (
     a.regionCode.trim().length > 0 &&
     a.district.trim().length > 0 &&
     a.street.trim().length > 0 &&
     a.building.trim().length > 0
   );
+}
+
+/** Market switch must be ATOMIC and leave no stale delivery state that
+ *  could still affect the total (spec §17, §38). Returns a fresh
+ *  address that keeps only the fields valid for the new market and the
+ *  customer's delivery/pickup choice. */
+export function resetDeliveryForMarket(
+  a: DeliveryAddress,
+  market: Market,
+): DeliveryAddress {
+  const base: DeliveryAddress = {
+    ...emptyDeliveryAddress(),
+    choice: a.choice,
+  };
+  if (market === "INTERNATIONAL") {
+    // Keep a chosen non-UZ country if there was one; drop every UZ field.
+    base.countryCode = a.countryCode && a.countryCode !== "UZ" ? a.countryCode : "";
+  } else {
+    base.countryCode = "UZ";
+  }
+  return base;
 }
 
 export interface Orderer {
