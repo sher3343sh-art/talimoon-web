@@ -956,6 +956,11 @@ body {
 [data-hg-card] {
   --hg-x: 0;
   --hg-depth: 1;
+  /* Extra inward yaw, added only during the brief passing window near
+     the FRONT waypoint (spec: "temporary passing envelope") — a plain
+     signed number, independent of --hg-x, so it doesn't also inflate
+     translateX. 0 the rest of the orbit. See HayotGateway's tick(). */
+  --hg-pass-yaw: 0;
   --hg-depth-norm: calc((var(--hg-depth) + 1) / 2);
   --hg-radius-factor: calc(
     var(--hg-back-radius) + (1 - var(--hg-back-radius)) * var(--hg-depth-norm)
@@ -965,7 +970,7 @@ body {
     translateZ(
       calc(var(--hg-back-z) + (var(--hg-fwd) - var(--hg-back-z)) * var(--hg-depth-norm))
     )
-    rotateY(calc(var(--hg-x) * var(--hg-ry) * -1))
+    rotateY(calc((var(--hg-x) * var(--hg-ry) * -1) + (var(--hg-pass-yaw) * 1deg)))
     scale(calc(var(--hg-back-scale) + (1 - var(--hg-back-scale)) * var(--hg-depth-norm)));
   opacity: calc(var(--hg-back-op) + (1 - var(--hg-back-op)) * var(--hg-depth-norm));
   box-shadow:

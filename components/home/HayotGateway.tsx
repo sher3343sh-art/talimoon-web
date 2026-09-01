@@ -50,19 +50,43 @@ const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 // ── The editorial gallery — three INDEPENDENT cards on ONE continuous
 //    elliptical orbit, driven by a `requestAnimationFrame` loop below
 //    (`useHayotOrbit`), not a CSS keyframe animation. Each card's phase
-//    is 120° apart on a single closed path:
+//    is 120° apart on a single closed path (FRONT → BACK RIGHT →
+//    BACK LEFT → FRONT), so at any instant one card sits at each of
+//    the three waypoints:
 //
 //      angle = elapsedTime * speed + cardPhase
 //      x     = sin(angle)   → -1 (left) .. +1 (right)
 //      depth = cos(angle)   → -1 (back) .. +1 (front/centre)
 //
-//    Every frame writes only `--hg-x` and `--hg-depth` onto each card;
-//    globals.css turns those two continuous numbers into position,
-//    forward/back travel, scale, opacity, tilt and shadow via calc() —
-//    so there is no discrete state, no keyframe step, nothing to pop.
-//    z-index is ranked by depth each frame too: two cards only ever
-//    swap rank at the instant their depth is equal, i.e. when they are
-//    visually identical, so the swap is unseeable.
+//    PASSING ENVELOPE — the fix for the front-crossing collision: the
+//    two cards trading FRONT (one arriving from BACK LEFT, one leaving
+//    toward BACK RIGHT) are, for a brief window either side of the
+//    hand-off, both close to full size and close to the centre line —
+//    wide flat panels can visibly overlap there. `passStrength` is a
+//    smooth 0→1→0 bump, zero at every waypoint and peaking at the
+//    midpoint of each 120° leg (exactly where the two cards' depths
+//    cross), applied identically to every card from its own angle —
+//    one shared formula, no incoming/outgoing special-casing. While it
+//    is non-zero, three things happen together, all tapering back to
+//    the untouched baseline at the waypoints:
+//      • extra horizontal separation (PASS_X_BOOST)
+//      • a touch more recession — smaller, softer, further back
+//        (PASS_DEPTH_DIP), which also makes the swap harder to catch
+//      • extra inward yaw layered on top of the baseline tilt
+//        (PASS_YAW_EXTRA_DEG), via the independent `--hg-pass-yaw`
+//        term in globals.css — turning the two panels' shoulders just
+//        enough to slide past one another, never a fold or a flip.
+//    At every waypoint (including exact FRONT) passStrength is 0, so
+//    rotateY is exactly 0 there — the resting flat editorial image is
+//    untouched.
+//
+//    Every frame writes `--hg-x`, `--hg-depth` and `--hg-pass-yaw`;
+//    globals.css turns those into position, forward/back travel,
+//    scale, opacity, tilt and shadow via calc() — no discrete state,
+//    no keyframe step, nothing to pop. z-index is ranked by (the same
+//    adjusted) depth each frame: two cards only ever swap rank at the
+//    instant their depth is equal, i.e. when they are visually
+//    identical, so the swap is unseeable.
 //
 //    ORBIT_PHASE below is also the t=0 frame rendered inline (so SSR
 //    and the first paint already match what the loop would compute at
@@ -70,10 +94,37 @@ const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 //    under prefers-reduced-motion.
 const ORBIT_PERIOD_S = 22; // one full lap — keep the slow, unhurried pace
 const ORBIT_PHASE = [0, (2 * Math.PI) / 3, (4 * Math.PI) / 3] as const;
-const REST_POSE = ORBIT_PHASE.map((phase) => ({
-  x: Math.sin(phase),
-  depth: Math.cos(phase),
-}));
+
+const PASS_X_BOOST = 0.12; // +12% horizontal excursion at the closest pass
+const PASS_DEPTH_DIP = 0.12; // a touch more recession at the closest pass
+const PASS_YAW_EXTRA_DEG = 6; // added to the baseline tilt, closest pass only
+
+/** One card's continuous visual state at a given angle (radians) — the
+ *  single formula every card and the t=0 rest pose both derive from. */
+function orbitState(angle: number) {
+  const baseX = Math.sin(angle);
+  const baseDepth = Math.cos(angle);
+
+  // Where this angle sits within its own 120° leg: 0 and 1 are the
+  // waypoints (FRONT / BACK RIGHT / BACK LEFT), 0.5 is the midpoint —
+  // exactly where this card's depth crosses its neighbour's.
+  const angleDeg = ((angle * 180) / Math.PI) % 360;
+  const angleDegPositive = angleDeg < 0 ? angleDeg + 360 : angleDeg;
+  const localProgress = (angleDegPositive % 120) / 120;
+  // Cubed, not the plain bump: keeps the passing envelope tight around
+  // the true crossing instead of staying elevated most of the leg.
+  const passStrength = Math.pow(Math.sin(localProgress * Math.PI), 3);
+
+  const x = baseX * (1 + passStrength * PASS_X_BOOST);
+  const depth = baseDepth - passStrength * PASS_DEPTH_DIP;
+  // Signed to match (and add to) the baseline's own inward direction —
+  // baseline tilt is `-x * ry`, so this leans the same way, just more.
+  const passYaw = -Math.sign(baseX) * passStrength * PASS_YAW_EXTRA_DEG;
+
+  return { x, depth, passYaw };
+}
+
+const REST_POSE = ORBIT_PHASE.map((phase) => orbitState(phase));
 /** t=0 z-index, ranked by depth — same rule the rAF loop applies every frame. */
 const REST_Z_INDEX = (() => {
   const z: number[] = [];
@@ -97,11 +148,11 @@ function useHayotOrbit(
       const angle = (((now - start) / 1000) / ORBIT_PERIOD_S) * Math.PI * 2;
       const depths: number[] = [];
       cardRefs.current.forEach((el, i) => {
-        const a = angle + ORBIT_PHASE[i];
-        const depth = Math.cos(a);
-        depths[i] = depth;
-        el?.style.setProperty('--hg-x', Math.sin(a).toFixed(4));
-        el?.style.setProperty('--hg-depth', depth.toFixed(4));
+        const state = orbitState(angle + ORBIT_PHASE[i]);
+        depths[i] = state.depth;
+        el?.style.setProperty('--hg-x', state.x.toFixed(4));
+        el?.style.setProperty('--hg-depth', state.depth.toFixed(4));
+        el?.style.setProperty('--hg-pass-yaw', state.passYaw.toFixed(4));
       });
       // rank by depth (front = highest); swaps only where depths tie.
       [0, 1, 2]
@@ -369,6 +420,7 @@ export function HayotGateway() {
                       zIndex: REST_Z_INDEX[k],
                       '--hg-x': rest.x.toFixed(4),
                       '--hg-depth': rest.depth.toFixed(4),
+                      '--hg-pass-yaw': rest.passYaw.toFixed(4),
                     } as CSSProperties
                   }
                 >
