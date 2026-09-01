@@ -170,11 +170,11 @@ export default function PricingSection() {
                 aria-checked={on}
                 onClick={() => setPreference(m)}
                 className={[
-                  "rounded-full px-4 py-1.5 font-sans text-[12.5px] font-medium transition-colors duration-200 motion-reduce:transition-none",
+                  "rounded-full px-4 py-1.5 font-sans text-[12.5px] transition-colors duration-200 motion-reduce:transition-none",
                   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-primary",
                   on
-                    ? "bg-accent-primary/[0.12] text-text-primary"
-                    : "text-text-secondary hover:text-text-primary",
+                    ? "bg-accent-primary/[0.16] font-semibold text-text-primary"
+                    : "font-medium text-text-secondary hover:text-text-primary",
                 ].join(" ")}
               >
                 {m === "UZ" ? t.marketUz : t.marketIntl}
