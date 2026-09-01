@@ -1,11 +1,12 @@
 'use client';
 
 /**
- * About 04 — OUR CREATIVE BELIEF.
- * The philosophy behind how TALIMOON makes things. NOT the Home page's
- * five values (those are traits nurtured in a child). These are three
- * CREATION PRINCIPLES — set as large numbered editorial entries, no
- * icons, no cards.
+ * About 05 — CREATIVE BELIEF.
+ * The philosophy behind how TALIMOON makes things — NOT the production
+ * steps (see AboutHowWeCreate) and NOT the Home page's five values
+ * (those are traits nurtured in a child). These are three CREATION
+ * PRINCIPLES — set as large numbered editorial entries, no icons, no
+ * cards.
  */
 
 import React from 'react';
@@ -14,7 +15,7 @@ import { useT } from '@/lib/i18n/LanguageContext';
 import { BODY, DISPLAY, GOLD, GOLD_SOFT, NAVY, NAVY_64, Eyebrow, Section } from './shared';
 
 const EN = {
-  eyebrow: 'How we create',
+  eyebrow: 'What we believe',
   statement: [
     'Catching a child’s attention is easy.',
     'Leaving a good mark on their heart is a responsibility.',
@@ -23,22 +24,22 @@ const EN = {
     {
       n: '01',
       name: 'Meaning',
-      body: 'Behind every story there has to be an idea worth telling.',
+      body: 'Behind every story or product, there has to be real value for the child.',
     },
     {
       n: '02',
       name: 'Beauty',
-      body: 'Something made for a child deserves as much care and taste as anything made for anyone.',
+      body: 'The world a child sees should enrich their imagination.',
     },
     {
       n: '03',
       name: 'Warmth',
-      body: 'Upbringing isn’t only spoken. It has to reach a child in a form they can feel.',
+      body: 'An experience made for a child should feel close, and made with love.',
     },
   ],
 };
 const UZ: typeof EN = {
-  eyebrow: 'Biz qanday yaratamiz',
+  eyebrow: 'Biz nimaga ishonamiz',
   statement: [
     "Bolaning e'tiborini jalb qilish oson.",
     "Uning qalbida yaxshi iz qoldirish esa mas'uliyat.",
@@ -46,18 +47,18 @@ const UZ: typeof EN = {
   principles: [
     {
       n: '01',
-      name: 'Mazmun',
-      body: "Har bir hikoya ortida aytishga arziydigan fikr bo'lishi kerak.",
+      name: "Ma'no",
+      body: "Har bir hikoya yoki mahsulot ortida bola uchun haqiqiy qiymat bo'lishi kerak.",
     },
     {
       n: '02',
       name: "Go'zallik",
-      body: "Bola uchun yaratilgan narsa ham katta e'tibor va did bilan yaratilishi kerak.",
+      body: "Bola ko'radigan dunyo uning tasavvurini boyitishi kerak.",
     },
     {
       n: '03',
-      name: 'Mehr',
-      body: "Tarbiya faqat aytilmaydi. U bola his qiladigan shaklda yetib borishi kerak.",
+      name: 'Iliqlik',
+      body: "Bola uchun yaratilgan tajriba unga yaqin va mehr bilan yaratilgandek his qilinishi kerak.",
     },
   ],
 };

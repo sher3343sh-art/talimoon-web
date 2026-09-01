@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * About 03 — THE CHILD'S PERSPECTIVE.
+ * About 04 — THE CHILD'S PERSPECTIVE.
  * One immersive idea, not three feature cards: an ordinary open book
  * unfolds into a large imaginative landscape seen from the child's
  * point of view. The three short lines read as a rhythm, not a grid.

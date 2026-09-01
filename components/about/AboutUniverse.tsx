@@ -1,11 +1,16 @@
 'use client';
 
 /**
- * About 05 — ONE TALIMOON UNIVERSE.  A WOW moment.
+ * About 03 — ONE TALIMOON UNIVERSE.  A WOW moment, placed right after
+ * Origin (spec §09): the visitor has just understood WHY TALIMOON
+ * exists — now sees WHAT that belief is becoming.
+ *
  * Not four product cards: four worlds strung on one continuous golden
  * thread — book → story world → characters → physical play → library.
- * The thread weaves horizontally on desktop, vertically on mobile, and
- * draws itself in once on scroll.
+ * ONE list of four items renders once; only the connecting thread
+ * (purely decorative, `aria-hidden`) and layout direction change
+ * between mobile (vertical) and desktop (horizontal) — the accessible
+ * content is never duplicated in the DOM.
  */
 
 import React from 'react';
@@ -15,7 +20,7 @@ import { BODY, DISPLAY, GOLD, NAVY, NAVY_64, Eyebrow, GoldRule, Section } from '
 
 const EN = {
   eyebrow: 'One universe',
-  headline: 'Different products. One TALIMOON world.',
+  headline: 'From one story to a whole world.',
   worlds: [
     { key: 'books', name: 'Personalized Books', line: 'The child becomes part of the story.' },
     { key: 'yy', name: 'Yusuf & Yasmina', line: 'Stories and adventures continue through the characters.' },
@@ -25,7 +30,7 @@ const EN = {
 };
 const UZ: typeof EN = {
   eyebrow: 'Bitta olam',
-  headline: 'Turli mahsulotlar. Bitta TALIMOON olami.',
+  headline: 'Bir hikoyadan butun bir olamga.',
   worlds: [
     { key: 'books', name: 'Shaxsiylashtirilgan kitoblar', line: 'Bola hikoyaning bir qismiga aylanadi.' },
     { key: 'yy', name: 'Yusuf va Yasmina', line: 'Qahramonlar orqali hikoyalar va sarguzashtlar davom etadi.' },
@@ -106,13 +111,20 @@ export function AboutUniverse() {
         <GoldRule className="mt-8" />
       </div>
 
-      {/* DESKTOP / TABLET — horizontal thread through four nodes */}
-      <div className="relative mt-16 hidden md:block">
+      {/* ONE list of four worlds — only the connecting thread (purely
+          decorative, aria-hidden) and each item's internal layout
+          change by breakpoint; the accessible content renders once. */}
+      <div className="relative mt-12 md:mt-16">
+        <span
+          aria-hidden="true"
+          className="absolute bottom-6 left-[31px] top-6 w-px md:hidden"
+          style={{ background: `linear-gradient(to bottom, transparent, ${GOLD}, ${GOLD}, transparent)` }}
+        />
         <svg
           viewBox="0 0 1000 80"
           preserveAspectRatio="none"
           aria-hidden="true"
-          className="absolute inset-x-0 top-[28px] h-20 w-full"
+          className="absolute inset-x-0 top-[28px] hidden h-20 w-full md:block"
         >
           <motion.path
             d="M40 40 C170 6 210 74 340 40 C470 6 530 74 660 40 C790 6 830 74 960 40"
@@ -126,78 +138,41 @@ export function AboutUniverse() {
             transition={{ duration: 2.4, ease: [0.22, 1, 0.36, 1] }}
           />
         </svg>
-        <ol className="relative grid grid-cols-4 gap-8">
+
+        <ol className="relative grid grid-cols-1 md:grid-cols-4 md:gap-8">
           {t.worlds.map((w, i) => (
             <motion.li
               key={w.key}
               initial={reduced ? undefined : { opacity: 0, y: 18 }}
               whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.5 }}
-              transition={{ duration: 0.7, delay: 0.12 * i, ease: [0.22, 1, 0.36, 1] }}
-              className="flex flex-col items-center text-center"
+              transition={{ duration: 0.7, delay: 0.08 * i, ease: [0.22, 1, 0.36, 1] }}
+              className="relative flex gap-5 py-5 md:flex-col md:items-center md:gap-0 md:py-0 md:text-center"
             >
               <span
-                className="grid h-16 w-16 place-items-center rounded-full"
+                className="z-[1] grid h-16 w-16 shrink-0 place-items-center rounded-full"
                 style={{ background: '#FDFBF7', border: `1px solid ${GOLD}` }}
               >
                 <WorldIcon k={w.key} />
               </span>
-              <h3
-                className="mt-5 text-[19px]"
-                style={{ fontFamily: DISPLAY, fontWeight: 600, color: NAVY, lineHeight: 1.2 }}
-              >
-                {w.name}
-              </h3>
-              <p
-                className="mt-2 max-w-[220px] text-[14px]"
-                style={{ fontFamily: BODY, color: NAVY_64, lineHeight: 1.6 }}
-              >
-                {w.line}
-              </p>
+              <div className="pt-2 md:pt-0">
+                <h3
+                  className="text-[19px] md:mt-5"
+                  style={{ fontFamily: DISPLAY, fontWeight: 600, color: NAVY, lineHeight: 1.2 }}
+                >
+                  {w.name}
+                </h3>
+                <p
+                  className="mt-1.5 text-[15px] md:mx-auto md:mt-2 md:max-w-[220px] md:text-[14px]"
+                  style={{ fontFamily: BODY, color: NAVY_64, lineHeight: 1.65 }}
+                >
+                  {w.line}
+                </p>
+              </div>
             </motion.li>
           ))}
         </ol>
       </div>
-
-      {/* MOBILE — vertical thread down the left */}
-      <ol className="relative mt-12 md:hidden">
-        <span
-          aria-hidden="true"
-          className="absolute bottom-6 left-[31px] top-6 w-px"
-          style={{ background: `linear-gradient(to bottom, transparent, ${GOLD}, ${GOLD}, transparent)` }}
-        />
-        {t.worlds.map((w, i) => (
-          <motion.li
-            key={w.key}
-            initial={reduced ? undefined : { opacity: 0, y: 16 }}
-            whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.6 }}
-            transition={{ duration: 0.6, delay: 0.06 * i, ease: [0.22, 1, 0.36, 1] }}
-            className="relative flex gap-5 py-5"
-          >
-            <span
-              className="z-[1] grid h-16 w-16 shrink-0 place-items-center rounded-full"
-              style={{ background: '#F7F3EC', border: `1px solid ${GOLD}` }}
-            >
-              <WorldIcon k={w.key} />
-            </span>
-            <div className="pt-2">
-              <h3
-                className="text-[19px]"
-                style={{ fontFamily: DISPLAY, fontWeight: 600, color: NAVY, lineHeight: 1.2 }}
-              >
-                {w.name}
-              </h3>
-              <p
-                className="mt-1.5 text-[15px]"
-                style={{ fontFamily: BODY, color: NAVY_64, lineHeight: 1.65 }}
-              >
-                {w.line}
-              </p>
-            </div>
-          </motion.li>
-        ))}
-      </ol>
     </Section>
   );
 }

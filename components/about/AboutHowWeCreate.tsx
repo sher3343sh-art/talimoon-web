@@ -1,17 +1,24 @@
 'use client';
 
 /**
- * About 07 — HOW WE CREATE / PROOF.  Critical for trust.
- * Evidence that real thinking and real work sit behind the beliefs:
- * a five-step creation process set as an editorial progression, then
- * a row of plates that follow the same arc (idea → sketch →
- * illustration → finished experience → child). No invented stats,
- * awards, testimonials, partners, team size or credentials.
+ * About 08 — HOW WE CREATE.  Critical for trust — and for potential
+ * partners specifically (spec §15/§24): it demonstrates execution
+ * ability without a single business word. A six-step creation journey
+ * set as an editorial progression (never the identical-cards look of
+ * an agency site), then a row of plates that follow the same arc
+ * (idea → story → world → experience → review → family). No invented
+ * stats, awards, testimonials, partners, team size or credentials.
+ *
+ * This is deliberately NOT "Creative belief" (AboutCreativeBelief) —
+ * that section is the PRINCIPLES guiding what gets made; this one is
+ * the PROCESS that makes it. Step 01 here is "Understanding", not
+ * "Meaning", specifically so the two sections never reuse the same
+ * word for two different ideas.
  *
  * The plates take real assets when they exist — drop images at
- * `/images/about/proof-1..5.jpg` (4:5, ~1000px wide) and set `src` on
- * each PLATES entry below. Until then they render as composed frames
- * that still communicate the progression honestly.
+ * `/images/about/process-1..6.jpg` (4:5, ~1000px wide) and set `src`
+ * on each PLATES entry below. Until then they render as composed
+ * frames that still communicate the progression honestly.
  */
 
 import React from 'react';
@@ -21,38 +28,40 @@ import { useT } from '@/lib/i18n/LanguageContext';
 import { BODY, DISPLAY, GOLD, GOLD_SOFT, NAVY, NAVY_48, NAVY_64, Eyebrow, Section } from './shared';
 
 const EN = {
-  eyebrow: 'The work behind it',
-  headline: 'Every detail has a reason.',
+  eyebrow: 'From an idea to a family',
+  headline: 'Every TALIMOON experience starts with a single thought.',
   statement: 'We don’t want to make things for children that are merely “good enough”.',
   steps: [
-    { n: '01', name: 'Meaning', body: 'First we decide what mark the story should leave on a child.' },
-    { n: '02', name: 'Story', body: 'We turn the idea into an experience a child will happily follow.' },
-    { n: '03', name: 'Image', body: 'Every detail should enrich a child’s imagination.' },
+    { n: '01', name: 'Understanding', body: 'First we decide what this should mean to the child it’s for.' },
+    { n: '02', name: 'Story', body: 'The idea becomes an experience a child will happily follow.' },
+    { n: '03', name: 'World', body: 'Every image should enrich a child’s imagination.' },
     { n: '04', name: 'Experience', body: 'Reading, listening, watching or playing — the format serves the purpose.' },
     { n: '05', name: 'Review', body: 'We look at the result again, through a child’s eyes and a parent’s.' },
+    { n: '06', name: 'Coming to life', body: 'It reaches a real child, in a real family.' },
   ],
-  plates: ['Idea', 'Sketch', 'Illustration', 'Finished experience', 'A child, a family'],
+  plates: ['Idea', 'Story', 'World', 'Experience', 'Review', 'Family'],
   platesNote: 'From a first note to a finished story.',
 };
 const UZ: typeof EN = {
-  eyebrow: 'Ortidagi mehnat',
-  headline: 'Har bir detalning sababi bor.',
+  eyebrow: "G'oyadan oilagacha",
+  headline: 'Har bir TALIMOON tajribasi bir fikrdan boshlanadi.',
   statement: "Biz bolalar uchun 'shunchaki yetarli' mahsulot yaratishni istamaymiz.",
   steps: [
-    { n: '01', name: "Ma'no", body: "Avval hikoya bolada qanday iz qoldirishi kerakligini aniqlaymiz." },
-    { n: '02', name: 'Hikoya', body: "G'oyani bola sevib kuzatadigan tajribaga aylantiramiz." },
-    { n: '03', name: 'Tasvir', body: 'Har bir detal bolaning tasavvurini boyitishi kerak.' },
+    { n: '01', name: 'Tushunish', body: "Avval bu narsa mo'ljallangan bola uchun nimani anglatishi kerakligini aniqlaymiz." },
+    { n: '02', name: 'Hikoya', body: "G'oya bola sevib kuzatadigan tajribaga aylanadi." },
+    { n: '03', name: 'Tasvir', body: 'Har bir tasvir bolaning tasavvurini boyitishi kerak.' },
     { n: '04', name: 'Tajriba', body: "O'qish, tinglash, tomosha qilish yoki o'ynash — format maqsadga xizmat qiladi." },
-    { n: '05', name: 'Tekshirish', body: "Natijaga yana bolaning va ota-onaning ko'zi bilan qaraymiz." },
+    { n: '05', name: 'Tekshiruv', body: "Natijaga yana bolaning va ota-onaning ko'zi bilan qaraymiz." },
+    { n: '06', name: 'Hayotga chiqish', body: "U haqiqiy bolaga, haqiqiy oilaga yetib boradi." },
   ],
-  plates: ["G'oya", 'Eskiz', 'Rasm', 'Tayyor tajriba', 'Bola, oila'],
+  plates: ["G'oya", 'Hikoya', 'Tasvir', 'Tajriba', 'Tekshiruv', 'Oila'],
   platesNote: "Ilk qaydlardan tayyor hikoyagacha.",
 };
 
 // Real proof assets, when they exist. Leave `src` undefined to render
 // the composed empty frame instead of a broken image.
 const PLATES: { src?: string }[] = [
-  {}, {}, {}, {}, {},
+  {}, {}, {}, {}, {}, {},
 ];
 
 export function AboutHowWeCreate() {
@@ -92,15 +101,16 @@ export function AboutHowWeCreate() {
         </motion.p>
       </div>
 
-      {/* Five steps — an editorial progression joined by one hairline */}
-      <ol className="mt-16 grid gap-y-0 md:mt-20 md:grid-cols-5 md:gap-x-6">
+      {/* Six steps, two rows of three — an editorial progression, not a
+          single cramped row (spec §15: never six identical cards). */}
+      <ol className="mt-16 grid gap-y-0 md:mt-20 md:grid-cols-3 md:gap-x-8 md:gap-y-10">
         {t.steps.map((s, i) => (
           <motion.li
             key={s.n}
             initial={reduced ? undefined : { opacity: 0, y: 18 }}
             whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.5 }}
-            transition={{ duration: 0.65, delay: 0.08 * i, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.65, delay: 0.06 * i, ease: [0.22, 1, 0.36, 1] }}
             className="relative py-6 md:py-0 md:pt-8"
             style={{
               borderTop: `1px solid ${i === 0 ? GOLD_SOFT : 'rgba(28,42,58,0.10)'}`,
@@ -136,7 +146,7 @@ export function AboutHowWeCreate() {
         >
           {t.platesNote}
         </p>
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5 md:gap-5">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-6 md:gap-5">
           {PLATES.map((p, i) => (
             <motion.figure
               key={i}
@@ -144,7 +154,6 @@ export function AboutHowWeCreate() {
               whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.4 }}
               transition={{ duration: 0.6, delay: 0.06 * i, ease: [0.22, 1, 0.36, 1] }}
-              className={i === 4 ? 'col-span-2 sm:col-span-1' : ''}
             >
               <div
                 className="relative w-full overflow-hidden"

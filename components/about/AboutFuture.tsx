@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * About 08 — THE FUTURE.
+ * About 09 — THE FUTURE.
  * Direction, not hype. No roadmap, no unshipped products. The TALIMOON
  * world quietly expands toward the horizon — the golden line from the
  * Origin section continuing outward past the frame.
@@ -10,11 +10,12 @@
 import React from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useT } from '@/lib/i18n/LanguageContext';
-import { BODY, DISPLAY, GOLD, NAVY, NAVY_64, Section } from './shared';
+import { BODY, DISPLAY, GOLD, NAVY, NAVY_64, Eyebrow, Section } from './shared';
 
 const EN = {
-  headline: 'We are only just beginning.',
-  body: 'We are building TALIMOON as one whole world children read, listen to, imagine and play in.',
+  eyebrow: 'Ahead',
+  headline: 'A world that began with one book is still being built.',
+  body: 'We see TALIMOON’s future not as separate products, but as one world that grows alongside a child. Stories, characters, books, digital experiences and what comes next all serve one purpose: creating what stays in a child’s heart — meaningful, beautiful, and memorable.',
   closing: [
     'Our goal isn’t to make more products.',
     'It’s to make better experiences that stay with childhood.',
@@ -22,8 +23,9 @@ const EN = {
   artAlt: 'A wide horizon with a golden path continuing outward and small far shapes suggesting new worlds.',
 };
 const UZ: typeof EN = {
-  headline: 'Biz endigina boshlayapmiz.',
-  body: "Biz TALIMOONni bolalar o'qiydigan, tinglaydigan, tasavvur qiladigan va o'ynaydigan yaxlit bir olam sifatida qurmoqdamiz.",
+  eyebrow: 'OLDINDA',
+  headline: 'Bir kitobdan boshlangan dunyo hali qurilmoqda.',
+  body: "TALIMOONning kelajagini alohida mahsulotlarda emas, bolaning ulg'ayishi bilan birga rivojlanadigan yagona olamda ko'ramiz. Hikoyalar, qahramonlar, kitoblar, raqamli tajribalar va kelajakdagi mahsulotlar bir maqsad atrofida birlashadi: bolalikda qalbga singadigan narsalarni mazmunli, go'zal va esda qoladigan shaklda yaratish.",
   closing: [
     "Maqsadimiz ko'proq mahsulot yaratish emas.",
     "Bolalikda qoladigan yaxshiroq tajribalar yaratish.",
@@ -74,13 +76,14 @@ export function AboutFuture() {
   return (
     <Section labelledBy="about-future-heading" className="py-24 md:py-32 lg:py-40">
       <div className="mx-auto max-w-[720px] text-center">
+        <Eyebrow>{t.eyebrow}</Eyebrow>
         <motion.h2
           id="about-future-heading"
           initial={reduced ? undefined : { opacity: 0, y: 18 }}
           whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.6 }}
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          className="text-[28px] sm:text-[34px] md:text-[42px] lg:text-[46px]"
+          className="mt-4 text-[28px] sm:text-[34px] md:text-[42px] lg:text-[46px]"
           style={{
             fontFamily: DISPLAY,
             fontWeight: 600,
@@ -96,7 +99,7 @@ export function AboutFuture() {
           whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.6 }}
           transition={{ duration: 0.7, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-          className="mx-auto mt-6 max-w-[560px] text-[16px] md:text-[18px]"
+          className="mx-auto mt-6 max-w-[620px] text-[16px] md:text-[18px]"
           style={{ fontFamily: BODY, color: NAVY_64, lineHeight: 1.78 }}
         >
           {t.body}

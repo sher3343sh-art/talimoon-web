@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * About 09 — QUIET ENDING.
+ * About 10 — QUIET ENDING.
  * Restraint and negative space. A small brand mark, one line, one
  * supporting line, and two quiet text actions. No sales banner. Then
  * the page falls naturally into the existing Footer.

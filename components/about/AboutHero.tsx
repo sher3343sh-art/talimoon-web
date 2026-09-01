@@ -12,17 +12,19 @@
 import React from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useT } from '@/lib/i18n/LanguageContext';
-import { BODY, DISPLAY, GOLD, NAVY, NAVY_64, Section } from './shared';
+import { BODY, DISPLAY, GOLD, NAVY, NAVY_64, Eyebrow, Section } from './shared';
 
 const EN = {
+  eyebrow: 'About TALIMOON',
   headline: 'A whole world lives inside every child.',
-  body: 'TALIMOON is a world of stories, books and toys that helps children learn, imagine, grow into good character and discover who they are.',
+  body: 'TALIMOON is being built to make stories, books and experiences that leave a mark on a child’s imagination, knowledge and heart.',
   artAlt:
     'A child sits looking toward faint story fragments — a book, a distant arch, stars and a small world — rising and dissolving into light.',
 };
 const UZ: typeof EN = {
-  headline: 'Har bir bola ichida bir olam bor.',
-  body: "TALIMOON — bolalarning bilim olishi, tasavvur qilishi, yaxshi xulqni anglash va o'zligini kashf etishiga yordam beradigan hikoyalar, kitoblar va o'yinlar olami.",
+  eyebrow: 'TALIMOON HAQIDA',
+  headline: 'Har bir bolaning ichida bir olam bor.',
+  body: "TALIMOON bolalarning tasavvuri, bilimi va qalbida iz qoldiradigan hikoyalar, kitoblar va tajribalar yaratish uchun qurilmoqda.",
   artAlt:
     "Bola o'tirib, xayolidagi hikoya bo'laklariga — kitob, uzoqdagi ravoq, yulduzlar va kichik bir olamga qarab turibdi; ular yorug'lik ichida erib ketmoqda.",
 };
@@ -136,6 +138,7 @@ export function AboutHero() {
           transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
           className="max-w-[620px]"
         >
+          <Eyebrow align="start">{t.eyebrow}</Eyebrow>
           <h1
             id="about-hero-heading"
             style={{
@@ -145,7 +148,7 @@ export function AboutHero() {
               lineHeight: 1.08,
               letterSpacing: '-0.02em',
             }}
-            className="text-[34px] sm:text-[42px] md:text-[52px] lg:text-[58px]"
+            className="mt-4 text-[34px] sm:text-[42px] md:text-[52px] lg:text-[58px]"
           >
             {t.headline}
           </h1>
