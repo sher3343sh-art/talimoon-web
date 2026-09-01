@@ -4,14 +4,20 @@
  * IN SCOPE: Uzbek + English (respectful "Siz"). RU / AR later.
  *
  * TALIMOON never asks "what is wrong with this child". It gathers,
- * respectfully: what the adult appreciates, a real moment it shows,
- * ONE behaviour they'd gently like to support, when it usually
- * appears, and the values the story should strengthen. No diagnosis,
- * no inference, no personality labels. A behaviour is described —
- * the child is never defined by it.
+ * respectfully: what the adult appreciates (preset or the adult's own
+ * words) → a real moment it shows, or none → up to 3 behaviours they'd
+ * gently like to support, or none → when those usually appear → the
+ * values the story should strengthen. No diagnosis, no inference, no
+ * personality labels. A behaviour is described — the child is never
+ * defined by it.
+ *
+ * Appreciated qualities and growth behaviours are `SelectableAnswer[]`
+ * (see lib/order/types.ts) — preset and custom answers share one
+ * array, one selection tray, one deterministic follow-up question.
+ * Nothing here builds a sentence out of arbitrary custom text.
  */
 
-import type { ChildProfile } from "./types";
+import type { ChildProfile, SelectableAnswer } from "./types";
 
 export type Locale = "uz" | "en";
 
@@ -40,7 +46,7 @@ const QUALITY_LABELS: Record<QualityKey, Record<Locale, string>> = {
   "quick-minded": { uz: "Zehni o‘tkir", en: "Quick-minded" },
 };
 
-// ── Growth behaviours ────────────────────────────────────────────
+// ── Growth behaviours — up to 3, preset or custom ────────────────
 // `full`  — what the adult picks (a behaviour, never a label)
 // `soft`  — the dignified word shown in the portrait
 export const GROWTH_KEYS = [
@@ -53,6 +59,7 @@ export const GROWTH_KEYS = [
   "confidence",
 ] as const;
 export type GrowthKey = (typeof GROWTH_KEYS)[number];
+export const MAX_GROWTH_BEHAVIORS = 3;
 
 const GROWTH: Record<GrowthKey, { full: Record<Locale, string>; soft: Record<Locale, string> }> = {
   waiting: {
@@ -118,19 +125,22 @@ export function isGrowthKey(v: string): v is GrowthKey {
 export function isValueKey(v: string): v is ValueKey {
   return (VALUE_KEYS as readonly string[]).includes(v);
 }
-export function qualityLabel(v: string, locale: Locale): string {
-  return isQualityKey(v) ? QUALITY_LABELS[v][locale] : v.trim();
+/** Display label for one stored quality id — a prepared key resolves
+ *  its (locale-reactive) label; anything else is the adult's own
+ *  words, shown exactly as typed. */
+export function qualityLabel(id: string, locale: Locale): string {
+  return isQualityKey(id) ? QUALITY_LABELS[id][locale] : id.trim();
 }
 export function valueLabel(v: string, locale: Locale): string {
   return isValueKey(v) ? VALUE_LABELS[v][locale] : v.trim();
 }
-/** Full text the adult chose. */
-export function growthFull(v: string, locale: Locale): string {
-  return isGrowthKey(v) ? GROWTH[v].full[locale] : v.trim();
+/** Full text the adult chose (preset id or the adult's own words). */
+export function growthFull(id: string, locale: Locale): string {
+  return isGrowthKey(id) ? GROWTH[id].full[locale] : id.trim();
 }
 /** Dignified word for the portrait. Custom text is shown as written. */
-export function growthSoft(v: string, locale: Locale): string {
-  return isGrowthKey(v) ? GROWTH[v].soft[locale] : v.trim();
+export function growthSoft(id: string, locale: Locale): string {
+  return isGrowthKey(id) ? GROWTH[id].soft[locale] : id.trim();
 }
 
 export function qualityOptions(locale: Locale) {
@@ -149,8 +159,11 @@ function joinList(items: string[], locale: Locale): string {
   const and = locale === "uz" ? " va " : " and ";
   return clean.slice(0, -1).join(", ") + and + clean[clean.length - 1];
 }
-export function qualitiesDisplay(list: string[] | undefined, locale: Locale): string {
-  return (list ?? []).map((v) => qualityLabel(v, locale)).join(" · ");
+export function qualitiesDisplay(list: SelectableAnswer[] | undefined, locale: Locale): string {
+  return (list ?? []).map((a) => qualityLabel(a.id, locale)).join(" · ");
+}
+export function growthDisplay(list: SelectableAnswer[] | undefined, locale: Locale): string {
+  return (list ?? []).map((a) => growthSoft(a.id, locale)).join(" · ");
 }
 export function valuesDisplay(list: string[] | undefined, locale: Locale): string {
   return (list ?? []).map((v) => valueLabel(v, locale)).join(" · ");
@@ -165,6 +178,12 @@ export interface Phase03Copy {
   introLead: (name: string) => string;
   introSupport: string;
 
+  /** The one selection-tray title reused everywhere a tray appears. */
+  trayTitle: string;
+  /** "{n} / {max} tanlandi" — shown once at least one is picked. */
+  selectionCount: (n: number, max: number) => string;
+  removeAnswer: (label: string) => string;
+
   // Q1 — appreciated qualities
   q1: (name: string) => string;
   q1Help: string;
@@ -172,17 +191,15 @@ export interface Phase03Copy {
   customPlaceholder: string;
   customAdd: string;
   limitNote: (max: number) => string;
-  removeItem: (label: string) => string;
   errQualities: string;
 
   // Q2 — a real example
-  q2Ack: (qualitiesText: string) => string;
   q2: (name: string) => string;
   q2Help: string;
   q2Placeholder: string;
-  q2Skip: string;
+  q2NoneLabel: string;
 
-  // Q3 — one growth behaviour
+  // Q3 — up to 3 growth behaviours
   q3: (name: string) => string;
   q3Help: string;
   q3CustomToggle: string;
@@ -191,11 +208,12 @@ export interface Phase03Copy {
   q3None: string;
   errGrowth: string;
 
-  // Q4 — context
+  // Q4 — context (plural-safe — never built from the chosen labels)
+  q4ContextTrayTitle: string;
   q4: (name: string) => string;
   q4Help: string;
   q4Placeholder: string;
-  q4Skip: string;
+  q4NoneLabel: string;
 
   // Q5 — desired values
   q5: (name: string) => string;
@@ -224,40 +242,39 @@ const uz: Phase03Copy = {
   introSupport:
     "Uni nimalari quvontiradi, qaysi jihat biroz e’tibor so‘raydi va hikoya nimalarni qo‘llab-quvvatlashi kerak — shularni birga eslaymiz.",
 
+  trayTitle: "Tanladingiz",
+  selectionCount: (n, max) => `${n} / ${max} tanlandi`,
+  removeAnswer: (label) => `“${label}” ni olib tashlash`,
+
   q1: (name) => `${name.trim()}ning qaysi jihatlari Sizni ayniqsa quvontiradi?`,
-  q1Help:
-    "Uni eng yaxshi ifodalaydigan 3 tagacha jihatni tanlashingiz mumkin — yoki ro‘yxatda bo‘lmasa, o‘zingiz yozishingiz mumkin.",
-  customToggle: "Ro‘yxatda yo‘qmi? O‘zingiz yozing",
+  q1Help: "3 tagacha tanlang yoki o‘zingiz yozing.",
+  customToggle: "＋ Boshqa jihatini yozish",
   customPlaceholder: "Masalan: xushmuomala, adolatli, tashabbuskor...",
   customAdd: "Qo‘shish",
-  limitNote: (max) => `Hozircha ${max} tasi — birini olib tashlab, o‘rniga boshqasini qo‘shsangiz bo‘ladi.`,
-  removeItem: (label) => `“${label}” ni olib tashlash`,
+  limitNote: (max) => `${max} ta jihatni tanladingiz. Birini olib tashlab, o‘rniga boshqasini qo‘shsangiz bo‘ladi.`,
   errQualities: "Davom etishdan oldin uni ifodalaydigan kamida bitta jihatni tanlang.",
 
-  q2Ack: (t) => `${t} — tushundik.`,
-  q2: (name) => `Buni ${name.trim()}da qaysi paytlarda ko‘proq sezasiz?`,
-  q2Help:
-    "Xayolingizga bir voqea kelsa yozing — bu hikoyani yanada shaxsiy qiladi.",
+  q2: (name) => `Bu jihatlarini ${name.trim()}da qaysi paytlarda ko‘proq sezasiz?`,
+  q2Help: "Xayolingizga bir voqea kelsa yozing — bu hikoyani yanada shaxsiy qiladi.",
   q2Placeholder:
     "Masalan: ukasiga yordam beradi, o‘yinchoqlarini bo‘lishadi, kimdir xafa bo‘lsa yoniga boradi...",
-  q2Skip: "Hozircha bir misol yodimda yo‘q",
+  q2NoneLabel: "Hozircha aniq bir voqea esimga kelmadi",
 
-  q3: (name) => `${name.trim()}ning qaysi odati yoki xatti-harakatini biroz yaxshilashni istardingiz?`,
+  q3: (name) => `${name.trim()}ning qaysi odati yoki xatti-harakatlarini biroz yaxshilashni istardingiz?`,
   q3Help:
-    "Hikoyada bunga tanbeh bilan emas, voqealar orqali muloyim yo‘l ko‘rsatamiz. Bittasini tanlang.",
-  q3CustomToggle: "Boshqacha bo‘lsa, o‘zingiz yozing",
-  q3CustomPlaceholder:
-    "Masalan: yutqazsa tez xafa bo‘ladi, ertalab turishga erinadi...",
+    "Hikoyada ularga tanbeh bilan emas, voqealar orqali muloyim yo‘l ko‘rsatamiz. 3 tagacha tanlashingiz mumkin.",
+  q3CustomToggle: "＋ Boshqa odat yoki vaziyatni yozish",
+  q3CustomPlaceholder: "Masalan: yutqazsa tez xafa bo‘ladi, ertalab turishga erinadi...",
   q3CustomHint: "Bolaning o‘zini emas, odat yoki vaziyatni yozing.",
   q3None: "Hozircha alohida e’tibor beradigan jihat yo‘q",
   errGrowth: "Iltimos, birini tanlang yoki “Hozircha alohida e’tibor beradigan jihat yo‘q”ni belgilang.",
 
-  q4: (name) => `Bu ${name.trim()}da ko‘proq qaysi paytlarda seziladi?`,
-  q4Help:
-    "Faqat qachon va qaysi vaziyatda — sababini izlashimiz shart emas.",
+  q4ContextTrayTitle: "SIZ BELGILAGAN HOLATLAR",
+  q4: (name) => `Siz belgilagan bu holatlar ${name.trim()}da ko‘proq qaysi vaziyatlarda seziladi?`,
+  q4Help: "Faqat qachon yoki qanday vaziyatda bo‘lishini yozsangiz yetarli — sababini izlashimiz shart emas.",
   q4Placeholder:
-    "Masalan: navbat kutganda, o‘yinda yutqazganda yoki xohlagan narsasi darrov bo‘lmaganda...",
-  q4Skip: "Aniq bir vaziyat yo‘q",
+    "Masalan: navbat kutganda, o‘yinda yutqazganda, charchaganda yoki xohlagan narsasi darrov bo‘lmaganda...",
+  q4NoneLabel: "Aniq bir vaziyat yo‘q",
 
   q5: (name) => `Hikoya orqali ${name.trim()}da qaysi qadriyatlarni yanada qo‘llab-quvvatlashni istardingiz?`,
   q5Help:
@@ -284,38 +301,39 @@ const en: Phase03Copy = {
   introSupport:
     "What delights you about them, what could use a little gentle guidance, and what the story should strengthen — let's remember it together.",
 
+  trayTitle: "You've selected",
+  selectionCount: (n, max) => `${n} / ${max} selected`,
+  removeAnswer: (label) => `Remove “${label}”`,
+
   q1: (name) => `What do you especially love about ${name.trim()}?`,
-  q1Help:
-    "Choose up to 3 things that describe them best — or, if it isn't on the list, write your own.",
-  customToggle: "Not on the list? Write your own",
+  q1Help: "Choose up to 3, or write your own.",
+  customToggle: "＋ Write another quality",
   customPlaceholder: "For example: thoughtful, fair, full of initiative...",
   customAdd: "Add",
-  limitNote: (max) => `${max} for now — remove one to make room for another.`,
-  removeItem: (label) => `Remove “${label}”`,
+  limitNote: (max) => `You've chosen ${max} qualities. Remove one to make room for another.`,
   errQualities: "Please choose at least one thing that describes them before continuing.",
 
-  q2Ack: (t) => `${t} — noted.`,
-  q2: (name) => `When do you notice this most in ${name.trim()}?`,
+  q2: (name) => `When do you notice these qualities most in ${name.trim()}?`,
   q2Help: "If a moment comes to mind, share it — it makes the story more personal.",
   q2Placeholder:
     "For example: helps their little brother, shares their toys, goes over when someone is upset...",
-  q2Skip: "No example comes to mind right now",
+  q2NoneLabel: "No example comes to mind right now",
 
   q3: (name) => `Is there a habit or behaviour of ${name.trim()}'s you'd gently like to support?`,
   q3Help:
-    "In the story we won't scold — we'll show a gentle way through events. Pick one.",
-  q3CustomToggle: "Something else? Write your own",
-  q3CustomPlaceholder:
-    "For example: gets upset when they lose, is reluctant to get up in the morning...",
+    "In the story we won't scold — we'll show a gentle way through events. You can choose up to 3.",
+  q3CustomToggle: "＋ Write another habit or situation",
+  q3CustomPlaceholder: "For example: gets upset when they lose, is reluctant to get up in the morning...",
   q3CustomHint: "Describe the habit or the situation, not the child.",
   q3None: "Nothing in particular for now",
   errGrowth: "Please choose one, or select “Nothing in particular for now”.",
 
-  q4: (name) => `When does this usually show with ${name.trim()}?`,
+  q4ContextTrayTitle: "THE BEHAVIOURS YOU CHOSE",
+  q4: (name) => `In what situations do these tend to show up for ${name.trim()}?`,
   q4Help: "Just when and in what situation — we don't need to look for a reason.",
   q4Placeholder:
     "For example: when waiting in line, when losing a game, or when something isn't available right away...",
-  q4Skip: "No particular situation",
+  q4NoneLabel: "No particular situation",
 
   q5: (name) => `Which values would you like the story to strengthen in ${name.trim()}?`,
   q5Help:
@@ -340,8 +358,8 @@ export function phase03Copy(locale: string): Phase03Copy {
 
 // ── Natural summary — ONLY from supplied answers, no psychology ───
 export function composeCharSummary(child: ChildProfile, name: string, locale: Locale): string {
-  const q = (child.appreciatedQualities ?? []).map((v) => {
-    const l = qualityLabel(v, locale);
+  const q = (child.appreciatedQualities ?? []).map((a) => {
+    const l = qualityLabel(a.id, locale);
     return locale === "uz" ? l.toLocaleLowerCase("uz") : l.toLowerCase();
   });
   const vals = (child.desiredValues ?? []).map((v) => {

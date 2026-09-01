@@ -13,17 +13,25 @@
  * UZ + EN. Later phases are NOT built here.
  */
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { ArrowLeft, ArrowRight, X } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { toLocale, directionFor } from "@/lib/journey/types";
-import { reconcileGrowth, type ChildProfile } from "@/lib/order/types";
 import {
+  reconcileGrowth,
+  reconcileGrowthContext,
+  reconcileQualityExample,
+  type ChildProfile,
+  type SelectableAnswer,
+} from "@/lib/order/types";
+import { addCustomAnswer, removeAnswer, togglePreset } from "@/lib/order/selectableAnswers";
+import {
+  MAX_GROWTH_BEHAVIORS,
   MAX_QUALITIES,
   MAX_VALUES,
+  growthFull,
   growthOptions,
-  isQualityKey,
   phase03Copy,
   qualityLabel,
   qualityOptions,
@@ -32,6 +40,8 @@ import {
 } from "@/lib/order/phase03-copy";
 import { JourneyProgress } from "./JourneyProgress";
 import { ChildWorld } from "./ChildWorld";
+import { SelectionTray } from "./SelectionTray";
+import { CheckRow } from "./CheckRow";
 
 type Screen =
   | "intro"
@@ -67,7 +77,7 @@ export default function Phase03({
   const [customOpen, setCustomOpen] = useState(false);
   const [customDraft, setCustomDraft] = useState("");
   const [growthCustomOpen, setGrowthCustomOpen] = useState(false);
-  const [limitHint, setLimitHint] = useState(false);
+  const [growthCustomDraft, setGrowthCustomDraft] = useState("");
 
   const child = childrenIn[idx];
   const nextChild = childrenIn[idx + 1];
@@ -83,37 +93,36 @@ export default function Phase03({
     return () => window.clearTimeout(t);
   }, [screen, idx]);
 
-  // ── qualities ─────────────────────────────────────────────────
+  // ── qualities — preset and custom share one array (spec §01/§20) ─
   const qualities = child.appreciatedQualities ?? [];
   const atQualityLimit = qualities.length >= MAX_QUALITIES;
+  const resolveQualityLabel = (id: string) => qualityLabel(id, locale);
+
   function toggleQuality(key: string) {
-    if (qualities.includes(key)) {
-      patch({ appreciatedQualities: qualities.filter((v) => v !== key) });
-      setLimitHint(false);
-      return;
-    }
-    if (atQualityLimit) {
-      setLimitHint(true);
-      return;
-    }
-    patch({ appreciatedQualities: [...qualities, key] });
+    const next = togglePreset<SelectableAnswer>(qualities, key, MAX_QUALITIES, (id) => ({
+      id,
+      source: "preset",
+    }));
+    if (next === null) return;
+    patch({ appreciatedQualities: next });
     setAttempted(false);
   }
   function addCustomQuality() {
-    const v = customDraft.trim();
-    if (!v) return;
-    if (atQualityLimit) {
-      setLimitHint(true);
-      return;
-    }
-    if (qualities.some((x) => x.toLocaleLowerCase() === v.toLocaleLowerCase())) {
-      setCustomDraft("");
-      return;
-    }
-    patch({ appreciatedQualities: [...qualities, v] });
+    const next = addCustomAnswer<SelectableAnswer>(
+      qualities,
+      customDraft,
+      MAX_QUALITIES,
+      (id) => ({ id, source: "custom" }),
+      resolveQualityLabel,
+    );
+    if (next === null) return;
+    patch({ appreciatedQualities: next });
     setCustomDraft("");
     setCustomOpen(false);
     setAttempted(false);
+  }
+  function removeQuality(id: string) {
+    patch({ appreciatedQualities: removeAnswer(qualities, id) });
   }
 
   // ── values ────────────────────────────────────────────────────
@@ -122,32 +131,46 @@ export default function Phase03({
   function toggleValue(key: string) {
     if (values.includes(key)) {
       patch({ desiredValues: values.filter((v) => v !== key) });
-      setLimitHint(false);
       return;
     }
-    if (atValueLimit) {
-      setLimitHint(true);
-      return;
-    }
+    if (atValueLimit) return;
     patch({ desiredValues: [...values, key] });
     setAttempted(false);
   }
 
-  // ── growth ────────────────────────────────────────────────────
-  function pickGrowth(key: string) {
-    patch({ ...reconcileGrowth(true), growthBehavior: key });
+  // ── growth behaviours — up to 3, preset and custom share one array
+  //    (context-aware-selection spec §23–27) ──────────────────────
+  const growthBehaviors = child.growthBehaviors ?? [];
+  const atGrowthLimit = growthBehaviors.length >= MAX_GROWTH_BEHAVIORS;
+  const resolveGrowthLabel = (id: string) => growthFull(id, locale);
+
+  function toggleGrowth(key: string) {
+    const next = togglePreset<SelectableAnswer>(growthBehaviors, key, MAX_GROWTH_BEHAVIORS, (id) => ({
+      id,
+      source: "preset",
+    }));
+    if (next === null) return;
+    patch({ growthBehaviors: next, noGrowthArea: false });
+    setAttempted(false);
+  }
+  function addCustomGrowth() {
+    const next = addCustomAnswer<SelectableAnswer>(
+      growthBehaviors,
+      growthCustomDraft,
+      MAX_GROWTH_BEHAVIORS,
+      (id) => ({ id, source: "custom" }),
+      resolveGrowthLabel,
+    );
+    if (next === null) return;
+    patch({ growthBehaviors: next, noGrowthArea: false });
+    setGrowthCustomDraft("");
     setGrowthCustomOpen(false);
     setAttempted(false);
   }
-  function setGrowthCustom(text: string) {
-    patch({ ...reconcileGrowth(true), growthBehavior: text });
+  function removeGrowth(id: string) {
+    patch({ growthBehaviors: removeAnswer(growthBehaviors, id) });
   }
-  function pickNoGrowth() {
-    patch(reconcileGrowth(false));
-    setGrowthCustomOpen(false);
-    setAttempted(false);
-  }
-  const hasGrowth = !child.noGrowthArea && (child.growthBehavior ?? "").trim().length > 0;
+  const hasGrowth = !child.noGrowthArea && growthBehaviors.length > 0;
 
   function validity(): { ok: boolean; error?: string } {
     switch (screen) {
@@ -156,7 +179,7 @@ export default function Phase03({
           ? { ok: true }
           : { ok: false, error: c.errQualities };
       case "growth":
-        return child.noGrowthArea || (child.growthBehavior ?? "").trim().length > 0
+        return child.noGrowthArea || growthBehaviors.length > 0
           ? { ok: true }
           : { ok: false, error: c.errGrowth };
       case "values":
@@ -174,7 +197,6 @@ export default function Phase03({
       return;
     }
     setAttempted(false);
-    setLimitHint(false);
     switch (screen) {
       case "intro":
         setScreen("qualities");
@@ -206,7 +228,6 @@ export default function Phase03({
   }
   function goPrev() {
     setAttempted(false);
-    setLimitHint(false);
     switch (screen) {
       case "intro":
         if (idx === 0) onBack();
@@ -250,21 +271,6 @@ export default function Phase03({
         ? c.continue
         : c.nextChildCta(nextChild.name)
       : c.continue;
-
-  const qualitiesText = useMemo(
-    () =>
-      (child.appreciatedQualities ?? [])
-        .map((val) => {
-          const l = qualityLabel(val, locale);
-          return locale === "uz" ? l.toLocaleLowerCase("uz") : l.toLowerCase();
-        })
-        .reduce((acc, cur, i, arr) => {
-          if (i === 0) return cur;
-          const sep = i === arr.length - 1 ? (locale === "uz" ? " va " : " and ") : ", ";
-          return acc + sep + cur;
-        }, ""),
-    [child.appreciatedQualities, locale],
-  );
 
   return (
     <section
@@ -312,37 +318,24 @@ export default function Phase03({
                     </legend>
                     <Help>{c.q1Help}</Help>
                     <div className="mt-6 flex flex-wrap gap-2.5">
-                      {qualityOptions(locale).map((opt) => (
-                        <button
-                          key={opt.key}
-                          type="button"
-                          aria-pressed={qualities.includes(opt.key)}
-                          onClick={() => toggleQuality(opt.key)}
-                          className={choiceClass(qualities.includes(opt.key))}
-                        >
-                          {opt.label}
-                        </button>
-                      ))}
+                      {qualityOptions(locale).map((opt) => {
+                        const active = qualities.some(
+                          (a) => a.source === "preset" && a.id === opt.key,
+                        );
+                        return (
+                          <button
+                            key={opt.key}
+                            type="button"
+                            aria-pressed={active}
+                            onClick={() => toggleQuality(opt.key)}
+                            className={choiceClass(active)}
+                          >
+                            {opt.label}
+                          </button>
+                        );
+                      })}
                     </div>
-                    {qualities.some((v2) => !isQualityKey(v2)) && (
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {qualities
-                          .filter((v2) => !isQualityKey(v2))
-                          .map((v2) => (
-                            <span key={v2} className={customChip}>
-                              {v2}
-                              <button
-                                type="button"
-                                onClick={() => toggleQuality(v2)}
-                                aria-label={c.removeItem(v2)}
-                                className="flex h-5 w-5 items-center justify-center rounded-full text-text-secondary hover:text-text-primary"
-                              >
-                                <X size={13} strokeWidth={2} />
-                              </button>
-                            </span>
-                          ))}
-                      </div>
-                    )}
+
                     <div className="mt-4">
                       {!customOpen ? (
                         <button
@@ -351,7 +344,6 @@ export default function Phase03({
                           className={customToggleClass}
                         >
                           {c.customToggle}
-                          <span aria-hidden="true" className="text-accent-primary">+</span>
                         </button>
                       ) : (
                         <div className="flex flex-wrap items-end gap-2">
@@ -379,37 +371,49 @@ export default function Phase03({
                         </div>
                       )}
                     </div>
-                    {limitHint && <Help tone="hint">{c.limitNote(MAX_QUALITIES)}</Help>}
+
+                    <SelectionTray
+                      title={c.trayTitle}
+                      items={qualities.map((a) => ({ id: a.id, label: resolveQualityLabel(a.id) }))}
+                      onRemove={removeQuality}
+                      removeLabel={c.removeAnswer}
+                      reduced={!!reduced}
+                    />
+                    {qualities.length > 0 && (
+                      <p className="mt-3 font-sans text-[12.5px] font-medium text-text-secondary">
+                        {atQualityLimit
+                          ? c.limitNote(MAX_QUALITIES)
+                          : c.selectionCount(qualities.length, MAX_QUALITIES)}
+                      </p>
+                    )}
+
                     <ErrorLine>{showError}</ErrorLine>
                   </fieldset>
                 )}
 
                 {screen === "example" && (
                   <div>
-                    {qualitiesText && (
-                      <p className="mb-4 font-sans text-[15px] font-semibold text-text-primary">
-                        {c.q2Ack(qualitiesText)}
-                      </p>
-                    )}
                     <Heading headingRef={headingRef}>{c.q2(child.name)}</Heading>
                     <Help>{c.q2Help}</Help>
                     <div className="mt-5">
                       <textarea
                         rows={2}
                         value={child.qualityExample ?? ""}
-                        onChange={(e) => patch({ qualityExample: e.target.value })}
+                        onChange={(e) =>
+                          patch({ ...reconcileQualityExample(true), qualityExample: e.target.value })
+                        }
                         placeholder={c.q2Placeholder}
                         className={box}
                       />
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => setScreen("growth")}
-                      className="mt-3 inline-flex items-center gap-1.5 font-sans text-[13.5px] font-medium text-text-secondary hover:text-text-primary"
-                    >
-                      {c.q2Skip}
-                      <ArrowRight size={13} strokeWidth={1.75} className="rtl:-scale-x-100" />
-                    </button>
+                    <div className="mt-4">
+                      <CheckRow
+                        id="p3-no-example"
+                        checked={!!child.noQualityExample}
+                        onChange={(checked) => patch(reconcileQualityExample(!checked))}
+                        label={c.q2NoneLabel}
+                      />
+                    </div>
                   </div>
                 )}
 
@@ -421,61 +425,82 @@ export default function Phase03({
                     <Help>{c.q3Help}</Help>
                     <div className="mt-6 flex flex-col gap-2">
                       {growthOptions(locale).map((opt) => {
-                        const active = child.growthBehavior === opt.key && !child.noGrowthArea;
+                        const active = growthBehaviors.some(
+                          (a) => a.source === "preset" && a.id === opt.key,
+                        );
                         return (
                           <button
                             key={opt.key}
                             type="button"
                             aria-pressed={active}
-                            onClick={() => pickGrowth(opt.key)}
+                            onClick={() => toggleGrowth(opt.key)}
                             className={rowChoiceClass(active)}
                           >
                             {opt.label}
                           </button>
                         );
                       })}
-                      <button
-                        type="button"
-                        aria-pressed={!!child.noGrowthArea}
-                        onClick={pickNoGrowth}
-                        className={rowChoiceClass(!!child.noGrowthArea) + " italic"}
-                      >
-                        {c.q3None}
-                      </button>
                     </div>
 
                     <div className="mt-4">
                       {!growthCustomOpen ? (
                         <button
                           type="button"
-                          onClick={() => {
-                            setGrowthCustomOpen(true);
-                            patch({ noGrowthArea: false });
-                          }}
+                          onClick={() => setGrowthCustomOpen(true)}
                           className={customToggleClass}
                         >
                           {c.q3CustomToggle}
-                          <span aria-hidden="true" className="text-accent-primary">+</span>
                         </button>
                       ) : (
-                        <div>
-                          <textarea
-                            rows={2}
+                        <div className="flex flex-wrap items-end gap-2">
+                          <input
+                            type="text"
                             autoFocus
-                            value={
-                              child.growthBehavior && !child.noGrowthArea
-                                ? child.growthBehavior
-                                : ""
-                            }
-                            onChange={(e) => setGrowthCustom(e.target.value)}
+                            value={growthCustomDraft}
+                            onChange={(e) => setGrowthCustomDraft(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                addCustomGrowth();
+                              }
+                            }}
                             placeholder={c.q3CustomPlaceholder}
-                            className={box}
+                            className={underline + " w-full max-w-[18rem] sm:w-auto sm:flex-1"}
                           />
-                          <p className="mt-1.5 font-sans text-[12px] text-text-muted">
-                            {c.q3CustomHint}
-                          </p>
+                          <button
+                            type="button"
+                            onClick={addCustomGrowth}
+                            className="rounded-md border border-border-strong px-3.5 py-2 font-sans text-[13.5px] font-medium text-text-primary hover:border-accent-primary"
+                          >
+                            {c.customAdd}
+                          </button>
                         </div>
                       )}
+                      <p className="mt-1.5 font-sans text-[12px] text-text-muted">{c.q3CustomHint}</p>
+                    </div>
+
+                    <SelectionTray
+                      title={c.trayTitle}
+                      items={growthBehaviors.map((a) => ({ id: a.id, label: resolveGrowthLabel(a.id) }))}
+                      onRemove={removeGrowth}
+                      removeLabel={c.removeAnswer}
+                      reduced={!!reduced}
+                    />
+                    {growthBehaviors.length > 0 && !child.noGrowthArea && (
+                      <p className="mt-3 font-sans text-[12.5px] font-medium text-text-secondary">
+                        {atGrowthLimit
+                          ? c.limitNote(MAX_GROWTH_BEHAVIORS)
+                          : c.selectionCount(growthBehaviors.length, MAX_GROWTH_BEHAVIORS)}
+                      </p>
+                    )}
+
+                    <div className="mt-4">
+                      <CheckRow
+                        id="p3-no-growth"
+                        checked={!!child.noGrowthArea}
+                        onChange={(checked) => patch(reconcileGrowth(!checked))}
+                        label={c.q3None}
+                      />
                     </div>
                     <ErrorLine>{showError}</ErrorLine>
                   </fieldset>
@@ -483,25 +508,34 @@ export default function Phase03({
 
                 {screen === "context" && (
                   <div>
-                    <Heading headingRef={headingRef}>{c.q4(child.name)}</Heading>
-                    <Help>{c.q4Help}</Help>
+                    <SelectionTray
+                      title={c.q4ContextTrayTitle}
+                      items={growthBehaviors.map((a) => ({ id: a.id, label: resolveGrowthLabel(a.id) }))}
+                      reduced={!!reduced}
+                    />
                     <div className="mt-5">
-                      <textarea
-                        rows={2}
-                        value={child.growthContext ?? ""}
-                        onChange={(e) => patch({ growthContext: e.target.value })}
-                        placeholder={c.q4Placeholder}
-                        className={box}
-                      />
+                      <Heading headingRef={headingRef}>{c.q4(child.name)}</Heading>
+                      <Help>{c.q4Help}</Help>
+                      <div className="mt-5">
+                        <textarea
+                          rows={2}
+                          value={child.growthContext ?? ""}
+                          onChange={(e) =>
+                            patch({ ...reconcileGrowthContext(true), growthContext: e.target.value })
+                          }
+                          placeholder={c.q4Placeholder}
+                          className={box}
+                        />
+                      </div>
+                      <div className="mt-4">
+                        <CheckRow
+                          id="p3-no-context"
+                          checked={!!child.noSpecificGrowthContext}
+                          onChange={(checked) => patch(reconcileGrowthContext(!checked))}
+                          label={c.q4NoneLabel}
+                        />
+                      </div>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => setScreen("values")}
-                      className="mt-3 inline-flex items-center gap-1.5 font-sans text-[13.5px] font-medium text-text-secondary hover:text-text-primary"
-                    >
-                      {c.q4Skip}
-                      <ArrowRight size={13} strokeWidth={1.75} className="rtl:-scale-x-100" />
-                    </button>
                   </div>
                 )}
 
@@ -524,7 +558,13 @@ export default function Phase03({
                         </button>
                       ))}
                     </div>
-                    {limitHint && <Help tone="hint">{c.limitNote(MAX_VALUES)}</Help>}
+                    {values.length > 0 && (
+                      <p className="mt-3 font-sans text-[12.5px] font-medium text-text-secondary">
+                        {atValueLimit
+                          ? c.limitNote(MAX_VALUES)
+                          : c.selectionCount(values.length, MAX_VALUES)}
+                      </p>
+                    )}
                     <ErrorLine>{showError}</ErrorLine>
                   </fieldset>
                 )}
@@ -638,8 +678,6 @@ const underline =
   "border-0 border-b border-border-strong bg-transparent px-0 py-2 font-sans text-[16px] text-text-primary outline-none placeholder:text-text-muted";
 const box =
   "w-full resize-none rounded-md border border-border-default bg-transparent px-3.5 py-2.5 font-sans text-[16px] leading-[1.55] text-text-primary outline-none transition-colors placeholder:text-text-muted focus:border-accent-primary";
-const customChip =
-  "inline-flex items-center gap-1.5 rounded-md border border-accent-primary bg-accent-primary/[0.08] py-1.5 pe-1.5 ps-3 font-sans text-[14px] font-semibold text-text-primary";
 const customToggleClass =
   "inline-flex items-center gap-1.5 font-sans text-[13.5px] font-medium text-text-secondary underline decoration-border-strong underline-offset-4 hover:text-text-primary";
 

@@ -9,11 +9,13 @@
  *
  * Every question opens a NEW layer of the child — never the previous
  * one in different words (spec §20):
- *   QIZIQISHLARI     — WHAT interests the child? (≤ 2, prepared or the
- *                       adult's own words)
- *   BIR OZ ANIQROQ    — WHAT specifically about those interests? (an
- *                       optional deepening of Q1's own answer, not a
- *                       third interest)
+ *   QIZIQISHLARI     — WHAT interests the child? (≤ 3, preset or the
+ *                       adult's own words — SelectableAnswer[], see
+ *                       lib/order/types.ts)
+ *   BIR OZ ANIQROQ    — WHAT specifically about EACH chosen interest?
+ *                       Deterministic per-item mini-questions, never a
+ *                       sentence generated from arbitrary custom text
+ *                       (context-aware-selection spec §11–14).
  *   SEVIMLI MASHG‘ULOTI — WHAT does the child actually love DOING?
  *                       (an action, in the adult's words)
  *   ORZUSI            — WHAT does the child dream of becoming — asked
@@ -25,18 +27,21 @@
  * the child's character.
  */
 
-import type { ChildProfile } from "./types";
+import type { ChildProfile, InterestAnswer } from "./types";
 
 export type Locale = "uz" | "en";
 
 // ── Prepared interest categories — all NOUNS/topics, never activities
 //    (an activity is Q3's job; mixing the two blurs Q1 and Q3 into the
-//    same question in different words) ────────────────────────────
+//    same question in different words). Specific enough to teach the
+//    adult the LEVEL of detail expected — the list doesn't need to
+//    cover every child (context-aware-selection spec §06). ──────────
 export const INTEREST_KEYS = [
   "football",
   "cars",
   "planes",
-  "animals",
+  "kittens",
+  "wildAnimals",
   "books",
   "nature",
   "music",
@@ -44,91 +49,31 @@ export const INTEREST_KEYS = [
 ] as const;
 export type InterestKey = (typeof INTEREST_KEYS)[number];
 
-export const MAX_PRIMARY_INTERESTS = 2;
+/** Both preset and custom answers count toward this same cap. */
+export const MAX_PRIMARY_INTERESTS = 3;
 
 const INTEREST_LABELS: Record<InterestKey, Record<Locale, string>> = {
   football: { uz: "Futbol", en: "Football" },
   cars: { uz: "Mashinalar", en: "Cars" },
   planes: { uz: "Samolyotlar", en: "Planes" },
-  animals: { uz: "Hayvonlar", en: "Animals" },
+  kittens: { uz: "Mushukchalar", en: "Kittens" },
+  wildAnimals: { uz: "Yovvoyi hayvonlar", en: "Wild animals" },
   books: { uz: "Kitoblar", en: "Books" },
   nature: { uz: "Tabiat", en: "Nature" },
   music: { uz: "Musiqa", en: "Music" },
-  drawings: { uz: "Rasmlar", en: "Drawings" },
-};
-
-/** Q2's per-topic "what specifically" example — short, concrete, and
- *  joined (spec §05) into the deepening question's helper text. */
-const DEEPEN_EXAMPLES: Record<InterestKey, Record<Locale, string>> = {
-  football: {
-    uz: "darvozabonlik yoki sevimli jamoasi",
-    en: "playing in goal, or their favourite team",
-  },
-  cars: {
-    uz: "markalari, tezligi yoki qanday ishlashi",
-    en: "the brands, the speed, or how they work",
-  },
-  planes: {
-    uz: "turlari yoki qanday parvoz qilishi",
-    en: "the types, or how they fly",
-  },
-  animals: {
-    uz: "qaysi hayvon yoki ularning odatlari",
-    en: "which animal, or their habits",
-  },
-  books: {
-    uz: "qanday hikoyalar yoki qahramonlar",
-    en: "the stories, or the characters",
-  },
-  nature: {
-    uz: "qanday joylar yoki mavsumlar",
-    en: "which places, or seasons",
-  },
-  music: {
-    uz: "qanday ohang yoki cholg‘u asboblari",
-    en: "the sound, or an instrument",
-  },
-  drawings: {
-    uz: "nimalarni chizishni yoki qanday ranglar",
-    en: "what they draw, or the colours",
-  },
+  drawings: { uz: "Rasm", en: "Drawing" },
 };
 
 export function isInterestKey(v: string): v is InterestKey {
   return (INTEREST_KEYS as readonly string[]).includes(v);
 }
 
-/**
- * Q2's helper — built from the actual interests chosen in Q1, so the
- * example always matches what the adult just told us instead of a
- * generic one (spec §07: "examples exist to answer 'what should I
- * write here'"). Falls back to a topic-neutral line when every chosen
- * interest is the adult's own custom words (no prepared example
- * exists for free text).
- */
-export function deepenHelp(interests: string[] | undefined, locale: Locale): string {
-  const known = (interests ?? []).filter(isInterestKey);
-  if (known.length === 0) {
-    return locale === "uz"
-      ? "Masalan: bu narsaning aynan qaysi tomoni ko‘proq e’tiborini tortishini yozing."
-      : "For example, describe exactly which part of it catches their attention most.";
-  }
-  if (locale === "uz") {
-    const parts = known.map((k, i) => {
-      const topic = INTEREST_LABELS[k].uz.toLocaleLowerCase("uz");
-      const detail = DEEPEN_EXAMPLES[k].uz;
-      return i === 1 ? `${topic}da esa ${detail}` : `${topic}da ${detail}`;
-    });
-    return `Masalan: ${parts.join("; ")}.`;
-  }
-  const parts = known.map((k) => `in ${INTEREST_LABELS[k].en.toLowerCase()}, ${DEEPEN_EXAMPLES[k].en}`);
-  return `For example: ${parts.join("; ")}.`;
-}
-
-/** Display label for one stored interest — a prepared category maps to
- *  its label; the adult's own words are shown as typed. */
-export function interestLabel(v: string, locale: Locale): string {
-  return isInterestKey(v) ? INTEREST_LABELS[v][locale] : v.trim();
+/** Display label for one stored interest id — a prepared key maps to
+ *  its (locale-reactive) label; anything else is the adult's own
+ *  words, shown exactly as typed. Works the same for preset and
+ *  custom answers, which is the point (context-aware-selection §01). */
+export function interestLabel(id: string, locale: Locale): string {
+  return isInterestKey(id) ? INTEREST_LABELS[id][locale] : id.trim();
 }
 
 export function interestOptions(
@@ -144,9 +89,18 @@ function joinList(items: string[], locale: Locale): string {
   return clean.slice(0, -1).join(", ") + and + clean[clean.length - 1];
 }
 
-/** "sport · shaxmat" for the portrait row. */
-export function interestsDisplay(interests: string[] | undefined, locale: Locale): string {
-  return (interests ?? []).map((v) => interestLabel(v, locale)).join(" · ");
+/** "Futbol · Mushukchalar" for the portrait row. */
+export function interestsDisplay(interests: InterestAnswer[] | undefined, locale: Locale): string {
+  return (interests ?? []).map((a) => interestLabel(a.id, locale)).join(" · ");
+}
+
+/** All non-empty per-interest details, joined for the portrait's
+ *  "AYNIQSA YOQADI" row — never re-worded, shown as written. */
+export function interestDetailsDisplay(interests: InterestAnswer[] | undefined): string {
+  return (interests ?? [])
+    .map((a) => a.detail?.trim())
+    .filter((d): d is string => !!d)
+    .join(" · ");
 }
 
 // ── Copy shape ───────────────────────────────────────────────────
@@ -159,6 +113,12 @@ export interface Phase02Copy {
    *  screen is the merged introduction into Phase 02. */
   worldLabel: (name: string) => string;
 
+  /** The one selection-tray title reused everywhere a tray appears. */
+  trayTitle: string;
+  /** "{n} / {max} tanlandi" — shown once at least one is picked. */
+  selectionCount: (n: number, max: number) => string;
+  removeAnswer: (label: string) => string;
+
   // Q1 — QIZIQISHLARI: WHAT interests the child?
   q1Label: string;
   q1: (name: string) => string;
@@ -166,16 +126,25 @@ export interface Phase02Copy {
   customToggle: string;
   customPlaceholder: string;
   customAdd: string;
+  /** Shown once the cap is reached — calm, not an error. */
   interestLimitNote: string;
-  removeInterest: (label: string) => string;
   errInterests: string;
 
-  // Q2 — BIR OZ ANIQROQ: WHAT specifically about those interests?
-  //      Deepens Q1's own answer — never a second broad interest.
+  // Q2 — BIR OZ ANIQROQ: WHAT specifically about EACH chosen interest?
+  //      Deterministic per-item questions — never a sentence generated
+  //      from arbitrary custom text (spec §11–14).
   q2Label: string;
-  q2: (name: string, interestsText: string) => string;
+  q2: (name: string) => string;
+  q2Help: string;
+  /** The one universal example — works for ANY interest, preset or
+   *  custom, because it never names the interest itself (spec §13). */
+  q2Example: string;
+  /** The neutral per-item heading question, under each interest's own
+   *  label (spec §12: "Bunda aynan nima X ga ko‘proq yoqadi?"). */
+  q2ItemQuestion: (name: string) => string;
   q2Placeholder: string;
-  q2Skip: string;
+  q2SkipLabel: string;
+  q2SkipSupport: string;
 
   // Q3 — SEVIMLI MASHG‘ULOTI: WHAT does the child actually love DOING?
   q3Label: string;
@@ -227,23 +196,29 @@ const uz: Phase02Copy = {
 
   worldLabel: (name) => `${name.trim()}ning dunyosi`,
 
+  trayTitle: "Tanladingiz",
+  selectionCount: (n, max) => `${n} / ${max} tanlandi`,
+  removeAnswer: (label) => `“${label}” ni olib tashlash`,
+
   q1Label: "QIZIQISHLARI",
   q1: (name) => `${name.trim()}ni ayniqsa nimalar qiziqtiradi?`,
   q1Help:
-    "Ko‘rsa, eshitsa yoki gap ochilsa darrov e’tiborini tortadigan narsalarni o‘ylab ko‘ring.",
-  customToggle: "Ro‘yxatda yo‘qmi? O‘zingiz yozing",
-  customPlaceholder: "Masalan: shaxmat, samolyotlar, pishirish...",
+    "Ko‘rsa, eshitsa yoki gap ochilsa darrov e’tiborini tortadigan narsalarni tanlang yoki o‘zingiz yozing. 3 tagacha tanlashingiz mumkin.",
+  customToggle: "＋ Boshqa qiziqishini yozish",
+  customPlaceholder: "Masalan: dinozavrlar, poyezdlar, kosmos...",
   customAdd: "Qo‘shish",
-  interestLimitNote:
-    "Hozircha 2 tasi — birini olib tashlab, o‘rniga boshqasini qo‘shsangiz bo‘ladi.",
-  removeInterest: (label) => `“${label}” ni olib tashlash`,
+  interestLimitNote: "3 ta asosiy qiziqishni tanladingiz. Birini olib tashlab, o‘rniga boshqasini qo‘shsangiz bo‘ladi.",
   errInterests: "Iltimos, kamida bittasini belgilang yoki yozing.",
 
   q2Label: "BIR OZ ANIQROQ",
-  q2: (name, interestsText) =>
-    `${name.trim()} uchun ${interestsText}ning aynan nimasi ko‘proq yoqadi?`,
+  q2: (name) => `Tanlaganlaringizning aynan nimasi ${name.trim()}ga ko‘proq yoqadi?`,
+  q2Help: "Har biriga bir necha so‘z bilan aniqlik kiritsangiz yetarli.",
+  q2Example:
+    "Masalan: qaysi turi, qanday xususiyati yoki undagi aynan nima uning e’tiborini tortishini yozishingiz mumkin.",
+  q2ItemQuestion: (name) => `Bunda aynan nima ${name.trim()}ga ko‘proq yoqadi?`,
   q2Placeholder: "Bir necha so‘z bilan yozing...",
-  q2Skip: "Asosiylarini esladik",
+  q2SkipLabel: "Asosiylarini esladik",
+  q2SkipSupport: "Boshqa muhim detal bo‘lmasa, shuni belgilang va davom eting.",
 
   q3Label: "SEVIMLI MASHG‘ULOTI",
   q3: (name) => `${name.trim()} nima qilayotganda vaqtni ham unutib qo‘yadi?`,
@@ -291,22 +266,29 @@ const en: Phase02Copy = {
 
   worldLabel: (name) => `${name.trim()}'s world`,
 
+  trayTitle: "You've selected",
+  selectionCount: (n, max) => `${n} / ${max} selected`,
+  removeAnswer: (label) => `Remove “${label}”`,
+
   q1Label: "INTERESTS",
   q1: (name) => `What especially interests ${name.trim()}?`,
   q1Help:
-    "Think of what grabs their attention right away — something they love seeing, hearing about, or talking about.",
-  customToggle: "Not on the list? Write your own",
-  customPlaceholder: "For example: chess, planes, baking...",
+    "Choose whatever grabs their attention right away — something they love seeing, hearing about, or talking about — or write your own. You can pick up to 3.",
+  customToggle: "＋ Write another interest",
+  customPlaceholder: "For example: dinosaurs, trains, space...",
   customAdd: "Add",
-  interestLimitNote:
-    "Two for now — remove one to make room for another.",
-  removeInterest: (label) => `Remove “${label}”`,
+  interestLimitNote: "You've chosen 3 main interests. Remove one to make room for another.",
   errInterests: "Please choose at least one, or write your own.",
 
   q2Label: "A CLOSER LOOK",
-  q2: (name, interestsText) => `What exactly about ${interestsText} does ${name.trim()} enjoy most?`,
+  q2: (name) => `What exactly about the ones you picked does ${name.trim()} enjoy most?`,
+  q2Help: "A few words for each is enough.",
+  q2Example:
+    "For example, you can write which kind, what particular trait, or exactly what about it catches their attention.",
+  q2ItemQuestion: (name) => `What exactly about this does ${name.trim()} enjoy most?`,
   q2Placeholder: "A few words is enough...",
-  q2Skip: "We've got the main ones",
+  q2SkipLabel: "We've got the main ones",
+  q2SkipSupport: "If there's nothing else important, check this and continue.",
 
   q3Label: "FAVOURITE ACTIVITY",
   q3: (name) => `What does ${name.trim()} do that makes them lose all track of time?`,
@@ -356,14 +338,15 @@ export function phase02Copy(locale: string): Phase02Copy {
 // ── Natural summary — only from what the adult actually told us ───
 export function composeSummary(child: ChildProfile, locale: Locale): string {
   const parts: string[] = [];
-  const interests = (child.interests ?? []).map((v) => {
-    const l = interestLabel(v, locale);
+  const interests = (child.interests ?? []).map((a) => {
+    const l = interestLabel(a.id, locale);
     return locale === "uz" ? l.toLocaleLowerCase("uz") : l.toLowerCase();
   });
+  const details = interestDetailsDisplay(child.interests);
 
   if (locale === "uz") {
     if (interests.length) parts.push(`${joinList(interests, "uz")}ni yaxshi ko‘radi`);
-    if (child.interestDetail?.trim()) parts.push(child.interestDetail.trim());
+    if (details) parts.push(details);
     if (child.favoriteActivity?.trim() && !child.noFavoriteActivity) {
       parts.push(`ko‘proq berilib ketadigan mashg‘uloti — ${child.favoriteActivity.trim()}`);
     }
@@ -372,7 +355,7 @@ export function composeSummary(child: ChildProfile, locale: Locale): string {
     }
   } else {
     if (interests.length) parts.push(`loves ${joinList(interests, "en")}`);
-    if (child.interestDetail?.trim()) parts.push(child.interestDetail.trim());
+    if (details) parts.push(details);
     if (child.favoriteActivity?.trim() && !child.noFavoriteActivity) {
       parts.push(`gets absorbed in ${child.favoriteActivity.trim()}`);
     }

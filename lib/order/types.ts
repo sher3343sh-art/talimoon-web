@@ -42,6 +42,34 @@ export function emptyOrderer(): Orderer {
 export type DreamStatus = "has-dream" | "not-yet" | null;
 
 /**
+ * The shared answer model behind every multi-select-or-write-your-own
+ * question in Phase 02/03 (interests, appreciated qualities, growth
+ * behaviours). A preset and a custom answer become the SAME kind of
+ * data the moment either is chosen — later screens read this array,
+ * never a hardcoded assumption about which preset the adult picked.
+ *
+ * `id` is the stable identity: a prepared key ("football", "kind") for
+ * a preset, or the custom text itself for a custom answer (already
+ * de-duplicated against everything else in the list, so this is safe).
+ * Display text is resolved from `id` through that category's own
+ * locale-aware label lookup (`interestLabel` / `qualityLabel` /
+ * `growthFull`) — which already falls through to the raw text for
+ * anything that isn't a known key — so a preset's label stays correct
+ * if the orderer switches language mid-flow, and nothing needs to
+ * freeze a translated string on the object itself.
+ */
+export interface SelectableAnswer {
+  id: string;
+  source: "preset" | "custom";
+}
+
+/** An interest, plus its own optional deepening detail (spec: detail
+ *  lives on the SAME interest, never a separate array keyed by position). */
+export interface InterestAnswer extends SelectableAnswer {
+  detail?: string;
+}
+
+/**
  * "Yuragingizda qolgan gaplar" — the emotional bridge. Three
  * conceptually separate pieces, gathered per child, every one
  * optional.
@@ -84,12 +112,9 @@ export interface ChildProfile {
   relationship?: RecipientRelationship;
 
   // ── Phase 02 — "the child's world" (per child) ─────────────────
-  /** Up to 2 primary interests. A value that is a known interest key
-   *  (INTEREST_KEYS) is a prepared category; anything else is the
-   *  adult's own words. */
-  interests?: string[];
-  /** The deepening detail from question 02 (optional). */
-  interestDetail?: string;
+  /** Up to 3 primary interests — preset and custom answers side by
+   *  side in one array (spec: they must have equal status). */
+  interests?: InterestAnswer[];
   /** The absorbing activity, in the adult's words (question 03). */
   favoriteActivity?: string;
   /** Set when the adult says there is no single absorbing activity. */
@@ -105,19 +130,27 @@ export interface ChildProfile {
   phase02Done?: boolean;
 
   // ── Phase 03 — "the child's character" (per child) ─────────────
-  /** Up to 3 qualities the adult appreciates. Prepared key or the
-   *  adult's own words — never a judgement, always something valued. */
-  appreciatedQualities?: string[];
+  /** Up to 3 qualities the adult appreciates — preset and custom side
+   *  by side. Never a judgement, always something valued. */
+  appreciatedQualities?: SelectableAnswer[];
   /** A real moment those qualities show (optional free text). */
   qualityExample?: string;
-  /** ONE behaviour the adult would gently like to support. A prepared
-   *  key, the adult's own words, or "" when there is none. Describes a
-   *  behaviour, never labels the child. */
-  growthBehavior?: string;
-  /** Set when the adult says there is nothing in particular. */
+  /** Set when the adult says no example comes to mind right now —
+   *  mutually exclusive with `qualityExample` (spec §31). */
+  noQualityExample?: boolean;
+  /** Up to 3 behaviours the adult would gently like to support —
+   *  preset and custom side by side. Each describes a behaviour or
+   *  situation, never labels the child. */
+  growthBehaviors?: SelectableAnswer[];
+  /** Set when the adult says there is nothing in particular right now —
+   *  exclusive with `growthBehaviors` (spec §27). */
   noGrowthArea?: boolean;
-  /** When that behaviour usually shows (free text, only with a behaviour). */
+  /** When those behaviours usually show (free text, only with at least
+   *  one behaviour selected). */
   growthContext?: string;
+  /** Set when the adult says there's no particular situation —
+   *  mutually exclusive with `growthContext` (spec §31). */
+  noSpecificGrowthContext?: boolean;
   /** Up to 3 values the story should strengthen. */
   desiredValues?: string[];
   /** True once this child's Phase 03 conversation is finished. */
@@ -147,13 +180,41 @@ export function reconcileDream(status: DreamStatus): Partial<ChildProfile> {
 
 /**
  * When the adult switches to "nothing in particular", the growth
- * behaviour + context are stale and must not reach the portrait or
+ * behaviours + context are stale and must not reach the portrait or
  * the summary. Returns a patch clearing whatever no longer applies.
  */
 export function reconcileGrowth(hasBehavior: boolean): Partial<ChildProfile> {
   return hasBehavior
     ? { noGrowthArea: false }
-    : { noGrowthArea: true, growthBehavior: "", growthContext: "" };
+    : {
+        noGrowthArea: true,
+        growthBehaviors: [],
+        growthContext: "",
+        noSpecificGrowthContext: false,
+      };
+}
+
+/** Quality example ↔ "no example comes to mind" are mutually exclusive
+ *  (spec §22/§31) — entering one always clears the other. */
+export function reconcileQualityExample(hasExample: boolean): Partial<ChildProfile> {
+  return hasExample
+    ? { noQualityExample: false }
+    : { noQualityExample: true, qualityExample: "" };
+}
+
+/** Growth context ↔ "no particular situation" are mutually exclusive
+ *  (spec §30/§31) — entering one always clears the other. */
+export function reconcileGrowthContext(hasContext: boolean): Partial<ChildProfile> {
+  return hasContext
+    ? { noSpecificGrowthContext: false }
+    : { noSpecificGrowthContext: true, growthContext: "" };
+}
+
+/** A stable id for a CUSTOM selectable answer — the normalized text
+ *  itself, so duplicate detection and identity are the same check.
+ *  Presets use their prepared key directly as `id` instead. */
+export function makeCustomAnswerId(text: string): string {
+  return text.trim().replace(/\s+/g, " ");
 }
 
 /** A crypto-random id with a safe fallback for older browsers / SSR. */

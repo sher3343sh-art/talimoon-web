@@ -21,14 +21,14 @@ import { motion, useReducedMotion } from "framer-motion";
 import type { ChildProfile } from "@/lib/order/types";
 import {
   composeSummary,
+  interestDetailsDisplay,
   interestsDisplay,
   phase02Copy,
   type Locale,
 } from "@/lib/order/phase02-copy";
 import {
   composeCharSummary,
-  growthSoft,
-  isGrowthKey,
+  growthDisplay,
   phase03Copy,
   qualitiesDisplay,
   valuesDisplay,
@@ -43,8 +43,9 @@ function worldRows(child: ChildProfile, locale: Locale): Row[] {
   if (interests) {
     rows.push({ key: "loves", label: c.pLoves, value: interests });
   }
-  if (child.interestDetail?.trim()) {
-    rows.push({ key: "detail", label: c.pDetail, value: child.interestDetail.trim() });
+  const details = interestDetailsDisplay(child.interests);
+  if (details) {
+    rows.push({ key: "detail", label: c.pDetail, value: details });
   }
   if (child.favoriteActivity?.trim() && !child.noFavoriteActivity) {
     rows.push({ key: "absorbs", label: c.pAbsorbs, value: child.favoriteActivity.trim() });
@@ -70,15 +71,11 @@ function charRows(child: ChildProfile, locale: Locale): Row[] {
       sub: child.qualityExample?.trim() || undefined,
     });
   }
-  const g = child.growthBehavior?.trim();
-  if (g && !child.noGrowthArea) {
+  const growth = !child.noGrowthArea ? growthDisplay(child.growthBehaviors, locale) : "";
+  if (growth) {
     // A prepared behaviour is shown as its dignified word; the adult's
     // own words are shown as written (never re-worded).
-    rows.push({
-      key: "growth",
-      label: c.pGrowth,
-      value: isGrowthKey(g) ? growthSoft(g, locale) : g,
-    });
+    rows.push({ key: "growth", label: c.pGrowth, value: growth });
   }
   const values = valuesDisplay(child.desiredValues, locale);
   if (values) rows.push({ key: "values", label: c.pValues, value: values });

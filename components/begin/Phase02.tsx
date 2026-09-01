@@ -24,23 +24,28 @@
  * thing. Phase 03 (character) is NOT built here.
  */
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { ArrowLeft, ArrowRight, X } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { toLocale, directionFor } from "@/lib/journey/types";
-import { reconcileDream, type ChildProfile } from "@/lib/order/types";
+import {
+  reconcileDream,
+  type ChildProfile,
+  type InterestAnswer,
+} from "@/lib/order/types";
+import { addCustomAnswer, removeAnswer, togglePreset } from "@/lib/order/selectableAnswers";
 import {
   MAX_PRIMARY_INTERESTS,
-  deepenHelp,
   interestLabel,
   interestOptions,
-  isInterestKey,
   phase02Copy,
   type Locale,
 } from "@/lib/order/phase02-copy";
 import { JourneyProgress } from "./JourneyProgress";
 import { ChildWorld } from "./ChildWorld";
+import { SelectionTray } from "./SelectionTray";
+import { CheckRow } from "./CheckRow";
 
 type Screen = "interests" | "deepen" | "activity" | "dream" | "child-done";
 
@@ -68,7 +73,9 @@ export default function Phase02({
   const [attempted, setAttempted] = useState(false);
   const [customOpen, setCustomOpen] = useState(false);
   const [customDraft, setCustomDraft] = useState("");
-  const [limitHint, setLimitHint] = useState(false);
+  /** Purely a courtesy acknowledgment on the optional "deepen" screen —
+   *  it gates nothing, so it isn't persisted onto the child. */
+  const [detailsAcknowledged, setDetailsAcknowledged] = useState(false);
 
   const child = childrenIn[idx];
   const nextChild = childrenIn[idx + 1];
@@ -88,38 +95,39 @@ export default function Phase02({
     // between the direct-dream input and the adult-hope branch.
   }, [screen, idx, child.dreamStatus]);
 
-  // ── interests ─────────────────────────────────────────────────
+  // ── interests — preset and custom share one array (spec §01/§04) ─
   const interests = child.interests ?? [];
   const atLimit = interests.length >= MAX_PRIMARY_INTERESTS;
+  const resolveInterestLabel = (id: string) => interestLabel(id, locale);
 
   function toggleInterest(key: string) {
-    if (interests.includes(key)) {
-      patch({ interests: interests.filter((v) => v !== key) });
-      setLimitHint(false);
-      return;
-    }
-    if (atLimit) {
-      setLimitHint(true);
-      return;
-    }
-    patch({ interests: [...interests, key] });
+    const next = togglePreset<InterestAnswer>(interests, key, MAX_PRIMARY_INTERESTS, (id) => ({
+      id,
+      source: "preset",
+    }));
+    if (next === null) return; // at the cap — the count line already explains why
+    patch({ interests: next });
     setAttempted(false);
   }
-  function addCustom() {
-    const v = customDraft.trim();
-    if (!v) return;
-    if (atLimit) {
-      setLimitHint(true);
-      return;
-    }
-    if (interests.some((x) => x.toLocaleLowerCase() === v.toLocaleLowerCase())) {
-      setCustomDraft("");
-      return;
-    }
-    patch({ interests: [...interests, v] });
+  function addCustomInterest() {
+    const next = addCustomAnswer<InterestAnswer>(
+      interests,
+      customDraft,
+      MAX_PRIMARY_INTERESTS,
+      (id) => ({ id, source: "custom" }),
+      resolveInterestLabel,
+    );
+    if (next === null) return;
+    patch({ interests: next });
     setCustomDraft("");
     setCustomOpen(false);
     setAttempted(false);
+  }
+  function removeInterest(id: string) {
+    patch({ interests: removeAnswer(interests, id) });
+  }
+  function setInterestDetail(id: string, detail: string) {
+    patch({ interests: interests.map((a) => (a.id === id ? { ...a, detail } : a)) });
   }
 
   // ── validity per scene ────────────────────────────────────────
@@ -154,7 +162,6 @@ export default function Phase02({
       return;
     }
     setAttempted(false);
-    setLimitHint(false);
     switch (screen) {
       case "interests":
         setScreen("deepen");
@@ -175,6 +182,7 @@ export default function Phase02({
         } else {
           setIdx((i) => i + 1);
           setScreen("interests");
+          setDetailsAcknowledged(false);
         }
         break;
     }
@@ -182,7 +190,6 @@ export default function Phase02({
 
   function goPrev() {
     setAttempted(false);
-    setLimitHint(false);
     switch (screen) {
       case "interests":
         if (idx === 0) onBack();
@@ -221,22 +228,6 @@ export default function Phase02({
         ? c.continue
         : c.nextChildCta(nextChild.name)
       : c.continue;
-
-  // helper: answer-aware interests text for the deepen ack
-  const interestsText = useMemo(
-    () =>
-      (child.interests ?? [])
-        .map((val) => {
-          const l = interestLabel(val, locale);
-          return locale === "uz" ? l.toLocaleLowerCase("uz") : l.toLowerCase();
-        })
-        .reduce((acc, cur, i, arr) => {
-          if (i === 0) return cur;
-          const sep = i === arr.length - 1 ? (locale === "uz" ? " va " : " and ") : ", ";
-          return acc + sep + cur;
-        }, ""),
-    [child.interests, locale],
-  );
 
   return (
     <section
@@ -278,7 +269,9 @@ export default function Phase02({
 
                     <div className="mt-6 flex flex-wrap gap-2.5">
                       {interestOptions(locale).map((opt) => {
-                        const active = interests.includes(opt.key);
+                        const active = interests.some(
+                          (a) => a.source === "preset" && a.id === opt.key,
+                        );
                         return (
                           <button
                             key={opt.key}
@@ -293,41 +286,14 @@ export default function Phase02({
                       })}
                     </div>
 
-                    {/* custom interests already added */}
-                    {interests.some((v) => !isInterestKey(v)) && (
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {interests
-                          .filter((v) => !isInterestKey(v))
-                          .map((v) => (
-                            <span
-                              key={v}
-                              className="inline-flex items-center gap-1.5 rounded-md border border-accent-primary bg-accent-primary/[0.08] py-1.5 pe-1.5 ps-3 font-sans text-[14px] font-semibold text-text-primary"
-                            >
-                              {v}
-                              <button
-                                type="button"
-                                onClick={() => toggleInterest(v)}
-                                aria-label={c.removeInterest(v)}
-                                className="flex h-5 w-5 items-center justify-center rounded-full text-text-secondary hover:text-text-primary"
-                              >
-                                <X size={13} strokeWidth={2} />
-                              </button>
-                            </span>
-                          ))}
-                      </div>
-                    )}
-
                     <div className="mt-4">
                       {!customOpen ? (
                         <button
                           type="button"
                           onClick={() => setCustomOpen(true)}
-                          className="inline-flex items-center gap-1.5 font-sans text-[13.5px] font-medium text-text-secondary underline decoration-border-strong underline-offset-4 hover:text-text-primary"
+                          className={customToggleClass}
                         >
                           {c.customToggle}
-                          <span aria-hidden="true" className="text-accent-primary">
-                            +
-                          </span>
                         </button>
                       ) : (
                         <div className="flex flex-wrap items-end gap-2">
@@ -339,7 +305,7 @@ export default function Phase02({
                             onKeyDown={(e) => {
                               if (e.key === "Enter") {
                                 e.preventDefault();
-                                addCustom();
+                                addCustomInterest();
                               }
                             }}
                             placeholder={c.customPlaceholder}
@@ -349,7 +315,7 @@ export default function Phase02({
                           />
                           <button
                             type="button"
-                            onClick={addCustom}
+                            onClick={addCustomInterest}
                             className="rounded-md border border-border-strong px-3.5 py-2 font-sans text-[13.5px] font-medium text-text-primary hover:border-accent-primary"
                           >
                             {c.customAdd}
@@ -358,7 +324,21 @@ export default function Phase02({
                       )}
                     </div>
 
-                    {limitHint && <Help tone="hint">{c.interestLimitNote}</Help>}
+                    <SelectionTray
+                      title={c.trayTitle}
+                      items={interests.map((a) => ({ id: a.id, label: resolveInterestLabel(a.id) }))}
+                      onRemove={removeInterest}
+                      removeLabel={c.removeAnswer}
+                      reduced={!!reduced}
+                    />
+                    {interests.length > 0 && (
+                      <p className="mt-3 font-sans text-[12.5px] font-medium text-text-secondary">
+                        {atLimit
+                          ? c.interestLimitNote
+                          : c.selectionCount(interests.length, MAX_PRIMARY_INTERESTS)}
+                      </p>
+                    )}
+
                     <ErrorLine>{showError}</ErrorLine>
                   </fieldset>
                 )}
@@ -366,25 +346,43 @@ export default function Phase02({
                 {screen === "deepen" && (
                   <div>
                     <EditorialLabel>{c.q2Label}</EditorialLabel>
-                    <Heading headingRef={headingRef}>{c.q2(child.name, interestsText)}</Heading>
-                    <Help>{deepenHelp(child.interests, locale)}</Help>
-                    <div className="mt-6">
-                      <textarea
-                        rows={2}
-                        value={child.interestDetail ?? ""}
-                        onChange={(e) => patch({ interestDetail: e.target.value })}
-                        placeholder={c.q2Placeholder}
-                        className={box}
+                    <Heading headingRef={headingRef}>{c.q2(child.name)}</Heading>
+                    <Help>{c.q2Help}</Help>
+                    <Help>{c.q2Example}</Help>
+
+                    <div className="mt-7 space-y-6">
+                      {interests.map((a) => (
+                        <div key={a.id}>
+                          <p
+                            className="font-sans text-[11px] font-semibold uppercase tracking-[0.14em] text-text-muted"
+                          >
+                            {resolveInterestLabel(a.id)}
+                          </p>
+                          <p className="mt-1.5 font-sans text-[14.5px] font-medium text-text-primary">
+                            {c.q2ItemQuestion(child.name)}
+                          </p>
+                          <div className="mt-2.5">
+                            <input
+                              type="text"
+                              value={a.detail ?? ""}
+                              onChange={(e) => setInterestDetail(a.id, e.target.value)}
+                              placeholder={c.q2Placeholder}
+                              className={underline + " w-full"}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="mt-7">
+                      <CheckRow
+                        id="p2-deepen-ack"
+                        checked={detailsAcknowledged}
+                        onChange={setDetailsAcknowledged}
+                        label={c.q2SkipLabel}
+                        support={c.q2SkipSupport}
                       />
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => setScreen("activity")}
-                      className="mt-3 inline-flex items-center gap-1.5 font-sans text-[13.5px] font-medium text-text-secondary hover:text-text-primary"
-                    >
-                      {c.q2Skip}
-                      <ArrowRight size={13} strokeWidth={1.75} className="rtl:-scale-x-100" />
-                    </button>
                   </div>
                 )}
 
@@ -408,20 +406,19 @@ export default function Phase02({
                         aria-invalid={showError ? true : undefined}
                       />
                     </div>
-                    <label className="mt-3 inline-flex cursor-pointer items-center gap-2 font-sans text-[13.5px] text-text-secondary">
-                      <input
-                        type="checkbox"
+                    <div className="mt-3">
+                      <CheckRow
+                        id="p2-no-activity"
                         checked={!!child.noFavoriteActivity}
-                        onChange={(e) =>
+                        onChange={(checked) =>
                           patch({
-                            noFavoriteActivity: e.target.checked,
-                            ...(e.target.checked ? { favoriteActivity: "" } : {}),
+                            noFavoriteActivity: checked,
+                            ...(checked ? { favoriteActivity: "" } : {}),
                           })
                         }
-                        className="h-4 w-4 accent-[var(--accent-primary)]"
+                        label={c.q3None}
                       />
-                      {c.q3None}
-                    </label>
+                    </div>
                     <ErrorLine>{showError}</ErrorLine>
                   </div>
                 )}
@@ -497,16 +494,18 @@ export default function Phase02({
                             aria-invalid={showError ? true : undefined}
                           />
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            patch(reconcileDream("not-yet"));
-                            setAttempted(false);
-                          }}
-                          className="mt-3 inline-flex items-center gap-1.5 font-sans text-[13.5px] font-medium text-text-secondary hover:text-text-primary"
-                        >
-                          {c.q4NotYet}
-                        </button>
+                        <div className="mt-4">
+                          <CheckRow
+                            id="p2-no-dream"
+                            checked={false}
+                            onChange={(checked) => {
+                              if (!checked) return;
+                              patch(reconcileDream("not-yet"));
+                              setAttempted(false);
+                            }}
+                            label={c.q4NotYet}
+                          />
+                        </div>
                         <ErrorLine>{showError}</ErrorLine>
                       </motion.div>
                     )}
@@ -663,3 +662,6 @@ function choiceClass(active: boolean): string {
       : "border-border-default text-text-secondary hover:border-border-strong hover:text-text-primary",
   ].join(" ");
 }
+
+const customToggleClass =
+  "inline-flex items-center gap-1.5 font-sans text-[13.5px] font-medium text-text-secondary underline decoration-border-strong underline-offset-4 hover:text-text-primary";
