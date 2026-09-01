@@ -891,45 +891,49 @@ body {
 }
 
 /* ── Home HAYOT gateway — three INDEPENDENT cards in one slow,
-   CONTINUOUS orbit. NOT a slideshow: no hold, no active slide, no
-   timer, no easing pauses. One CSS keyframe with LINEAR timing (so
-   constant velocity) carries each card forever around the same path —
-   a card grows dominant as it nears centre and eases back as it
-   leaves, and never stops. The three cards run the same keyframe
-   phased exactly a third of the 22s loop apart, so one is always
-   passing through centre while the others flank it and recede behind.
+   CONTINUOUS elliptical orbit. NOT a slideshow: no active slide, no
+   discrete front/side/back states, no z-index steps. A tiny JS
+   `requestAnimationFrame` loop (see HayotGateway.tsx) advances ONE
+   linear phase per card — `angle = elapsedTime * speed + cardPhase`,
+   120° apart — and writes only two continuous numbers per frame onto
+   each card: `--hg-x` (sin, -1..1) and `--hg-depth` (cos, -1..1).
+   Every visual property below — position, forward/back travel, scale,
+   opacity, tilt, shadow — is a `calc()` of those two numbers, so the
+   card glides through every value in between; there is no keyframe
+   step and nothing to "pop" between. z-index is written by the same
+   loop, ranked by `--hg-depth` each frame — the only moment two cards'
+   ranks swap is when their depth is equal, i.e. the instant they are
+   visually identical, so the swap is unseeable. `prefers-reduced-motion`
+   skips the rAF loop entirely and the cards hold the t=0 values below
+   as a static composition.
 
    Not faces of one object: no `perspective` / `preserve-3d` on any
-   ancestor, no parent/track rotation. Each card carries its OWN
-   `perspective()` inside its OWN transform around its OWN
-   transform-origin — the cards share no axis. rotateY stays a
-   barely-there ±10–12°; the depth read is position + scale + a
-   whisper of opacity + soft shadow.
-
-   z-index ramps continuously with orbit position (higher = nearer
-   centre), so the most-central card is always in front and the steps
-   between keyframes are too small to read as a "pop". The 100% frame
-   is byte-identical to 0% → seamless loop. Motion continues through
-   hover; prefers-reduced-motion stops it on a stable composition
-   (each card holds its inline t=0 pose — no jump). */
+   ancestor. Each card carries its OWN `perspective()` inside its OWN
+   transform around a centred transform-origin — the cards share no
+   axis. rotateY stays a barely-there ±9–10°; the orbit read comes from
+   x-position + depth + scale + opacity + shadow, not perspective. */
 [data-hg-carousel] {
   --hg-card-w: 82%;
   --hg-shift: 34%;
   --hg-fwd: 28px;
+  --hg-back-z: -50px;
+  --hg-back-scale: 0.82;
+  --hg-back-op: 0.6;
+  --hg-back-radius: 0.55;
   --hg-persp: 1200px;
-  --hg-ry: 10deg;
-  --hg-side-scale: 0.87;
-  --hg-side-op: 0.82;
+  --hg-ry: 9deg;
 }
 @media (min-width: 640px) {
   [data-hg-carousel] {
     --hg-card-w: 74%;
     --hg-shift: 37%;
     --hg-fwd: 34px;
+    --hg-back-z: -60px;
+    --hg-back-scale: 0.82;
+    --hg-back-op: 0.6;
+    --hg-back-radius: 0.55;
     --hg-persp: 1400px;
-    --hg-ry: 11deg;
-    --hg-side-scale: 0.87;
-    --hg-side-op: 0.82;
+    --hg-ry: 9.5deg;
   }
 }
 @media (min-width: 1024px) {
@@ -937,111 +941,36 @@ body {
     --hg-card-w: 68%;
     --hg-shift: 37%;
     --hg-fwd: 40px;
+    --hg-back-z: -70px;
+    --hg-back-scale: 0.8;
+    --hg-back-op: 0.58;
+    --hg-back-radius: 0.52;
     --hg-persp: 1500px;
-    --hg-ry: 12deg;
-    --hg-side-scale: 0.87;
-    --hg-side-op: 0.82;
+    --hg-ry: 10deg;
   }
 }
 
-/* One continuous pass: LEFT → (grows) → CENTRE → (eases back) → RIGHT
-   → swings behind, receded → back to LEFT. 0% and 100% are identical.
-   translateX is a multiple of the card's OWN width, so nothing is
-   measured against a shared centre. */
-@keyframes hg-orbit {
-  0% {
-    transform: perspective(var(--hg-persp)) translateX(-50%)
-      translateX(calc(var(--hg-shift) * -1)) translateZ(0px) rotateY(var(--hg-ry))
-      scale(0.87);
-    opacity: 0.82;
-    z-index: 13;
-  }
-  8.333% {
-    transform: perspective(var(--hg-persp)) translateX(-50%)
-      translateX(calc(var(--hg-shift) * -0.72)) translateZ(6px)
-      rotateY(calc(var(--hg-ry) * 0.78)) scale(0.9);
-    opacity: 0.86;
-    z-index: 16;
-  }
-  16.667% {
-    transform: perspective(var(--hg-persp)) translateX(-50%)
-      translateX(calc(var(--hg-shift) * -0.46)) translateZ(16px)
-      rotateY(calc(var(--hg-ry) * 0.52)) scale(0.93);
-    opacity: 0.91;
-    z-index: 21;
-  }
-  25% {
-    transform: perspective(var(--hg-persp)) translateX(-50%)
-      translateX(calc(var(--hg-shift) * -0.22)) translateZ(30px)
-      rotateY(calc(var(--hg-ry) * 0.26)) scale(0.965);
-    opacity: 0.965;
-    z-index: 26;
-  }
-  33.333% {
-    transform: perspective(var(--hg-persp)) translateX(-50%) translateX(0px)
-      translateZ(var(--hg-fwd)) rotateY(0deg) scale(1);
-    opacity: 1;
-    z-index: 30;
-  }
-  41.667% {
-    transform: perspective(var(--hg-persp)) translateX(-50%)
-      translateX(calc(var(--hg-shift) * 0.22)) translateZ(30px)
-      rotateY(calc(var(--hg-ry) * -0.26)) scale(0.965);
-    opacity: 0.965;
-    z-index: 24;
-  }
-  50% {
-    transform: perspective(var(--hg-persp)) translateX(-50%)
-      translateX(calc(var(--hg-shift) * 0.46)) translateZ(16px)
-      rotateY(calc(var(--hg-ry) * -0.52)) scale(0.93);
-    opacity: 0.91;
-    z-index: 19;
-  }
-  58.333% {
-    transform: perspective(var(--hg-persp)) translateX(-50%)
-      translateX(calc(var(--hg-shift) * 0.72)) translateZ(6px)
-      rotateY(calc(var(--hg-ry) * -0.78)) scale(0.9);
-    opacity: 0.86;
-    z-index: 14;
-  }
-  66.667% {
-    transform: perspective(var(--hg-persp)) translateX(-50%)
-      translateX(var(--hg-shift)) translateZ(0px)
-      rotateY(calc(var(--hg-ry) * -1)) scale(0.87);
-    opacity: 0.82;
-    z-index: 11;
-  }
-  75% {
-    transform: perspective(var(--hg-persp)) translateX(-50%)
-      translateX(calc(var(--hg-shift) * 0.52)) translateZ(-34px)
-      rotateY(calc(var(--hg-ry) * -0.5)) scale(0.82);
-    opacity: 0.68;
-    z-index: 5;
-  }
-  83.333% {
-    transform: perspective(var(--hg-persp)) translateX(-50%) translateX(0px)
-      translateZ(-54px) rotateY(0deg) scale(0.76);
-    opacity: 0.58;
-    z-index: 4;
-  }
-  91.667% {
-    transform: perspective(var(--hg-persp)) translateX(-50%)
-      translateX(calc(var(--hg-shift) * -0.52)) translateZ(-34px)
-      rotateY(calc(var(--hg-ry) * 0.5)) scale(0.82);
-    opacity: 0.68;
-    z-index: 5;
-  }
-  100% {
-    transform: perspective(var(--hg-persp)) translateX(-50%)
-      translateX(calc(var(--hg-shift) * -1)) translateZ(0px) rotateY(var(--hg-ry))
-      scale(0.87);
-    opacity: 0.82;
-    z-index: 13;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  [data-hg-card] {
-    animation: none !important;
-  }
+/* `--hg-x` / `--hg-depth` default to the CENTRE pose so the card is
+   never unstyled for a frame before JS attaches (matches the t=0
+   value HayotGateway.tsx also renders inline via SSR). */
+[data-hg-card] {
+  --hg-x: 0;
+  --hg-depth: 1;
+  --hg-depth-norm: calc((var(--hg-depth) + 1) / 2);
+  --hg-radius-factor: calc(
+    var(--hg-back-radius) + (1 - var(--hg-back-radius)) * var(--hg-depth-norm)
+  );
+  transform: perspective(var(--hg-persp)) translateX(-50%)
+    translateX(calc(var(--hg-x) * var(--hg-shift) * var(--hg-radius-factor)))
+    translateZ(
+      calc(var(--hg-back-z) + (var(--hg-fwd) - var(--hg-back-z)) * var(--hg-depth-norm))
+    )
+    rotateY(calc(var(--hg-x) * var(--hg-ry) * -1))
+    scale(calc(var(--hg-back-scale) + (1 - var(--hg-back-scale)) * var(--hg-depth-norm)));
+  opacity: calc(var(--hg-back-op) + (1 - var(--hg-back-op)) * var(--hg-depth-norm));
+  box-shadow:
+    0 calc(10px + 10px * var(--hg-depth-norm)) calc(28px + 20px * var(--hg-depth-norm))
+      calc(-14px - 6px * var(--hg-depth-norm)) rgba(28, 42, 58, 0.24),
+    0 calc(3px + 3px * var(--hg-depth-norm)) calc(10px + 8px * var(--hg-depth-norm))
+      calc(-4px - 4px * var(--hg-depth-norm)) rgba(28, 42, 58, 0.12);
 }

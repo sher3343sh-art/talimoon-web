@@ -30,6 +30,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { useEffect, useRef, type CSSProperties, type MutableRefObject } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { toLocale, worldName, type Locale } from '@/lib/journey/types';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
@@ -46,43 +47,75 @@ const HAIRLINE = 'rgba(28,42,58,0.14)';
 
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
-// ── The editorial gallery — three INDEPENDENT cards in ONE slow,
-//    continuous orbit. NOT a slideshow: no hold, no active slide, no
-//    timer. A single CSS keyframe with LINEAR timing carries each card
-//    forever around the same path — a card grows dominant as it nears
-//    centre and eases back as it leaves, never stopping. The three
-//    cards are phased a third of the loop apart, so one is always
-//    near centre while the others flank and recede.
+// ── The editorial gallery — three INDEPENDENT cards on ONE continuous
+//    elliptical orbit, driven by a `requestAnimationFrame` loop below
+//    (`useHayotOrbit`), not a CSS keyframe animation. Each card's phase
+//    is 120° apart on a single closed path:
 //
-//    Each card is its own absolutely-positioned panel with its OWN
-//    `perspective()` in its OWN transform and its OWN transform-origin
-//    — no shared 3D scene, no shared axis, no parent/track rotation.
-//    The rotateY is a barely-there ±11–12°.
+//      angle = elapsedTime * speed + cardPhase
+//      x     = sin(angle)   → -1 (left) .. +1 (right)
+//      depth = cos(angle)   → -1 (back) .. +1 (front/centre)
 //
-//    The three "resting" poses below (LEFT · CENTRE · RIGHT) are the
-//    loop's t=0 frame for each card, so they also serve as the stable
-//    prefers-reduced-motion composition with no jump. Geometry values
-//    + the `hg-orbit` path live in globals.css.
-const POSE_LEFT =
-  'perspective(var(--hg-persp)) translateX(-50%) translateX(calc(-1 * var(--hg-shift))) translateZ(0px) rotateY(var(--hg-ry)) scale(var(--hg-side-scale))';
-const POSE_CENTER =
-  'perspective(var(--hg-persp)) translateX(-50%) translateX(0px) translateZ(var(--hg-fwd)) rotateY(0deg) scale(1)';
-const POSE_RIGHT =
-  'perspective(var(--hg-persp)) translateX(-50%) translateX(var(--hg-shift)) translateZ(0px) rotateY(calc(-1 * var(--hg-ry))) scale(var(--hg-side-scale))';
+//    Every frame writes only `--hg-x` and `--hg-depth` onto each card;
+//    globals.css turns those two continuous numbers into position,
+//    forward/back travel, scale, opacity, tilt and shadow via calc() —
+//    so there is no discrete state, no keyframe step, nothing to pop.
+//    z-index is ranked by depth each frame too: two cards only ever
+//    swap rank at the instant their depth is equal, i.e. when they are
+//    visually identical, so the swap is unseeable.
+//
+//    ORBIT_PHASE below is also the t=0 frame rendered inline (so SSR
+//    and the first paint already match what the loop would compute at
+//    elapsed=0 — no jump on mount) and the static composition held
+//    under prefers-reduced-motion.
+const ORBIT_PERIOD_S = 22; // one full lap — keep the slow, unhurried pace
+const ORBIT_PHASE = [0, (2 * Math.PI) / 3, (4 * Math.PI) / 3] as const;
+const REST_POSE = ORBIT_PHASE.map((phase) => ({
+  x: Math.sin(phase),
+  depth: Math.cos(phase),
+}));
+/** t=0 z-index, ranked by depth — same rule the rAF loop applies every frame. */
+const REST_Z_INDEX = (() => {
+  const z: number[] = [];
+  [0, 1, 2]
+    .sort((a, b) => REST_POSE[b].depth - REST_POSE[a].depth)
+    .forEach((cardIndex, rank) => {
+      z[cardIndex] = 30 - rank * 10;
+    });
+  return z;
+})();
 
-/** t=0 of the orbit: card 0 → LEFT · card 1 → CENTRE · card 2 → RIGHT.
- *  The negative delays put each card a third of the 22s loop ahead, so
- *  the three glide together and one is always passing through centre.
- *  Each card keeps its own transform-origin (its own box). */
-const CARD_POSE = [
-  { transform: POSE_LEFT, opacity: 'var(--hg-side-op)', zIndex: 13, origin: '56% 50%' },
-  { transform: POSE_CENTER, opacity: 1, zIndex: 30, origin: '50% 50%' },
-  { transform: POSE_RIGHT, opacity: 'var(--hg-side-op)', zIndex: 11, origin: '44% 50%' },
-] as const;
-/** −22s/3 and −44s/3 — a clean third of the loop each. */
-const CARD_DELAY = ['0s', '-7.3333s', '-14.6667s'] as const;
-const ORBIT_DURATION = '22s';
-const CARD_SHADOW = '0 14px 40px -16px rgba(28,42,58,0.24), 0 3px 12px -6px rgba(28,42,58,0.12)';
+function useHayotOrbit(
+  cardRefs: MutableRefObject<Array<HTMLDivElement | null>>,
+  reduced: boolean,
+) {
+  useEffect(() => {
+    if (reduced) return;
+    let raf = 0;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const angle = (((now - start) / 1000) / ORBIT_PERIOD_S) * Math.PI * 2;
+      const depths: number[] = [];
+      cardRefs.current.forEach((el, i) => {
+        const a = angle + ORBIT_PHASE[i];
+        const depth = Math.cos(a);
+        depths[i] = depth;
+        el?.style.setProperty('--hg-x', Math.sin(a).toFixed(4));
+        el?.style.setProperty('--hg-depth', depth.toFixed(4));
+      });
+      // rank by depth (front = highest); swaps only where depths tie.
+      [0, 1, 2]
+        .sort((a, b) => depths[b] - depths[a])
+        .forEach((cardIndex, rank) => {
+          const el = cardRefs.current[cardIndex];
+          if (el) el.style.zIndex = String(30 - rank * 10);
+        });
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [cardRefs, reduced]);
+}
 
 type FaceImage = { src: string; alt: string } | null;
 
@@ -151,33 +184,6 @@ const COPY: Record<Locale, Copy> = {
 
 const WORLD_KEYS = ['talimoon-life', 'parents', 'wisdom-science'] as const;
 
-/** The shared editorial crop marks — an inset hairline + four gold
- *  corner ticks. Used on the card's placeholder front and its back. */
-function CropFrame() {
-  return (
-    <>
-      <span
-        className="absolute inset-5 md:inset-7"
-        style={{ boxShadow: `inset 0 0 0 1px ${HAIRLINE}` }}
-      />
-      {(
-        [
-          'left-5 top-5 border-l border-t',
-          'right-5 top-5 border-r border-t',
-          'left-5 bottom-5 border-l border-b',
-          'right-5 bottom-5 border-r border-b',
-        ] as const
-      ).map((p) => (
-        <span
-          key={p}
-          className={`absolute h-3 w-3 md:h-3.5 md:w-3.5 ${p}`}
-          style={{ borderColor: 'rgba(184,147,91,0.5)' }}
-        />
-      ))}
-    </>
-  );
-}
-
 const GRAIN =
   'repeating-linear-gradient(135deg, rgba(28,42,58,0.022) 0 1px, transparent 1px 8px), radial-gradient(120% 90% at 78% 18%, rgba(184,147,91,0.06), transparent 60%)';
 
@@ -188,6 +194,9 @@ export function HayotGateway() {
   const locale = toLocale(language);
   const isRTL = locale === 'ar';
   const c = COPY[locale] ?? COPY.en;
+
+  const cardRefs = useRef<Array<HTMLDivElement | null>>([]);
+  useHayotOrbit(cardRefs, !!reduced);
 
   const rise = (delay: number) =>
     reduced
@@ -342,24 +351,26 @@ export function HayotGateway() {
               never connected. z-index alone orders them. */}
           <div className="absolute inset-0">
             {HAYOT_FACES.map((img, k) => {
-              const num = String(k + 1).padStart(2, '0');
               const label = worldName(WORLD_KEYS[k], locale);
-              const pose = CARD_POSE[k];
+              const rest = REST_POSE[k];
               return (
                 <div
                   key={k}
+                  ref={(el) => {
+                    cardRefs.current[k] = el;
+                  }}
                   data-hg-card
                   className="absolute inset-y-0 left-1/2 overflow-hidden rounded-[2px] will-change-transform [backface-visibility:hidden]"
-                  style={{
-                    width: 'var(--hg-card-w)',
-                    backgroundColor: PAPER,
-                    transformOrigin: pose.origin,
-                    transform: pose.transform,
-                    opacity: pose.opacity,
-                    zIndex: pose.zIndex,
-                    boxShadow: CARD_SHADOW,
-                    animation: `hg-orbit ${ORBIT_DURATION} linear ${CARD_DELAY[k]} infinite`,
-                  }}
+                  style={
+                    {
+                      width: 'var(--hg-card-w)',
+                      backgroundColor: PAPER,
+                      transformOrigin: '50% 50%',
+                      zIndex: REST_Z_INDEX[k],
+                      '--hg-x': rest.x.toFixed(4),
+                      '--hg-depth': rest.depth.toFixed(4),
+                    } as CSSProperties
+                  }
                 >
                   {img ? (
                     <Image
@@ -399,21 +410,6 @@ export function HayotGateway() {
                     />
                   ) : null}
 
-                  {/* ghosted folio numeral */}
-                  <span
-                    aria-hidden="true"
-                    className="absolute start-5 top-3 select-none text-[70px] leading-none sm:text-[96px] lg:top-4 lg:text-[112px]"
-                    style={{
-                      fontFamily: DISPLAY,
-                      fontWeight: 600,
-                      color: img
-                        ? 'rgba(255,255,255,0.22)'
-                        : 'rgba(184,147,91,0.18)',
-                    }}
-                  >
-                    {num}
-                  </span>
-
                   {/* world name, lower-left */}
                   <span
                     className="absolute bottom-5 start-5 end-5 block text-[17px] sm:text-[21px] lg:text-[24px]"
@@ -429,7 +425,6 @@ export function HayotGateway() {
                     {label}
                   </span>
 
-                  <CropFrame />
                   {/* the subtle ~1px warm gold-tinted frame */}
                   <span
                     aria-hidden="true"
