@@ -36,11 +36,17 @@ export interface DeliveryLocation {
 }
 
 export interface DeliveryAddress {
-  /** Viloyat */
-  region: string;
+  /** The customer's EXPLICIT choice — `undefined` until they answer
+   *  "Kitobni Sizga yetkazib beraylikmi?". Delivery is never assumed. */
+  choice?: "delivery" | "pickup";
+  /** Region CODE (see orderFormData `DELIVERY_REGIONS`). This — not any
+   *  free-text string — drives the delivery fee. Toshkent shahri
+   *  (`tashkent_city`) is free; every other region is `regionalDelivery`.
+   *  `""` until chosen. */
+  regionCode: string;
   /** Shahar / tuman */
-  cityDistrict: string;
-  /** Ko‘cha */
+  district: string;
+  /** Ko‘cha / mahalla */
   street: string;
   /** Uy / bino */
   building: string;
@@ -48,20 +54,28 @@ export interface DeliveryAddress {
   apartment?: string;
   /** Mo‘ljal — optional */
   landmark?: string;
-  /** Optional GPS pin (spec §44–49). */
+  /** Optional GPS pin — never a substitute for the written address. */
   location?: DeliveryLocation;
 }
 
 export function emptyDeliveryAddress(): DeliveryAddress {
-  return { region: "", cityDistrict: "", street: "", building: "" };
+  return { regionCode: "", district: "", street: "", building: "" };
 }
 
-/** The written address is enough on its own — a pin is never required
- *  (spec §44/§70). */
-export function isDeliveryAddressComplete(a: DeliveryAddress): boolean {
+/** True only when the customer actively asked for delivery. */
+export function deliveryRequired(a: DeliveryAddress): boolean {
+  return a.choice === "delivery";
+}
+
+/** Whether the delivery section is answered enough to continue:
+ *  pickup needs nothing; delivery needs a region + the core written
+ *  address (a pin is never required). */
+export function isDeliveryComplete(a: DeliveryAddress): boolean {
+  if (a.choice === "pickup") return true;
+  if (a.choice !== "delivery") return false;
   return (
-    a.region.trim().length > 0 &&
-    a.cityDistrict.trim().length > 0 &&
+    a.regionCode.trim().length > 0 &&
+    a.district.trim().length > 0 &&
     a.street.trim().length > 0 &&
     a.building.trim().length > 0
   );

@@ -8,17 +8,20 @@ import {
   BOOK_LANGUAGE_OPTIONS,
   BookLanguageCode,
   BookType,
+  DELIVERY_REGIONS,
   PAYMENT_METHODS,
   STEPS,
   TraitId,
-  calculatePrice,
+  calculateOrderTotal,
+  deliveryRegionLabel,
   formatSom,
 } from "./orderFormData";
 import {
   bookTypeForChildCount,
+  deliveryRequired,
   emptyChild,
   emptyOrderer,
-  isDeliveryAddressComplete,
+  isDeliveryComplete,
   type ChildProfile,
   type DeliveryAddress,
   type DeliveryLocation,
@@ -28,6 +31,7 @@ import {
 import Phase02 from "./Phase02";
 import Phase03 from "./Phase03";
 import EmotionalBridge from "./EmotionalBridge";
+import { SwitchRow } from "./Switch";
 import { ChildWorld } from "./ChildWorld";
 import { growthFull } from "@/lib/order/phase03-copy";
 import {
@@ -49,18 +53,35 @@ const CHROME_EN = {
   back: "Back",
   continue: "Continue",
   sendOrder: "Send order",
-  successHeading: "Your story is on its way",
-  successBody: (phone: string) =>
-    `We've received every detail. Our team will reach out on ${phone} once your book is ready to begin.`,
+
+  // Completion — the order is SUBMITTED, not in production. Review →
+  // confirmation → 5–7 day preparation → delivery notification.
+  doneHeading: "Your order has been received",
+  doneBody: [
+    "We've received all the information you provided. The TALIMOON team will now review it carefully.",
+    "If we need to clarify anything, we'll contact you. If everything is complete, we'll send you a message confirming your order.",
+    "Once confirmed, your book is usually prepared within 5–7 days. When it is ready, we'll contact you with the delivery details.",
+  ],
+  doneNote: "Order updates will be sent to the phone number you provided.",
 
   heroesLabel: "Heroes of this story",
   years: (age: number | null) => (age == null ? "" : `, ${age}`),
 
   phone: "Phone number",
-  deliveryHint: "Where should the finished book reach you?",
-  addrRegion: "Region",
-  addrCityDistrict: "City / district",
-  addrStreet: "Street",
+  // Delivery
+  deliveryQ: "Would you like us to deliver your book?",
+  deliveryYes: "Yes, I need delivery",
+  deliveryNo: "No, I'll collect it myself",
+  deliveryRegionField: "Region / area",
+  deliveryRegionPlaceholder: "Select…",
+  pickupSummary: "Self-pickup — no delivery fee",
+  deliveryFree: "Free",
+  rowBook: "Book",
+  rowExtraCopies: (n: number) => (n === 1 ? "Extra copy" : `Extra copies × ${n}`),
+  rowDelivery: "Delivery",
+  payAmount: "Amount to pay",
+  addrDistrict: "City / district",
+  addrStreet: "Street / mahalla",
   addrBuilding: "House / building",
   addrApartment: "Flat / unit",
   addrLandmark: "Landmark",
@@ -120,31 +141,46 @@ const CHROME_EN = {
   uploadReceipt: "Upload payment receipt",
 
   reviewLanguage: "Book language",
-  reviewAddress: "Delivery address",
+  reviewAddress: "Delivery",
   reviewCharacters: "Other characters",
   reviewPrivateNote: "Private note for TALIMOON",
   reviewPrivateHint: "Only used to understand the situation — not shown in the book.",
   reviewGrowthContext: "Situations",
 
-  errContact: "Please add a phone number and the full delivery address.",
+  errReview:
+    "Please add a phone number, choose the book language, and answer the delivery question (with a full address if you'd like delivery).",
 };
 
 const CHROME_UZ: typeof CHROME_EN = {
   back: "Orqaga",
   continue: "Davom etish",
   sendOrder: "Buyurtma yuborish",
-  successHeading: "Hikoyangiz yo'lda",
-  successBody: (phone: string) =>
-    `Barcha ma'lumotlarni qabul qildik. Kitobingiz tayyor bo'lganda jamoamiz ${phone} raqamiga bog'lanadi.`,
+
+  doneHeading: "Buyurtmangiz qabul qilindi",
+  doneBody: [
+    "Barcha ma’lumotlaringiz bizga yetib keldi. Endi TALIMOON jamoasi ularni diqqat bilan ko‘rib chiqadi.",
+    "Agar biror ma’lumotga aniqlik kiritish kerak bo‘lsa, Siz bilan bog‘lanamiz. Hammasi joyida bo‘lsa, buyurtmangiz tasdiqlangani haqida xabar yuboramiz.",
+    "Tasdiqlangandan so‘ng kitobingiz odatda 5–7 kun ichida tayyorlanadi. Tayyor bo‘lgach, yetkazib berish bo‘yicha Sizga alohida xabar beramiz.",
+  ],
+  doneNote: "Buyurtma holati bo‘yicha xabarlar Siz ko‘rsatgan telefon raqamiga yuboriladi.",
 
   heroesLabel: "Hikoya qahramonlari",
   years: (age: number | null) => (age == null ? "" : `, ${age} yosh`),
 
   phone: "Telefon raqami",
-  deliveryHint: "Tayyor kitob Sizga qayerga yetib borsin?",
-  addrRegion: "Viloyat",
-  addrCityDistrict: "Shahar / tuman",
-  addrStreet: "Ko‘cha",
+  deliveryQ: "Kitobni Sizga yetkazib beraylikmi?",
+  deliveryYes: "Ha, yetkazib berish kerak",
+  deliveryNo: "Yo‘q, o‘zim olib ketaman",
+  deliveryRegionField: "Viloyat / hudud",
+  deliveryRegionPlaceholder: "Tanlang…",
+  pickupSummary: "O‘zim olib ketaman — yetkazib berish to‘lovi yo‘q",
+  deliveryFree: "Bepul",
+  rowBook: "Kitob",
+  rowExtraCopies: (n: number) => (n === 1 ? "Qo‘shimcha nusxa" : `Qo‘shimcha nusxa × ${n}`),
+  rowDelivery: "Yetkazib berish",
+  payAmount: "To‘lov summasi",
+  addrDistrict: "Shahar / tuman",
+  addrStreet: "Ko‘cha / mahalla",
   addrBuilding: "Uy / bino",
   addrApartment: "Kvartira / xonadon",
   addrLandmark: "Mo‘ljal",
@@ -204,13 +240,14 @@ const CHROME_UZ: typeof CHROME_EN = {
   uploadReceipt: "To'lov chekini yuklang",
 
   reviewLanguage: "Kitob tili",
-  reviewAddress: "Yetkazish manzili",
+  reviewAddress: "Yetkazib berish",
   reviewCharacters: "Boshqa qahramonlar",
   reviewPrivateNote: "TALIMOON uchun shaxsiy izoh",
   reviewPrivateHint: "Faqat vaziyatni tushunish uchun — kitobda ko'rsatilmaydi.",
   reviewGrowthContext: "Vaziyatlar",
 
-  errContact: "Iltimos, telefon raqami va to'liq yetkazish manzilini kiriting.",
+  errReview:
+    "Iltimos, telefon raqamini kiriting, kitob tilini tanlang va yetkazib berish savoliga javob bering (yetkazib berish kerak bo‘lsa, to‘liq manzil bilan).",
 };
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -353,9 +390,25 @@ export default function PersonalizedBookOrderForm({
   const step = STEPS[stepIndex];
   const stepTitle = language === "UZ" ? step.titleUz : step.title;
   const isLastStep = stepIndex === STEPS.length - 1;
-  const price = useMemo(
-    () => calculatePrice(data.bookType, data.copies),
-    [data.bookType, data.copies],
+
+  // THE order total — one deterministic derivation the review breakdown
+  // AND the payment amount both read (spec D/F). Delivery is only ever
+  // billed when the customer actively chose it.
+  const wantsDelivery = deliveryRequired(data.orderer.deliveryAddress);
+  const totals = useMemo(
+    () =>
+      calculateOrderTotal({
+        bookType: data.bookType,
+        copies: data.copies,
+        deliveryRequired: wantsDelivery,
+        regionCode: data.orderer.deliveryAddress.regionCode,
+      }),
+    [
+      data.bookType,
+      data.copies,
+      wantsDelivery,
+      data.orderer.deliveryAddress.regionCode,
+    ],
   );
 
   function update<K extends keyof FormData>(
@@ -458,10 +511,13 @@ export default function PersonalizedBookOrderForm({
       case "photos":
         return data.childPhotos.length >= 3;
       case "review":
+        // Phone + book language + an answered delivery question. If the
+        // customer wants delivery, a region + core written address too;
+        // pickup needs nothing further (spec H).
         return (
           data.bookLanguageCode.length > 0 &&
           data.orderer.phone.trim().length > 5 &&
-          isDeliveryAddressComplete(data.orderer.deliveryAddress)
+          isDeliveryComplete(data.orderer.deliveryAddress)
         );
       case "payment":
         return true;
@@ -598,17 +654,26 @@ export default function PersonalizedBookOrderForm({
   }
 
   if (submitted) {
+    // The order is SUBMITTED — not in production. It goes SUBMITTED →
+    // REVIEW → CONFIRMED → PREPARATION (5–7 days) → READY → DELIVERY.
     return (
-      <section className="mx-auto flex min-h-[560px] w-full max-w-container-content flex-col items-center justify-center bg-surface-base px-6 py-16 text-center md:py-20 lg:py-28">
-        <span className="mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-accent-primary/[0.14]">
-          <Check size={24} strokeWidth={2} className="text-accent-primary" />
-        </span>
-        <h2 className="font-display text-[26px] font-medium text-text-primary">
-          {t.successHeading}
-        </h2>
-        <p className="mt-2 max-w-sm font-sans text-[14px] leading-[1.6] text-text-secondary">
-          {t.successBody(data.orderer.phone)}
-        </p>
+      <section className="mx-auto flex min-h-[560px] w-full max-w-container-content flex-col items-center bg-surface-base px-6 py-16 md:py-20 lg:py-28">
+        <div className="mx-auto max-w-md text-center">
+          <span className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-accent-primary/[0.14]">
+            <Check size={24} strokeWidth={2} className="text-accent-primary" />
+          </span>
+          <h2 className="font-display text-[26px] font-medium leading-tight text-text-primary">
+            {t.doneHeading}
+          </h2>
+          <div className="mt-4 space-y-3 font-sans text-[14px] leading-[1.65] text-text-secondary">
+            {t.doneBody.map((p, i) => (
+              <p key={i}>{p}</p>
+            ))}
+          </div>
+          <p className="mt-6 font-sans text-[12.5px] leading-[1.6] text-text-muted">
+            {t.doneNote}
+          </p>
+        </div>
       </section>
     );
   }
@@ -676,7 +741,7 @@ export default function PersonalizedBookOrderForm({
                 />
               </Field>
 
-              <ToggleRow
+              <SwitchRow
                 label={t.wantsPersonalMessage}
                 checked={data.wantsPersonalMessage}
                 onChange={(v) => update("wantsPersonalMessage", v)}
@@ -689,7 +754,7 @@ export default function PersonalizedBookOrderForm({
                 />
               )}
 
-              <ToggleRow
+              <SwitchRow
                 label={t.wantsCharacters}
                 checked={data.wantsCharacters}
                 onChange={(v) => update("wantsCharacters", v)}
@@ -720,7 +785,7 @@ export default function PersonalizedBookOrderForm({
                 onChange={(files) => update("childPhotos", files)}
               />
 
-              <ToggleRow
+              <SwitchRow
                 label={t.wantsSpecialPhoto}
                 checked={data.wantsSpecialPhoto}
                 onChange={(v) => update("wantsSpecialPhoto", v)}
@@ -896,11 +961,8 @@ export default function PersonalizedBookOrderForm({
                 </div>
               </Field>
 
-              {/* Delivery — the written address is primary; the pin is
-                  extra precision and never required (spec §42–49). */}
-              <p className="pt-1 font-sans text-[13px] text-text-secondary">
-                {t.deliveryHint}
-              </p>
+              {/* Contact number — the order's point of contact, needed
+                  whether or not there is delivery. */}
               <Field label={t.phone}>
                 <TextInput
                   type="tel"
@@ -910,87 +972,141 @@ export default function PersonalizedBookOrderForm({
                   placeholder="+998 90 123 45 67"
                 />
               </Field>
-              <div className="grid grid-cols-2 gap-4">
-                <Field label={t.addrRegion}>
-                  <TextInput
-                    autoComplete="address-level1"
-                    value={data.orderer.deliveryAddress.region}
-                    onChange={(e) => updateAddress("region", e.target.value)}
-                  />
-                </Field>
-                <Field label={t.addrCityDistrict}>
-                  <TextInput
-                    autoComplete="address-level2"
-                    value={data.orderer.deliveryAddress.cityDistrict}
-                    onChange={(e) => updateAddress("cityDistrict", e.target.value)}
-                  />
-                </Field>
-              </div>
-              <Field label={t.addrStreet}>
-                <TextInput
-                  autoComplete="address-line1"
-                  value={data.orderer.deliveryAddress.street}
-                  onChange={(e) => updateAddress("street", e.target.value)}
-                />
-              </Field>
-              <div className="grid grid-cols-2 gap-4">
-                <Field label={t.addrBuilding}>
-                  <TextInput
-                    value={data.orderer.deliveryAddress.building}
-                    onChange={(e) => updateAddress("building", e.target.value)}
-                  />
-                </Field>
-                <Field label={`${t.addrApartment} ${t.optional}`}>
-                  <TextInput
-                    value={data.orderer.deliveryAddress.apartment ?? ""}
-                    onChange={(e) => updateAddress("apartment", e.target.value)}
-                  />
-                </Field>
-              </div>
-              <Field label={`${t.addrLandmark} ${t.optional}`}>
-                <TextInput
-                  value={data.orderer.deliveryAddress.landmark ?? ""}
-                  onChange={(e) => updateAddress("landmark", e.target.value)}
-                  placeholder=""
-                />
+
+              {/* Delivery — an explicit choice, never assumed (spec C1). */}
+              <Field label={t.deliveryQ}>
+                <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                  {(["delivery", "pickup"] as const).map((choice) => {
+                    const on = data.orderer.deliveryAddress.choice === choice;
+                    return (
+                      <button
+                        key={choice}
+                        type="button"
+                        aria-pressed={on}
+                        onClick={() => updateAddress("choice", choice)}
+                        className={[
+                          "rounded-md border px-3.5 py-2.5 text-left font-sans text-[13.5px] font-medium transition-colors",
+                          on
+                            ? "border-accent-primary bg-accent-primary/[0.08] text-text-primary"
+                            : "border-border-default text-text-primary",
+                        ].join(" ")}
+                      >
+                        {choice === "delivery" ? t.deliveryYes : t.deliveryNo}
+                      </button>
+                    );
+                  })}
+                </div>
               </Field>
 
-              <div className="rounded-md border border-border-default p-4">
-                {data.orderer.deliveryAddress.location ? (
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="inline-flex items-center gap-2 font-sans text-[13px] font-medium text-text-primary">
-                      <MapPin size={15} strokeWidth={1.75} className="text-accent-primary" />
-                      {t.locationAttached}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={clearLocation}
-                      className="font-sans text-[12.5px] font-medium text-text-secondary underline underline-offset-4 hover:text-text-primary"
+              {data.orderer.deliveryAddress.choice === "pickup" && (
+                <p className="font-sans text-[13px] text-text-secondary">
+                  {t.pickupSummary}
+                </p>
+              )}
+
+              {wantsDelivery && (
+                <>
+                  {/* Region CODE drives the fee — never a free-text string.
+                      Toshkent shahri is free; every other region is 40 000. */}
+                  <Field label={t.deliveryRegionField}>
+                    <select
+                      className={inputClass}
+                      value={data.orderer.deliveryAddress.regionCode}
+                      onChange={(e) => updateAddress("regionCode", e.target.value)}
                     >
-                      {t.locationClear}
-                    </button>
+                      <option value="">{t.deliveryRegionPlaceholder}</option>
+                      {DELIVERY_REGIONS.map((r) => (
+                        <option key={r.code} value={r.code}>
+                          {bookLoc === "uz" ? r.labelUz : r.label}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+
+                  <Field label={t.addrDistrict}>
+                    <TextInput
+                      autoComplete="address-level2"
+                      value={data.orderer.deliveryAddress.district}
+                      onChange={(e) => updateAddress("district", e.target.value)}
+                    />
+                  </Field>
+                  <Field label={t.addrStreet}>
+                    <TextInput
+                      autoComplete="address-line1"
+                      value={data.orderer.deliveryAddress.street}
+                      onChange={(e) => updateAddress("street", e.target.value)}
+                    />
+                  </Field>
+                  <div className="grid grid-cols-2 gap-4">
+                    <Field label={t.addrBuilding}>
+                      <TextInput
+                        value={data.orderer.deliveryAddress.building}
+                        onChange={(e) => updateAddress("building", e.target.value)}
+                      />
+                    </Field>
+                    <Field label={`${t.addrApartment} ${t.optional}`}>
+                      <TextInput
+                        value={data.orderer.deliveryAddress.apartment ?? ""}
+                        onChange={(e) => updateAddress("apartment", e.target.value)}
+                      />
+                    </Field>
                   </div>
-                ) : (
-                  <>
-                    <button
-                      type="button"
-                      onClick={requestLocation}
-                      disabled={locState === "loading"}
-                      className="inline-flex items-center gap-2 rounded-md border border-border-strong px-3.5 py-2 font-sans text-[13px] font-medium text-text-primary transition-colors hover:border-accent-primary disabled:opacity-60"
-                    >
-                      <MapPin size={15} strokeWidth={1.75} className="text-accent-primary" />
-                      {locState === "loading" ? t.locationLoading : t.locationCta}
-                    </button>
-                    <p className="mt-2 font-sans text-[12px] leading-[1.5] text-text-secondary">
-                      {locState === "denied"
-                        ? t.locationDenied
-                        : locState === "unsupported"
-                          ? t.locationUnsupported
-                          : t.locationHint}
-                    </p>
-                  </>
-                )}
-              </div>
+                  <Field label={`${t.addrLandmark} ${t.optional}`}>
+                    <TextInput
+                      value={data.orderer.deliveryAddress.landmark ?? ""}
+                      onChange={(e) => updateAddress("landmark", e.target.value)}
+                    />
+                  </Field>
+
+                  <div className="rounded-md border border-border-default p-4">
+                    {data.orderer.deliveryAddress.location ? (
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="inline-flex items-center gap-2 font-sans text-[13px] font-medium text-text-primary">
+                          <MapPin size={15} strokeWidth={1.75} className="text-accent-primary" />
+                          {t.locationAttached}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={clearLocation}
+                          className="font-sans text-[12.5px] font-medium text-text-secondary underline underline-offset-4 hover:text-text-primary"
+                        >
+                          {t.locationClear}
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          onClick={requestLocation}
+                          disabled={locState === "loading"}
+                          className="inline-flex items-center gap-2 rounded-md border border-border-strong px-3.5 py-2 font-sans text-[13px] font-medium text-text-primary transition-colors hover:border-accent-primary disabled:opacity-60"
+                        >
+                          <MapPin size={15} strokeWidth={1.75} className="text-accent-primary" />
+                          {locState === "loading" ? t.locationLoading : t.locationCta}
+                        </button>
+                        <p className="mt-2 font-sans text-[12px] leading-[1.5] text-text-secondary">
+                          {locState === "denied"
+                            ? t.locationDenied
+                            : locState === "unsupported"
+                              ? t.locationUnsupported
+                              : t.locationHint}
+                        </p>
+                      </>
+                    )}
+                  </div>
+
+                  {/* The fee, shown immediately here — updates the moment
+                      the region changes (spec C7). */}
+                  <div className="flex items-center justify-between rounded-md border border-border-subtle px-4 py-3 font-sans text-[13px]">
+                    <span className="text-text-secondary">{t.rowDelivery}</span>
+                    <span className="font-medium text-text-primary">
+                      {totals.deliveryFee === 0
+                        ? t.deliveryFree
+                        : formatSom(totals.deliveryFee)}
+                    </span>
+                  </div>
+                </>
+              )}
 
               <Field label={t.numberOfCopies}>
                 <div className="flex items-center gap-4">
@@ -1016,18 +1132,48 @@ export default function PersonalizedBookOrderForm({
                 </div>
               </Field>
 
+              {/* Price breakdown — the customer must see WHY the total is
+                  what it is; the delivery fee is never hidden (spec D/E). */}
               <div className="rounded-lg border border-border-default p-5">
-                <div className="flex items-center justify-between font-sans text-[13.5px]">
-                  <span className="text-text-secondary">{t.total}</span>
-                  <span className="font-display text-[20px] font-medium text-text-primary">
-                    {formatSom(price)}
-                  </span>
+                <div className="space-y-2 font-sans text-[13.5px]">
+                  <div className="flex items-center justify-between">
+                    <span className="text-text-secondary">{t.rowBook}</span>
+                    <span className="text-text-primary">
+                      {formatSom(totals.bookSubtotal)}
+                    </span>
+                  </div>
+                  {data.copies > 1 && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-text-secondary">
+                        {t.rowExtraCopies(data.copies - 1)}
+                      </span>
+                      <span className="text-text-primary">
+                        {formatSom(totals.extraCopiesSubtotal)}
+                      </span>
+                    </div>
+                  )}
+                  {wantsDelivery && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-text-secondary">{t.rowDelivery}</span>
+                      <span className="text-text-primary">
+                        {totals.deliveryFee === 0
+                          ? t.deliveryFree
+                          : formatSom(totals.deliveryFee)}
+                      </span>
+                    </div>
+                  )}
+                  <div className="mt-1 flex items-center justify-between border-t border-border-subtle pt-2">
+                    <span className="text-text-secondary">{t.total}</span>
+                    <span className="font-display text-[20px] font-medium text-text-primary">
+                      {formatSom(totals.grandTotal)}
+                    </span>
+                  </div>
                 </div>
               </div>
 
               {showStepError && !canContinue() && (
                 <p role="alert" className="font-sans text-[13px] text-state-error">
-                  {t.errContact}
+                  {t.errReview}
                 </p>
               )}
             </>
@@ -1035,6 +1181,55 @@ export default function PersonalizedBookOrderForm({
 
           {step.id === "payment" && (
             <>
+              {/* The amount to pay IS the order grand total — same
+                  deterministic figure as the review breakdown (spec F). */}
+              <div className="rounded-lg border border-border-default p-5">
+                <div className="space-y-1.5 font-sans text-[13px]">
+                  <div className="flex items-center justify-between">
+                    <span className="text-text-secondary">{t.rowBook}</span>
+                    <span className="text-text-primary">
+                      {formatSom(totals.bookSubtotal)}
+                    </span>
+                  </div>
+                  {data.copies > 1 && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-text-secondary">
+                        {t.rowExtraCopies(data.copies - 1)}
+                      </span>
+                      <span className="text-text-primary">
+                        {formatSom(totals.extraCopiesSubtotal)}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between">
+                    <span className="text-text-secondary">
+                      {t.rowDelivery}
+                      {wantsDelivery &&
+                        data.orderer.deliveryAddress.regionCode &&
+                        ` · ${deliveryRegionLabel(
+                          data.orderer.deliveryAddress.regionCode,
+                          bookLoc,
+                        )}`}
+                    </span>
+                    <span className="text-text-primary">
+                      {wantsDelivery
+                        ? totals.deliveryFee === 0
+                          ? t.deliveryFree
+                          : formatSom(totals.deliveryFee)
+                        : t.pickupSummary}
+                    </span>
+                  </div>
+                  <div className="mt-1 flex items-center justify-between border-t border-border-subtle pt-2">
+                    <span className="font-medium text-text-secondary">
+                      {t.payAmount}
+                    </span>
+                    <span className="font-display text-[20px] font-medium text-text-primary">
+                      {formatSom(totals.grandTotal)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-3">
                 {PAYMENT_METHODS.map((method) => {
                   const active = data.paymentMethod === method.id;
@@ -1110,40 +1305,8 @@ export default function PersonalizedBookOrderForm({
 }
 
 // ─── Small shared components ────────────────────────────────────────────────
-
-function ToggleRow({
-  label,
-  checked,
-  onChange,
-}: {
-  label: string;
-  checked: boolean;
-  onChange: (v: boolean) => void;
-}) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      onClick={() => onChange(!checked)}
-      className="flex w-full items-center justify-between rounded-md border border-border-default px-3.5 py-3 transition-colors"
-    >
-      <span className="font-sans text-[13.5px] font-medium text-text-primary">{label}</span>
-      <span
-        aria-hidden="true"
-        className={[
-          "relative h-5 w-9 rounded-pill transition-colors",
-          checked ? "bg-accent-primary" : "bg-text-primary/[0.16]",
-        ].join(" ")}
-      >
-        <span
-          className="absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform"
-          style={{ transform: checked ? "translateX(18px)" : "translateX(2px)" }}
-        />
-      </span>
-    </button>
-  );
-}
+//    The switch/toggle lives in ./Switch (SwitchRow) — one deterministic
+//    geometry for every true on/off control in the flow.
 
 const MAX_PHOTO_BYTES = 15 * 1024 * 1024;
 

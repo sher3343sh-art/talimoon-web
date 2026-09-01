@@ -21,12 +21,21 @@ import { CreditCard, Globe, Heart, Camera } from "lucide-react";
 
 export type BookType = "single" | "multi";
 
+// ── Pricing — the single source of truth. PricingSection (product
+//    page) and the /begin order flow both read from here; nothing
+//    hardcodes a price. Book prices, extra-copy price and the regional
+//    delivery fee all live here so a change is a one-line diff.
 export const PRICING = {
-  single: { base: 500_000, pages: "15–20", label: "One child", labelUz: "Bitta farzand" },
-  multi: { base: 700_000, pages: "25–30", label: "Multiple children", labelUz: "Bir nechta farzand" },
+  single: { base: 499_000, pages: "15–20", label: "One child", labelUz: "Bitta farzand" },
+  multi: { base: 699_000, pages: "25–30", label: "Multiple children", labelUz: "Bir nechta farzand" },
   extraCopy: 300_000,
+  /** Flat fee for delivery to any supported region except Toshkent city. */
+  regionalDelivery: 40_000,
 } as const;
 
+/** Book price only — base + each ADDITIONAL copy (the first copy is
+ *  included in the base). Delivery is added separately, see
+ *  {@link calculateOrderTotal}. */
 export function calculatePrice(bookType: BookType, copies: number): number {
   const base = PRICING[bookType].base;
   return base + Math.max(0, copies - 1) * PRICING.extraCopy;
@@ -34,6 +43,96 @@ export function calculatePrice(bookType: BookType, copies: number): number {
 
 export function formatSom(amount: number): string {
   return amount.toLocaleString("en-US").replace(/,/g, " ") + " so'm";
+}
+
+// ── Delivery regions (Uzbekistan) — stable codes are the business
+//    identity; display labels never drive logic. Toshkent SHAHRI and
+//    Toshkent VILOYATI are deliberately separate codes: the city is
+//    free, the region is not.
+export type DeliveryRegionCode =
+  | "tashkent_city"
+  | "tashkent_region"
+  | "andijan"
+  | "bukhara"
+  | "fergana"
+  | "jizzakh"
+  | "khorezm"
+  | "namangan"
+  | "navoi"
+  | "kashkadarya"
+  | "karakalpakstan"
+  | "samarkand"
+  | "sirdarya"
+  | "surkhandarya";
+
+export interface DeliveryRegion {
+  code: DeliveryRegionCode;
+  label: string;
+  labelUz: string;
+}
+
+export const DELIVERY_REGIONS: readonly DeliveryRegion[] = [
+  { code: "tashkent_city", label: "Tashkent (city)", labelUz: "Toshkent shahri" },
+  { code: "tashkent_region", label: "Tashkent region", labelUz: "Toshkent viloyati" },
+  { code: "andijan", label: "Andijan", labelUz: "Andijon viloyati" },
+  { code: "bukhara", label: "Bukhara", labelUz: "Buxoro viloyati" },
+  { code: "fergana", label: "Fergana", labelUz: "Farg‘ona viloyati" },
+  { code: "jizzakh", label: "Jizzakh", labelUz: "Jizzax viloyati" },
+  { code: "khorezm", label: "Khorezm", labelUz: "Xorazm viloyati" },
+  { code: "namangan", label: "Namangan", labelUz: "Namangan viloyati" },
+  { code: "navoi", label: "Navoi", labelUz: "Navoiy viloyati" },
+  { code: "kashkadarya", label: "Kashkadarya", labelUz: "Qashqadaryo viloyati" },
+  { code: "karakalpakstan", label: "Karakalpakstan", labelUz: "Qoraqalpog‘iston" },
+  { code: "samarkand", label: "Samarkand", labelUz: "Samarqand viloyati" },
+  { code: "sirdarya", label: "Sirdarya", labelUz: "Sirdaryo viloyati" },
+  { code: "surkhandarya", label: "Surkhandarya", labelUz: "Surxondaryo viloyati" },
+] as const;
+
+/** Codes with free delivery. */
+export const FREE_DELIVERY_REGIONS: readonly DeliveryRegionCode[] = ["tashkent_city"];
+
+export function isDeliveryRegionCode(v: string): v is DeliveryRegionCode {
+  return DELIVERY_REGIONS.some((r) => r.code === v);
+}
+
+export function deliveryRegionLabel(code: string, locale: "uz" | "en"): string {
+  const r = DELIVERY_REGIONS.find((x) => x.code === code);
+  if (!r) return "";
+  return locale === "uz" ? r.labelUz : r.label;
+}
+
+/** The delivery fee for a region CODE — never a free-text string.
+ *  Empty / unknown code → 0. */
+export function deliveryFeeFor(regionCode: string): number {
+  if (!regionCode || !isDeliveryRegionCode(regionCode)) return 0;
+  return FREE_DELIVERY_REGIONS.includes(regionCode) ? 0 : PRICING.regionalDelivery;
+}
+
+export interface OrderTotals {
+  bookSubtotal: number;
+  extraCopiesSubtotal: number;
+  deliveryFee: number;
+  grandTotal: number;
+}
+
+/** THE deterministic order total. Every UI surface (review breakdown,
+ *  payment amount, any future submitted-order payload) derives from
+ *  this one function — no component recomputes pieces on its own. */
+export function calculateOrderTotal(opts: {
+  bookType: BookType;
+  copies: number;
+  deliveryRequired: boolean;
+  regionCode?: string;
+}): OrderTotals {
+  const bookSubtotal = PRICING[opts.bookType].base;
+  const extraCopiesSubtotal = Math.max(0, opts.copies - 1) * PRICING.extraCopy;
+  const deliveryFee = opts.deliveryRequired ? deliveryFeeFor(opts.regionCode ?? "") : 0;
+  return {
+    bookSubtotal,
+    extraCopiesSubtotal,
+    deliveryFee,
+    grandTotal: bookSubtotal + extraCopiesSubtotal + deliveryFee,
+  };
 }
 
 export const TRAITS = [
