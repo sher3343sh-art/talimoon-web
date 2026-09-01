@@ -26,7 +26,7 @@ const EN = {
   headline: 'From one story to a whole world.',
   worlds: [
     { key: 'books', name: 'Personalized Books', line: 'The child becomes the hero of their own story.' },
-    { key: 'yy', name: 'Yusuf & Yasmina', line: 'Values come alive through stories and adventures.' },
+    { key: 'yy', name: 'Yusuf & Yasmina', line: 'Characters a child can see a piece of themselves in. As the stories continue, knowledge, character, values and good habits grow along with them.' },
     { key: 'toys', name: 'TALIMOON Toys', line: 'The story leaves the page and reaches the child’s hands.' },
     { key: 'library', name: 'Story Library', line: 'Reading, listening and watching stories meet in one experience.' },
     { key: 'hayot', name: 'HAYOT — For Parents', line: 'Knowledge and reflections on parenting, a child’s world and everyday habits — grounded in trustworthy sources.' },
@@ -37,7 +37,7 @@ const UZ: typeof EN = {
   headline: 'Bir hikoyadan butun bir olamga.',
   worlds: [
     { key: 'books', name: 'Shaxsiylashtirilgan kitoblar', line: 'Bola o‘z hikoyasining bosh qahramoniga aylanadi.' },
-    { key: 'yy', name: 'Yusuf va Yasmina', line: 'Qadriyatlar hikoya va sarguzashtlar orqali yashaydi.' },
+    { key: 'yy', name: 'Yusuf va Yasmina', line: 'Bola o‘zidan bir parcha topa oladigan qahramonlar. Yusuf va Yasmina bilan hikoyalar davom etar ekan, bilim, xulq, qadriyat va yaxshi odatlar ham ular bilan birga rivojlanadi.' },
     { key: 'toys', name: 'TALIMOON o‘yinchoqlari', line: 'Hikoya sahifadan chiqib, bolaning qo‘liga keladi.' },
     { key: 'library', name: 'Hikoyalar kutubxonasi', line: 'Hikoyalarni o‘qish, tinglash va tomosha qilish bir tajribada uchrashadi.' },
     { key: 'hayot', name: 'HAYOT — ota-onalar uchun', line: 'Tarbiya, bola dunyosi va kundalik odatlar haqida ishonchli manbalarga tayangan bilim va fikrlar.' },
@@ -49,7 +49,7 @@ export function AboutUniverse() {
   const reduced = useReducedMotion();
 
   return (
-    <Section labelledBy="about-universe-heading" className={SPACE_NORMAL} tone="raised">
+    <Section labelledBy="about-universe-heading" className={SPACE_NORMAL} tone="raised" railInset>
       <div className="mx-auto max-w-[720px] text-center">
         <Eyebrow>{t.eyebrow}</Eyebrow>
         <motion.h2
@@ -99,7 +99,7 @@ export function AboutUniverse() {
               {w.name}
             </h3>
             <p
-              className="max-w-[460px] text-[15px] md:text-[15.5px]"
+              className="max-w-[520px] text-[15px] md:text-[15.5px]"
               style={{ fontFamily: BODY, color: NAVY_64, lineHeight: 1.7 }}
             >
               {w.line}

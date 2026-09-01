@@ -169,19 +169,24 @@ export function GoldRule({
 /** Section shell — full-width, cream by default, generous vertical
  *  rhythm, the site's standard horizontal padding + reading container.
  *  `tone="raised"` uses the slightly lighter paper; `tone="navy"` is
- *  the dark editorial surface used once, at the close. */
+ *  the dark editorial surface used once, at the close.
+ *  `railInset` reserves room on the leading side (xl+ only) for the
+ *  desktop chapter rail, so the fixed rail never overlaps the reading
+ *  column. The full-bleed background is unaffected. */
 export function Section({
   id,
   children,
   tone = 'cream',
   className = '',
   labelledBy,
+  railInset = false,
 }: {
   id?: string;
   children: React.ReactNode;
   tone?: 'cream' | 'raised' | 'navy';
   className?: string;
   labelledBy?: string;
+  railInset?: boolean;
 }) {
   const bg =
     tone === 'navy' ? NAVY : tone === 'raised' ? CREAM_RAISED : CREAM;
@@ -193,7 +198,9 @@ export function Section({
       className={`relative w-full overflow-hidden px-6 md:px-10 lg:px-16 ${className}`}
       style={{ backgroundColor: bg, color }}
     >
-      <div className="mx-auto w-full max-w-[1200px]">{children}</div>
+      <div className={`mx-auto w-full max-w-[1200px] ${railInset ? 'xl:ps-[176px]' : ''}`}>
+        {children}
+      </div>
     </section>
   );
 }

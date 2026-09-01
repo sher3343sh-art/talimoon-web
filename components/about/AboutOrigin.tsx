@@ -59,7 +59,8 @@ const EN = {
     body: [
       'Once the first book was finished digitally, one problem remained: turning it into a real, printed book and getting it to the children. Sherzodbek was far away at the time.',
       'His close friend Oybek Ubaydullayev helped print the book and get it into the children’s hands.',
-      'The children saw themselves inside the story, and they were proud of their father. Later, when they missed him, they would open the book and look through it again.',
+      'The children saw themselves inside the story, and they were proud of their father.',
+      'When they missed him, they would read it again and look through the pictures — as if the story let them meet their father once more.',
     ],
     statement: 'A story made for one family raised a bigger question.',
     question: 'If one story could mean this much to one family, how many children could a meaningful story reach?',
@@ -100,7 +101,8 @@ const UZ: typeof EN = {
     body: [
       'Birinchi kitob elektron shaklda tayyor bo‘lgach, uni haqiqiy kitobga aylantirib, farzandlariga yetkazish masalasi qoldi. Sherzodbek o‘sha paytda uzoqda edi.',
       'Uning yaqin do‘sti Oybek Ubaydullayev kitobni chop ettirish va bolalarga yetkazishda yordam berdi.',
-      'Bolalar o‘zlarini hikoya ichida ko‘rishdi va otalaridan faxrlanishdi. Keyinchalik, uni sog‘ingan paytlarida, ular yana kitobni ochib qarab chiqishardi.',
+      'Bolalar o‘zlarini hikoya ichida ko‘rishdi va otalaridan faxrlanishdi.',
+      'Otalarini sog‘ingan paytlarida esa ular kitobni qayta o‘qib, rasmlarini tomosha qilishardi — hikoya ichida go‘yo otalari bilan yana uchrashgandek.',
     ],
     statement: 'Bir oilaga atalgan hikoya kattaroq savolni tug‘dirdi.',
     question: 'Agar bitta hikoya bir oilada shunday qiymat yarata olsa, yana qancha bola uchun mazmunli hikoyalar yaratish mumkin?',
@@ -175,7 +177,7 @@ export function AboutOrigin() {
   return (
     <>
       {/* MOMENT 01 — DISTANCE ------------------------------------------------ */}
-      <Section labelledBy="about-origin-heading" className={SPACE_MAJOR}>
+      <Section labelledBy="about-origin-heading" className={SPACE_MAJOR} railInset>
         <div className="grid gap-10 md:grid-cols-[60px_1fr] md:gap-12 lg:gap-16">
           <div className="hidden md:block" aria-hidden="true">
             <div className="sticky top-24 h-[420px]">
@@ -241,7 +243,7 @@ export function AboutOrigin() {
       </Section>
 
       {/* MOMENT 02 — THE FIRST STORY ------------------------------------------ */}
-      <Section tone="raised" className={SPACE_MAJOR}>
+      <Section tone="raised" className={SPACE_MAJOR} railInset>
         <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,380px)_1fr] lg:gap-20">
           <motion.div
             initial={reduced ? undefined : { opacity: 0, y: 22 }}
@@ -300,7 +302,7 @@ export function AboutOrigin() {
       </Section>
 
       {/* MOMENT 03 — THE RESPONSE + the TALIMOON name -------------------------- */}
-      <Section className={SPACE_MAJOR}>
+      <Section className={SPACE_MAJOR} railInset>
         <div className="mx-auto max-w-[600px]">
           <div className="space-y-4">
             {t.m3.body.map((line, i) => (

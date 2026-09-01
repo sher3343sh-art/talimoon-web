@@ -32,7 +32,7 @@ const EN = {
   statement: 'We don’t want to make things for children that are merely “good enough”.',
   steps: [
     { n: '01', name: 'Getting to know', body: 'First we understand who we are creating for. In personalized stories, that means the child themselves — their interests, dreams, character and what matters to their family.' },
-    { n: '02', name: 'Meaning', body: 'We decide what the child should take away. It has to be more than enjoyable — it has to mean something to the child and their family.' },
+    { n: '02', name: 'Meaning', body: 'Then we decide what the experience should carry to the child. It has to be more than enjoyable — it has to mean something to the child and their family.' },
     { n: '03', name: 'Story', body: 'Meaning becomes an adventure — a story a child wants to follow, and remembers.' },
     { n: '04', name: 'Image', body: 'Imagination becomes a world you can see. Every image should strengthen the story and enrich a child’s imagination.' },
     { n: '05', name: 'Experience', body: 'The format serves the purpose. Reading, listening, watching or playing — whichever form it takes, the child’s experience stays at the centre.' },
@@ -46,7 +46,7 @@ const UZ: typeof EN = {
   statement: 'Biz bolalar uchun “shunchaki yetarli” mahsulot yaratishni istamaymiz.',
   steps: [
     { n: '01', name: 'Tanishish', body: 'Avval kim uchun yaratayotganimizni tushunamiz. Shaxsiy hikoyalarda esa bu bolaning o‘zi — uning qiziqishlari, orzulari, xarakteri va oilasi uchun muhim bo‘lgan jihatlardan boshlanadi.' },
-    { n: '02', name: 'Ma’no', body: 'Hikoya yoki tajriba bola bilan nima olib ketishini belgilaymiz. U faqat qiziqarli emas, bola va uning oilasi uchun mazmunli bo‘lishi kerak.' },
+    { n: '02', name: 'Ma’no', body: 'Keyin bu tajriba bolaga nimani olib borishini aniqlaymiz. U faqat qiziqarli emas, bola va uning oilasi uchun mazmunli bo‘lishi kerak.' },
     { n: '03', name: 'Hikoya', body: 'Ma’no sarguzashtga aylanadi. Bola kuzatishni istaydigan, esda qoladigan voqea quriladi.' },
     { n: '04', name: 'Tasvir', body: 'Tasavvur ko‘rinadigan dunyoga aylanadi. Har bir tasvir hikoyani kuchaytirishi va bolaning tasavvurini boyitishi kerak.' },
     { n: '05', name: 'Tajriba', body: 'Format maqsadga xizmat qiladi. O‘qish, tinglash, tomosha qilish yoki o‘ynash — qaysi shakl bo‘lmasin, markazda bolaning tajribasi turadi.' },
@@ -60,7 +60,7 @@ export function AboutHowWeCreate() {
   const reduced = useReducedMotion();
 
   return (
-    <Section labelledBy="about-create-heading" className={SPACE_COMPACT} tone="raised">
+    <Section labelledBy="about-create-heading" className={SPACE_COMPACT} tone="raised" railInset>
       <div className="max-w-[760px]">
         <Eyebrow align="start">{t.eyebrow}</Eyebrow>
         <motion.h2

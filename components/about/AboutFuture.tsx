@@ -74,7 +74,7 @@ export function AboutFuture() {
   const reduced = useReducedMotion();
 
   return (
-    <Section labelledBy="about-future-heading" className={SPACE_NORMAL}>
+    <Section labelledBy="about-future-heading" className={SPACE_NORMAL} railInset>
       <div className="mx-auto max-w-[720px] text-center">
         <Eyebrow>{t.eyebrow}</Eyebrow>
         <motion.h2

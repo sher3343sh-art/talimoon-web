@@ -123,7 +123,7 @@ export function AboutChildPerspective() {
   const reduced = useReducedMotion();
 
   return (
-    <Section labelledBy="about-cp-heading" className={SPACE_NORMAL} tone="raised">
+    <Section labelledBy="about-cp-heading" className={SPACE_NORMAL} tone="raised" railInset>
       <div className="mx-auto max-w-[760px] text-center">
         <motion.h2
           id="about-cp-heading"

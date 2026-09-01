@@ -68,7 +68,7 @@ export function AboutCreativeBelief() {
   const reduced = useReducedMotion();
 
   return (
-    <Section labelledBy="about-belief-heading" className={SPACE_COMPACT}>
+    <Section labelledBy="about-belief-heading" className={SPACE_COMPACT} railInset>
       <div className="max-w-[820px]">
         <Eyebrow align="start">{t.eyebrow}</Eyebrow>
         <motion.h2

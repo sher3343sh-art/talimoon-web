@@ -44,7 +44,7 @@ const EN = {
     alt: 'Oybek Ubaydullayev.',
   },
   today:
-    'Today TALIMOON is a small team that works hands-on. Its creative and digital direction is led by the founder; the practical side — from printing an order to customer communication and delivery — is coordinated by Oybek.',
+    'Today TALIMOON is still small, built by a team close to it. Sherzodbek leads the creative, product and digital direction; Oybek coordinates the practical side, from printing to customer communication and delivery.',
 };
 
 const UZ: typeof EN = {
@@ -65,7 +65,7 @@ const UZ: typeof EN = {
     alt: 'Oybek Ubaydullayev.',
   },
   today:
-    "Hozir TALIMOON kichik va bevosita ishlaydigan jamoa. Ijodiy va raqamli yo'nalish asoschi tomonidan boshqariladi; buyurtmaning chop etilishidan mijoz bilan muloqot va yetkazib berishgacha bo'lgan amaliy jarayonlar esa Oybek tomonidan muvofiqlashtiriladi.",
+    "Bugun TALIMOON hali kichik va unga juda yaqin jamoa tomonidan qurilmoqda. Sherzodbek ijodiy, mahsulot va raqamli yo'nalishni boshqaradi; Oybek esa chop etishdan tortib mijoz bilan muloqot va yetkazib berishgacha bo'lgan amaliy jarayonlarni muvofiqlashtiradi.",
 };
 
 /** Honest portrait slot — a real photo when `src` is set, otherwise a
@@ -115,7 +115,7 @@ export function AboutPeople() {
   const reduced = useReducedMotion();
 
   return (
-    <Section labelledBy="about-people-heading" className={SPACE_MAJOR} tone="raised">
+    <Section labelledBy="about-people-heading" className={SPACE_MAJOR} tone="raised" railInset>
       <div className="mx-auto max-w-[640px] text-center">
         <Eyebrow>{t.eyebrow}</Eyebrow>
         <motion.h2

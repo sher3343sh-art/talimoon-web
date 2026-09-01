@@ -81,7 +81,7 @@ export function AboutParentChild() {
   const reduced = useReducedMotion();
 
   return (
-    <Section labelledBy="about-pc-heading" className={SPACE_NORMAL}>
+    <Section labelledBy="about-pc-heading" className={SPACE_NORMAL} railInset>
       <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,440px)_1fr] lg:gap-20">
         <motion.div
           initial={reduced ? undefined : { opacity: 0, y: 22 }}
