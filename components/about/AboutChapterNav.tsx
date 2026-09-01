@@ -6,31 +6,33 @@
  * A long editorial story wants a contents index, not a menu. FOUR
  * chapters only:
  *
- *   01  Qanday boshlandi   → #ch-how-it-began    (Origin)
- *   02  Nimaga ishonamiz   → #ch-what-we-believe (Child persp. + Belief + Parent/child)
- *   03  Nimalar yaratamiz  → #ch-what-we-create  (Universe)
- *   04  Asoschi va jamoa   → #ch-people          (People + How we create)
+ *   01  QANDAY YARALDI    → #ch-how-it-began    (Origin)
+ *   02  QARASHIMIZ        → #ch-what-we-believe (Child persp. + Belief + Parent/child)
+ *   03  TALIMOON DUNYOSI  → #ch-what-we-create  (Universe)
+ *   04  BIZ KIMMIZ        → #ch-people          (People + How we create)
  *
  * The Quiet Ending sits outside the index.
  *
- * Desktop (xl+): a quiet vertical index in the leading margin — a small
- * gold "Boblar" eyebrow, then `NN  Title` rows. Pure type + one short
- * gold marker on the active row. No boxes, no fills, no hover
- * rectangles. `Section railInset` reserves the room. It rides along
- * fixed while the story is on screen and fades out at the Quiet Ending
- * — the same "stops with its content" result sticky would give, which
- * true `position: sticky` can't here (the sections are full-bleed and
- * `overflow-hidden`).
+ * Desktop (xl+): a quiet vertical index that reads as part of the
+ * editorial layout — it sits in the leading gutter of the centred
+ * 1200px measure (never glued to the browser edge), a small gold
+ * "Boblar" eyebrow, then `NN  TITLE` rows. Pure type + one short gold
+ * marker on the active row. It is present from the first paint (no
+ * scroll-threshold reveal) and only fades once the story ends at the
+ * Quiet Ending — the "stops with its content" result true
+ * `position: sticky` can't give here (the sections are full-bleed and
+ * `overflow-hidden`). `Section railInset` reserves the room.
  *
- * Below xl: ONE slim sticky strip under the global navbar — "01 / 04 ·
- * Title · ⌄". Tapping it opens a small cream chapter sheet (not a
- * modal, not a hamburger); picking a chapter scrolls there and closes.
- * A hairline under the strip carries a barely-there progress tint
- * through the current chapter.
+ * Below xl: ONE slim chapter strip under the global navbar — "01 / 04 ·
+ * TITLE · ⌄", present from the start. Tapping the whole row opens a
+ * small cream chapter sheet (not a modal, not a hamburger); picking a
+ * chapter scrolls there and closes. A hairline under the strip carries
+ * a barely-there progress tint through the current chapter.
  *
  * Active chapter comes from element rects on scroll (rAF-throttled) +
  * a thin trip-band IntersectionObserver — no hardcoded offsets.
- * Respects prefers-reduced-motion for the anchor scroll and the sheet.
+ * Respects prefers-reduced-motion for the anchor scroll, the sheet and
+ * the chevron.
  */
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -50,14 +52,14 @@ const EN = {
   eyebrow: 'Contents',
   open: 'Open the chapter list',
   close: 'Close the chapter list',
-  items: ['How it began', 'What we believe', 'What we create', 'People behind TALIMOON'],
+  items: ['HOW IT BEGAN', 'HOW WE SEE IT', 'TALIMOON WORLD', 'WHO WE ARE'],
 };
 const UZ = {
   navLabel: 'Sahifa boblari',
   eyebrow: 'Boblar',
   open: 'Boblar ro‘yxatini ochish',
   close: 'Boblar ro‘yxatini yopish',
-  items: ['Qanday boshlandi', 'Nimaga ishonamiz', 'Nimalar yaratamiz', 'Asoschi va jamoa'],
+  items: ['QANDAY YARALDI', 'QARASHIMIZ', 'TALIMOON DUNYOSI', 'BIZ KIMMIZ'],
 };
 
 const num = (i: number) => String(i + 1).padStart(2, '0');
@@ -66,7 +68,9 @@ export function AboutChapterNav() {
   const t = useT(EN, UZ);
   const reduced = useReducedMotion();
   const [active, setActive] = useState(0);
-  const [visible, setVisible] = useState(false);
+  // Present from the first paint — it only turns off once the story has
+  // scrolled past into the Quiet Ending (see recompute).
+  const [visible, setVisible] = useState(true);
   const [progress, setProgress] = useState(0); // 0..1 through the active chapter
   const [sheetOpen, setSheetOpen] = useState(false);
   const activeRef = useRef(0);
@@ -101,9 +105,10 @@ export function AboutChapterNav() {
       const p = span > 0 ? (line - curTop) / span : 0;
       setProgress(p < 0 ? 0 : p > 1 ? 1 : p);
 
-      const firstTop = els[0].getBoundingClientRect().top;
+      // Visible for the whole story, from the first paint; it only
+      // retires once the Quiet Ending has risen near the top.
       const endTop = endEl.getBoundingClientRect().top;
-      setVisible(firstTop < vh * 0.5 && endTop > 140);
+      setVisible(endTop > 140);
     };
 
     let raf = 0;
@@ -165,21 +170,24 @@ export function AboutChapterNav() {
     stripBtnRef.current?.focus();
   }, [sheetOpen]);
 
-  useEffect(() => {
-    if (!visible) setSheetOpen(false);
-  }, [visible]);
+  // The sheet can only be open while the strip itself is on screen — no
+  // effect needed, just gate the rendered state.
+  const showSheet = sheetOpen && visible;
 
   return (
     <>
-      {/* ── Desktop — the vertical chapter index (xl+) ───────────── */}
+      {/* ── Desktop — the vertical chapter index (xl+) ───────────────
+          Positioned inside the leading gutter of the centred 1200px
+          measure, not against the viewport edge. */}
       <nav
         aria-label={t.navLabel}
-        className={`fixed start-5 top-1/2 z-40 hidden -translate-y-1/2 xl:block ${
+        className={`fixed top-1/2 z-40 hidden -translate-y-1/2 xl:block ${
           visible ? 'opacity-100' : 'pointer-events-none opacity-0'
-        } transition-opacity duration-500`}
+        } transition-opacity duration-500 motion-reduce:transition-none`}
+        style={{ left: 'max(1.5rem, calc(50vw - 600px + 1.5rem))' }}
       >
         <p
-          className="mb-4 ps-8 text-[10px] uppercase"
+          className="mb-5 ps-8 text-[10.5px] uppercase"
           style={{
             fontFamily: BODY,
             fontWeight: 600,
@@ -189,7 +197,7 @@ export function AboutChapterNav() {
         >
           {t.eyebrow}
         </p>
-        <ul className="flex flex-col gap-[18px]">
+        <ul className="flex flex-col gap-[20px]">
           {t.items.map((label, i) => {
             const on = i === active;
             return (
@@ -198,22 +206,22 @@ export function AboutChapterNav() {
                   type="button"
                   onClick={() => go(i)}
                   aria-current={on ? 'true' : undefined}
-                  className="group flex items-baseline gap-0 py-0.5 text-start outline-none"
+                  className="group flex items-baseline gap-0 rounded-[3px] py-0.5 text-start outline-none focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-[6px] focus-visible:outline-[rgba(184,147,91,0.55)]"
                 >
                   {/* the marker gutter — a short gold line only on the
                       active row; a fixed 32px cell so nothing shifts */}
                   <span aria-hidden="true" className="block w-8 shrink-0 self-center">
                     <span
-                      className="block h-px transition-all duration-[220ms] ease-out"
+                      className="block h-[1.5px] transition-all duration-[220ms] ease-out motion-reduce:transition-none"
                       style={{
-                        width: on ? 26 : 0,
+                        width: on ? 28 : 0,
                         background: on ? GOLD : 'transparent',
                       }}
                     />
                   </span>
                   <span
                     aria-hidden="true"
-                    className="shrink-0 text-[11px] tabular-nums transition-colors duration-200"
+                    className="shrink-0 text-[11.5px] tabular-nums transition-colors duration-200 motion-reduce:transition-none"
                     style={{
                       fontFamily: BODY,
                       fontWeight: 600,
@@ -224,11 +232,12 @@ export function AboutChapterNav() {
                     {num(i)}
                   </span>
                   <span
-                    className="ms-3 max-w-[150px] text-[12.5px] leading-[1.3] transition-colors duration-200"
+                    className="ms-3 max-w-[160px] text-[13.5px] leading-[1.35] transition-colors duration-200 motion-reduce:transition-none"
                     style={{
                       fontFamily: BODY,
                       fontWeight: on ? 600 : 500,
-                      color: on ? NAVY : NAVY_48,
+                      letterSpacing: '0.04em',
+                      color: on ? NAVY : NAVY_64,
                     }}
                   >
                     {label}
@@ -246,16 +255,17 @@ export function AboutChapterNav() {
           visible
             ? 'translate-y-0 opacity-100'
             : 'pointer-events-none -translate-y-1.5 opacity-0'
-        } transition-[opacity,transform] duration-[220ms]`}
+        } transition-[opacity,transform] duration-[220ms] motion-reduce:transition-none`}
       >
         <nav aria-label={t.navLabel} className="relative">
           <button
             ref={stripBtnRef}
             type="button"
             onClick={() => setSheetOpen((v) => !v)}
-            aria-expanded={sheetOpen}
-            aria-haspopup="true"
-            className="flex h-[46px] w-full items-center gap-3 px-6 text-start outline-none focus-visible:bg-[rgba(28,42,58,0.03)] md:px-10"
+            aria-expanded={showSheet}
+            aria-controls="about-chapter-sheet"
+            aria-label={showSheet ? t.close : t.open}
+            className="flex h-[48px] w-full items-center gap-3 px-6 text-start outline-none focus-visible:bg-[rgba(28,42,58,0.05)] md:px-10"
             style={{
               background: 'rgba(247,243,236,0.96)',
               backdropFilter: 'saturate(180%) blur(6px)',
@@ -274,8 +284,13 @@ export function AboutChapterNav() {
               {num(active)} <span style={{ color: NAVY_48 }}>/ {num(IDS.length - 1)}</span>
             </span>
             <span
-              className="min-w-0 flex-1 truncate text-[12.5px]"
-              style={{ fontFamily: BODY, fontWeight: 600, color: NAVY }}
+              className="min-w-0 flex-1 truncate text-[13.5px]"
+              style={{
+                fontFamily: BODY,
+                fontWeight: 700,
+                letterSpacing: '0.04em',
+                color: NAVY,
+              }}
               aria-live="polite"
             >
               {t.items[active]}
@@ -283,16 +298,16 @@ export function AboutChapterNav() {
             <svg
               aria-hidden="true"
               viewBox="0 0 16 16"
-              className={`h-3.5 w-3.5 shrink-0 transition-transform duration-200 ${
-                sheetOpen ? '-rotate-180' : ''
+              className={`h-[18px] w-[18px] shrink-0 transition-transform duration-200 ease-out motion-reduce:transition-none ${
+                showSheet ? '-rotate-180' : ''
               }`}
-              style={{ color: NAVY_48 }}
+              style={{ color: NAVY }}
             >
               <path
                 d="M4 6l4 4 4-4"
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="1.5"
+                strokeWidth="1.75"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
@@ -303,7 +318,7 @@ export function AboutChapterNav() {
           <div className="relative h-px w-full" style={{ background: 'rgba(28,42,58,0.10)' }}>
             <span
               aria-hidden="true"
-              className="absolute inset-y-0 left-0 transition-[width] duration-200 ease-out"
+              className="absolute inset-y-0 left-0 transition-[width] duration-200 ease-out motion-reduce:transition-none"
               style={{
                 width: `${Math.round(progress * 100)}%`,
                 background: 'rgba(184,147,91,0.55)',
@@ -312,8 +327,9 @@ export function AboutChapterNav() {
           </div>
 
           {/* the chapter sheet — a small cream panel, not a modal */}
-          {sheetOpen && (
+          {showSheet && (
             <ul
+              id="about-chapter-sheet"
               className="absolute inset-x-0 top-full"
               style={{
                 background: 'rgba(247,243,236,0.99)',
@@ -334,7 +350,7 @@ export function AboutChapterNav() {
                         setSheetOpen(false);
                         go(i);
                       }}
-                      className="flex w-full items-baseline gap-3 px-6 py-3 text-start outline-none focus-visible:bg-[rgba(28,42,58,0.04)] md:px-10"
+                      className="flex w-full items-baseline gap-3 px-6 py-3.5 text-start outline-none focus-visible:bg-[rgba(28,42,58,0.05)] md:px-10"
                     >
                       <span
                         className="shrink-0 text-[11px] tabular-nums"
@@ -351,7 +367,8 @@ export function AboutChapterNav() {
                         className="text-[13.5px]"
                         style={{
                           fontFamily: BODY,
-                          fontWeight: on ? 600 : 500,
+                          fontWeight: on ? 700 : 500,
+                          letterSpacing: '0.04em',
                           color: on ? NAVY : NAVY_64,
                         }}
                       >

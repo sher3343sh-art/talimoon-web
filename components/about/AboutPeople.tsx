@@ -10,12 +10,12 @@
  * secondary treatment — smaller, never diminished. No skill tags, no
  * social badges, no fake stats, no org-chart aesthetic.
  *
- * REALITY OVER ARTIFICIAL PERFECTION (spec §16/§29/§37): neither
- * portrait exists in the repo yet, so both `PEOPLE[].src` stay
- * undefined and `PersonFrame` renders an honest composed placeholder —
- * never a stock photo or a fabricated likeness. Drop the real photos
- * at `/public/images/about/sherzodbek.jpg` and `/public/images/about/oybek.jpg`
- * and set `src` below; nothing else needs to change.
+ * The two real portraits live at
+ * `/public/images/about/sherzodbek-yunusov-founder.webp` (founder,
+ * native ~2:3) and `/public/images/about/oybek-ubaydullayev-operations.webp`
+ * (partner, native ~4:5). `PersonFrame` renders each at its native
+ * aspect ratio so nothing is cropped; without a `src` it falls back to
+ * an honest composed frame that never stands in for a real likeness.
  */
 
 import React from 'react';
@@ -68,22 +68,25 @@ const UZ: typeof EN = {
     "Bugun TALIMOON hali kichik va unga juda yaqin jamoa tomonidan qurilmoqda. Sherzodbek ijodiy, mahsulot va raqamli yo'nalishni boshqaradi; Oybek esa chop etishdan tortib mijoz bilan muloqot va yetkazib berishgacha bo'lgan amaliy jarayonlarni muvofiqlashtiradi.",
 };
 
-/** Honest portrait slot — a real photo when `src` is set, otherwise a
- *  composed frame that never stands in for a real likeness. */
+/** Honest portrait slot — a real photo when `src` is set (rendered at
+ *  its native `ratio` so the prepared composition never crops),
+ *  otherwise a composed frame that never stands in for a real likeness. */
 function PersonFrame({
   src,
   alt,
   size = 'large',
+  ratio,
 }: {
   src?: string;
   alt: string;
   size?: 'large' | 'medium';
+  ratio?: string;
 }) {
   return (
     <div
       className="relative w-full overflow-hidden"
       style={{
-        aspectRatio: size === 'large' ? '4 / 5' : '1 / 1',
+        aspectRatio: src && ratio ? ratio : size === 'large' ? '4 / 5' : '1 / 1',
         background: '#FDFBF7',
         border: `1px solid ${GOLD_SOFT}`,
         borderRadius: 2,
@@ -94,7 +97,8 @@ function PersonFrame({
           src={src}
           alt={alt}
           fill
-          sizes={size === 'large' ? '(max-width: 1024px) 90vw, 460px' : '(max-width: 1024px) 60vw, 320px'}
+          quality={100}
+          sizes={size === 'large' ? '(max-width: 1024px) 88vw, 340px' : '(max-width: 1024px) 80vw, 320px'}
           className="object-cover"
         />
       ) : (
@@ -107,13 +111,15 @@ function PersonFrame({
   );
 }
 
-// The real portraits. Once the files are in `public/images/about/`
-// (sherzodbek.png — founder, 4:5 portrait; oybek.png — partner, 1:1
-// square), set the paths here:
-//   founder: '/images/about/sherzodbek.png'
-//   partner: '/images/about/oybek.png'
-// Until then PersonFrame shows its composed placeholder.
-const PORTRAITS: { founder?: string; partner?: string } = {};
+// The real portraits (native aspect ratios kept so nothing crops):
+//   founder — sherzodbek-yunusov-founder.webp  1023 × 1537 (~2:3)
+//   partner — oybek-ubaydullayev-operations.webp 1122 × 1402 (~4:5)
+const PORTRAITS = {
+  founder: '/images/about/sherzodbek-yunusov-founder.webp',
+  partner: '/images/about/oybek-ubaydullayev-operations.webp',
+} as const;
+const FOUNDER_RATIO = '1023 / 1537';
+const PARTNER_RATIO = '1122 / 1402';
 
 export function AboutPeople() {
   const t = useT(EN, UZ);
@@ -145,7 +151,7 @@ export function AboutPeople() {
           transition={{ duration: 0.9, ease: EASE }}
           className="mx-auto w-full max-w-[340px] lg:mx-0"
         >
-          <PersonFrame src={PORTRAITS.founder} alt={t.founder.alt} size="large" />
+          <PersonFrame src={PORTRAITS.founder} alt={t.founder.alt} size="large" ratio={FOUNDER_RATIO} />
         </motion.div>
 
         <motion.div
@@ -177,18 +183,18 @@ export function AboutPeople() {
       <div className="mx-auto my-12 h-px w-full max-w-[1000px] md:my-14" style={{ background: 'rgba(28,42,58,0.10)' }} />
 
       {/* Partner — a real, dignified secondary treatment. The portrait
-          footprint is ~20% larger than a plain thumbnail so Oybek reads
-          as a real person, not an avatar — still clearly secondary to
-          the founder's 4:5 lead portrait. */}
-      <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,264px)_1fr] lg:gap-14">
+          footprint is ~20% larger than the earlier square slot so Oybek
+          reads as a real person with presence — still clearly secondary
+          to the founder's taller lead portrait. */}
+      <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,316px)_1fr] lg:gap-14">
         <motion.div
           initial={reduced ? undefined : { opacity: 0, y: 18 }}
           whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.5 }}
           transition={{ duration: 0.8, ease: EASE }}
-          className="mx-auto w-full max-w-[240px] sm:max-w-[264px] lg:mx-0 lg:max-w-[264px]"
+          className="mx-auto w-full max-w-[288px] sm:max-w-[316px] lg:mx-0 lg:max-w-[316px]"
         >
-          <PersonFrame src={PORTRAITS.partner} alt={t.partner.alt} size="medium" />
+          <PersonFrame src={PORTRAITS.partner} alt={t.partner.alt} size="medium" ratio={PARTNER_RATIO} />
         </motion.div>
 
         <motion.div

@@ -171,8 +171,9 @@ export function GoldRule({
  *  `tone="raised"` uses the slightly lighter paper; `tone="navy"` is
  *  the dark editorial surface used once, at the close.
  *  `railInset` reserves room on the leading side (xl+ only) for the
- *  desktop chapter rail, so the fixed rail never overlaps the reading
- *  column. The full-bleed background is unaffected. */
+ *  desktop chapter rail — which sits in the gutter of this same
+ *  centred 1200px measure — so the fixed rail never overlaps the
+ *  reading column. The full-bleed background is unaffected. */
 export function Section({
   id,
   children,
@@ -198,7 +199,7 @@ export function Section({
       className={`relative w-full overflow-hidden px-6 md:px-10 lg:px-16 ${className}`}
       style={{ backgroundColor: bg, color }}
     >
-      <div className={`mx-auto w-full max-w-[1200px] ${railInset ? 'xl:ps-[176px]' : ''}`}>
+      <div className={`mx-auto w-full max-w-[1200px] ${railInset ? 'xl:ps-[236px]' : ''}`}>
         {children}
       </div>
     </section>
