@@ -25,7 +25,6 @@ import { Book, Clock, Copy, Globe, Image as ImageIcon, Users, User } from "lucid
 import { useLanguage, useT } from "@/lib/i18n/LanguageContext";
 import PersonalizedBookOrderForm from "@/components/begin/PersonalizedBookOrderForm";
 import {
-  ANCHOR_PRICE,
   BookType,
   MARKET_PRICING,
   PRICING,
@@ -188,9 +187,7 @@ export default function PricingSection() {
             const info = PRICING[plan.type];
             const label = language === "UZ" ? info.labelUz : info.label;
             const base = MARKET_PRICING[market][plan.type];
-            const anchor = ANCHOR_PRICE[market][plan.type];
             const priced = priceParts(base, market);
-            const anchorText = priceParts(anchor, market).value;
             return (
               <div
                 key={plan.type}
@@ -229,9 +226,6 @@ export default function PricingSection() {
                 </span>
 
                 <div className="mt-2.5 flex items-baseline gap-2.5">
-                  <span className="font-sans text-[15px] text-text-secondary line-through">
-                    {anchorText}
-                  </span>
                   <span className="font-display text-[30px] font-medium text-text-primary">
                     {priced.value}
                     {priced.unit && (
