@@ -3,7 +3,7 @@
 /**
  * StoryLibraryIllustration — the Story Library preview's single visual.
  * ----------------------------------------------------------------
- * Production art (public/images/home/story-library-preview/storylibrary.png),
+ * Production art (public/images/home/story-library-preview/storylibrary.webp),
  * not a generated graphic — this component only places and animates it.
  * On scroll into view it settles in with one slow fade/rise/scale; no
  * looping motion, no particles, nothing competing with the CTA beside it.
@@ -39,7 +39,7 @@ export function StoryLibraryIllustration() {
       className="relative mx-auto w-[85%] max-w-[560px] sm:w-full lg:max-w-[620px]"
     >
       <Image
-        src="/images/home/story-library-preview/storylibrary.png"
+        src="/images/home/story-library-preview/storylibrary.webp"
         alt={alt}
         width={1536}
         height={1024}
