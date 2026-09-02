@@ -54,11 +54,15 @@ export interface TalimoonHeroProps {
   navLinks?: { label: string; href: string }[];
   kicker?: string;
   headline?: string;
+  /** One short line directly under the headline — "the turn". */
+  follow?: string;
   subhead?: string;
   primaryCtaLabel?: string;
   primaryCtaHref?: string;
   secondaryCtaLabel?: string;
   secondaryCtaHref?: string;
+  /** Compact practical/trust line beneath the CTAs (e.g. "499 000 so'mdan · 5–7 kun"). */
+  trailerLabel?: string;
 }
 
 const defaultNavLinksEn = [
@@ -82,23 +86,27 @@ const DEFAULT_HERO_IMAGE_SRC =
 const DEFAULT_COPY_EN = {
   imageAlt: "A child reading, softly connected to the story in their hands",
   logoText: "Talimoon",
-  kicker: "Personalized storybooks",
-  headline: "A story where your child is the hero.",
+  kicker: "A PERSONAL STORY",
+  headline: "This isn't just a book with your child's name in it.",
+  follow: "It's a story they live inside.",
   subhead:
-    "Your child's name, their likeness, their interests, their dreams, and the meaning you want to pass on to them — all held inside a story made for them alone.",
-  primaryCtaLabel: "Create It for My Child →",
-  secondaryCtaLabel: "See How It's Created ↓",
+    "Your child's likeness, their character, their interests — and the meaning you want to reach their heart — held inside a story made for them alone.",
+  primaryCtaLabel: "Create my child's story →",
+  secondaryCtaLabel: "How it works ↓",
+  trailerLabel: "From 499 000 so‘m · 5–7 days",
 };
 
 const DEFAULT_COPY_UZ: typeof DEFAULT_COPY_EN = {
-  imageAlt: "Bola hikoyaga chin qalbdan bog'langan holda o'qimoqda",
+  imageAlt: "Bola hikoyaga chin qalbdan bog‘langan holda o‘qimoqda",
   logoText: "Talimoon",
-  kicker: "Shaxsiylashtirilgan hikoya kitoblari",
-  headline: "Farzandingiz qahramon bo'lgan hikoya.",
+  kicker: "SHAXSIY HIKOYA",
+  headline: "Bu shunchaki uning ismi yozilgan kitob emas.",
+  follow: "Bu — uning o‘zi yashaydigan hikoya.",
   subhead:
-    "Farzandingizning ismi, qiyofasi, qiziqishlari, orzulari va Siz unga yetkazmoqchi bo'lgan ma'no — barchasi faqat uning uchun yaratilgan hikoyada.",
-  primaryCtaLabel: "Farzandim uchun yaratish →",
-  secondaryCtaLabel: "Qanday yaratilishini ko'ring ↓",
+    "Farzandingizning qiyofasi, xarakteri, qiziqishlari va Siz uning qalbiga yetkazmoqchi bo‘lgan ma’no — faqat u uchun yaratilgan hikoyada.",
+  primaryCtaLabel: "Farzandimning hikoyasini yaratish →",
+  secondaryCtaLabel: "Qanday ishlaydi ↓",
+  trailerLabel: "499 000 so‘mdan · 5–7 kun",
 };
 
 export default function TalimoonHero({
@@ -109,13 +117,14 @@ export default function TalimoonHero({
   navLinks,
   kicker,
   headline,
+  follow,
   subhead,
   primaryCtaLabel,
   primaryCtaHref = "#pricing",
   secondaryCtaLabel,
   secondaryCtaHref = "#how-it-works",
+  trailerLabel,
 }: TalimoonHeroProps) {
-  const [loaded, setLoaded] = useState(false);
   const [errored, setErrored] = useState(false);
   const t = useT(DEFAULT_COPY_EN, DEFAULT_COPY_UZ);
   const defaultNavLinks = useT(defaultNavLinksEn, defaultNavLinksUz);
@@ -126,9 +135,11 @@ export default function TalimoonHero({
   navLinks ??= defaultNavLinks;
   kicker ??= t.kicker;
   headline ??= t.headline;
+  follow ??= t.follow;
   subhead ??= t.subhead;
   primaryCtaLabel ??= t.primaryCtaLabel;
   secondaryCtaLabel ??= t.secondaryCtaLabel;
+  trailerLabel ??= t.trailerLabel;
 
   return (
     <section className="tm-hero" aria-label={sectionLabel}>
@@ -205,14 +216,16 @@ export default function TalimoonHero({
           color: var(--text-primary);
           opacity: 0.10;
         }
-        /* The actual photo — fades in once loaded, matching the old
-           HeroImage.tsx behaviour. */
+        /* The actual photo — visible by default, with a soft CSS fade-in.
+           (No JS onLoad opacity gate: it can miss for a cached image and
+           leave the hero blank.) */
         .tm-hero__photo-img{
-          opacity: 0;
-          transition: opacity 700ms ease;
-        }
-        .tm-hero__photo-img.is-loaded{
           opacity: 1;
+          animation: tm-hero-photo-in 700ms ease both;
+        }
+        @keyframes tm-hero-photo-in{ from{ opacity: 0; } to{ opacity: 1; } }
+        @media (prefers-reduced-motion: reduce){
+          .tm-hero__photo-img{ animation: none; }
         }
         .tm-hero__living-story{
           position: absolute;
@@ -289,20 +302,35 @@ export default function TalimoonHero({
         .tm-hero__headline{
           font-family: 'Fraunces', Georgia, serif;
           font-weight: 500;
-          font-size: clamp(2.75rem, 4vw, 4rem);
-          line-height: 1.15;
-          letter-spacing: -0.01em;
-          max-width: 12ch;
-          margin: 0 0 32px 0;
+          font-size: clamp(2rem, 2.9vw, 2.9rem);
+          line-height: 1.16;
+          letter-spacing: -0.015em;
+          max-width: 18ch;
+          margin: 0 0 18px 0;
+        }
+        .tm-hero__follow{
+          font-family: 'Fraunces', Georgia, serif;
+          font-weight: 500;
+          font-size: clamp(1.15rem, 1.5vw, 1.45rem);
+          line-height: 1.3;
+          color: var(--text-primary);
+          margin: 0 0 20px 0;
+          max-width: 22ch;
         }
         .tm-hero__subhead{
-          font-size: 18px;
-          line-height: 1.65;
-          max-width: 38ch;
+          font-size: 16px;
+          line-height: 1.62;
+          max-width: 42ch;
           color: var(--text-secondary);
-          margin: 0 0 48px 0;
+          margin: 0 0 30px 0;
         }
         .tm-hero__cta-group{ display: flex; align-items: center; gap: 24px; }
+        .tm-hero__trailer{
+          margin: 20px 0 0 0;
+          font-size: 13px;
+          letter-spacing: 0.02em;
+          color: var(--text-tertiary);
+        }
         .tm-hero__cta-primary{
           display: inline-flex;
           align-items: center;
@@ -434,9 +462,8 @@ export default function TalimoonHero({
               priority
               quality={100}
               sizes="(min-width: 1024px) 55vw, 100vw"
-              className={`tm-hero__photo-img ${loaded ? "is-loaded" : ""}`}
+              className="tm-hero__photo-img"
               style={{ objectFit: "cover", objectPosition: "28% center" }}
-              onLoad={() => setLoaded(true)}
               onError={() => setErrored(true)}
             />
           )}
@@ -460,6 +487,7 @@ export default function TalimoonHero({
       <div className="tm-hero__content">
         <p className="tm-hero__kicker tm-reveal tm-reveal--d1">{kicker}</p>
         <h1 className="tm-hero__headline tm-reveal tm-reveal--d2">{headline}</h1>
+        {follow && <p className="tm-hero__follow tm-reveal tm-reveal--d2">{follow}</p>}
         <p className="tm-hero__subhead tm-reveal tm-reveal--d3">{subhead}</p>
         <div className="tm-hero__cta-group tm-reveal tm-reveal--d4">
           <a className="tm-hero__cta-primary" href={primaryCtaHref}>
@@ -469,6 +497,7 @@ export default function TalimoonHero({
             {secondaryCtaLabel}
           </a>
         </div>
+        {trailerLabel && <p className="tm-hero__trailer tm-reveal tm-reveal--d4">{trailerLabel}</p>}
       </div>
     </section>
   );

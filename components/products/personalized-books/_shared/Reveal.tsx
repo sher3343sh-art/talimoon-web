@@ -2,22 +2,18 @@
 
 /**
  * Reveal — the one entrance primitive for the Personalized Books sales
- * page (Sales V2). A short translate+fade that plays once as the
- * element scrolls into view, with a hard opt-out for
- * `prefers-reduced-motion` (no transform, no transition — content is
- * simply present).
+ * page. A short translate+fade that plays once as the element scrolls
+ * into view, with a hard opt-out for `prefers-reduced-motion` (content
+ * is simply present, no transform/transition).
  *
- * Robustness, in order:
- *  1. if the element is already within (or just below) the viewport at
- *     mount, it is shown immediately — covers above-the-fold content
- *     and a restored scroll position with no animation lag;
- *  2. otherwise an IntersectionObserver reveals it on scroll-in;
- *  3. a 2s timeout is a last-resort guarantee that content is never
- *     left invisible if the observer never fires.
- *
- * Deliberately CSS-only: the rest of this page's sections have always
- * animated with plain transitions rather than a motion library (see
- * the Hero's `tm-reveal`).
+ * Visibility is GUARANTEED. In order:
+ *  1. if the element is in / near the viewport at mount, it shows at once;
+ *  2. an IntersectionObserver reveals it on scroll-in;
+ *  3. a passive scroll/resize listener re-checks the rect (covers a
+ *     programmatic jump the observer can miss);
+ *  4. a 900ms timeout is a last-resort guarantee — content is never left
+ *     invisible.
+ * CSS-only motion; no animation library.
  */
 
 import {
@@ -68,9 +64,26 @@ export function Reveal({
       return;
     }
 
-    const vh = window.innerHeight || 800;
-    const r = el.getBoundingClientRect();
-    if (r.top < vh * 0.95 && r.bottom > 0) {
+    let done = false;
+    const reveal = () => {
+      if (done) return;
+      done = true;
+      setShown(true);
+      io?.disconnect();
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      window.clearTimeout(fallback);
+    };
+
+    const inView = () => {
+      const vh = window.innerHeight || 800;
+      const r = el.getBoundingClientRect();
+      // reveal once the element enters the lower ~92% of the viewport
+      // (or is anywhere above it after a jump)
+      return r.top < vh * 0.92 && r.bottom > 0;
+    };
+
+    if (inView()) {
       setShown(true);
       return;
     }
@@ -79,23 +92,25 @@ export function Reveal({
     if (typeof IntersectionObserver !== "undefined") {
       io = new IntersectionObserver(
         (entries) => {
-          if (entries.some((e) => e.isIntersecting)) {
-            setShown(true);
-            io?.disconnect();
-          }
+          if (entries.some((e) => e.isIntersecting)) reveal();
         },
-        { rootMargin: "0px 0px -10% 0px" },
+        { rootMargin: "0px 0px -8% 0px" },
       );
       io.observe(el);
     }
 
-    const fallback = window.setTimeout(() => {
-      setShown(true);
-      io?.disconnect();
-    }, 2000);
+    const onScroll = () => {
+      if (inView()) reveal();
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+
+    const fallback = window.setTimeout(reveal, 900);
 
     return () => {
       io?.disconnect();
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
       window.clearTimeout(fallback);
     };
   }, []);
