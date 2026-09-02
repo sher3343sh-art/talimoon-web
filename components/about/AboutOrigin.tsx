@@ -429,80 +429,68 @@ export function AboutOrigin() {
           badge. Lives inside #ch-how-it-began so the chapter rail keeps
           reading it as "QANDAY YARALDI" with no scroll-spy change. */}
       <Section labelledBy="about-pdgtal-heading" className={SPACE_NORMAL} railInset>
-        <div className="grid gap-12 lg:grid-cols-[1fr_minmax(0,300px)] lg:items-center lg:gap-16">
-          <div className="max-w-[600px]">
-            <motion.div
-              initial={reduced ? undefined : { opacity: 0, y: 18 }}
-              whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.6 }}
-              transition={{ duration: 0.8, ease: EASE }}
-            >
-              <Eyebrow align="start">{t.pdgtal.eyebrow}</Eyebrow>
-              <h2
-                id="about-pdgtal-heading"
-                className="mt-4 text-[26px] sm:text-[32px] md:text-[38px]"
-                style={{ fontFamily: DISPLAY, fontWeight: 600, color: NAVY, lineHeight: 1.18, letterSpacing: '-0.015em' }}
-              >
-                {t.pdgtal.headline}
-              </h2>
-            </motion.div>
-
-            <div className="mt-8 space-y-4">
-              {t.pdgtal.body.map((line, i) => (
-                <motion.p
-                  key={i}
-                  initial={reduced ? undefined : { opacity: 0, y: 14 }}
-                  whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
-                  viewport={{ once: true, amount: 0.5 }}
-                  transition={{ duration: 0.7, delay: 0.06 * i, ease: EASE }}
-                  className="text-[15.5px] md:text-[16.5px]"
-                  style={{ fontFamily: BODY, color: NAVY_64, lineHeight: 1.75 }}
-                >
-                  {line}
-                </motion.p>
-              ))}
-            </div>
-
-            {/* the concluding statement — one restrained emphasis: a
-                slightly larger line in the display face, set a little
-                apart. No rule, no border, no quotation marks. */}
-            <motion.p
-              initial={reduced ? undefined : { opacity: 0, y: 16 }}
-              whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.5 }}
-              transition={{ duration: 0.8, delay: 0.1, ease: EASE }}
-              className="mt-7 max-w-[560px] text-[19px] md:text-[21px]"
-              style={{ fontFamily: DISPLAY, fontWeight: 500, color: NAVY, lineHeight: 1.5 }}
-            >
-              {t.pdgtal.conclusion}
-            </motion.p>
-          </div>
-
+        <div className="mx-auto max-w-[640px] text-center">
           <motion.div
             initial={reduced ? undefined : { opacity: 0, y: 18 }}
             whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.4 }}
+            viewport={{ once: true, amount: 0.6 }}
+            transition={{ duration: 0.8, ease: EASE }}
+          >
+            <Eyebrow align="center">{t.pdgtal.eyebrow}</Eyebrow>
+            <h2
+              id="about-pdgtal-heading"
+              className="mt-4 text-[26px] sm:text-[32px] md:text-[38px]"
+              style={{ fontFamily: DISPLAY, fontWeight: 600, color: NAVY, lineHeight: 1.18, letterSpacing: '-0.015em' }}
+            >
+              {t.pdgtal.headline}
+            </h2>
+          </motion.div>
+
+          <div className="mx-auto mt-8 max-w-[540px] space-y-4">
+            {t.pdgtal.body.map((line, i) => (
+              <motion.p
+                key={i}
+                initial={reduced ? undefined : { opacity: 0, y: 14 }}
+                whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.5 }}
+                transition={{ duration: 0.7, delay: 0.06 * i, ease: EASE }}
+                className="text-[15.5px] md:text-[16.5px]"
+                style={{ fontFamily: BODY, color: NAVY_64, lineHeight: 1.75 }}
+              >
+                {line}
+              </motion.p>
+            ))}
+          </div>
+
+          {/* The institutional mark — centred and horizontal, set just
+              below the text with a restrained gap. Recognition, not a
+              partner badge: the wordmark and place sit quietly beneath,
+              and the closing line lands under it. */}
+          <motion.div
+            initial={reduced ? undefined : { opacity: 0, y: 16 }}
+            whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.5 }}
             transition={{ duration: 0.9, delay: 0.08, ease: EASE }}
-            className="mx-auto w-full max-w-[220px] text-center lg:mx-0 lg:max-w-[260px] lg:text-start"
+            className="mt-10"
           >
             <a
               href="https://dbspartners.co/prospectuzdgtal/en/academy"
               target="_blank"
               rel="noopener noreferrer"
               aria-label={t.pdgtal.linkAria}
-              className="inline-block rounded-[2px] outline-none transition-opacity duration-300 hover:opacity-80 focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-[6px] focus-visible:outline-[rgba(184,147,91,0.55)]"
+              className="mx-auto inline-block rounded-[2px] outline-none transition-opacity duration-300 hover:opacity-80 focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-[6px] focus-visible:outline-[rgba(184,147,91,0.55)]"
             >
               <Image
                 src="/images/about/pdgtal-logo.webp"
                 alt={t.pdgtal.logoAlt}
                 width={900}
                 height={294}
-                sizes="(max-width: 1024px) 220px, 260px"
-                className="h-auto w-full"
+                sizes="(max-width: 768px) 200px, 240px"
+                className="h-auto w-[200px] md:w-[240px]"
               />
             </a>
             <p
-              className="mt-5 text-[13px] uppercase"
+              className="mt-4 text-[13px] uppercase"
               style={{ fontFamily: BODY, fontWeight: 600, letterSpacing: '0.14em', color: NAVY }}
             >
               PDGTAL
@@ -514,6 +502,20 @@ export function AboutOrigin() {
               {t.pdgtal.place}
             </p>
           </motion.div>
+
+          {/* the concluding statement — one restrained emphasis: a
+              slightly larger line in the display face, set a little
+              apart. No rule, no border, no quotation marks. */}
+          <motion.p
+            initial={reduced ? undefined : { opacity: 0, y: 16 }}
+            whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.5 }}
+            transition={{ duration: 0.8, delay: 0.1, ease: EASE }}
+            className="mx-auto mt-10 max-w-[560px] text-[19px] md:text-[21px]"
+            style={{ fontFamily: DISPLAY, fontWeight: 500, color: NAVY, lineHeight: 1.5 }}
+          >
+            {t.pdgtal.conclusion}
+          </motion.p>
         </div>
       </Section>
     </>
