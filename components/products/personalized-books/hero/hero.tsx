@@ -85,9 +85,9 @@ const DEFAULT_COPY_EN = {
   kicker: "Personalized storybooks",
   headline: "A story where your child is the hero.",
   subhead:
-    "Personalized books made with the care of a fine publisher - for families who want more than a name dropped into a template.",
-  primaryCtaLabel: "Create Your Story",
-  secondaryCtaLabel: "See how it works",
+    "Your child's name, their likeness, their interests, their dreams, and the meaning you want to pass on to them — all held inside a story made for them alone.",
+  primaryCtaLabel: "Create It for My Child →",
+  secondaryCtaLabel: "See How It's Created ↓",
 };
 
 const DEFAULT_COPY_UZ: typeof DEFAULT_COPY_EN = {
@@ -96,9 +96,9 @@ const DEFAULT_COPY_UZ: typeof DEFAULT_COPY_EN = {
   kicker: "Shaxsiylashtirilgan hikoya kitoblari",
   headline: "Farzandingiz qahramon bo'lgan hikoya.",
   subhead:
-    "Andozaga faqat ism qo'shilgan kitob emas, balki har bir tafsiloti bilan chin nashriyot ehtiyotkorligi bilan yaratilgan shaxsiylashtirilgan kitoblar.",
-  primaryCtaLabel: "Hikoyangizni yarating",
-  secondaryCtaLabel: "Qanday ishlashini ko'ring",
+    "Farzandingizning ismi, qiyofasi, qiziqishlari, orzulari va Siz unga yetkazmoqchi bo'lgan ma'no — barchasi faqat uning uchun yaratilgan hikoyada.",
+  primaryCtaLabel: "Farzandim uchun yaratish →",
+  secondaryCtaLabel: "Qanday yaratilishini ko'ring ↓",
 };
 
 export default function TalimoonHero({

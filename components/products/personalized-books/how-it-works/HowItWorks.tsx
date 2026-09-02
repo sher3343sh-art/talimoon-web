@@ -14,81 +14,85 @@ interface Step {
 
 const STEPS_EN: Step[] = [
   {
-    key: "tell-us",
-    title: "Tell Us About Your Child",
-    sentence: "Share their name, personality, dreams and photos.",
+    key: "introduce",
+    title: "You introduce them to us",
+    sentence: "Their name, age, interests, dreams, personality — and photos.",
     alt: "A parent filling in details and photos about their child",
     image: "/images/how-it-works/step-1-family-details.svg",
   },
   {
-    key: "we-create",
-    title: "We Create Their Story",
+    key: "what-to-support",
+    title: "You tell us what you want to support",
     sentence:
-      "Our writers and illustrators craft a unique personalized adventure.",
-    alt: "An illustrator sketching a page of a personalized storybook",
+      "For example: patience, courage, responsibility, kindness, confidence, manners, gratitude.",
+    alt: "A parent choosing which quality a story should quietly support",
+    // ASSET SLOT — no illustration for "choosing a value to support" yet;
+    // MaskedImage renders its placeholder until one is supplied.
+  },
+  {
+    key: "into-story",
+    title: "We turn it into a story",
+    sentence:
+      "Not as direct commands — through the hero's own experience, choices, challenges and their consequences.",
+    alt: "An illustrator shaping a personalized story around a child",
     image: "/images/how-it-works/step-2-create-story.svg",
   },
   {
-    key: "printed",
-    title: "Printed With Care",
-    sentence: "Every book is beautifully produced using premium materials.",
-    alt: "A finished storybook being printed on premium paper",
+    key: "own-book",
+    title: "Their own book comes into the world",
+    sentence:
+      "The personalized story becomes a real, printed book and reaches your family.",
+    alt: "A finished personalized storybook, printed and ready for the family",
     image: "/images/how-it-works/step-3-printed-with-care.svg",
-  },
-  {
-    key: "delivered",
-    title: "Delivered To Your Family",
-    sentence: "A timeless keepsake arrives ready to be treasured.",
-    alt: "A child holding their personalized storybook at home",
-    image: "/images/how-it-works/step-4-delivered-to-your-family.svg",
   },
 ];
 
 const STEPS_UZ: Step[] = [
   {
-    key: "tell-us",
-    title: "Farzandingiz haqida bizga ayting",
-    sentence: "Uning ismi, xarakteri, orzulari va suratlarini baham ko'ring.",
+    key: "introduce",
+    title: "Siz bizga uni tanishtirasiz",
+    sentence: "Uning ismi, yoshi, qiziqishlari, orzulari, xarakteri — va suratlari.",
     alt: "Ota-ona farzandi haqida ma'lumot va suratlarni to'ldirmoqda",
     image: "/images/how-it-works/step-1-family-details.svg",
   },
   {
-    key: "we-create",
-    title: "Biz uning hikoyasini yaratamiz",
+    key: "what-to-support",
+    title: "Siz nimani qo‘llab-quvvatlamoqchi ekaningizni aytasiz",
     sentence:
-      "Bizning yozuvchi va rassomlarimiz noyob, shaxsiylashtirilgan sarguzasht yaratadi.",
-    alt: "Rassom shaxsiylashtirilgan hikoya kitobining sahifasini chizmoqda",
+      "Masalan: sabr, jasorat, mas’uliyat, mehribonlik, o‘ziga ishonch, odob, shukr.",
+    alt: "Ota-ona hikoya qo‘llab-quvvatlaydigan jihatni tanlamoqda",
+  },
+  {
+    key: "into-story",
+    title: "Biz bularni hikoyaga aylantiramiz",
+    sentence:
+      "To‘g‘ridan-to‘g‘ri buyruq shaklida emas — qahramonning o‘z tajribasi, tanlovlari, sinovlari va ularning oqibatlari orqali.",
+    alt: "Rassom bola atrofida shaxsiylashtirilgan hikoyani shakllantirmoqda",
     image: "/images/how-it-works/step-2-create-story.svg",
   },
   {
-    key: "printed",
-    title: "Ehtiyotkorlik bilan chop etiladi",
-    sentence: "Har bir kitob premium materiallar yordamida chiroyli tarzda ishlab chiqariladi.",
-    alt: "Tayyor hikoya kitobi premium qog'ozda chop etilmoqda",
+    key: "own-book",
+    title: "Uning o‘z kitobi dunyoga keladi",
+    sentence:
+      "Shaxsiylashtirilgan hikoya haqiqiy, chop etilgan kitobga aylanadi va oilangizga yetib keladi.",
+    alt: "Tayyor shaxsiylashtirilgan hikoya kitobi, chop etilgan va oilaga tayyor",
     image: "/images/how-it-works/step-3-printed-with-care.svg",
-  },
-  {
-    key: "delivered",
-    title: "Oilangizga yetkaziladi",
-    sentence: "Abadiy xotira yodgorligi qadrlashga tayyor holda yetib keladi.",
-    alt: "Bola uyida o'zining shaxsiylashtirilgan hikoya kitobini ushlab turibdi",
-    image: "/images/how-it-works/step-4-delivered-to-your-family.svg",
   },
 ];
 
 const COPY_EN = {
   eyebrow: "The Process",
-  heading: "How It Works",
+  heading: "You know them. We build their story.",
   description:
-    "From a few details about your child to a keepsake in their hands — here is the entire journey.",
+    "How does a book actually become specific to one child? Four steps — you supply the child and the intent, we do the storytelling.",
   stepOf: (n: number, total: number) => `Step ${n} of ${total}: `,
 };
 
 const COPY_UZ: typeof COPY_EN = {
   eyebrow: "Jarayon",
-  heading: "Qanday ishlaydi",
+  heading: "Siz uni taniysiz. Biz uning hikoyasini yaratamiz.",
   description:
-    "Farzandingiz haqidagi bir necha ma'lumotdan tortib, qo'lidagi xotira yodgorligigacha — mana butun sayohat.",
+    "Kitob qanday qilib aynan bitta bolaga xos bo‘ladi? To‘rt qadam — Siz bolani va maqsadni berasiz, hikoya qismini biz bajaramiz.",
   stepOf: (n: number, total: number) => `${n}-qadam, jami ${total}: `,
 };
 

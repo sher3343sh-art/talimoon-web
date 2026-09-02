@@ -67,14 +67,6 @@ export const MARKET_PRICING: Record<Market, MarketPricing> = {
   },
 } as const;
 
-/** Struck-through "was" price — a display-only anchor shown ONLY on the
- *  product page pricing cards (the /begin flow always bills the real
- *  price). Not a real prior price point tracked anywhere else. */
-export const ANCHOR_PRICE: Record<Market, Record<BookType, number>> = {
-  UZ: { single: 600_000, multi: 850_000 },
-  INTERNATIONAL: { single: 59, multi: 84 },
-};
-
 /** Book meta (page counts, labels) is market-independent; the numeric
  *  base/extra-copy/delivery live in {@link MARKET_PRICING}. Kept as
  *  `PRICING` for the many call sites that only need the UZ numbers or
