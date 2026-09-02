@@ -79,6 +79,9 @@ const CHROME_EN = {
   marketAria: "Order region",
   deliveryUz: "Tashkent city — free · other regions — 40 000 so‘m",
   deliveryIntl: "International postal delivery — $15 per order",
+  sealTop: "Save",
+  sealAmount: (pct: number) => `${pct}%`,
+  sealSr: (pct: number, was: string) => `Save ${pct}% — was ${was}`,
 };
 
 const CHROME_UZ: typeof CHROME_EN = {
@@ -95,6 +98,9 @@ const CHROME_UZ: typeof CHROME_EN = {
   marketAria: "Buyurtma hududi",
   deliveryUz: "Toshkent shahri — bepul · boshqa viloyatlar — 40 000 so‘m",
   deliveryIntl: "Xalqaro pochta orqali yetkazib berish — buyurtmasiga $15",
+  sealTop: "Chegirma",
+  sealAmount: (pct) => `−${pct}%`,
+  sealSr: (pct, was) => `${pct}% chegirma — avvalgi narx ${was}`,
 };
 
 /** "499 000" — the bare number; the currency word is rendered
@@ -105,6 +111,79 @@ function priceParts(amount: number, market: Market): { value: string; unit: stri
     return { value: formatMoney(amount, "USD"), unit: "" };
   }
   return { value: amount.toLocaleString("en-US").replace(/,/g, " "), unit: "so'm" };
+}
+
+/** Display-only "was" prices for the sales page's discount seal. NOT a
+ *  real prior price point tracked in orderFormData.ts — the /begin flow
+ *  always bills the live MARKET_PRICING. These are the exact values this
+ *  page originally shipped with: they agree across commit 11afe7a
+ *  (ORIGINAL_PRICE) and 7e4387f (ANCHOR_PRICE). The saving % shown on
+ *  the seal is derived from these, never hardcoded. */
+const ANCHOR_PRICE: Record<Market, Record<BookType, number>> = {
+  UZ: { single: 600_000, multi: 850_000 },
+  INTERNATIONAL: { single: 59, multi: 84 },
+};
+
+/** Stamped-look starburst outline for the discount seal — an irregular
+ *  14-point star. The per-point jitter is a fixed table, so the shape
+ *  reads hand-cut but is byte-identical every render. Pure geometry. */
+function starburstPath(spikes: number, cx: number, cy: number, outer: number, inner: number): string {
+  const jitter = [1, 0.94, 1.04, 0.9, 1.06, 0.96, 1.01, 0.92, 1.05, 0.95, 1.02, 0.93, 1.03, 0.97];
+  const step = Math.PI / spikes;
+  let d = "";
+  for (let i = 0; i < spikes * 2; i += 1) {
+    const isOuter = i % 2 === 0;
+    const r = isOuter ? outer * (jitter[(i / 2) % jitter.length] ?? 1) : inner;
+    const angle = i * step - Math.PI / 2;
+    const x = cx + Math.cos(angle) * r;
+    const y = cy + Math.sin(angle) * r;
+    d += `${i === 0 ? "M" : "L"}${x.toFixed(2)} ${y.toFixed(2)} `;
+  }
+  return `${d}Z`;
+}
+
+const SEAL_PATH = starburstPath(14, 50, 50, 47, 36);
+
+/** Editorial discount medallion — navy stamp, dashed gold ring, cream
+ *  lettering, set at a slight angle like a pressed wax seal. It sits
+ *  BESIDE the live price, never over it. Decorative: aria-hidden, with
+ *  the saving announced in an sr-only line next to the price. Entrance
+ *  is one CSS scale/fade (see the <style> block), then fully static;
+ *  prefers-reduced-motion drops the entrance entirely. */
+function DiscountSeal({ topText, amount }: { topText: string; amount: string }) {
+  return (
+    <span
+      aria-hidden="true"
+      className="pb-seal pointer-events-none relative inline-flex h-[54px] w-[54px] shrink-0 select-none items-center justify-center sm:h-[62px] sm:w-[62px]"
+    >
+      <span
+        className="relative inline-flex h-full w-full items-center justify-center"
+        style={{ transform: "rotate(-7deg)" }}
+      >
+        <svg
+          viewBox="0 0 100 100"
+          className="absolute inset-0 h-full w-full drop-shadow-[0_2px_6px_rgba(33,29,24,0.25)]"
+        >
+          <path d={SEAL_PATH} fill="var(--surface-contrast)" />
+          <circle
+            cx="50"
+            cy="50"
+            r="33"
+            fill="none"
+            stroke="var(--gold-mid)"
+            strokeWidth="1.6"
+            strokeDasharray="1.8 2.8"
+          />
+        </svg>
+        <span className="relative flex flex-col items-center leading-none text-[color:var(--surface-base)]">
+          <span className="font-sans text-[7px] font-semibold uppercase tracking-[0.16em] sm:text-[7.5px]">
+            {topText}
+          </span>
+          <span className="mt-[2px] font-display text-[13px] font-semibold sm:text-[15px]">{amount}</span>
+        </span>
+      </span>
+    </span>
+  );
 }
 
 // The exact same gold recipe as .tm-cta-gold (globals.css §27), so the
@@ -141,6 +220,16 @@ export default function PricingSection() {
 
   return (
     <section id="pricing" className="w-full bg-surface-base py-16 md:py-20 lg:py-28">
+      <style>{`
+        .pb-seal { animation: pb-seal-in 520ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+        @keyframes pb-seal-in {
+          from { opacity: 0; transform: scale(0.72); }
+          to   { opacity: 1; transform: scale(1); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .pb-seal { animation: none; }
+        }
+      `}</style>
       <div className="mx-auto max-w-[1440px] px-5 md:px-10 lg:px-16">
         <div className="mx-auto max-w-lg text-center">
           <p className="mb-3 font-sans text-[13px] font-medium uppercase tracking-[0.16em] text-accent-primary">
@@ -188,6 +277,13 @@ export default function PricingSection() {
             const label = language === "UZ" ? info.labelUz : info.label;
             const base = MARKET_PRICING[market][plan.type];
             const priced = priceParts(base, market);
+            const anchor = ANCHOR_PRICE[market][plan.type];
+            const savingPct = anchor > base ? Math.round(((anchor - base) / anchor) * 100) : 0;
+            const hasDiscount = savingPct > 0;
+            const anchorPriced = priceParts(anchor, market);
+            const anchorText = anchorPriced.unit
+              ? `${anchorPriced.value} ${anchorPriced.unit}`
+              : anchorPriced.value;
             return (
               <div
                 key={plan.type}
@@ -225,13 +321,27 @@ export default function PricingSection() {
                   {label}
                 </span>
 
-                <div className="mt-2.5 flex items-baseline gap-2.5">
-                  <span className="font-display text-[30px] font-medium text-text-primary">
-                    {priced.value}
-                    {priced.unit && (
-                      <span className="font-sans text-[14px] font-normal"> {priced.unit}</span>
+                {/* Price hierarchy: live selling price (dominant) → discount
+                    seal → struck "was" price → the delivery/production row
+                    below the grid. */}
+                <div className="mt-2.5 flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <span className="font-display text-[30px] font-medium leading-none text-text-primary">
+                      {priced.value}
+                      {priced.unit && (
+                        <span className="font-sans text-[14px] font-normal"> {priced.unit}</span>
+                      )}
+                    </span>
+                    {hasDiscount && (
+                      <div className="mt-1.5">
+                        <span className="font-sans text-[14px] text-text-muted line-through">
+                          {anchorText}
+                        </span>
+                        <span className="sr-only">{t.sealSr(savingPct, anchorText)}</span>
+                      </div>
                     )}
-                  </span>
+                  </div>
+                  {hasDiscount && <DiscountSeal topText={t.sealTop} amount={t.sealAmount(savingPct)} />}
                 </div>
 
                 <p className="mt-1 font-sans text-[12.5px] text-text-secondary">{t.pagesStory(info.pages)}</p>

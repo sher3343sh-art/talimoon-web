@@ -23,14 +23,11 @@ const COPY_EN = {
     "Stop crying…",
     "Don't be difficult…",
     "Don't fight…",
-    "Settle down…",
     "Be kind to your brother…",
-    "Keep yourself tidy…",
     "Do well at school…",
     "Don't tell lies…",
   ],
   heard: "They have heard all of it.",
-  differently: "Maybe now they need to feel it a different way.",
   turn: ["Maybe it isn't about saying it again.", "Maybe it needs to reach them differently."],
 };
 
@@ -41,19 +38,16 @@ const COPY_UZ: typeof COPY_EN = {
     "Yig‘layverma…",
     "Injiqlik qilma…",
     "Urishaverma…",
-    "To‘polon qilma…",
     "Ukangga mehribon bo‘l…",
-    "Pokiza yur…",
     "Yaxshi o‘qi…",
     "Yolg‘on gapirma…",
   ],
   heard: "U bu gaplarni eshitgan.",
-  differently: "Balki endi ularni boshqacha his qilishi kerakdir.",
   turn: ["Balki yana aytish emas,", "boshqacha yetkazish kerakdir."],
 };
 
 /** Gentle left indent variation so the phrases read as scattered, not a list. */
-const INDENT = ["0", "1.5rem", "0.5rem", "2.25rem", "0.75rem", "1.75rem", "0.25rem", "1.25rem"];
+const INDENT = ["0", "1.5rem", "0.5rem", "2.25rem", "0.75rem", "1.75rem"];
 
 export default function Recognition() {
   const t = useT(COPY_EN, COPY_UZ);
@@ -91,16 +85,13 @@ export default function Recognition() {
           ))}
         </ul>
 
-        <Reveal delay={120} className="mt-12 md:mt-16">
+        <Reveal delay={120} className="mt-11 md:mt-14">
           <p className="font-sans text-[1.0625rem] leading-[1.7] text-text-secondary md:text-[1.125rem]">
             {t.heard}
           </p>
-          <p className="mt-2 font-sans text-[1.0625rem] leading-[1.7] text-text-secondary md:text-[1.125rem]">
-            {t.differently}
-          </p>
         </Reveal>
 
-        <Reveal delay={80} className="mt-12 md:mt-16">
+        <Reveal delay={80} className="mt-10 md:mt-14">
           <p className="text-balance font-display text-[1.875rem] font-medium leading-[1.2] tracking-[-0.02em] text-text-primary sm:text-[2.5rem] md:text-[3.125rem]">
             {t.turn[0]}
             <br />

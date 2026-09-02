@@ -21,7 +21,6 @@ const COPY_EN = {
   heading: "You won't find this book in a shop.",
   follow: "Because your child isn't there.",
   items: ["Their name.", "Their likeness.", "Their world.", "Their loved ones.", "Their story."],
-  close: "No one else will ever have this exact book.",
   recognitionLabel: "The moment they open it",
   recognition: "“That's me!”",
   recognitionNote:
@@ -34,7 +33,6 @@ const COPY_UZ: typeof COPY_EN = {
   heading: "Bunday kitobni do‘kondan topolmaysiz.",
   follow: "Chunki u yerda sizning farzandingiz yo‘q.",
   items: ["Uning ismi.", "Uning qiyofasi.", "Uning dunyosi.", "Uning yaqinlari.", "Uning hikoyasi."],
-  close: "Boshqa hech kimda aynan shunday kitob bo‘lmaydi.",
   recognitionLabel: "U kitobni ochgan lahza",
   recognition: "“Bu men-ku!”",
   recognitionNote:
@@ -100,13 +98,7 @@ export default function Exclusivity() {
             ))}
           </ul>
 
-          <Reveal delay={80} className="mt-8">
-            <p className="max-w-[34ch] text-balance font-display text-[1.375rem] font-medium leading-[1.3] text-text-primary md:text-[1.625rem]">
-              {t.close}
-            </p>
-          </Reveal>
-
-          <Reveal delay={60} className="mt-8 border-s-2 border-accent-primary/40 ps-5">
+          <Reveal delay={60} className="mt-9 border-s-2 border-accent-primary/40 ps-5">
             <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.18em] text-text-muted">
               {t.recognitionLabel}
             </p>
