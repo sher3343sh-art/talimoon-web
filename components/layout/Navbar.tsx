@@ -919,7 +919,7 @@ export default function Navbar({ ctaHref = "/begin" }: NavbarProps) {
           />
         </Link>
 
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 items-center gap-3.5">
           <div ref={mobileLanguageContainerRef} className="relative shrink-0">
             <button
               ref={mobileLanguageTriggerRef}
