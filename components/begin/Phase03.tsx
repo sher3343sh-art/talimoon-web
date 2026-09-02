@@ -19,12 +19,13 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { toLocale, directionFor } from "@/lib/journey/types";
 import {
+  qualityDetailPending,
   reconcileGrowth,
-  reconcileQualityExample,
   setGrowthItemContext,
+  setQualityDetail,
   type ChildProfile,
   type GrowthBehaviorAnswer,
-  type SelectableAnswer,
+  type QualityAnswer,
 } from "@/lib/order/types";
 import { addCustomAnswer, removeAnswer, togglePreset } from "@/lib/order/selectableAnswers";
 import {
@@ -34,11 +35,14 @@ import {
   growthFull,
   growthOptions,
   phase03Copy,
+  qualityDetailHelper,
+  qualityDetailPrompt,
   qualityLabel,
   qualityOptions,
   valueOptions,
   type Locale,
 } from "@/lib/order/phase03-copy";
+import { useFlowScroll } from "@/lib/order/useFlowScroll";
 import { JourneyProgress } from "./JourneyProgress";
 import { ChildWorld } from "./ChildWorld";
 import { SelectionTray } from "./SelectionTray";
@@ -99,13 +103,16 @@ export default function Phase03({
     return () => window.clearTimeout(t);
   }, [screen, idx]);
 
+  // Reset the scroll position on every screen / child change (spec §8).
+  useFlowScroll(`${idx}-${screen}`);
+
   // ── qualities — preset and custom share one array (spec §01/§20) ─
   const qualities = child.appreciatedQualities ?? [];
   const atQualityLimit = qualities.length >= MAX_QUALITIES;
   const resolveQualityLabel = (id: string) => qualityLabel(id, locale);
 
   function toggleQuality(key: string) {
-    const next = togglePreset<SelectableAnswer>(qualities, key, MAX_QUALITIES, (id) => ({
+    const next = togglePreset<QualityAnswer>(qualities, key, MAX_QUALITIES, (id) => ({
       id,
       source: "preset",
     }));
@@ -114,7 +121,7 @@ export default function Phase03({
     setAttempted(false);
   }
   function addCustomQuality() {
-    const next = addCustomAnswer<SelectableAnswer>(
+    const next = addCustomAnswer<QualityAnswer>(
       qualities,
       customDraft,
       MAX_QUALITIES,
@@ -129,6 +136,14 @@ export default function Phase03({
   }
   function removeQuality(id: string) {
     patch({ appreciatedQualities: removeAnswer(qualities, id) });
+  }
+  /** Per-quality detail edits (spec §4) — detail ↔ "no example" are
+   *  exclusive on that single quality, never applied across the set. */
+  function setQualityItemDetail(id: string, detail: string) {
+    patch({ appreciatedQualities: setQualityDetail(qualities, id, { detail }) });
+  }
+  function setQualityItemNoDetail(id: string, noDetail: boolean) {
+    patch({ appreciatedQualities: setQualityDetail(qualities, id, { noDetail }) });
   }
 
   // ── values ────────────────────────────────────────────────────
@@ -196,6 +211,12 @@ export default function Phase03({
         return qualities.length > 0
           ? { ok: true }
           : { ok: false, error: c.errQualities };
+      case "example":
+        // Every selected quality needs either a written detail or the
+        // explicit "no example" alternative — never a forced answer.
+        return qualities.some(qualityDetailPending)
+          ? { ok: false, error: c.errExample }
+          : { ok: true };
       case "growth":
         return child.noGrowthArea || growthBehaviors.length > 0
           ? { ok: true }
@@ -411,27 +432,51 @@ export default function Phase03({
 
                 {screen === "example" && (
                   <div>
-                    <Heading headingRef={headingRef}>{c.q2(child.name)}</Heading>
-                    <Help>{c.q2Help}</Help>
-                    <div className="mt-5">
-                      <textarea
-                        rows={2}
-                        value={child.qualityExample ?? ""}
-                        onChange={(e) =>
-                          patch({ ...reconcileQualityExample(true), qualityExample: e.target.value })
-                        }
-                        placeholder={c.q2Placeholder}
-                        className={box}
-                      />
+                    <p className="font-sans text-[12px] font-semibold uppercase tracking-[0.18em] text-accent-primary">
+                      {c.q2SectionLabel}
+                    </p>
+                    <Heading headingRef={headingRef}>{c.q2Intro}</Heading>
+
+                    {/* One block PER chosen quality — its own tailored
+                        question, its own helper, its own textarea and its
+                        own "no example" alternative. A detail typed here
+                        can only ever attach to THIS quality (spec §4). */}
+                    <div className="mt-7 space-y-7">
+                      {qualities.map((a) => (
+                        <div
+                          key={a.id}
+                          className="rounded-md border border-border-subtle bg-surface-raised/40 px-4 py-4"
+                        >
+                          <p className="font-display text-[16px] leading-[1.35] text-text-primary">
+                            {resolveQualityLabel(a.id)}
+                          </p>
+                          <p className="mt-2.5 font-sans text-[13.5px] font-medium text-text-secondary">
+                            {qualityDetailPrompt(a.id, child.name, locale)}
+                          </p>
+                          <p className="mt-1 font-sans text-[12px] leading-[1.5] text-text-muted">
+                            {qualityDetailHelper(a.id, locale)}
+                          </p>
+                          <div className="mt-2.5">
+                            <textarea
+                              rows={2}
+                              value={a.detail ?? ""}
+                              onChange={(e) => setQualityItemDetail(a.id, e.target.value)}
+                              placeholder={c.q2Placeholder}
+                              className={box}
+                            />
+                          </div>
+                          <div className="mt-3">
+                            <CheckRow
+                              id={`p3-quality-none-${a.id}`}
+                              checked={!!a.noDetail}
+                              onChange={(checked) => setQualityItemNoDetail(a.id, checked)}
+                              label={c.q2ItemNone}
+                            />
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                    <div className="mt-4">
-                      <CheckRow
-                        id="p3-no-example"
-                        checked={!!child.noQualityExample}
-                        onChange={(checked) => patch(reconcileQualityExample(!checked))}
-                        label={c.q2NoneLabel}
-                      />
-                    </div>
+                    <ErrorLine>{showError}</ErrorLine>
                   </div>
                 )}
 

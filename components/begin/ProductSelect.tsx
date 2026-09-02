@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { BookOpen, Sparkles, Blocks, ArrowRight } from "lucide-react";
+import Image from "next/image";
+import { ArrowRight } from "lucide-react";
 import { useLanguage, useT } from "@/lib/i18n/LanguageContext";
 import PersonalizedBookOrderForm from "./PersonalizedBookOrderForm";
 
@@ -13,7 +14,17 @@ interface Product {
   nameUz: string;
   tagline: string;
   taglineUz: string;
-  icon: React.ElementType;
+  /**
+   * Card artwork. One visual family — the same painted "world" images
+   * as the home "Our Products" doors — so the three cards clearly read
+   * as siblings, each opening a different world (spec §2). These are
+   * ASSET SLOTS: swap the path for approved final order-flow art when
+   * it lands; do not invent replacement artwork here.
+   *   personalized-books → the open-book world the child steps into
+   *   yusuf-yasmina      → the approved Yusuf & Yasmina world
+   *   toys               → the TALIMOON toy / character world
+   */
+  image: string;
   active: boolean;
 }
 
@@ -24,7 +35,7 @@ const PRODUCTS: Product[] = [
     nameUz: "Shaxsiylashtirilgan kitoblar",
     tagline: "Your child becomes the hero of a story created especially for them.",
     taglineUz: "Farzandingiz maxsus u uchun yaratilgan hikoyaning bosh qahramoniga aylanadi.",
-    icon: BookOpen,
+    image: "/images/home/OurProducts/books-world.png",
     active: true,
   },
   {
@@ -33,7 +44,7 @@ const PRODUCTS: Product[] = [
     nameUz: "Yusuf va Yasmina",
     tagline: "Faith-filled adventures that inspire kindness, courage, and character.",
     taglineUz: "Mehr-shafqat, jasorat va halollikni ilhomlantiruvchi imonli sarguzashtlar.",
-    icon: Sparkles,
+    image: "/images/home/OurProducts/yusuf.png",
     active: false,
   },
   {
@@ -42,22 +53,22 @@ const PRODUCTS: Product[] = [
     nameUz: "Talimoon o'yinchoqlari",
     tagline: "Beautiful toys that transform everyday play into joyful learning.",
     taglineUz: "Kundalik o'yinni quvonchli bilim olishga aylantiruvchi go'zal o'yinchoqlar.",
-    icon: Blocks,
+    image: "/images/home/OurProducts/toys.png",
     active: false,
   },
 ];
 
 const CHROME_EN = {
-  eyebrow: "Begin the story",
+  eyebrow: "Start your order",
   heading: "Which world are you opening today?",
-  stepInside: "Step inside",
+  stepInside: "Start your order",
   comingSoon: "Coming soon",
 };
 
 const CHROME_UZ: typeof CHROME_EN = {
-  eyebrow: "Hikoyani boshlash",
+  eyebrow: "Buyurtmani boshlash",
   heading: "Bugun qaysi olamni ochmoqchisiz?",
-  stepInside: "Ichkariga kiring",
+  stepInside: "Buyurtmani boshlash",
   comingSoon: "Tez orada",
 };
 
@@ -83,7 +94,6 @@ export default function ProductSelect() {
 
       <div className="mx-auto mt-12 grid max-w-4xl gap-5 sm:grid-cols-3">
         {PRODUCTS.map((product) => {
-          const Icon = product.icon;
           const name = language === "UZ" ? product.nameUz : product.name;
           const tagline = language === "UZ" ? product.taglineUz : product.tagline;
           return (
@@ -99,8 +109,14 @@ export default function ProductSelect() {
                 product.active ? "opacity-100" : "opacity-55",
               ].join(" ")}
             >
-              <span className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-accent-primary/[0.12]">
-                <Icon size={20} strokeWidth={1.5} className="text-accent-primary" />
+              <span className="relative mb-5 block aspect-[4/3] w-full overflow-hidden rounded-md border border-border-subtle bg-surface-base">
+                <Image
+                  src={product.image}
+                  alt=""
+                  fill
+                  sizes="(min-width: 640px) 22rem, 90vw"
+                  className="object-cover"
+                />
               </span>
 
               <h3 className="font-display text-[19px] font-medium text-text-primary">

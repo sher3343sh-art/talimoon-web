@@ -64,11 +64,17 @@ function charRows(child: ChildProfile, locale: Locale): Row[] {
   const rows: Row[] = [];
   const qualities = qualitiesDisplay(child.appreciatedQualities, locale);
   if (qualities) {
+    // Each selected quality's own written detail (spec §4) — joined for
+    // the portrait's one supporting line; "no example" items add nothing.
+    const detail = (child.appreciatedQualities ?? [])
+      .map((a) => (a.detail ?? "").trim())
+      .filter(Boolean)
+      .join(" · ");
     rows.push({
       key: "qualities",
       label: c.pQualities,
       value: qualities,
-      sub: child.qualityExample?.trim() || undefined,
+      sub: detail || undefined,
     });
   }
   const growth = !child.noGrowthArea ? growthDisplay(child.growthBehaviors, locale) : "";
