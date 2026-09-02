@@ -103,12 +103,12 @@ export function AboutHowWeCreate() {
             whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.55 }}
             transition={{ duration: 0.6, delay: 0.04 * i, ease: EASE }}
-            className="grid grid-cols-[44px_1fr] gap-x-5 gap-y-1 py-4 md:grid-cols-[72px_220px_1fr] md:gap-x-8 md:py-[18px]"
+            className="grid grid-cols-[auto_1fr] gap-x-5 gap-y-1 py-4 md:grid-cols-[96px_220px_1fr] md:gap-x-8 md:py-[18px]"
             style={{ borderTop: `1px solid ${i === 0 ? GOLD_SOFT : 'rgba(28,42,58,0.10)'}` }}
           >
             <span
               aria-hidden="true"
-              className="row-span-2 text-[30px] md:row-span-1 md:text-[40px]"
+              className="row-span-2 text-[40px] md:row-span-1 md:text-[52px]"
               style={{
                 fontFamily: DISPLAY,
                 fontWeight: 600,
