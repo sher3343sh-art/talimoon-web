@@ -28,7 +28,7 @@ import React from 'react';
 import Image from 'next/image';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useT } from '@/lib/i18n/LanguageContext';
-import { BODY, DISPLAY, GOLD, GOLD_SOFT, NAVY, NAVY_64, NAVY_48, Eyebrow, Section, SPACE_MAJOR } from './shared';
+import { BODY, DISPLAY, GOLD, GOLD_SOFT, NAVY, NAVY_64, NAVY_48, Eyebrow, Section, SPACE_MAJOR, SPACE_NORMAL } from './shared';
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -68,6 +68,19 @@ const EN = {
       'In time, Oybek became one of the first people to take the idea seriously. They exchanged thoughts and worked through its weak points together — and what began as one book slowly grew into something larger.',
     reveal: 'Eventually that world was given a name — and Oybek had a real hand in choosing it.',
     afterReveal: 'What began with one book is becoming a whole world for children.',
+  },
+  pdgtal: {
+    eyebrow: 'A formative chapter',
+    headline: 'From an idea to a bigger vision',
+    body: [
+      'As TALIMOON began to take shape, Sherzodbek was in Doha, taking part in PDGTAL Talents Academy’s Fast-Track Internship program. When he decided to turn TALIMOON into a real project, PDGTAL supported his initiative and gave him a professional environment in which to work on his own idea.',
+      'That time helped him see the project more broadly — how to build a sound strategy, aim for premium international standards, think early about bringing a product to market, and picture TALIMOON as a brand that could grow beyond a single region.',
+    ],
+    conclusion:
+      'TALIMOON was born from a personal story. In the early stage where that idea was becoming a serious, long-term project, PDGTAL was one of its important sources of mentorship and support.',
+    logoAlt: 'PDGTAL',
+    place: 'Doha, Qatar',
+    linkAria: 'PDGTAL Talents Academy',
   },
 };
 
@@ -110,6 +123,19 @@ const UZ: typeof EN = {
       'Keyinchalik aynan Oybek bu g‘oyani jiddiy qo‘llab-quvvatlagan ilk insonlardan biriga aylandi. Ular fikr almashdi, kamchiliklarni birga muhokama qildi — va bir kitob sifatida boshlangan g‘oya asta-sekin kattaroq dunyoga aylandi.',
     reveal: 'Keyinchalik bu dunyo o‘z nomini oldi — bu nomning tanlanishida ham Oybekning hissasi katta bo‘ldi.',
     afterReveal: 'Bir kitobdan boshlangan fikr endi butun bir bolalar olamiga aylanmoqda.',
+  },
+  pdgtal: {
+    eyebrow: 'Shakllanish davri',
+    headline: 'G‘oyadan katta maqsad sari',
+    body: [
+      'TALIMOON shakllana boshlagan davrda Sherzodbek Dohada PDGTAL Talents Academy’ning Fast-Track Internship dasturida amaliyot o‘tayotgan edi. U TALIMOONni haqiqiy loyihaga aylantirishga qaror qilganida, PDGTAL uning tashabbusini qo‘llab-quvvatladi va o‘z g‘oyasi ustida ishlashi uchun professional muhit yaratdi.',
+      'Bu davr unga loyihaga kengroq qarashni — strategiyani to‘g‘ri qurish, premium va xalqaro standartlarni ko‘zlash, bozorga chiqishni oldindan o‘ylash va TALIMOONni bir hudud bilan cheklanmaydigan brend sifatida tasavvur qilishni o‘rgatdi.',
+    ],
+    conclusion:
+      'TALIMOON shaxsiy bir hikoyadan tug‘ildi. PDGTAL esa uning g‘oyadan jiddiy va uzoqni ko‘zlagan loyihaga aylanayotgan ilk davrida muhim ustoz va tayanchlardan biri bo‘ldi.',
+    logoAlt: 'PDGTAL',
+    place: 'Doha, Qatar',
+    linkAria: 'PDGTAL Talents Academy',
   },
 };
 
@@ -391,6 +417,104 @@ export function AboutOrigin() {
             {t.m3.afterReveal}
           </p>
         </motion.div>
+      </Section>
+
+      {/* A FORMATIVE CHAPTER — PDGTAL --------------------------------------
+          The final beat of HOW IT BEGAN: the idea has a name, and now it
+          starts becoming a serious venture. Sherzodbek was in Doha on
+          PDGTAL Talents Academy's Fast-Track Internship, working on his
+          own idea in a professional environment that broadened how he
+          thought about strategy and reaching a wider market. An
+          institutional mark, not a photo; recognition, not a partner
+          badge. Lives inside #ch-how-it-began so the chapter rail keeps
+          reading it as "QANDAY YARALDI" with no scroll-spy change. */}
+      <Section labelledBy="about-pdgtal-heading" className={SPACE_NORMAL} railInset>
+        <div className="grid gap-12 lg:grid-cols-[1fr_minmax(0,300px)] lg:items-center lg:gap-16">
+          <div className="max-w-[600px]">
+            <motion.div
+              initial={reduced ? undefined : { opacity: 0, y: 18 }}
+              whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.6 }}
+              transition={{ duration: 0.8, ease: EASE }}
+            >
+              <Eyebrow align="start">{t.pdgtal.eyebrow}</Eyebrow>
+              <h2
+                id="about-pdgtal-heading"
+                className="mt-4 text-[26px] sm:text-[32px] md:text-[38px]"
+                style={{ fontFamily: DISPLAY, fontWeight: 600, color: NAVY, lineHeight: 1.18, letterSpacing: '-0.015em' }}
+              >
+                {t.pdgtal.headline}
+              </h2>
+            </motion.div>
+
+            <div className="mt-8 space-y-4">
+              {t.pdgtal.body.map((line, i) => (
+                <motion.p
+                  key={i}
+                  initial={reduced ? undefined : { opacity: 0, y: 14 }}
+                  whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.5 }}
+                  transition={{ duration: 0.7, delay: 0.06 * i, ease: EASE }}
+                  className="text-[15.5px] md:text-[16.5px]"
+                  style={{ fontFamily: BODY, color: NAVY_64, lineHeight: 1.75 }}
+                >
+                  {line}
+                </motion.p>
+              ))}
+            </div>
+
+            {/* the concluding statement — one restrained emphasis: a
+                slightly larger line in the display face, set a little
+                apart. No rule, no border, no quotation marks. */}
+            <motion.p
+              initial={reduced ? undefined : { opacity: 0, y: 16 }}
+              whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.5 }}
+              transition={{ duration: 0.8, delay: 0.1, ease: EASE }}
+              className="mt-7 max-w-[560px] text-[19px] md:text-[21px]"
+              style={{ fontFamily: DISPLAY, fontWeight: 500, color: NAVY, lineHeight: 1.5 }}
+            >
+              {t.pdgtal.conclusion}
+            </motion.p>
+          </div>
+
+          <motion.div
+            initial={reduced ? undefined : { opacity: 0, y: 18 }}
+            whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.4 }}
+            transition={{ duration: 0.9, delay: 0.08, ease: EASE }}
+            className="mx-auto w-full max-w-[220px] text-center lg:mx-0 lg:max-w-[260px] lg:text-start"
+          >
+            <a
+              href="https://dbspartners.co/prospectuzdgtal/en/academy"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={t.pdgtal.linkAria}
+              className="inline-block rounded-[2px] outline-none transition-opacity duration-300 hover:opacity-80 focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-[6px] focus-visible:outline-[rgba(184,147,91,0.55)]"
+            >
+              <Image
+                src="/images/about/pdgtal-logo.webp"
+                alt={t.pdgtal.logoAlt}
+                width={900}
+                height={294}
+                sizes="(max-width: 1024px) 220px, 260px"
+                className="h-auto w-full"
+              />
+            </a>
+            <p
+              className="mt-5 text-[13px] uppercase"
+              style={{ fontFamily: BODY, fontWeight: 600, letterSpacing: '0.14em', color: NAVY }}
+            >
+              PDGTAL
+            </p>
+            <p
+              className="mt-1 text-[12.5px]"
+              style={{ fontFamily: BODY, color: NAVY_48, letterSpacing: '0.04em' }}
+            >
+              {t.pdgtal.place}
+            </p>
+          </motion.div>
+        </div>
       </Section>
     </>
   );
