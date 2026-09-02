@@ -411,6 +411,72 @@ export function bookLanguageLabel(code: string): string {
   return BOOK_LANGUAGE_OPTIONS.find((l) => l.code === code)?.label ?? "";
 }
 
+// ── Card-to-card transfer accounts (spec §10–11) ───────────────────
+// Online automatic payment is NOT live yet; every order is paid by a
+// card-to-card transfer to one of the accounts below, then a receipt
+// is uploaded. Accounts are market-specific and never mixed on screen:
+// a UZ order sees only the local card, an INTERNATIONAL order sees only
+// the Visa / Mastercard cards.
+//
+// The card numbers here are FIXED business data:
+//   • the local Uzbekistan card and the Mastercard number are the ones
+//     that already existed in the flow — preserved verbatim, never
+//     swapped or regenerated;
+//   • the Visa number is the approved international card.
+// Brand marks are rendered as restrained wordmarks (PaymentAccount) —
+// swap in approved UZCARD / HUMO / Visa / Mastercard logo assets here
+// if/when they are provided.
+export type CardBrand = "uzcard" | "humo" | "visa" | "mastercard";
+
+export interface PaymentAccount {
+  /** Stable id — also scopes the "copied" state of its copy button. */
+  id: string;
+  /** Card number in human-readable four-digit groups. */
+  number: string;
+  /** Cardholder, shown exactly as written. */
+  holder: string;
+  /** Brand marks shown against THIS card (mapped one-to-one). */
+  brands: CardBrand[];
+}
+
+export const PAYMENT_ACCOUNTS: Record<Market, readonly PaymentAccount[]> = {
+  UZ: [
+    {
+      id: "uz-local-card",
+      number: "9860 1701 1310 7875",
+      holder: "Sh. Yunusov",
+      brands: ["uzcard", "humo"],
+    },
+  ],
+  INTERNATIONAL: [
+    {
+      id: "intl-visa",
+      number: "4023 0601 2264 2365",
+      holder: "Sh. Yunusov",
+      brands: ["visa"],
+    },
+    {
+      id: "intl-mastercard",
+      number: "5476 3800 9259 3482",
+      holder: "Sh. Yunusov",
+      brands: ["mastercard"],
+    },
+  ],
+} as const;
+
+/** Digits only — for copy-to-clipboard, so a bank app receives a clean
+ *  string. The grouped form stays on screen for readability. */
+export function cardDigits(number: string): string {
+  return number.replace(/\D/g, "");
+}
+
+export const CARD_BRAND_LABEL: Record<CardBrand, string> = {
+  uzcard: "UZCARD",
+  humo: "HUMO",
+  visa: "VISA",
+  mastercard: "Mastercard",
+};
+
 export const PAYMENT_METHODS = [
   {
     id: "bank_transfer",

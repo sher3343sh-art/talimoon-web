@@ -10,18 +10,21 @@ import {
   BookType,
   COUNTRIES,
   DELIVERY_REGIONS,
+  PAYMENT_ACCOUNTS,
   STEPS,
   TraitId,
+  type StepId,
   buildPricingSnapshot,
   calculateOrderTotal,
   countryLabel,
   deliveryRegionLabel,
   formatMoney,
-  marketHasOnlinePayment,
   paymentMethodsForMarket,
   type Market,
 } from "./orderFormData";
+import { PaymentAccount } from "./PaymentAccount";
 import { setMarketPreference, useMarketPreference, marketFromLocation } from "@/lib/order/market";
+import { useFlowScroll } from "@/lib/order/useFlowScroll";
 import {
   bookTypeForChildCount,
   deliveryRequired,
@@ -118,8 +121,14 @@ const CHROME_EN = {
 
   giftFrom: "Who is this gift from?",
   giftFromHint: "Name and relationship — e.g. Mom, Nilufar",
+  giftFromError: "Please answer this to continue.",
   wantsPersonalMessage: "Add a personal message",
-  personalMessagePlaceholder: "A note that will appear at the end of the book",
+  personalMessageQ: (name: string) =>
+    `Would you like to leave ${name} a few warm words of your own at the end of the book?`,
+  personalMessageHint:
+    "Your affection, a wish, or a short line you'd like to say to them.",
+  personalMessagePlaceholder: (name: string) =>
+    `For example: “${name}, I will always be proud of you. Keep your kind and brave heart. I love you very much.”`,
   wantsCharacters: "Include other characters",
   charactersPlaceholder:
     "Names and relationship — e.g. sister Madina, grandfather",
@@ -134,6 +143,9 @@ const CHROME_EN = {
   characterPhotos: "Photos of the other characters",
   characterPhotosHint: "1–3 photos for each additional character in the story",
   atLeastPhotos: (min: number) => `At least ${min} photos required`,
+  photosEnough: (n: number) => `${n} photo${n === 1 ? "" : "s"} — enough`,
+  photosMoreNeeded: (n: number) =>
+    `Upload ${n} more photo${n === 1 ? "" : "s"} to continue`,
   removePhoto: "Remove photo",
   photoTooLarge: "That photo is too large. Please choose one under 15 MB.",
   photoNotImage: "Please choose an image file.",
@@ -144,8 +156,23 @@ const CHROME_EN = {
   numberOfCopies: "Number of copies",
   total: "Total",
 
-  availableSoon: "Available soon",
-  uploadReceipt: "Upload payment receipt",
+  payUzHeading: "Payment for Uzbekistan",
+  payUzBody: "You can pay by card-to-card transfer to the card number below.",
+  payIntlHeading: "International payment",
+  payIntlBody:
+    "For international orders, you can pay by card-to-card transfer to one of the cards below.",
+  cardNumberLabel: "Card number",
+  cardHolderLabel: "Cardholder",
+  copyAction: "Copy",
+  copiedAction: "Copied",
+  payNote:
+    "For now, payments are made by card transfer. Online automatic payments are coming soon.",
+  receiptQ: "Upload payment receipt",
+  receiptHint:
+    "You can upload the payment receipt or a screenshot from your banking app.",
+  receiptDone: "Receipt uploaded",
+  receiptReplace: "Replace",
+  receiptError: "Please upload the payment receipt to finish.",
 
   reviewLanguage: "Book language",
   reviewAddress: "Delivery",
@@ -169,9 +196,6 @@ const CHROME_EN = {
   addrNote: "Delivery note",
   intlDelivery: "International postal delivery",
   intlDeliveryHelp: "One flat postal charge for the whole order.",
-  intlPayHeading: "International payment",
-  intlPayNotice:
-    "Online payment for international orders isn't available yet. Send your order and the TALIMOON team will contact you to arrange payment before your book is prepared.",
 
   errReview:
     "Please add a phone number, choose the book language, choose the destination country, and answer the delivery question (with a full address if you'd like delivery).",
@@ -237,8 +261,14 @@ const CHROME_UZ: typeof CHROME_EN = {
 
   giftFrom: "Bu sovg'a kimdan?",
   giftFromHint: "Ism va qarindoshlik — masalan: Onasi, Nilufar",
+  giftFromError: "Davom etish uchun bu savolga javob bering.",
   wantsPersonalMessage: "Shaxsiy xabar qo'shish",
-  personalMessagePlaceholder: "Kitob oxirida chiqadigan yozuv",
+  personalMessageQ: (name: string) =>
+    `Kitob oxirida ${name}ga o‘zingizdan bir necha iliq so‘z qoldirmoqchimisiz?`,
+  personalMessageHint:
+    "Bu yerga mehringizni, tilagingizni yoki unga aytmoqchi bo‘lgan qisqa gapingizni yozishingiz mumkin.",
+  personalMessagePlaceholder: (name: string) =>
+    `Masalan: “${name}, sen bilan doimo faxrlanaman. Mehribon va jasur qalbingni asra. Seni juda yaxshi ko‘raman.”`,
   wantsCharacters: "Hikoyaga boshqa qahramonlarni qo'shish",
   charactersPlaceholder: "Ism va qarindoshlik — masalan: opasi Madina, bobosi",
 
@@ -252,6 +282,8 @@ const CHROME_UZ: typeof CHROME_EN = {
   characterPhotos: "Boshqa qahramonlar suratlari",
   characterPhotosHint: "Hikoyadagi har bir qo'shimcha qahramon uchun 1–3 ta surat",
   atLeastPhotos: (min: number) => `Kamida ${min} ta surat kerak`,
+  photosEnough: (n: number) => `${n} ta surat — yetarli`,
+  photosMoreNeeded: (n: number) => `Davom etish uchun yana ${n} ta rasm yuklang`,
   removePhoto: "Suratni o'chirish",
   photoTooLarge: "Bu surat juda katta. Iltimos, 15 MB dan kichigini tanlang.",
   photoNotImage: "Iltimos, rasm faylini tanlang.",
@@ -262,8 +294,24 @@ const CHROME_UZ: typeof CHROME_EN = {
   numberOfCopies: "Nusxalar soni",
   total: "Jami",
 
-  availableSoon: "Tez orada mavjud bo'ladi",
-  uploadReceipt: "To'lov chekini yuklang",
+  payUzHeading: "O‘zbekiston bo‘yicha to‘lov",
+  payUzBody:
+    "To‘lovni quyidagi karta raqamiga kartadan kartaga amalga oshirishingiz mumkin.",
+  payIntlHeading: "Xalqaro to‘lov",
+  payIntlBody:
+    "Xalqaro buyurtmalar uchun to‘lovni quyidagi kartalardan biriga kartadan kartaga amalga oshirishingiz mumkin.",
+  cardNumberLabel: "Karta raqami",
+  cardHolderLabel: "Karta egasi",
+  copyAction: "Nusxalash",
+  copiedAction: "Nusxalandi",
+  payNote:
+    "Hozircha to‘lov kartadan kartaga amalga oshiriladi. Onlayn avtomatik to‘lov tizimi tez orada ishga tushadi.",
+  receiptQ: "To‘lov chekini yuklang",
+  receiptHint:
+    "Bank ilovasidagi to‘lov cheki yoki screenshotni yuklashingiz mumkin.",
+  receiptDone: "Chek yuklandi",
+  receiptReplace: "Almashtirish",
+  receiptError: "Yakunlash uchun to‘lov chekini yuklang.",
 
   reviewLanguage: "Kitob tili",
   reviewAddress: "Yetkazib berish",
@@ -287,9 +335,6 @@ const CHROME_UZ: typeof CHROME_EN = {
   addrNote: "Yetkazib berish izohi",
   intlDelivery: "Xalqaro pochta orqali yetkazib berish",
   intlDeliveryHelp: "Butun buyurtma uchun bir martalik pochta to‘lovi.",
-  intlPayHeading: "Xalqaro to‘lov",
-  intlPayNotice:
-    "Xalqaro buyurtmalar uchun onlayn to‘lov hozircha mavjud emas. Buyurtmani yuboring — TALIMOON jamoasi kitob tayyorlanishidan oldin to‘lovni kelishish uchun Siz bilan bog‘lanadi.",
 
   errReview:
     "Iltimos, telefon raqamini kiriting, kitob tilini tanlang, yetkazib beriladigan davlatni tanlang va yetkazib berish savoliga javob bering (yetkazib berish kerak bo‘lsa, to‘liq manzil bilan).",
@@ -362,6 +407,53 @@ function emptyForm(market: Market = "UZ"): FormData {
     copies: 1,
     receipt: null,
   };
+}
+
+/** Minimum child photos before the photos step can advance (spec §7). */
+const MIN_CHILD_PHOTOS = 3;
+const MAX_CHILD_PHOTOS = 5;
+
+/**
+ * THE single completion check for a wizard step (spec §6). Every
+ * "can we advance?" decision routes through here — no step re-derives
+ * its own rule inline. Completion is either a real required answer or,
+ * where the spec allows it, an explicit alternative; there is no bare
+ * "skip" for contact details, the required photos, or the payment
+ * receipt.
+ */
+function isStepComplete(stepId: StepId, data: FormData): boolean {
+  switch (stepId) {
+    case "personal-touch":
+      return data.giftFrom.trim().length > 0;
+    case "photos":
+      // Only photos actually accepted into state count (a rejected file
+      // never reaches `childPhotos`).
+      return data.childPhotos.length >= MIN_CHILD_PHOTOS;
+    case "review": {
+      // Phone + book language + an answered delivery question. If the
+      // customer wants INTERNATIONAL delivery, a destination country
+      // and the postal address are required; UZ delivery needs a
+      // region + written address; pickup needs nothing further.
+      const wantsDel = deliveryRequired(data.orderer.deliveryAddress);
+      const countryOk =
+        !wantsDel ||
+        data.market === "UZ" ||
+        data.orderer.deliveryAddress.countryCode.trim().length > 0;
+      return (
+        data.bookLanguageCode.length > 0 &&
+        data.orderer.phone.trim().length > 5 &&
+        countryOk &&
+        isDeliveryComplete(data.orderer.deliveryAddress, data.market)
+      );
+    }
+    case "payment":
+      // A receipt must be attached before the order can be sent
+      // (spec §13). This is NOT payment verification — that stays a
+      // later admin action.
+      return data.receipt != null;
+    default:
+      return true;
+  }
 }
 
 // ─── Shared field primitives ────────────────────────────────────────────────
@@ -458,6 +550,9 @@ export default function PersonalizedBookOrderForm({
   const [data, setData] = useState<FormData>(() => emptyForm(resolvedInitialMarket));
   const [phase01Seeded, setPhase01Seeded] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  /** Latched the moment the final submit fires, so a second click /
+   *  an Enter race can't send the order twice (spec §6). */
+  const [submitting, setSubmitting] = useState(false);
   const [showStepError, setShowStepError] = useState(false);
 
   // Switching market is ONE atomic transition (spec §17): currency,
@@ -516,6 +611,12 @@ export default function PersonalizedBookOrderForm({
   const step = STEPS[stepIndex];
   const stepTitle = language === "UZ" ? step.titleUz : step.title;
   const isLastStep = stepIndex === STEPS.length - 1;
+
+  // Bring each new wizard step to a consistent entry position (spec §8).
+  // The conversational phases (intro/world/character/heart) run their
+  // own useFlowScroll; keep this key stable across them so it fires only
+  // on a real step change here.
+  useFlowScroll(phase === "steps" ? `step-${step.id}` : "flow");
 
   // THE order total — one deterministic, market-aware derivation the
   // review breakdown AND the payment amount both read (spec §26). The
@@ -638,37 +739,17 @@ export default function PersonalizedBookOrderForm({
     }));
   }
 
-  function canContinue(): boolean {
-    switch (step.id) {
-      case "personal-touch":
-        return data.giftFrom.trim().length > 0;
-      case "photos":
-        return data.childPhotos.length >= 3;
-      case "review": {
-        // Phone + book language + an answered delivery question. If the
-        // customer wants INTERNATIONAL delivery, a destination country
-        // and the postal address are required; UZ delivery needs a
-        // region + written address; pickup needs nothing further.
-        const wantsDel = deliveryRequired(data.orderer.deliveryAddress);
-        const countryOk =
-          !wantsDel ||
-          data.market === "UZ" ||
-          data.orderer.deliveryAddress.countryCode.trim().length > 0;
-        return (
-          data.bookLanguageCode.length > 0 &&
-          data.orderer.phone.trim().length > 5 &&
-          countryOk &&
-          isDeliveryComplete(data.orderer.deliveryAddress, data.market)
-        );
-      }
-      case "payment":
-        return true;
-      default:
-        return true;
-    }
-  }
+  /** This step's gate — one call into the centralized rule (spec §6). */
+  const canContinue = () => isStepComplete(step.id, data);
+  /** Whether the primary button should read as ready (also false while a
+   *  submit is in flight). */
+  const stepReady = !submitting && canContinue();
 
   function goNext() {
+    // Guard against a double-fire (double click / Enter + click / a
+    // stale re-render): once a submit is in flight, or the step isn't
+    // complete, nothing advances.
+    if (submitting) return;
     if (!canContinue()) {
       setShowStepError(true);
       return;
@@ -682,6 +763,7 @@ export default function PersonalizedBookOrderForm({
       return;
     }
     if (isLastStep) {
+      setSubmitting(true);
       // A submitted order PRESERVES the prices that applied right now —
       // never recalculated from a later config (spec §35–37). This is
       // the payload shape the order-intake API will store.
@@ -816,7 +898,10 @@ export default function PersonalizedBookOrderForm({
     // The order is SUBMITTED — not in production. It goes SUBMITTED →
     // REVIEW → CONFIRMED → PREPARATION (5–7 days) → READY → DELIVERY.
     return (
-      <section className="mx-auto flex min-h-[560px] w-full max-w-container-content flex-col items-center bg-surface-base px-6 py-16 md:py-20 lg:py-28">
+      <section
+        data-order-flow=""
+        className="mx-auto flex min-h-[560px] w-full max-w-container-content flex-col items-center bg-surface-base px-6 py-16 md:py-20 lg:py-28"
+      >
         <div className="mx-auto max-w-md text-center">
           <span className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-accent-primary/[0.14]">
             <Check size={24} strokeWidth={2} className="text-accent-primary" />
@@ -847,9 +932,16 @@ export default function PersonalizedBookOrderForm({
     data.orderer.honorific,
     data.orderer.name,
   );
+  /** Used to personalise the "personal touch" / personal-message copy.
+   *  Falls back to a warm generic when no name is entered yet. */
+  const firstChildName =
+    data.children[0]?.name.trim() || (bookLoc === "uz" ? "farzandingiz" : "your child");
 
   return (
-    <section className="mx-auto w-full max-w-container-content bg-surface-base px-6 py-16 sm:px-8 md:py-20 lg:px-16 lg:py-28">
+    <section
+      data-order-flow=""
+      className="mx-auto w-full max-w-container-content bg-surface-base px-6 py-16 sm:px-8 md:py-20 lg:px-16 lg:py-28"
+    >
       <div className="mx-auto max-w-xl">
         {/* Chapter header */}
         <div className="mb-8 flex items-center justify-between gap-4">
@@ -906,11 +998,23 @@ export default function PersonalizedBookOrderForm({
                 onChange={(v) => update("wantsPersonalMessage", v)}
               />
               {data.wantsPersonalMessage && (
-                <TextArea
-                  value={data.personalMessage}
-                  onChange={(e) => update("personalMessage", e.target.value)}
-                  placeholder={t.personalMessagePlaceholder}
-                />
+                <div className="space-y-2">
+                  <p className="font-sans text-[13px] font-medium leading-[1.5] text-text-primary">
+                    {t.personalMessageQ(firstChildName)}
+                  </p>
+                  <p className="font-sans text-[12px] leading-[1.5] text-text-secondary">
+                    {t.personalMessageHint}
+                  </p>
+                  {/* The example lives ONLY in the placeholder — it is
+                      never written into `personalMessage`, so it is never
+                      submitted unless the customer actually types it. */}
+                  <TextArea
+                    rows={4}
+                    value={data.personalMessage}
+                    onChange={(e) => update("personalMessage", e.target.value)}
+                    placeholder={t.personalMessagePlaceholder(firstChildName)}
+                  />
+                </div>
               )}
 
               <SwitchRow
@@ -925,6 +1029,12 @@ export default function PersonalizedBookOrderForm({
                   placeholder={t.charactersPlaceholder}
                 />
               )}
+
+              {showStepError && !canContinue() && (
+                <p role="alert" className="font-sans text-[13px] text-state-error">
+                  {t.giftFromError}
+                </p>
+              )}
             </>
           )}
 
@@ -935,12 +1045,14 @@ export default function PersonalizedBookOrderForm({
                 hint={t.childPhotosHint}
                 removeLabel={t.removePhoto}
                 atLeastLabel={t.atLeastPhotos}
+                enoughLabel={t.photosEnough}
+                moreNeededLabel={t.photosMoreNeeded}
                 tooLargeLabel={t.photoTooLarge}
                 notImageLabel={t.photoNotImage}
                 brokenLabel={t.photoBroken}
                 files={data.childPhotos}
-                min={3}
-                max={5}
+                min={MIN_CHILD_PHOTOS}
+                max={MAX_CHILD_PHOTOS}
                 onChange={(files) => update("childPhotos", files)}
               />
 
@@ -982,6 +1094,14 @@ export default function PersonalizedBookOrderForm({
                   max={9}
                   onChange={(files) => update("characterPhotos", files)}
                 />
+              )}
+
+              {showStepError && !canContinue() && (
+                <p role="alert" className="font-sans text-[13px] text-state-error">
+                  {t.photosMoreNeeded(
+                    Math.max(0, MIN_CHILD_PHOTOS - data.childPhotos.length),
+                  )}
+                </p>
               )}
             </>
           )}
@@ -1522,85 +1642,74 @@ export default function PersonalizedBookOrderForm({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                {paymentMethodsForMarket(data.market).map((method) => {
-                  const active = data.paymentMethod === method.id;
-                  const available = method.status === "available";
-                  return (
-                    <button
-                      key={method.id}
-                      type="button"
-                      disabled={!available}
-                      onClick={() => available && update("paymentMethod", method.id)}
-                      className={[
-                        "relative rounded-md border p-3.5 text-left transition-colors disabled:cursor-not-allowed",
-                        active
-                          ? "border-accent-primary bg-accent-primary/[0.08]"
-                          : "border-border-default bg-transparent",
-                        available ? "opacity-100" : "opacity-50",
-                      ].join(" ")}
-                    >
-                      <span className="block font-sans text-[13px] font-medium text-text-primary">
-                        {method.label}
-                      </span>
-                      <span className="mt-0.5 block font-sans text-[11.5px] text-text-secondary">
-                        {available
-                          ? language === "UZ"
-                            ? method.sublabelUz
-                            : method.sublabel
-                          : t.availableSoon}
-                      </span>
-                    </button>
-                  );
-                })}
+              {/* Card-to-card transfer — market-based (spec §9–13). One
+                  order is one market: a UZ order sees only the local
+                  card, an INTERNATIONAL order only the Visa / Mastercard
+                  cards. No currency picker, no mixed payment screens. */}
+              <div className="space-y-3">
+                <div>
+                  <p className="font-sans text-[14px] font-medium text-text-primary">
+                    {data.market === "UZ" ? t.payUzHeading : t.payIntlHeading}
+                  </p>
+                  <p className="mt-1 font-sans text-[12.5px] leading-[1.6] text-text-secondary">
+                    {data.market === "UZ" ? t.payUzBody : t.payIntlBody}
+                  </p>
+                </div>
+
+                {PAYMENT_ACCOUNTS[data.market].map((account) => (
+                  <PaymentAccount
+                    key={account.id}
+                    account={account}
+                    numberLabel={t.cardNumberLabel}
+                    holderLabel={t.cardHolderLabel}
+                    copyLabel={t.copyAction}
+                    copiedLabel={t.copiedAction}
+                  />
+                ))}
+
+                {/* Secondary — must never imply automatic online payment
+                    works today (spec §12). */}
+                <p className="font-sans text-[12px] leading-[1.6] text-text-muted">
+                  {t.payNote}
+                </p>
               </div>
 
-              {data.market === "UZ" && data.paymentMethod === "bank_transfer" && (
-                <div className="rounded-lg border border-border-default p-5">
-                  <div className="mb-4 space-y-2 font-sans text-[13.5px]">
-                    <p className="text-text-secondary">
-                      Humo: <span className="text-text-primary">9860 1701 1310 7875</span>
-                    </p>
-                    <p className="text-text-secondary">
-                      MasterCard:{" "}
-                      <span className="text-text-primary">5476 3800 9259 3482</span>
-                    </p>
-                  </div>
-                  <PhotoUpload
-                    label={t.uploadReceipt}
-                    removeLabel={t.removePhoto}
-                    atLeastLabel={t.atLeastPhotos}
-                    files={data.receipt ? [data.receipt] : []}
-                    max={1}
-                    onChange={(files) => update("receipt", files[0] ?? null)}
-                  />
-                </div>
-              )}
+              {/* Payment receipt (spec §13). A receipt on file is NOT a
+                  verified payment — verification stays a later admin
+                  action; this only records that a receipt was attached,
+                  and submission cannot complete without it. */}
+              <ReceiptUpload
+                label={t.receiptQ}
+                hint={t.receiptHint}
+                doneLabel={t.receiptDone}
+                replaceLabel={t.receiptReplace}
+                tooLargeLabel={t.photoTooLarge}
+                notImageLabel={t.photoNotImage}
+                file={data.receipt}
+                onChange={(f) => update("receipt", f)}
+              />
 
-              {/* International online payment isn't switched on yet —
-                  say so honestly, never convert the order to UZS or
-                  fake a successful charge (spec §33, §65). The order is
-                  still captured; payment is arranged after submit. */}
-              {!marketHasOnlinePayment(data.market) && (
-                <div className="rounded-lg border border-border-default bg-surface-raised/40 p-5">
-                  <p className="font-sans text-[13px] font-medium text-text-primary">
-                    {t.intlPayHeading}
-                  </p>
-                  <p className="mt-1.5 font-sans text-[12.5px] leading-[1.6] text-text-secondary">
-                    {t.intlPayNotice}
-                  </p>
-                </div>
+              {showStepError && !canContinue() && (
+                <p role="alert" className="font-sans text-[13px] text-state-error">
+                  {t.receiptError}
+                </p>
               )}
             </>
           )}
         </div>
 
-        {/* Footer nav */}
+        {/* Footer nav. Kept clickable while the step is incomplete so a
+            tap surfaces the gentle inline reason (it just reads as
+            not-yet-ready); a submit in flight is a hard block. */}
         <div className="mt-9 flex items-center justify-end">
           <button
             type="button"
             onClick={goNext}
-            className="inline-flex items-center gap-2 rounded-md bg-accent-primary px-5 py-2.5 font-sans text-[13.5px] font-medium text-white transition-opacity hover:opacity-90"
+            aria-disabled={!stepReady || undefined}
+            className={[
+              "inline-flex items-center gap-2 rounded-md bg-accent-primary px-5 py-2.5 font-sans text-[13.5px] font-medium text-white outline-none transition-opacity focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-primary",
+              stepReady ? "opacity-100 hover:opacity-90" : "opacity-40",
+            ].join(" ")}
           >
             {isLastStep ? t.sendOrder : t.continue}
             <ArrowRight size={14} strokeWidth={1.75} className="rtl:-scale-x-100" />
@@ -1617,11 +1726,100 @@ export default function PersonalizedBookOrderForm({
 
 const MAX_PHOTO_BYTES = 15 * 1024 * 1024;
 
+/**
+ * The payment receipt (spec §13) — a single-file upload with a clear
+ * two-state affordance: an "upload" button before, and "✓ receipt
+ * uploaded / Replace" after. Same client-side guards as PhotoUpload
+ * (image type + a size ceiling). A file here means "a receipt is
+ * attached", nothing more — it is never treated as a verified payment.
+ */
+function ReceiptUpload({
+  label,
+  hint,
+  doneLabel,
+  replaceLabel,
+  tooLargeLabel,
+  notImageLabel,
+  file,
+  onChange,
+}: {
+  label: string;
+  hint?: string;
+  doneLabel: string;
+  replaceLabel: string;
+  tooLargeLabel: string;
+  notImageLabel: string;
+  file: File | null;
+  onChange: (file: File | null) => void;
+}) {
+  const [notice, setNotice] = useState<string | null>(null);
+
+  function accept(incoming: File | undefined) {
+    setNotice(null);
+    if (!incoming) return;
+    if (!incoming.type.startsWith("image/")) {
+      setNotice(notImageLabel);
+      return;
+    }
+    if (incoming.size > MAX_PHOTO_BYTES) {
+      setNotice(tooLargeLabel);
+      return;
+    }
+    onChange(incoming);
+  }
+
+  return (
+    <Field label={label} hint={file ? undefined : hint}>
+      {file ? (
+        <div className="flex items-center justify-between gap-3 rounded-md border border-border-default px-3.5 py-2.5">
+          <span className="inline-flex min-w-0 items-center gap-2 font-sans text-[13px] font-medium text-text-primary">
+            <Check size={15} strokeWidth={2.25} className="shrink-0 text-accent-primary" />
+            <span className="truncate">{doneLabel}</span>
+          </span>
+          <label className="inline-flex min-h-[44px] shrink-0 cursor-pointer items-center font-sans text-[12.5px] font-medium text-text-secondary underline underline-offset-4 hover:text-text-primary">
+            {replaceLabel}
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                accept(e.target.files?.[0]);
+                e.target.value = "";
+              }}
+            />
+          </label>
+        </div>
+      ) : (
+        <label className="inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-md border border-dashed border-border-strong px-4 py-2.5 font-sans text-[13px] font-medium text-text-primary transition-colors hover:border-solid hover:border-accent-primary">
+          <Upload size={15} strokeWidth={1.5} className="text-text-secondary" />
+          {label}
+          <input
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              accept(e.target.files?.[0]);
+              e.target.value = "";
+            }}
+          />
+        </label>
+      )}
+      {notice && (
+        <span role="alert" className="mt-1.5 block font-sans text-[12px] text-state-error">
+          {notice}
+        </span>
+      )}
+    </Field>
+  );
+}
+
 function PhotoUpload({
   label,
   hint,
   removeLabel,
   atLeastLabel,
+  enoughLabel,
+  moreNeededLabel,
   tooLargeLabel,
   notImageLabel,
   brokenLabel,
@@ -1634,6 +1832,11 @@ function PhotoUpload({
   hint?: string;
   removeLabel: string;
   atLeastLabel: (min: number) => string;
+  /** Shown once `files.length >= min` — the positive "you have enough"
+   *  state (spec §7). Only supplied where a minimum applies. */
+  enoughLabel?: (count: number) => string;
+  /** Shown while below `min` — how many more are needed. */
+  moreNeededLabel?: (remaining: number) => string;
   tooLargeLabel?: string;
   notImageLabel?: string;
   brokenLabel?: string;
@@ -1726,11 +1929,28 @@ function PhotoUpload({
           {notice}
         </span>
       )}
-      {min && files.length < min && (
-        <span className="mt-1.5 block font-sans text-[12px] text-accent-primary">
-          {atLeastLabel(min)}
-        </span>
-      )}
+      {/* Progress toward the minimum (spec §7). Only files actually
+          accepted into `files` are counted — a rejected upload never
+          lands here. Neutral until the count is short, positive once
+          it's met; never a pre-interaction red error. */}
+      {min != null &&
+        (files.length >= min
+          ? enoughLabel && (
+              <span className="mt-1.5 block font-sans text-[12px] font-medium text-accent-primary">
+                {enoughLabel(files.length)}
+              </span>
+            )
+          : moreNeededLabel
+            ? (
+                <span className="mt-1.5 block font-sans text-[12px] text-text-secondary">
+                  {moreNeededLabel(min - files.length)}
+                </span>
+              )
+            : (
+                <span className="mt-1.5 block font-sans text-[12px] text-text-secondary">
+                  {atLeastLabel(min)}
+                </span>
+              ))}
     </Field>
   );
 }

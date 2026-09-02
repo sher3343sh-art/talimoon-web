@@ -43,6 +43,7 @@ import {
   phase02Copy,
   type Locale,
 } from "@/lib/order/phase02-copy";
+import { useFlowScroll } from "@/lib/order/useFlowScroll";
 import { JourneyProgress } from "./JourneyProgress";
 import { ChildWorld } from "./ChildWorld";
 import { SelectionTray } from "./SelectionTray";
@@ -83,6 +84,9 @@ export default function Phase02({
   const isLastChild = idx >= childrenIn.length - 1;
 
   const patch = (p: Partial<ChildProfile>) => onPatchChild(child.id, p);
+
+  // Reset the scroll position on every scene change (spec §8).
+  useFlowScroll(`${idx}-${screen}`);
 
   // ── focus the new question on every scene ──────────────────────
   const headingRef = useRef<HTMLHeadingElement>(null);

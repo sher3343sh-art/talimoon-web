@@ -29,6 +29,7 @@ import {
   emotionalBridgeCopy,
   type Locale,
 } from "@/lib/order/emotional-bridge-copy";
+import { useFlowScroll } from "@/lib/order/useFlowScroll";
 import { JourneyProgress } from "./JourneyProgress";
 
 type Screen = "intro" | "situation" | "feeling" | "message" | "done";
@@ -83,6 +84,9 @@ export default function EmotionalBridge({
     );
     return () => window.clearTimeout(t);
   }, [screen, idx]);
+
+  // Reset the scroll position on every screen / child change (spec §8).
+  useFlowScroll(`${idx}-${screen}`);
 
   function goNext() {
     switch (screen) {

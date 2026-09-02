@@ -44,6 +44,7 @@ import {
   type RelationshipType,
 } from "@/lib/order/relationship";
 import { phase01Copy, type Phase01Copy } from "@/lib/order/phase01-copy";
+import { useFlowScroll } from "@/lib/order/useFlowScroll";
 import { JourneyProgress } from "./JourneyProgress";
 
 type Screen =
@@ -323,6 +324,8 @@ export default function Phase01({
     screen.kind === "child" || screen.kind === "child-relationship"
       ? `${screen.kind}-${screen.index}`
       : screen.kind;
+  // Reset the scroll position on every scene change (spec §8).
+  useFlowScroll(screenKey);
   const ctaLabel =
     screen.kind === "completion"
       ? c.transitionCta(children[0]?.name.trim() || "")

@@ -17,7 +17,7 @@
  * Nothing here builds a sentence out of arbitrary custom text.
  */
 
-import type { ChildProfile, SelectableAnswer } from "./types";
+import type { ChildProfile, QualityAnswer, SelectableAnswer } from "./types";
 
 export type Locale = "uz" | "en";
 
@@ -44,6 +44,98 @@ const QUALITY_LABELS: Record<QualityKey, Record<Locale, string>> = {
   sincere: { uz: "Samimiy", en: "Sincere" },
   patient: { uz: "Sabrli", en: "Patient" },
   "quick-minded": { uz: "Zehni o‘tkir", en: "Quick-minded" },
+};
+
+// ── Per-quality detail question (spec §4) ────────────────────────
+// Each selected quality gets its OWN "when do you notice this?" prompt
+// and a concrete for-instance helper — never one shared textarea for
+// every quality. `prompt` takes the child's name; `helper` is a fixed
+// "Masalan: …" line. Custom qualities fall back to a universal pair
+// (see `qualityDetailPrompt` / `qualityDetailHelper`).
+const QUALITY_DETAIL: Record<
+  QualityKey,
+  { prompt: Record<Locale, (name: string) => string>; helper: Record<Locale, string> }
+> = {
+  kind: {
+    prompt: {
+      uz: (n) => `${n}ning mehribonligini qaysi paytlarda ko‘proq sezasiz?`,
+      en: (n) => `When do you notice ${n}'s kindness most?`,
+    },
+    helper: {
+      uz: "Masalan: ukasiga yordam berganda, hayvonlarga g‘amxo‘rlik qilganda yoki kimdir xafa bo‘lsa yoniga borganda.",
+      en: "For example: helping a younger sibling, caring for an animal, or going over when someone is upset.",
+    },
+  },
+  curious: {
+    prompt: {
+      uz: (n) => `${n}ning qiziquvchanligi qaysi holatlarda ko‘proq bilinadi?`,
+      en: (n) => `When does ${n}'s curiosity show most?`,
+    },
+    helper: {
+      uz: "Masalan: ko‘p savol berganda, yangi narsalarni sinab ko‘rganda yoki biror narsaning qanday ishlashini bilishga harakat qilganda.",
+      en: "For example: asking lots of questions, trying new things, or working out how something works.",
+    },
+  },
+  hardworking: {
+    prompt: {
+      uz: (n) => `${n}ning tirishqoqligini qaysi paytlarda ko‘proq sezasiz?`,
+      en: (n) => `When do you notice ${n}'s effort most?`,
+    },
+    helper: {
+      uz: "Masalan: qiyin topshiriqdan qochmaganda, mashqni oxirigacha bajarganda yoki bir ishni qayta-qayta urinib ko‘rganda.",
+      en: "For example: not shying away from a hard task, finishing a practice, or trying again and again.",
+    },
+  },
+  brave: {
+    prompt: {
+      uz: (n) => `${n}ning jasurligini qaysi holatlarda ko‘rgansiz?`,
+      en: (n) => `When have you seen ${n}'s courage?`,
+    },
+    helper: {
+      uz: "Masalan: yangi narsani birinchi bo‘lib sinaganda, qo‘rqqan bo‘lsa ham harakat qilganda yoki haqiqatni ochiq aytganda.",
+      en: "For example: being first to try something new, acting despite feeling afraid, or speaking the truth openly.",
+    },
+  },
+  responsible: {
+    prompt: {
+      uz: (n) => `${n}ning mas’uliyatini qaysi paytlarda sezasiz?`,
+      en: (n) => `When do you notice ${n}'s sense of responsibility?`,
+    },
+    helper: {
+      uz: "Masalan: va’dasida turganda, o‘z ishini eslatmasdan bajarganda yoki kichikroq bolaga qaraganda.",
+      en: "For example: keeping a promise, doing their part without a reminder, or looking after someone smaller.",
+    },
+  },
+  sincere: {
+    prompt: {
+      uz: (n) => `${n}ning samimiyligi qaysi holatlarda bilinadi?`,
+      en: (n) => `When does ${n}'s sincerity come through?`,
+    },
+    helper: {
+      uz: "Masalan: xatosini ochiq tan olganda, his-tuyg‘ularini yashirmasdan aytganda yoki chin dildan yordam taklif qilganda.",
+      en: "For example: owning a mistake openly, saying how they really feel, or offering help wholeheartedly.",
+    },
+  },
+  patient: {
+    prompt: {
+      uz: (n) => `${n}ning sabrini qaysi paytlarda ko‘proq sezasiz?`,
+      en: (n) => `When do you notice ${n}'s patience most?`,
+    },
+    helper: {
+      uz: "Masalan: navbatini kutganda, biror narsa darrov bo‘lmasa ham xotirjam turganda yoki qiyin ishni shoshmasdan bajarganda.",
+      en: "For example: waiting their turn, staying calm when something isn't immediate, or working through a hard task unhurried.",
+    },
+  },
+  "quick-minded": {
+    prompt: {
+      uz: (n) => `${n}ning zehni o‘tkirligini qaysi holatlarda sezgansiz?`,
+      en: (n) => `When have you noticed how sharp ${n}'s mind is?`,
+    },
+    helper: {
+      uz: "Masalan: tez eslab qolganda, masalani tez tushunganda yoki kutilmagan yechim topganda.",
+      en: "For example: remembering quickly, grasping a problem fast, or finding an unexpected solution.",
+    },
+  },
 };
 
 // ── Growth behaviours — up to 3, preset or custom ────────────────
@@ -131,6 +223,23 @@ export function isValueKey(v: string): v is ValueKey {
 export function qualityLabel(id: string, locale: Locale): string {
   return isQualityKey(id) ? QUALITY_LABELS[id][locale] : id.trim();
 }
+/** The "when do you notice this?" question for ONE selected quality —
+ *  a tailored prompt for a preset, a neutral one for the adult's own
+ *  words (spec §4). */
+export function qualityDetailPrompt(id: string, name: string, locale: Locale): string {
+  const nm = name.trim();
+  if (isQualityKey(id)) return QUALITY_DETAIL[id].prompt[locale](nm);
+  return locale === "uz"
+    ? `Bu jihat ${nm}da qaysi vaziyatlarda ko‘proq namoyon bo‘ladi?`
+    : `When do you notice this quality most in ${nm}?`;
+}
+/** The concrete for-instance helper under one quality's detail field. */
+export function qualityDetailHelper(id: string, locale: Locale): string {
+  if (isQualityKey(id)) return QUALITY_DETAIL[id].helper[locale];
+  return locale === "uz"
+    ? "Xayolingizga biror kichik voqea yoki odati kelsa yozishingiz mumkin."
+    : "You can share a small moment or habit that comes to mind.";
+}
 export function valueLabel(v: string, locale: Locale): string {
   return isValueKey(v) ? VALUE_LABELS[v][locale] : v.trim();
 }
@@ -193,11 +302,17 @@ export interface Phase03Copy {
   limitNote: (max: number) => string;
   errQualities: string;
 
-  // Q2 — a real example
-  q2: (name: string) => string;
-  q2Help: string;
+  // Q2 — a concrete detail PER appreciated quality (spec §4). Each
+  //      selected quality has its own prompt (`qualityDetailPrompt`) and
+  //      helper (`qualityDetailHelper`); the fields below are only the
+  //      screen chrome around those per-quality blocks.
+  q2SectionLabel: string;
+  q2Intro: string;
   q2Placeholder: string;
-  q2NoneLabel: string;
+  /** The explicit alternative on each quality — the customer is never
+   *  made to invent an example. */
+  q2ItemNone: string;
+  errExample: string;
 
   // Q3 — up to 3 growth behaviours
   q3: (name: string) => string;
@@ -244,9 +359,10 @@ const uz: Phase03Copy = {
   back: "Orqaga",
 
   charLabel: (name) => `${name.trim()}ning xarakteri`,
-  introLead: (name) => `${name.trim()}ni yaqindan taniganlar biladigan bir-ikki narsani so‘raymiz.`,
+  introLead: (name) =>
+    `Endi ${name.trim()}ning o‘ziga xos jihatlarini yaxshiroq bilib olamiz.`,
   introSupport:
-    "Uni nimalari quvontiradi, qaysi jihat biroz e’tibor so‘raydi va hikoya nimalarni qo‘llab-quvvatlashi kerak — shularni birga eslaymiz.",
+    "Undagi Siz qadrlaydigan fazilatlar, biroz rivojlantirishni istagan odatlar va hikoyada qo‘llab-quvvatlashimiz kerak bo‘lgan qadriyatlarni birga aniqlaymiz.",
 
   trayTitle: "Tanladingiz",
   selectionCount: (n, max) => `${n} / ${max} tanlandi`,
@@ -260,11 +376,12 @@ const uz: Phase03Copy = {
   limitNote: (max) => `${max} ta jihatni tanladingiz. Birini olib tashlab, o‘rniga boshqasini qo‘shsangiz bo‘ladi.`,
   errQualities: "Davom etishdan oldin uni ifodalaydigan kamida bitta jihatni tanlang.",
 
-  q2: (name) => `Bu jihatlarini ${name.trim()}da qaysi paytlarda ko‘proq sezasiz?`,
-  q2Help: "Xayolingizga biror voqea kelsa yozing — bu hikoyani yanada shaxsiy qiladi.",
-  q2Placeholder:
-    "Masalan: ukasiga yordam beradi, o‘yinchoqlarini bo‘lishadi, kimdir xafa bo‘lsa yoniga boradi...",
-  q2NoneLabel: "Hozircha aniq bir voqea esimga kelmadi",
+  q2SectionLabel: "SIZ TANLAGAN JIHATLAR",
+  q2Intro: "Endi har bir jihatni bir og‘iz aniqlashtiramiz — u qachon ko‘proq seziladi?",
+  q2Placeholder: "Bir-ikki jumla yetarli…",
+  q2ItemNone: "Misol hozir xayolimga kelmadi",
+  errExample:
+    "Har bir jihat uchun bir misol yozing yoki “Misol hozir xayolimga kelmadi”ni belgilang.",
 
   q3: (name) => `${name.trim()}ning qaysi odati yoki xatti-harakatlarini biroz yaxshilashni istardingiz?`,
   q3Help:
@@ -304,9 +421,9 @@ const en: Phase03Copy = {
   back: "Back",
 
   charLabel: (name) => `${name.trim()}'s character`,
-  introLead: (name) => `We'll ask about a couple of things the people close to ${name.trim()} would know.`,
+  introLead: (name) => `Now let's get to know what makes ${name.trim()} who they are.`,
   introSupport:
-    "What delights you about them, what could use a little gentle guidance, and what the story should strengthen — let's remember it together.",
+    "Together we'll name the qualities you treasure, the habits you'd like to nurture a little, and the values the story should stand behind.",
 
   trayTitle: "You've selected",
   selectionCount: (n, max) => `${n} / ${max} selected`,
@@ -320,11 +437,12 @@ const en: Phase03Copy = {
   limitNote: (max) => `You've chosen ${max} qualities. Remove one to make room for another.`,
   errQualities: "Please choose at least one thing that describes them before continuing.",
 
-  q2: (name) => `When do you notice these qualities most in ${name.trim()}?`,
-  q2Help: "If a moment comes to mind, share it — it makes the story more personal.",
-  q2Placeholder:
-    "For example: helps their little brother, shares their toys, goes over when someone is upset...",
-  q2NoneLabel: "No example comes to mind right now",
+  q2SectionLabel: "THE QUALITIES YOU CHOSE",
+  q2Intro: "Now a line on each one — when does it show up most?",
+  q2Placeholder: "A sentence or two is enough…",
+  q2ItemNone: "No example comes to mind right now",
+  errExample:
+    "For each quality, add an example or check “No example comes to mind right now”.",
 
   q3: (name) => `Is there a habit or behaviour of ${name.trim()}'s you'd gently like to support?`,
   q3Help:
@@ -364,6 +482,17 @@ export function phase03Copy(locale: string): Phase03Copy {
   return locale === "uz" ? uz : en;
 }
 
+/** The first written per-quality detail (spec §4) — used as the one
+ *  illustrative line in a portrait summary. "No example" items and
+ *  blank ones are skipped. */
+export function firstQualityDetail(list: QualityAnswer[] | undefined): string {
+  for (const a of list ?? []) {
+    const d = (a.detail ?? "").trim();
+    if (d) return d;
+  }
+  return "";
+}
+
 // ── Natural summary — ONLY from supplied answers, no psychology ───
 export function composeCharSummary(child: ChildProfile, name: string, locale: Locale): string {
   const q = (child.appreciatedQualities ?? []).map((a) => {
@@ -375,18 +504,19 @@ export function composeCharSummary(child: ChildProfile, name: string, locale: Lo
     return locale === "uz" ? l.toLocaleLowerCase("uz") : l.toLowerCase();
   });
   const nm = name.trim();
+  const example = firstQualityDetail(child.appreciatedQualities);
   const parts: string[] = [];
 
   if (locale === "uz") {
     if (q.length) parts.push(`${nm}ning ${joinList(q, "uz")} tomonlarini bildik.`);
-    if (child.qualityExample?.trim()) parts.push(child.qualityExample.trim().replace(/\.?$/, "."));
+    if (example) parts.push(example.replace(/\.?$/, "."));
     if (vals.length)
       parts.push(
         `Hikoyada esa ${joinList(vals, "uz")}ni tabiiy voqealar orqali yanada qo‘llab-quvvatlaymiz.`,
       );
   } else {
     if (q.length) parts.push(`We've seen ${nm}'s ${joinList(q, "en")} side.`);
-    if (child.qualityExample?.trim()) parts.push(child.qualityExample.trim().replace(/\.?$/, "."));
+    if (example) parts.push(example.replace(/\.?$/, "."));
     if (vals.length)
       parts.push(`In the story we'll gently strengthen ${joinList(vals, "en")}.`);
   }

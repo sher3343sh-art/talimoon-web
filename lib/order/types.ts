@@ -185,6 +185,21 @@ export interface InterestAnswer extends SelectableAnswer {
 }
 
 /**
+ * An appreciated quality, plus ITS OWN optional "when do you see this?"
+ * detail (spec §4). The detail lives on the SAME quality object, keyed
+ * by that quality's `id` (a preset key or the custom text) — so it is
+ * bound to BOTH the child (this array's owner) AND the trait, removing
+ * the quality removes its detail with it, and an unselected quality's
+ * detail is never carried forward. `detail` and `noDetail` are mutually
+ * exclusive on the same item — the customer answers, or explicitly says
+ * no example comes to mind; they are never asked to invent one.
+ */
+export interface QualityAnswer extends SelectableAnswer {
+  detail?: string;
+  noDetail?: boolean;
+}
+
+/**
  * A growth behaviour, plus ITS OWN optional context (spec §22–26):
  * every selected behaviour carries when/where it tends to show up.
  * There is no single global "growth context" any more — one behaviour's
@@ -280,13 +295,9 @@ export interface ChildProfile {
 
   // ── Phase 03 — "the child's character" (per child) ─────────────
   /** Up to 3 qualities the adult appreciates — preset and custom side
-   *  by side. Never a judgement, always something valued. */
-  appreciatedQualities?: SelectableAnswer[];
-  /** A real moment those qualities show (optional free text). */
-  qualityExample?: string;
-  /** Set when the adult says no example comes to mind right now —
-   *  mutually exclusive with `qualityExample` (spec §31). */
-  noQualityExample?: boolean;
+   *  by side. Never a judgement, always something valued. Each carries
+   *  its OWN optional "when do you notice this?" detail (spec §4). */
+  appreciatedQualities?: QualityAnswer[];
   /** Up to 3 behaviours the adult would gently like to support —
    *  preset and custom side by side. Each describes a behaviour or
    *  situation, never labels the child, and carries its OWN optional
@@ -334,12 +345,33 @@ export function reconcileGrowth(hasBehavior: boolean): Partial<ChildProfile> {
     : { noGrowthArea: true, growthBehaviors: [] };
 }
 
-/** Quality example ↔ "no example comes to mind" are mutually exclusive
- *  (spec §15/§52) — entering one always clears the other. */
-export function reconcileQualityExample(hasExample: boolean): Partial<ChildProfile> {
-  return hasExample
-    ? { noQualityExample: false }
-    : { noQualityExample: true, qualityExample: "" };
+/** Set one appreciated quality's detail, or its "no example comes to
+ *  mind" flag — the two are mutually exclusive on that single item
+ *  (spec §4). One quality's detail can never land on another. */
+export function setQualityDetail(
+  list: QualityAnswer[],
+  id: string,
+  patch: { detail?: string; noDetail?: boolean },
+): QualityAnswer[] {
+  return list.map((a) => {
+    if (a.id !== id) return a;
+    if (patch.noDetail === true) {
+      return { ...a, noDetail: true, detail: "" };
+    }
+    if (patch.noDetail === false && patch.detail === undefined) {
+      return { ...a, noDetail: false };
+    }
+    if (patch.detail !== undefined) {
+      return { ...a, detail: patch.detail, noDetail: false };
+    }
+    return a;
+  });
+}
+
+/** True when a selected quality still needs an answer — neither a
+ *  written detail nor the explicit "no example" alternative (spec §4). */
+export function qualityDetailPending(a: QualityAnswer): boolean {
+  return !a.noDetail && (a.detail ?? "").trim().length === 0;
 }
 
 /** A stable id for a CUSTOM selectable answer — the normalized text
