@@ -1,10 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { useLanguage, useT } from "@/lib/i18n/LanguageContext";
-import PersonalizedBookOrderForm from "./PersonalizedBookOrderForm";
 
 type ProductId = "personalized-books" | "yusuf-yasmina" | "toys";
 
@@ -73,12 +72,19 @@ const CHROME_UZ: typeof CHROME_EN = {
 };
 
 export default function ProductSelect() {
-  const [selected, setSelected] = useState<ProductId | null>(null);
   const chrome = useT(CHROME_EN, CHROME_UZ);
   const { language } = useLanguage();
+  const router = useRouter();
 
-  if (selected === "personalized-books") {
-    return <PersonalizedBookOrderForm onBack={() => setSelected(null)} />;
+  // `/begin` has ONE job: product selection. Picking a product changes
+  // the URL to that product's own order journey — the flow is never
+  // rendered inline while the address bar still says `/begin`.
+  function openProduct(id: ProductId) {
+    if (id === "personalized-books") {
+      router.push("/begin/personalized-book/price");
+    }
+    // Other products are not active yet (see PRODUCTS[].active); their
+    // routes (/begin/yusuf-yasmina/…, /begin/toys/…) are added later.
   }
 
   return (
@@ -101,7 +107,7 @@ export default function ProductSelect() {
               key={product.id}
               type="button"
               disabled={!product.active}
-              onClick={() => product.active && setSelected(product.id)}
+              onClick={() => product.active && openProduct(product.id)}
               className={[
                 "group relative flex flex-col items-start rounded-md border border-border-default bg-surface-overlay p-6 text-left transition-all duration-200",
                 "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-primary",

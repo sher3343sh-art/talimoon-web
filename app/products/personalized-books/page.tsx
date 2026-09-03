@@ -21,13 +21,17 @@ import Footer from "@/components/layout/Footer";
  *   03 Method ........ RELEASE     the mechanism, shown not explained
  *                                   (deep-navy beat, #method)
  *   04 Exclusivity ... DESIRE      "do'kondan topolmaysiz" + product
- *   05 ProcessPrice .. CONFIDENCE  3 steps + the real PricingSection
- *                                   (#pricing — market + order form)
+ *   05 ProcessPrice .. CONFIDENCE  3 steps + the PricingSection at
+ *                                   `#pricing` (market + plan cards)
  *   06 Close ......... WARMTH      the quiet ask + a compact FAQ
  *
- * Every order CTA resolves to #pricing, where choosing a plan opens
- * the shared PersonalizedBookOrderForm in the visitor's market —
- * no separate checkout, market context preserved.
+ * On THIS product page the purchase-intent CTAs (navbar, hero, method,
+ * process, close) scroll to `#pricing` on the same page — the visitor
+ * has already chosen the product, so they stay here to see the plans.
+ * From the pricing cards, "Choose …" then enters the shared order form
+ * at `/begin/personalized-book/form`. Customers arriving through the
+ * GENERAL funnel instead go `/begin` → `/begin/personalized-book/price`
+ * → the same form.
  */
 export default function PersonalizedBooksPage() {
   return (

@@ -1,29 +1,30 @@
 "use client";
 
 /**
- * PricingSection — TALIMOON personalized-books product page
+ * PricingSection — TALIMOON personalized-books pricing step
  * ----------------------------------------------------------------
- * Supersedes the old, unwired Pricing.tsx (single static card, no real
- * checkout path). This is the actual conversion point on the page: two
- * plan cards, and choosing one swaps this section in-place for the full
- * order wizard (PersonalizedBookOrderForm, shared with the /begin route
- * — see components/begin/) with that plan pre-selected. The price click
- * itself IS "Begin the Story" now, which is why every other CTA on this
- * page (navbar, hero, closing banner, footer) scroll-anchors to
- * `#pricing` below instead of navigating away — see page.tsx and the
- * CTA files for the reasoning per instance.
+ * Two plan cards + the market/currency selector + the reassurance row.
+ * This is the ONE pricing implementation and it is reused in two
+ * places, unchanged:
+ *   • `/products/personalized-books` at `#pricing` (product-page section)
+ *   • `/begin/personalized-book/price` (the order journey's pricing step)
+ * There is no second pricing source of truth — all values, calculations,
+ * market/currency/delivery logic and package definitions live in
+ * `@/components/begin/orderFormData`.
  *
- * Container/spacing matches every other section on this page exactly
- * (InsideBook, EmotionalBanner, etc: max-w-[1440px], px-5 md:px-10
- * lg:px-16, py-16 md:py-20 lg:py-28) — the two plan cards themselves
- * nest a narrower max-w-3xl inside that, the same "full-width section,
- * focused content" pattern ProductSelect already uses.
+ * The "Choose …" buttons navigate to `/begin/personalized-book/form` —
+ * the only route that renders the actual order form. This section never
+ * renders the form itself, and package selection is NOT transferred
+ * (chosen again inside the form's Phase 01).
+ *
+ * Container/spacing matches every other section on the product page
+ * exactly (max-w-[1440px], px-5 md:px-10 lg:px-16, py-16 md:py-20
+ * lg:py-28); the two plan cards nest a narrower max-w-3xl inside.
  */
 
-import { useState } from "react";
+import Link from "next/link";
 import { Book, Clock, Copy, Truck, Image as ImageIcon, Users, User } from "lucide-react";
 import { useLanguage, useT } from "@/lib/i18n/LanguageContext";
-import PersonalizedBookOrderForm from "@/components/begin/PersonalizedBookOrderForm";
 import {
   BookType,
   MARKET_PRICING,
@@ -153,25 +154,14 @@ const GOLD_GRADIENT =
   "linear-gradient(135deg, var(--gold-shadow) 0%, var(--gold-base) 20%, var(--gold-mid) 38%, var(--gold-highlight) 50%, var(--gold-mid) 62%, var(--gold-base) 80%, var(--gold-shadow) 100%)";
 
 export default function PricingSection() {
-  const [selectedPlan, setSelectedPlan] = useState<BookType | null>(null);
   const { language } = useLanguage();
   const t = useT(CHROME_EN, CHROME_UZ);
   // Which MARKET the visitor is pricing for — not a currency picker.
-  // Persisted so the choice carries across the page, and handed to the
-  // order flow so "Order Now" opens in the same market the price shows
-  // (spec §5, §8, §9, §31). Default to the home market.
+  // Persisted (useMarketPreference) so the choice carries across the
+  // page AND into the order form, which reads the same preference — no
+  // extra state is passed to the form route.
   const { preference, setPreference } = useMarketPreference();
   const market: Market = preference ?? "UZ";
-
-  if (selectedPlan) {
-    return (
-      <PersonalizedBookOrderForm
-        initialBookType={selectedPlan}
-        initialMarket={market}
-        onBack={() => setSelectedPlan(null)}
-      />
-    );
-  }
 
   return (
     <section id="pricing" className="w-full bg-surface-base py-16 md:py-20 lg:py-28">
@@ -315,13 +305,12 @@ export default function PricingSection() {
                   })}
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => setSelectedPlan(plan.type)}
+                <Link
+                  href="/begin/personalized-book/form"
                   className="tm-cta-gold mt-6 flex h-12 w-full items-center justify-center font-sans text-[13.5px] font-medium tracking-[0.015em]"
                 >
                   {t.choosePlan(label)} →
-                </button>
+                </Link>
               </div>
             );
           })}
