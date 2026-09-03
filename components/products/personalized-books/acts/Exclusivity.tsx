@@ -50,15 +50,17 @@ export default function Exclusivity() {
       className="w-full scroll-mt-20 bg-surface-base md:scroll-mt-24"
     >
       <div className="mx-auto max-w-[1120px] px-5 py-16 sm:px-8 md:py-20 lg:py-24">
-        {/* Eyebrow + headline — centred across the full section width,
-            above the image/text composition. */}
-        <Reveal className="mx-auto max-w-[22ch] text-center">
+        {/* Eyebrow + headline — a wide, centred section header above the
+            image/text composition. The headline spreads horizontally
+            (one line on a normal desktop, a balanced two lines when it
+            has to wrap) — never a narrow column, never a manual break. */}
+        <Reveal className="mx-auto max-w-[1000px] text-center">
           <p className="font-sans text-[11.5px] font-semibold uppercase tracking-[0.2em] text-text-muted">
             {t.eyebrow}
           </p>
           <h2
             id="exclusivity-heading"
-            className="mt-4 font-display text-[1.75rem] font-medium leading-[1.15] tracking-[-0.015em] text-text-primary sm:text-[2.125rem] md:text-[2.5rem]"
+            className="mt-4 text-balance font-display text-[1.75rem] font-medium leading-[1.15] tracking-[-0.015em] text-text-primary sm:text-[2.125rem] md:text-[2.5rem]"
           >
             {t.heading}
           </h2>
@@ -105,7 +107,7 @@ export default function Exclusivity() {
               ))}
             </ul>
 
-            <Reveal delay={60} className="mt-11 border-s-2 border-accent-primary/40 ps-5 md:mt-12">
+            <Reveal delay={60} className="mt-12 border-s-2 border-accent-primary/40 ps-5 md:mt-14">
               <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.18em] text-text-muted">
                 {t.recognitionLabel}
               </p>

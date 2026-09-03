@@ -81,8 +81,9 @@ const CHROME_EN = {
   marketAria: "Order region",
   deliveryUz: "Delivery — free within Tashkent, 40 000 so‘m to other regions",
   deliveryIntl: "Delivery — international post, $15 per order",
-  badgeLabel: (pct: number) => `Save ${pct}%`,
-  badgeSr: (pct: number, was: string) => `Save ${pct}% — was ${was}`,
+  badgeUrgency: "NOW ONLY",
+  badgePercent: (pct: number) => `−${pct}%`,
+  badgeSr: (pct: number, was: string) => `${pct}% off, now only — was ${was}`,
 };
 
 const CHROME_UZ: typeof CHROME_EN = {
@@ -100,8 +101,9 @@ const CHROME_UZ: typeof CHROME_EN = {
   marketAria: "Buyurtma hududi",
   deliveryUz: "Yetkazib berish — Toshkent bo‘yicha bepul, boshqa viloyatlarga 40 000 so‘m",
   deliveryIntl: "Yetkazib berish — xalqaro pochta orqali, buyurtmasiga $15",
-  badgeLabel: (pct) => `${pct}% TEJAYSIZ`,
-  badgeSr: (pct, was) => `${pct}% tejaysiz — avvalgi narx ${was}`,
+  badgeUrgency: "FAQAT HOZIR",
+  badgePercent: (pct) => `−${pct}%`,
+  badgeSr: (pct, was) => `Faqat hozir ${pct}% chegirma — avvalgi narx ${was}`,
 };
 
 /** "499 000" — the bare number; the currency word is rendered
@@ -125,19 +127,24 @@ const ANCHOR_PRICE: Record<Market, Record<BookType, number>> = {
   INTERNATIONAL: { single: 59, multi: 84 },
 };
 
-/** Savings badge — a compact, restrained capsule that sits right next to
- *  the live price so the eye reads: live price → how much is saved →
- *  (below) the struck "was" price. Deep-navy fill, thin gold hairline,
- *  a whisper of elevation. No star, no jagged edge, no "SALE" sticker
- *  energy. Decorative: aria-hidden, with the saving spoken in an sr-only
- *  line beside the price. */
-function SavingsBadge({ label }: { label: string }) {
+/** Discount seal — a compact vertical marker beside the live price that
+ *  says the offer is active RIGHT NOW: a small "FAQAT HOZIR" over a
+ *  dominant "−17%". Deep-navy base, one thin gold hairline, warm
+ *  cream/gold type, a whisper of depth. No starburst, no red, no
+ *  supermarket-sticker energy, no animation. Decorative: aria-hidden,
+ *  with the saving spoken in an sr-only line beside the price. */
+function SavingsBadge({ urgency, percent }: { urgency: string; percent: string }) {
   return (
     <span
       aria-hidden="true"
-      className="inline-flex shrink-0 select-none items-center whitespace-nowrap rounded-full border border-[color:var(--gold-mid)] bg-[color:var(--surface-contrast)] px-2.5 py-1 font-sans text-[10.5px] font-semibold uppercase leading-none tracking-[0.05em] text-[color:var(--surface-base)] shadow-[0_1px_5px_-2px_rgba(28,42,58,0.35)]"
+      className="inline-flex shrink-0 select-none flex-col items-center justify-center rounded-md border border-[color:var(--gold-mid)] bg-[color:var(--surface-contrast)] px-2.5 py-1.5 text-center leading-none shadow-[0_2px_8px_-2px_rgba(28,42,58,0.4)]"
     >
-      {label}
+      <span className="font-sans text-[8px] font-semibold uppercase tracking-[0.16em] text-[color:var(--gold-highlight)]">
+        {urgency}
+      </span>
+      <span className="mt-1 font-display text-[17px] font-semibold tracking-[-0.01em] text-[color:var(--surface-base)]">
+        {percent}
+      </span>
     </span>
   );
 }
@@ -259,7 +266,7 @@ export default function PricingSection() {
                     price → short descriptor → hairline → features → CTA.
                     flex-wrap lets the badge drop under the price on a very
                     narrow card instead of overflowing. */}
-                <div className="mt-3 flex flex-wrap items-center gap-x-2.5 gap-y-2">
+                <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
                   <span className="font-display text-[30px] font-medium leading-none text-text-primary">
                     {priced.value}
                     {priced.unit && (
@@ -268,7 +275,10 @@ export default function PricingSection() {
                   </span>
                   {hasDiscount && (
                     <>
-                      <SavingsBadge label={t.badgeLabel(savingPct)} />
+                      <SavingsBadge
+                        urgency={t.badgeUrgency}
+                        percent={t.badgePercent(savingPct)}
+                      />
                       <span className="sr-only">{t.badgeSr(savingPct, anchorText)}</span>
                     </>
                   )}
@@ -276,7 +286,7 @@ export default function PricingSection() {
 
                 {hasDiscount && (
                   <div className="mt-2">
-                    <span className="font-sans text-[16px] text-text-muted line-through md:text-[17.5px]">
+                    <span className="font-sans text-[18px] text-text-muted line-through md:text-[19px]">
                       {anchorText}
                     </span>
                   </div>

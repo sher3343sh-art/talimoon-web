@@ -145,7 +145,7 @@ function GoldThread({ variant }: { variant: "a" | "b" }) {
       : "M700,2 C700,46 300,12 300,58";
 
   return (
-    <div aria-hidden="true" className="relative hidden h-8 w-full lg:block">
+    <div aria-hidden="true" className="relative hidden h-10 w-full lg:block">
       <svg
         viewBox="0 0 1000 60"
         preserveAspectRatio="none"
@@ -175,41 +175,43 @@ function GoldThread({ variant }: { variant: "a" | "b" }) {
 }
 
 /**
- * One editorial row. ONE structural system for all three steps:
- * a 2-column grid (image ~57% / copy ~43%) that is `items-center`, so
- * every copy block sits at the visual centre of its image — no absolute
- * positioning, no translateY, no per-row margin hacks. The alternation
- * is pure `order`. On mobile every step stacks in the same reading
- * order: step number → image → copy.
+ * One editorial row. ONE structural system for all three steps: a
+ * 2-column grid (image ~54% / copy ~46%) that is `items-center`. The
+ * desktop step number is a large, faint watermark placed BEHIND the
+ * start of the copy via a single-cell grid overlap (two children sharing
+ * `grid-area: 1/1`) — NOT absolute positioning, NOT translateY — so the
+ * readable text (title + body) genuinely sits at the vertical centre of
+ * its own image. The alternation is pure `order`. On mobile every step
+ * stacks the same way: step number → image → copy.
  */
 function JourneyStep({ step, index }: { step: JourneyStepData; index: number }) {
   const imageLeft = index !== 1; // rows 01 & 03: image left; row 02: image right
   const climax = index === 2;
 
   const numberTone = climax
-    ? "text-[color:var(--accent-primary)]/[0.22]"
-    : "text-[color:var(--surface-contrast)]/[0.10]";
+    ? "text-[color:var(--accent-primary)]/[0.16]"
+    : "text-[color:var(--surface-contrast)]/[0.09]";
 
   return (
     <div
       className={[
-        "py-2 lg:grid lg:items-center lg:gap-x-12 lg:py-8",
+        "py-2 lg:grid lg:items-center lg:gap-x-14 lg:py-10",
         // same rule every row, mirrored: the image track is always the
-        // wider ~57%, whichever side it sits on.
-        imageLeft ? "lg:grid-cols-[57fr_43fr]" : "lg:grid-cols-[43fr_57fr]",
+        // wider ~54%, whichever side it sits on.
+        imageLeft ? "lg:grid-cols-[54fr_46fr]" : "lg:grid-cols-[46fr_54fr]",
       ].join(" ")}
     >
       {/* Step number — mobile only, first in the stack so it is never
           visually detached from its own step. */}
       <span
         aria-hidden="true"
-        className={`block font-display text-[2.75rem] font-medium leading-none lg:hidden ${numberTone}`}
+        className={`block font-display text-[2.5rem] font-medium leading-none lg:hidden ${numberTone}`}
       >
         {step.n}
       </span>
 
-      {/* Image — slightly inset from the outer edge so the copy has room
-          to breathe; aspect ratio preserved per step. */}
+      {/* Image — trimmed ~12% from the column edge so the copy reads as
+          editorial content, not a caption; aspect ratio preserved. */}
       <Reveal
         y={climax ? 20 : 14}
         className={[
@@ -219,17 +221,17 @@ function JourneyStep({ step, index }: { step: JourneyStepData; index: number }) 
       >
         <div
           className={[
-            "relative w-full overflow-hidden rounded-[10px] ring-1 ring-[color:var(--surface-contrast)]/10 lg:max-w-[94%]",
+            "relative w-full overflow-hidden rounded-[10px] ring-1 ring-[color:var(--surface-contrast)]/10 lg:max-w-[88%]",
             climax
-              ? "aspect-[4/3] shadow-[0_28px_60px_-32px_rgba(28,42,58,0.32)]"
-              : "aspect-[16/10] shadow-[0_20px_46px_-30px_rgba(28,42,58,0.22)]",
+              ? "aspect-[4/3] shadow-[0_26px_56px_-32px_rgba(28,42,58,0.30)]"
+              : "aspect-[16/10] shadow-[0_20px_44px_-30px_rgba(28,42,58,0.20)]",
           ].join(" ")}
         >
           <Image
             src={step.img}
             alt={step.alt}
             fill
-            sizes="(min-width: 1024px) 52vw, 100vw"
+            sizes="(min-width: 1024px) 48vw, 100vw"
             quality={100}
             className="object-cover"
             style={{ objectPosition: step.pos }}
@@ -237,24 +239,30 @@ function JourneyStep({ step, index }: { step: JourneyStepData; index: number }) 
         </div>
       </Reveal>
 
-      {/* Number (desktop, in flow) + copy — vertically centred against
-          the image by the row's `items-center`. */}
+      {/* Number watermark + copy — the copy is one single grid cell; the
+          large faint numeral shares that cell so it sits behind the text
+          without consuming vertical space, letting `items-center` place
+          the title + body at the image's true vertical centre. */}
       <Reveal
         delay={90}
         className={["mt-5 lg:mt-0", imageLeft ? "lg:order-2" : "lg:order-1"].join(" ")}
       >
-        <span
-          aria-hidden="true"
-          className={`hidden font-display text-[4.25rem] font-medium leading-none lg:block ${numberTone}`}
-        >
-          {step.n}
-        </span>
-        <h3 className="font-display text-[1.375rem] font-medium leading-[1.25] tracking-[-0.01em] text-text-primary md:text-[1.5rem] lg:mt-4">
-          {step.title}
-        </h3>
-        <p className="mt-3 max-w-[44ch] font-sans text-[0.9375rem] leading-[1.75] text-text-secondary md:text-[1rem]">
-          {step.body}
-        </p>
+        <div className="lg:grid lg:grid-cols-1">
+          <span
+            aria-hidden="true"
+            className={`hidden font-display text-[5rem] font-medium leading-none lg:block lg:[grid-area:1/1] lg:self-center lg:justify-self-start ${numberTone}`}
+          >
+            {step.n}
+          </span>
+          <div className="lg:[grid-area:1/1] lg:self-center">
+            <h3 className="font-display text-[1.375rem] font-medium leading-[1.3] tracking-[-0.01em] text-text-primary md:text-[1.5rem]">
+              {step.title}
+            </h3>
+            <p className="mt-3 max-w-[48ch] font-sans text-[0.9375rem] leading-[1.75] text-text-secondary md:text-[1.0625rem]">
+              {step.body}
+            </p>
+          </div>
+        </div>
       </Reveal>
     </div>
   );
@@ -270,26 +278,27 @@ export default function ProcessPrice() {
         className="w-full bg-gradient-to-b from-surface-base via-surface-base to-[#F3ECDE]"
       >
         <div className="mx-auto max-w-[1180px] px-5 pb-10 pt-16 sm:px-8 md:pb-12 md:pt-20 lg:pb-12 lg:pt-24">
-          {/* Intro — compact, strong hierarchy */}
-          <Reveal className="max-w-[46ch]">
+          {/* Intro — a wide, centred editorial header. The headline spreads
+              horizontally (one line on wide desktop, a balanced two when it
+              needs to wrap) — no narrow column, no manual line break. */}
+          <Reveal className="mx-auto max-w-[1040px] text-center">
             <p className="font-sans text-[11.5px] font-semibold uppercase tracking-[0.2em] text-text-muted">
               {t.eyebrow}
             </p>
             <h2
               id="process-heading"
-              className="mt-3 font-display text-[1.75rem] font-medium leading-[1.15] tracking-[-0.015em] text-text-primary sm:text-[2.125rem] md:text-[2.5rem]"
+              className="mt-3 text-balance font-display text-[1.75rem] font-medium leading-[1.15] tracking-[-0.015em] text-text-primary sm:text-[2.125rem] md:text-[2.5rem]"
             >
-              {t.heading[0]}
-              <br />
-              <span className="text-text-secondary">{t.heading[1]}</span>
+              {t.heading[0]} <span className="text-text-secondary">{t.heading[1]}</span>
             </h2>
-            <p className="mt-4 max-w-[42ch] font-sans text-[0.9375rem] leading-[1.7] text-text-secondary md:text-[1rem]">
+            <p className="mx-auto mt-4 max-w-[52ch] font-sans text-[0.9375rem] leading-[1.7] text-text-secondary md:text-[1rem]">
               {t.support}
             </p>
           </Reveal>
 
-          {/* The journey — alternating editorial sequence */}
-          <div className="mt-10 md:mt-11 lg:mt-12">
+          {/* The journey — alternating editorial sequence. Generous space
+              below the header before the first step begins. */}
+          <div className="mt-14 md:mt-16 lg:mt-20">
             {t.steps.map((step, i) => (
               <div key={step.n}>
                 <JourneyStep step={step} index={i} />
