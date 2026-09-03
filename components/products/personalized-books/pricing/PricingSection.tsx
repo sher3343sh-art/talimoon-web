@@ -330,7 +330,7 @@ export default function PricingSection() {
 
         {/* Purchase reassurance — a calm strip, not footnotes and not
             cards. One hairline sets it apart from the plan grid. */}
-        <div className="mx-auto mt-12 max-w-3xl border-t border-border-subtle pt-8">
+        <div className="mx-auto mt-10 max-w-3xl border-t border-border-subtle pt-6">
           <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
             <div className="flex items-center gap-2.5">
               <Copy size={18} strokeWidth={1.75} className="shrink-0 text-accent-primary" />

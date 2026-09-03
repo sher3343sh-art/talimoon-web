@@ -99,14 +99,14 @@ export default function Recognition() {
         aria-hidden="true"
         className={[
           "pointer-events-none absolute inset-y-0 right-0 hidden w-[52%] md:block lg:w-[50%] xl:w-[46%]",
-          // POSITIONING ONLY. Scale the sketch up (~4 / 10 / 14% at
+          // POSITIONING ONLY. Scale the sketch up (~20 / 26 / 31% at
           // md / lg / xl) and nudge it in from the right edge
-          // (~22 / 50 / 78px) so the boy sits nearer the centre with a
+          // (~48 / 96 / 144px) so the boy sits nearer the centre with a
           // shorter empty gap after the text. The blend fill + mode
           // stay in `style` and are untouched.
-          "[background-size:104%] [background-position:right_22px_center]",
-          "lg:[background-size:110%] lg:[background-position:right_50px_center]",
-          "xl:[background-size:114%] xl:[background-position:right_78px_center]",
+          "[background-size:120%] [background-position:right_48px_center]",
+          "lg:[background-size:126%] lg:[background-position:right_96px_center]",
+          "xl:[background-size:131%] xl:[background-position:right_144px_center]",
         ].join(" ")}
         style={{
           ...SKETCH_MERGE,
@@ -114,7 +114,7 @@ export default function Recognition() {
         }}
       />
 
-      <div className="relative mx-auto max-w-[900px] px-5 py-14 sm:px-8 md:py-20 lg:py-24">
+      <div className="relative mx-auto max-w-[900px] px-5 py-14 sm:px-8 md:py-16 lg:py-20">
         {/* Left narrative column — constrained from md up so the boy
             never collides with the text. */}
         <div className="md:max-w-[22rem] lg:max-w-[27rem]">
@@ -144,7 +144,7 @@ export default function Recognition() {
             ))}
           </ul>
 
-          <Reveal delay={120} className="mt-11 md:mt-14">
+          <Reveal delay={120} className="mt-10 md:mt-12">
             <p className="font-sans text-[1.0625rem] leading-[1.7] text-text-secondary md:text-[1.125rem]">
               {t.heard}
             </p>
@@ -165,7 +165,7 @@ export default function Recognition() {
           }}
         />
 
-        <Reveal delay={80} className="mt-10 md:mt-14">
+        <Reveal delay={80} className="mt-10 md:mt-12">
           <p className="text-balance font-display text-[1.875rem] font-medium leading-[1.2] tracking-[-0.02em] text-text-primary sm:text-[2.5rem] md:text-[3.125rem]">
             {t.turn[0]}
             <br />

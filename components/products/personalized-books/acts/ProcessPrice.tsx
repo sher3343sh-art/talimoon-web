@@ -145,7 +145,7 @@ function GoldThread({ variant }: { variant: "a" | "b" }) {
       : "M700,2 C700,46 300,12 300,58";
 
   return (
-    <div aria-hidden="true" className="relative hidden h-10 w-full lg:block">
+    <div aria-hidden="true" className="relative hidden h-7 w-full lg:block">
       <svg
         viewBox="0 0 1000 60"
         preserveAspectRatio="none"
@@ -189,7 +189,7 @@ function JourneyStep({ step, index }: { step: JourneyStepData; index: number }) 
   return (
     <div
       className={[
-        "py-2 lg:grid lg:items-center lg:gap-x-14 lg:py-10",
+        "py-2 lg:grid lg:items-center lg:gap-x-14 lg:py-7",
         // same rule every row, mirrored: the image track is always the
         // wider ~54%, whichever side it sits on.
         imageLeft ? "lg:grid-cols-[54fr_46fr]" : "lg:grid-cols-[46fr_54fr]",
@@ -252,7 +252,7 @@ export default function ProcessPrice() {
         aria-labelledby="process-heading"
         className="w-full bg-gradient-to-b from-surface-base via-surface-base to-[#F3ECDE]"
       >
-        <div className="mx-auto max-w-[1180px] px-5 pb-10 pt-16 sm:px-8 md:pb-12 md:pt-20 lg:pb-12 lg:pt-20">
+        <div className="mx-auto max-w-[1180px] px-5 pb-10 pt-14 sm:px-8 md:pb-12 md:pt-16 lg:pb-12 lg:pt-20">
           {/* Intro — a wide, centred editorial header. The headline spreads
               horizontally (one line on wide desktop, a balanced two when it
               needs to wrap) — no narrow column, no manual line break. Both
@@ -273,7 +273,7 @@ export default function ProcessPrice() {
           </Reveal>
 
           {/* The journey — alternating editorial sequence. */}
-          <div className="mt-12 md:mt-14 lg:mt-16">
+          <div className="mt-10 md:mt-12 lg:mt-12">
             {t.steps.map((step, i) => (
               <div key={step.n}>
                 <JourneyStep step={step} index={i} />
@@ -291,7 +291,7 @@ export default function ProcessPrice() {
           </div>
 
           {/* Tight close straight into pricing */}
-          <Reveal delay={60} className="mt-10 border-t border-text-primary/10 pt-6">
+          <Reveal delay={60} className="mt-8 border-t border-text-primary/10 pt-6">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <p className="max-w-[62ch] font-sans text-[0.8125rem] leading-[1.7] text-text-muted">
                 {t.trust}

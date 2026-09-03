@@ -99,7 +99,7 @@ export default function Method() {
       aria-labelledby="method-heading"
       className="w-full scroll-mt-20 bg-surface-contrast text-text-inverse md:scroll-mt-24"
     >
-      <div className="mx-auto max-w-[1000px] px-5 py-16 sm:px-8 md:py-20 lg:py-24">
+      <div className="mx-auto max-w-[1000px] px-5 py-14 sm:px-8 md:py-16 lg:py-20">
         <Reveal className="max-w-[640px]">
           <p className="font-sans text-[11.5px] font-semibold uppercase tracking-[0.2em] text-[#C79A4B]">
             {t.eyebrow}

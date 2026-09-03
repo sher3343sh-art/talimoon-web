@@ -72,9 +72,9 @@ export default function Close() {
 
   return (
     <section aria-labelledby="close-heading" className="w-full bg-surface-base">
-      <div className="mx-auto max-w-[760px] px-5 pb-16 pt-12 text-center sm:px-8 md:pb-20 md:pt-14 lg:pb-16 lg:pt-16">
+      <div className="mx-auto max-w-[760px] px-5 pb-14 pt-12 text-center sm:px-8 md:pb-16 md:pt-14 lg:pb-16 lg:pt-14">
         <Reveal>
-          <div aria-hidden="true" className="mx-auto mb-9 h-px w-14 bg-accent-primary/40" />
+          <div aria-hidden="true" className="mx-auto mb-7 h-px w-14 bg-accent-primary/40" />
           <h2
             id="close-heading"
             className="text-balance font-display text-[1.875rem] font-medium leading-[1.15] tracking-[-0.015em] text-text-primary sm:text-[2.5rem] md:text-[3rem]"
@@ -99,7 +99,7 @@ export default function Close() {
           </p>
         </Reveal>
 
-        <Reveal delay={60} className="mt-10">
+        <Reveal delay={60} className="mt-8">
           <p className="mx-auto max-w-[40ch] font-sans text-[1.0625rem] leading-[1.7] text-text-secondary">
             {t.proposition.join(" ")}
           </p>
@@ -112,7 +112,7 @@ export default function Close() {
         </Reveal>
 
         {/* Compact FAQ */}
-        <div className="mx-auto mt-14 max-w-[620px] text-start md:mt-16">
+        <div className="mx-auto mt-12 max-w-[620px] text-start md:mt-14">
           <h3 className="font-sans text-[11.5px] font-semibold uppercase tracking-[0.2em] text-text-muted">
             {t.faqHeading}
           </h3>

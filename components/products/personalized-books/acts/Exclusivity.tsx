@@ -49,7 +49,7 @@ export default function Exclusivity() {
       aria-labelledby="exclusivity-heading"
       className="w-full scroll-mt-20 bg-surface-base md:scroll-mt-24"
     >
-      <div className="mx-auto max-w-[1120px] px-5 py-16 sm:px-8 md:py-20 lg:py-24">
+      <div className="mx-auto max-w-[1120px] px-5 py-14 sm:px-8 md:py-16 lg:py-20">
         {/* Eyebrow + headline — a wide, centred section header above the
             image/text composition. The headline spreads horizontally
             (one line on a normal desktop, a balanced two lines when it
@@ -67,7 +67,7 @@ export default function Exclusivity() {
         </Reveal>
 
         {/* Image + claim */}
-        <div className="mt-12 grid items-center gap-10 lg:mt-16 lg:grid-cols-[1fr_1.05fr] lg:gap-16">
+        <div className="mt-10 grid items-center gap-10 lg:mt-14 lg:grid-cols-[1fr_1.05fr] lg:gap-16">
           {/* Product imagery — the real TALIMOON book, from the hero
               photograph (the strongest genuine product asset in the repo). */}
           <Reveal className="order-2 lg:order-1">
