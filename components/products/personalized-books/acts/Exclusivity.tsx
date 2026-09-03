@@ -55,7 +55,7 @@ export default function Exclusivity() {
         <Reveal className="order-2 lg:order-1">
           <div className="relative mx-auto aspect-[5/4] w-full max-w-[460px] overflow-hidden rounded-[14px] shadow-[0_24px_60px_-12px_rgba(33,29,24,0.28)] ring-1 ring-border-subtle lg:max-w-none">
             <Image
-              src="/images/products/personalized-books/hero/hero-v13.png"
+              src="/images/products/personalized-books/hero/hero-v13.webp"
               alt={t.imageAlt}
               fill
               sizes="(min-width: 1024px) 46vw, 90vw"

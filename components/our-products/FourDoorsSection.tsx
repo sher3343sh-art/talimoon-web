@@ -65,7 +65,7 @@ function HeritageBackdrop() {
       }}
     >
       <Image
-        src="/images/values/book.png"
+        src="/images/values/book.webp"
         alt=""
         fill
         sizes="100vw"
@@ -113,9 +113,9 @@ const VARIANTS: DoorVariant[] = [
     tagline: "Your child becomes the hero of a story created especially for them.",
     href: "/products/personalized-books",
     assets: {
-      frame: "/images/home/OurProducts/books-frame.png",
-      door: "/images/home/OurProducts/books-door.png",
-      mask: "/images/home/OurProducts/books-mask.png",
+      frame: "/images/home/OurProducts/books-frame.webp",
+      door: "/images/home/OurProducts/books-door.webp",
+      mask: "/images/home/OurProducts/books-mask.webp",
       // 2026-08-27: the painted "hidden world" scene behind this
       // door — a child reading by lamplight. Separate file from
       // `mask` on purpose: `mask` must stay a plain white-on-
@@ -124,11 +124,11 @@ const VARIANTS: DoorVariant[] = [
       // data in that file is invisible on the live site and just
       // bloats the download) while `world` is a real image rendered
       // with next/image, where the actual pixels matter.
-      world: "/images/home/OurProducts/books-world.png",
+      world: "/images/home/OurProducts/books-world.webp",
       // Vertical golden light shaft that leaks from the ajar door's
       // free edge at rest; DoorPortal positions it as a strip and fades
       // it out as the door swings open. Shared file across all 3 doors.
-      gapLight: "/images/home/OurProducts/light.png",
+      gapLight: "/images/home/OurProducts/light.webp",
       // Measured from books-door.png's actual opaque pixel bounds
       // (minX=513, maxX=1047, minY=141, maxY=1134 on a 1500×1335
       // canvas) — not eyeballed. Re-measure if re-exported.
@@ -143,17 +143,17 @@ const VARIANTS: DoorVariant[] = [
     tagline: "Faith-filled adventures that inspire kindness, courage, and beautiful character.",
     href: "/products/yusuf-and-yasmina",
     assets: {
-      frame: "/images/home/OurProducts/yusuf-frame.png",
-      door: "/images/home/OurProducts/yusuf-door.png",
-      mask: "/images/home/OurProducts/yusuf-mask.png",
+      frame: "/images/home/OurProducts/yusuf-frame.webp",
+      door: "/images/home/OurProducts/yusuf-door.webp",
+      mask: "/images/home/OurProducts/yusuf-mask.webp",
       // 2026-08-27: same treatment as books-world.png — a painted
       // "hidden world" scene, pre-shaped to the arch with its own
       // transparent margin, revealed behind the door via the existing
       // mask.png-masked world container (DoorPortal has no per-door
       // branching for this; assigning `world` is the only change
       // needed).
-      world: "/images/home/OurProducts/yusuf.png",
-      gapLight: "/images/home/OurProducts/light.png",
+      world: "/images/home/OurProducts/yusuf.webp",
+      gapLight: "/images/home/OurProducts/light.webp",
       // yusuf-frame.png's transparent opening was exported at x 36.0-69.5%
       // / y 12.6-84.6% of its canvas, but yusuf-mask.png and yusuf.png
       // sit at x 35.1-68.5% / y 11.1-83.3% (books & toys frames match
@@ -178,12 +178,12 @@ const VARIANTS: DoorVariant[] = [
     tagline: "Beautiful toys that transform everyday play into joyful learning.",
     href: "/products/talimoon-toys",
     assets: {
-      frame: "/images/home/OurProducts/toys-frame.png",
-      door: "/images/home/OurProducts/toys-door.png",
-      mask: "/images/home/OurProducts/toys-mask.png",
+      frame: "/images/home/OurProducts/toys-frame.webp",
+      door: "/images/home/OurProducts/toys-door.webp",
+      mask: "/images/home/OurProducts/toys-mask.webp",
       // 2026-08-27: same treatment as books-world.png/yusuf.png above.
-      world: "/images/home/OurProducts/toys.png",
-      gapLight: "/images/home/OurProducts/light.png",
+      world: "/images/home/OurProducts/toys.webp",
+      gapLight: "/images/home/OurProducts/light.webp",
       // Measured from toys-door.png (minX=513, maxX=1038, minY=135,
       // maxY=1158).
       hingeOriginX: 34.2,

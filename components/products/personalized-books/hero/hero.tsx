@@ -81,7 +81,7 @@ const defaultNavLinksUz = [
 
 // Verified location: public/images/products/personalized-books/hero/hero-v13.png
 const DEFAULT_HERO_IMAGE_SRC =
-  "/images/products/personalized-books/hero/hero-v13.png";
+  "/images/products/personalized-books/hero/hero-v13.webp";
 
 const DEFAULT_COPY_EN = {
   imageAlt: "A child reading, softly connected to the story in their hands",

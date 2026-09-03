@@ -35,7 +35,7 @@ const PRODUCTS: Product[] = [
     nameUz: "Shaxsiylashtirilgan kitoblar",
     tagline: "Your child becomes the hero of a story created especially for them.",
     taglineUz: "Farzandingiz maxsus u uchun yaratilgan hikoyaning bosh qahramoniga aylanadi.",
-    image: "/images/home/OurProducts/books-world.png",
+    image: "/images/home/OurProducts/books-world.webp",
     active: true,
   },
   {
@@ -44,7 +44,7 @@ const PRODUCTS: Product[] = [
     nameUz: "Yusuf va Yasmina",
     tagline: "Faith-filled adventures that inspire kindness, courage, and character.",
     taglineUz: "Mehr-shafqat, jasorat va halollikni ilhomlantiruvchi imonli sarguzashtlar.",
-    image: "/images/home/OurProducts/yusuf.png",
+    image: "/images/home/OurProducts/yusuf.webp",
     active: false,
   },
   {
@@ -53,7 +53,7 @@ const PRODUCTS: Product[] = [
     nameUz: "Talimoon o'yinchoqlari",
     tagline: "Beautiful toys that transform everyday play into joyful learning.",
     taglineUz: "Kundalik o'yinni quvonchli bilim olishga aylantiruvchi go'zal o'yinchoqlar.",
-    image: "/images/home/OurProducts/toys.png",
+    image: "/images/home/OurProducts/toys.webp",
     active: false,
   },
 ];

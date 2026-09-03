@@ -113,9 +113,9 @@ const SOCIAL_LINKS = [
   },
 ] as const;
 const SOCIAL_ICON_PATHS = {
-  instagram: "/icons/instagram.png",
-  telegram: "/icons/telegram.png",
-  youtube: "/icons/youtube.png",
+  instagram: "/icons/instagram.webp",
+  telegram: "/icons/telegram.webp",
+  youtube: "/icons/youtube.webp",
 } as const;
 // Drawer now mirrors the desktop information architecture exactly
 // (Home / Product / Journey / Story Library / About). "Product" opens

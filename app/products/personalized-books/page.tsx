@@ -37,7 +37,7 @@ export default function PersonalizedBooksPage() {
       <main>
         {/* Act 01 — copy lives in the Hero's own EN/UZ dictionary. */}
         <Hero
-          imageSrc="/images/products/personalized-books/hero/hero-v13.png"
+          imageSrc="/images/products/personalized-books/hero/hero-v13.webp"
           secondaryCtaHref="#method"
         />
 

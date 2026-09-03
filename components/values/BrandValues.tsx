@@ -76,31 +76,31 @@ const VALUES_EN: readonly ValueItem[] = [
     id: 'knowledge',
     title: 'Knowledge',
     description: 'Sparks a lifelong love of learning.',
-    iconSrc: '/images/values/icon/Knowledge.png',
+    iconSrc: '/images/values/icon/Knowledge.webp',
   },
   {
     id: 'character',
     title: 'Character',
     description: 'Shapes kindness, respect, and good conduct.',
-    iconSrc: '/images/values/icon/Character.png',
+    iconSrc: '/images/values/icon/Character.webp',
   },
   {
     id: 'imagination',
     title: 'Imagination',
     description: 'Inspires creativity and independent thought.',
-    iconSrc: '/images/values/icon/Imagination.png',
+    iconSrc: '/images/values/icon/Imagination.webp',
   },
   {
     id: 'compassion',
     title: 'Compassion',
     description: 'Instills empathy and human warmth.',
-    iconSrc: '/images/values/icon/Compassion.png',
+    iconSrc: '/images/values/icon/Compassion.webp',
   },
   {
     id: 'wisdom',
     title: 'Wisdom',
     description: 'Guides children toward a life of character and purpose.',
-    iconSrc: '/images/values/icon/Wisdom.png',
+    iconSrc: '/images/values/icon/Wisdom.webp',
   },
 ] as const;
 
@@ -118,33 +118,33 @@ const VALUES_UZ: readonly ValueItem[] = [
     id: 'knowledge',
     title: 'Bilim',
     description: "O'rganish, izlanish va savol berishga qiziqish uyg'otamiz.",
-    iconSrc: '/images/values/icon/Knowledge.png',
+    iconSrc: '/images/values/icon/Knowledge.webp',
   },
   {
     id: 'character',
     title: 'Odob va poklik',
     description:
       "Go'zal xulq, hurmat, ozodalik va poklikni kundalik odatga aylantirishga o'rgatamiz.",
-    iconSrc: '/images/values/icon/Character.png',
+    iconSrc: '/images/values/icon/Character.webp',
   },
   {
     id: 'imagination',
     title: 'Tasavvur',
     description: "Ijodkorlikni, tasavvurni va mustaqil fikrlashni rivojlantiramiz.",
-    iconSrc: '/images/values/icon/Imagination.png',
+    iconSrc: '/images/values/icon/Imagination.webp',
   },
   {
     id: 'compassion',
     title: 'Mehr-shafqat',
     description: "Mehr, hamdardlik va boshqalarga g'amxo'rlik qilishni o'rgatamiz.",
-    iconSrc: '/images/values/icon/Compassion.png',
+    iconSrc: '/images/values/icon/Compassion.webp',
   },
   {
     id: 'wisdom',
     title: 'Komillik',
     description:
       "O'z ustida ishlash, to'g'ri tanlov qilish va hayotda ma'noli yo'l topishga ilhomlantiramiz.",
-    iconSrc: '/images/values/icon/Wisdom.png',
+    iconSrc: '/images/values/icon/Wisdom.webp',
   },
 ] as const;
 
@@ -234,7 +234,7 @@ function SectionArtwork() {
       }}
     >
       <Image
-        src="/images/values/values-scene.png"
+        src="/images/values/values-scene.webp"
         alt=""
         fill
         sizes="100vw"
@@ -394,7 +394,7 @@ function MobileValuesScene() {
         style={{ aspectRatio: '1 / 1' }}
       >
         <Image
-          src="/images/values/values-scene.png"
+          src="/images/values/values-scene.webp"
           alt=""
           fill
           sizes="100vw"
