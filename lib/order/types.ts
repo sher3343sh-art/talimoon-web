@@ -382,19 +382,83 @@ export function makeCustomAnswerId(text: string): string {
 }
 
 /** A crypto-random id with a safe fallback for older browsers / SSR. */
-export function makeChildId(): string {
+function randomId(prefix: string): string {
   try {
     if (typeof crypto !== "undefined" && crypto.randomUUID) {
-      return `child_${crypto.randomUUID()}`;
+      return `${prefix}_${crypto.randomUUID()}`;
     }
   } catch {
     /* fall through */
   }
-  return `child_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+  return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+export function makeChildId(): string {
+  return randomId("child");
 }
 
 export function emptyChild(): ChildProfile {
   return { id: makeChildId(), name: "", age: null };
+}
+
+/**
+ * An ADDITIONAL character — a relative or friend the customer wants drawn
+ * into the story alongside the main child(ren). A separate concept from
+ * {@link ChildProfile}: additional characters are never main characters,
+ * never priced, and never routed as child slots.
+ *
+ * Everything about one character — its identity AND its reference photos —
+ * hangs off the stable `id`, never an array index. So the photo-upload
+ * blocks on the photos step are generated one-per-entry directly from this
+ * list, and a photo can never be reattributed to a different person by a
+ * reorder or a removal earlier in the list.
+ */
+export interface AdditionalCharacter {
+  /** Stable identity — assigned once, on creation. */
+  id: string;
+  /** "Kimligi" — role / relationship, e.g. "Ona", "Bobo", "Opa". */
+  relation: string;
+  /** "Ismi" — the character's name, e.g. "Dilnoza". */
+  name: string;
+  /** This character's own reference photos. At least
+   *  {@link MIN_CHARACTER_PHOTOS} are required before the photos step can
+   *  advance. */
+  photos: File[];
+}
+
+export function makeCharacterId(): string {
+  return randomId("char");
+}
+
+export function emptyAdditionalCharacter(): AdditionalCharacter {
+  return { id: makeCharacterId(), relation: "", name: "", photos: [] };
+}
+
+/** Minimum reference photos per additional character (mirrors the
+ *  main-child photo minimum). */
+export const MIN_CHARACTER_PHOTOS = 2;
+/** Per-character upper bound — keeps the existing global upload ceiling
+ *  intact while still allowing more than the minimum. */
+export const MAX_CHARACTER_PHOTOS = 5;
+/** How many additional characters one order can hold. */
+export const MAX_ADDITIONAL_CHARACTERS = 10;
+
+/** True once both identifying fields are filled — the entry is real
+ *  enough to generate its own photo-upload block. */
+export function additionalCharacterNamed(c: AdditionalCharacter): boolean {
+  return c.relation.trim().length > 0 && c.name.trim().length > 0;
+}
+
+/** True when the entry is complete enough to submit — identified AND
+ *  carrying the minimum number of reference photos. */
+export function additionalCharacterComplete(c: AdditionalCharacter): boolean {
+  return additionalCharacterNamed(c) && c.photos.length >= MIN_CHARACTER_PHOTOS;
+}
+
+/** "Ona — Dilnoza" — the human label for a character's photo-upload
+ *  block and the review list. Never an id. */
+export function additionalCharacterLabel(c: AdditionalCharacter): string {
+  return `${c.relation.trim()} — ${c.name.trim()}`;
 }
 
 /** How many main children a single order can hold. Preserves the

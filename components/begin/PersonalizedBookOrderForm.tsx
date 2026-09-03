@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, Check, MapPin, Upload, X } from "lucide-react";
+import { useMemo, useState } from "react";
+import { ArrowLeft, ArrowRight, Check, MapPin, Upload } from "lucide-react";
 import { useLanguage, useT } from "@/lib/i18n/LanguageContext";
 import { toLocale } from "@/lib/journey/types";
 import {
@@ -26,18 +26,37 @@ import { PaymentAccount } from "./PaymentAccount";
 import { setMarketPreference, useMarketPreference, marketFromLocation } from "@/lib/order/market";
 import { useFlowScroll } from "@/lib/order/useFlowScroll";
 import {
+  additionalCharacterLabel,
+  additionalCharacterNamed,
   bookTypeForChildCount,
   deliveryRequired,
+  emptyAdditionalCharacter,
   emptyChild,
   emptyOrderer,
   isDeliveryComplete,
+  MAX_ADDITIONAL_CHARACTERS,
+  MIN_CHARACTER_PHOTOS,
   resetDeliveryForMarket,
+  type AdditionalCharacter,
   type ChildProfile,
   type DeliveryAddress,
   type DeliveryLocation,
   type Orderer,
   type Phase01Result,
 } from "@/lib/order/types";
+import {
+  Field,
+  inputClass,
+  MAX_PHOTO_BYTES,
+  PhotoUpload,
+  TextArea,
+  TextInput,
+} from "./formPrimitives";
+import {
+  AdditionalCharacterFields,
+  AdditionalCharacterPhotos,
+  type AdditionalCharacterCopy,
+} from "./AdditionalCharacters";
 import Phase02 from "./Phase02";
 import Phase03 from "./Phase03";
 import EmotionalBridge from "./EmotionalBridge";
@@ -130,8 +149,13 @@ const CHROME_EN = {
   personalMessagePlaceholder: (name: string) =>
     `For example: “${name}, I will always be proud of you. Keep your kind and brave heart. I love you very much.”`,
   wantsCharacters: "Include other characters",
-  charactersPlaceholder:
-    "Names and relationship — e.g. sister Madina, grandfather",
+  characterRelationLabel: "Relationship or role",
+  characterRelationPlaceholder: "e.g. Mother",
+  characterNameLabel: "Name",
+  characterNamePlaceholder: "e.g. Dilnoza",
+  addCharacter: "+ Add another character",
+  removeCharacter: "Remove",
+  characterNeedsBoth: "Add a relationship and a name for each character, or remove the entry.",
 
   childPhotos: "Child photos",
   childPhotosHint: "3–5 clear, well-lit photos showing the face",
@@ -140,8 +164,9 @@ const CHROME_EN = {
   specialPhotoHint:
     "This photo is used on the book's final page as it really looks — it is not turned into an anime or cartoon drawing. So choose one that's as clear and bright as possible: a family photo, or one that means a lot to you.",
   specialPhotoNote: "The photo is used exactly as it is.",
-  characterPhotos: "Photos of the other characters",
-  characterPhotosHint: "1–3 photos for each additional character in the story",
+  characterPhotosSection: "Photos of the additional characters",
+  characterMinPhotos: "Upload at least 2 photos",
+  characterPhotosMoreNeeded: (who: string) => `${who} still needs at least 2 photos`,
   atLeastPhotos: (min: number) => `At least ${min} photos required`,
   photosEnough: (n: number) => `${n} photo${n === 1 ? "" : "s"} — enough`,
   photosMoreNeeded: (n: number) =>
@@ -270,7 +295,14 @@ const CHROME_UZ: typeof CHROME_EN = {
   personalMessagePlaceholder: (name: string) =>
     `Masalan: “${name}, sen bilan doimo faxrlanaman. Mehribon va jasur qalbingni asra. Seni juda yaxshi ko‘raman.”`,
   wantsCharacters: "Hikoyaga boshqa qahramonlarni qo'shish",
-  charactersPlaceholder: "Ism va qarindoshlik — masalan: opasi Madina, bobosi",
+  characterRelationLabel: "Kimligi",
+  characterRelationPlaceholder: "masalan: Ona",
+  characterNameLabel: "Ismi",
+  characterNamePlaceholder: "masalan: Dilnoza",
+  addCharacter: "+ Qo‘shimcha qahramon qo‘shish",
+  removeCharacter: "O‘chirish",
+  characterNeedsBoth:
+    "Har bir qahramon uchun kimligi va ismini yozing yoki qatorni o‘chiring.",
 
   childPhotos: "Farzand suratlari",
   childPhotosHint: "Yuzi aniq ko'rinadigan, yaxshi yoritilgan 3–5 ta surat",
@@ -279,8 +311,9 @@ const CHROME_UZ: typeof CHROME_EN = {
   specialPhotoHint:
     "Bu surat kitobning yakuniy sahifasida o'zining haqiqiy ko'rinishida ishlatiladi — anime yoki multfilm rasmiga aylantirilmaydi. Shuning uchun imkon qadar tiniq, yorug' va Siz uchun chiroyli oilaviy yoki esda qolarli surat tanlang.",
   specialPhotoNote: "Surat qanday bo'lsa, shunday ishlatiladi.",
-  characterPhotos: "Boshqa qahramonlar suratlari",
-  characterPhotosHint: "Hikoyadagi har bir qo'shimcha qahramon uchun 1–3 ta surat",
+  characterPhotosSection: "Qo‘shimcha qahramonlar suratlari",
+  characterMinPhotos: "Kamida 2 ta surat yuklang",
+  characterPhotosMoreNeeded: (who: string) => `${who} uchun kamida 2 ta surat kerak`,
   atLeastPhotos: (min: number) => `Kamida ${min} ta surat kerak`,
   photosEnough: (n: number) => `${n} ta surat — yetarli`,
   photosMoreNeeded: (n: number) => `Davom etish uchun yana ${n} ta rasm yuklang`,
@@ -366,12 +399,14 @@ interface FormData {
   giftFrom: string;
   wantsPersonalMessage: boolean;
   personalMessage: string;
+  /** Toggle for the additional-characters section. When on, the customer
+   *  fills one {@link AdditionalCharacter} entry per person, and the
+   *  photos step then generates one upload block per named entry. */
   wantsCharacters: boolean;
-  characters: string;
+  additionalCharacters: AdditionalCharacter[];
   childPhotos: File[];
   wantsSpecialPhoto: boolean;
   specialPhoto: File | null;
-  characterPhotos: File[];
   /** Stable machine code (spec §41) — "" until chosen. */
   bookLanguageCode: BookLanguageCode | "";
   copies: number;
@@ -398,11 +433,10 @@ function emptyForm(market: Market = "UZ"): FormData {
     wantsPersonalMessage: false,
     personalMessage: "",
     wantsCharacters: false,
-    characters: "",
+    additionalCharacters: [],
     childPhotos: [],
     wantsSpecialPhoto: false,
     specialPhoto: null,
-    characterPhotos: [],
     bookLanguageCode: "",
     copies: 1,
     receipt: null,
@@ -423,12 +457,29 @@ const MAX_CHILD_PHOTOS = 5;
  */
 function isStepComplete(stepId: StepId, data: FormData): boolean {
   switch (stepId) {
-    case "personal-touch":
-      return data.giftFrom.trim().length > 0;
-    case "photos":
+    case "personal-touch": {
+      // Every additional-character entry the customer started must be
+      // fully named (relationship + name) or removed — a half-filled
+      // entry can't generate a usable photo block later.
+      const charactersOk =
+        !data.wantsCharacters ||
+        (data.additionalCharacters.length > 0 &&
+          data.additionalCharacters.every(additionalCharacterNamed));
+      return data.giftFrom.trim().length > 0 && charactersOk;
+    }
+    case "photos": {
       // Only photos actually accepted into state count (a rejected file
-      // never reaches `childPhotos`).
-      return data.childPhotos.length >= MIN_CHILD_PHOTOS;
+      // never reaches state). Each named additional character needs at
+      // least MIN_CHARACTER_PHOTOS before the step can advance.
+      const characterPhotosOk =
+        !data.wantsCharacters ||
+        data.additionalCharacters
+          .filter(additionalCharacterNamed)
+          .every((c) => c.photos.length >= MIN_CHARACTER_PHOTOS);
+      return (
+        data.childPhotos.length >= MIN_CHILD_PHOTOS && characterPhotosOk
+      );
+    }
     case "review": {
       // Phone + book language + an answered delivery question. If the
       // customer wants INTERNATIONAL delivery, a destination country
@@ -456,44 +507,9 @@ function isStepComplete(stepId: StepId, data: FormData): boolean {
   }
 }
 
-// ─── Shared field primitives ────────────────────────────────────────────────
-
-function Field({
-  label,
-  children,
-  hint,
-}: {
-  label: string;
-  children: React.ReactNode;
-  hint?: string;
-}) {
-  return (
-    <label className="block">
-      <span className="mb-2 block font-sans text-[13px] font-medium text-text-primary">
-        {label}
-      </span>
-      {children}
-      {hint && (
-        <span className="mt-1.5 block font-sans text-[12px] text-text-secondary">
-          {hint}
-        </span>
-      )}
-    </label>
-  );
-}
-
-const inputClass =
-  "w-full rounded-md border border-border-default bg-transparent px-3.5 py-2.5 font-sans text-[14px] text-text-primary outline-none transition-colors focus:outline focus:outline-2 focus:outline-offset-1 focus:outline-accent-primary";
-
-function TextInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
-  return <input {...props} className={inputClass} />;
-}
-
-function TextArea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
-  return (
-    <textarea {...props} rows={props.rows ?? 3} className={inputClass + " resize-none"} />
-  );
-}
+// ─── Field / upload primitives live in ./formPrimitives ────────────────────
+//    (Field, inputClass, TextInput, TextArea, PhotoUpload, MAX_PHOTO_BYTES)
+//    so ./AdditionalCharacters can reuse PhotoUpload without a cycle.
 
 // ─── Main component ─────────────────────────────────────────────────────────
 
@@ -525,6 +541,26 @@ export default function PersonalizedBookOrderForm({
    *  speak uz / en; everything else falls back to en. */
   const bookLoc: "uz" | "en" = locale === "uz" ? "uz" : "en";
   const t = useT(CHROME_EN, CHROME_UZ);
+
+  /** Localised copy for the additional-characters sub-components (kept
+   *  out of LanguageContext so they stay trivially testable). */
+  const characterCopy: AdditionalCharacterCopy = {
+    relationLabel: t.characterRelationLabel,
+    relationPlaceholder: t.characterRelationPlaceholder,
+    nameLabel: t.characterNameLabel,
+    namePlaceholder: t.characterNamePlaceholder,
+    addLabel: t.addCharacter,
+    removeLabel: t.removeCharacter,
+    photosSectionLabel: t.characterPhotosSection,
+    minPhotosHint: t.characterMinPhotos,
+    removePhotoLabel: t.removePhoto,
+    atLeastPhotos: t.atLeastPhotos,
+    photosEnough: t.photosEnough,
+    photosMoreNeeded: t.photosMoreNeeded,
+    photoTooLarge: t.photoTooLarge,
+    photoNotImage: t.photoNotImage,
+    photoBroken: t.photoBroken,
+  };
 
   // ── Market resolution (spec §11–12). Priority: the explicit market
   //    from the Order Now that started this checkout (prop) > a
@@ -739,6 +775,55 @@ export default function PersonalizedBookOrderForm({
     }));
   }
 
+  // ── Additional characters — structured, repeatable entries. The photo
+  //    step derives its upload blocks one-per-named-entry from this list,
+  //    so keeping it clean here is what keeps that step in sync.
+  function toggleWantsCharacters(v: boolean) {
+    setData((prev) => ({
+      ...prev,
+      wantsCharacters: v,
+      additionalCharacters: v
+        ? prev.additionalCharacters.length > 0
+          ? prev.additionalCharacters
+          : [emptyAdditionalCharacter()]
+        : [],
+    }));
+    setShowStepError(false);
+  }
+
+  function addAdditionalCharacter() {
+    setData((prev) =>
+      prev.additionalCharacters.length >= MAX_ADDITIONAL_CHARACTERS
+        ? prev
+        : {
+            ...prev,
+            additionalCharacters: [
+              ...prev.additionalCharacters,
+              emptyAdditionalCharacter(),
+            ],
+          },
+    );
+    setShowStepError(false);
+  }
+
+  function patchAdditionalCharacter(id: string, p: Partial<AdditionalCharacter>) {
+    setData((prev) => ({
+      ...prev,
+      additionalCharacters: prev.additionalCharacters.map((c) =>
+        c.id === id ? { ...c, ...p } : c,
+      ),
+    }));
+    setShowStepError(false);
+  }
+
+  function removeAdditionalCharacter(id: string) {
+    setData((prev) => ({
+      ...prev,
+      additionalCharacters: prev.additionalCharacters.filter((c) => c.id !== id),
+    }));
+    setShowStepError(false);
+  }
+
   /** This step's gate — one call into the centralized rule (spec §6). */
   const canContinue = () => isStepComplete(step.id, data);
   /** Whether the primary button should read as ready (also false while a
@@ -777,11 +862,24 @@ export default function PersonalizedBookOrderForm({
         deliveryRequired: wantsDelivery,
         regionCode: data.orderer.deliveryAddress.regionCode,
       });
+      // Structured additional-character intake — relationship + name +
+      // how many reference photos each carries. This is the shape the
+      // order-intake API's `profile.additionalCharacters` expects; each
+      // entry maps 1:1 to a server-issued `characterRef` at POST time,
+      // and its photos upload as `kind=character_photo` against that ref.
+      const additionalCharacters = data.additionalCharacters
+        .filter(additionalCharacterNamed)
+        .map((c) => ({
+          relation: c.relation.trim(),
+          name: c.name.trim(),
+          photoCount: c.photos.length,
+        }));
       // TODO: POST this to the order-intake API once it exists (upload +
       // admin notification). Validated form state + pricing snapshot
       // only for now.
       if (typeof console !== "undefined") {
         console.info("[order] pricing snapshot", snapshot);
+        console.info("[order] additional characters", additionalCharacters);
       }
       setSubmitted(true);
       return;
@@ -1020,19 +1118,23 @@ export default function PersonalizedBookOrderForm({
               <SwitchRow
                 label={t.wantsCharacters}
                 checked={data.wantsCharacters}
-                onChange={(v) => update("wantsCharacters", v)}
+                onChange={toggleWantsCharacters}
               />
               {data.wantsCharacters && (
-                <TextArea
-                  value={data.characters}
-                  onChange={(e) => update("characters", e.target.value)}
-                  placeholder={t.charactersPlaceholder}
+                <AdditionalCharacterFields
+                  characters={data.additionalCharacters}
+                  copy={characterCopy}
+                  onPatch={patchAdditionalCharacter}
+                  onAdd={addAdditionalCharacter}
+                  onRemove={removeAdditionalCharacter}
                 />
               )}
 
               {showStepError && !canContinue() && (
                 <p role="alert" className="font-sans text-[13px] text-state-error">
-                  {t.giftFromError}
+                  {data.giftFrom.trim().length > 0
+                    ? t.characterNeedsBoth
+                    : t.giftFromError}
                 </p>
               )}
             </>
@@ -1081,26 +1183,33 @@ export default function PersonalizedBookOrderForm({
                 </div>
               )}
 
+              {/* One upload block per NAMED additional character — the
+                  section is generated straight from `additionalCharacters`
+                  and disappears entirely when none are named. */}
               {data.wantsCharacters && (
-                <PhotoUpload
-                  label={t.characterPhotos}
-                  hint={t.characterPhotosHint}
-                  removeLabel={t.removePhoto}
-                  atLeastLabel={t.atLeastPhotos}
-                  tooLargeLabel={t.photoTooLarge}
-                  notImageLabel={t.photoNotImage}
-                  brokenLabel={t.photoBroken}
-                  files={data.characterPhotos}
-                  max={9}
-                  onChange={(files) => update("characterPhotos", files)}
+                <AdditionalCharacterPhotos
+                  characters={data.additionalCharacters}
+                  copy={characterCopy}
+                  onPatchPhotos={(id, photos) =>
+                    patchAdditionalCharacter(id, { photos })
+                  }
                 />
               )}
 
               {showStepError && !canContinue() && (
                 <p role="alert" className="font-sans text-[13px] text-state-error">
-                  {t.photosMoreNeeded(
-                    Math.max(0, MIN_CHILD_PHOTOS - data.childPhotos.length),
-                  )}
+                  {data.childPhotos.length < MIN_CHILD_PHOTOS
+                    ? t.photosMoreNeeded(MIN_CHILD_PHOTOS - data.childPhotos.length)
+                    : (() => {
+                        const short = data.additionalCharacters
+                          .filter(additionalCharacterNamed)
+                          .find((c) => c.photos.length < MIN_CHARACTER_PHOTOS);
+                        return short
+                          ? t.characterPhotosMoreNeeded(
+                              additionalCharacterLabel(short),
+                            )
+                          : t.photosMoreNeeded(0);
+                      })()}
                 </p>
               )}
             </>
@@ -1193,16 +1302,28 @@ export default function PersonalizedBookOrderForm({
                 );
               })}
 
-              {data.wantsCharacters && data.characters.trim() && (
-                <div className="rounded-md border border-border-subtle px-4 py-3">
-                  <p className="mb-1 font-sans text-[10.5px] font-semibold uppercase tracking-[0.16em] text-text-muted">
-                    {t.reviewCharacters}
-                  </p>
-                  <p className="font-sans text-[13.5px] leading-[1.5] text-text-secondary">
-                    {data.characters.trim()}
-                  </p>
-                </div>
-              )}
+              {data.wantsCharacters &&
+                data.additionalCharacters.some(additionalCharacterNamed) && (
+                  <div className="rounded-md border border-border-subtle px-4 py-3">
+                    <p className="mb-1.5 font-sans text-[10.5px] font-semibold uppercase tracking-[0.16em] text-text-muted">
+                      {t.reviewCharacters}
+                    </p>
+                    <ol className="space-y-1">
+                      {data.additionalCharacters
+                        .filter(additionalCharacterNamed)
+                        .map((c, i) => (
+                          <li
+                            key={c.id}
+                            className="font-sans text-[13.5px] leading-[1.5] text-text-secondary"
+                          >
+                            {i + 1}. {additionalCharacterLabel(c)}
+                            <span className="mx-2 text-border-strong">·</span>
+                            {t.photosEnough(c.photos.length)}
+                          </li>
+                        ))}
+                    </ol>
+                  </div>
+                )}
 
               {/* Book language — a human question, stable codes (spec §39–41) */}
               <Field label={t.bookLanguageQ}>
@@ -1722,9 +1843,8 @@ export default function PersonalizedBookOrderForm({
 
 // ─── Small shared components ────────────────────────────────────────────────
 //    The switch/toggle lives in ./Switch (SwitchRow) — one deterministic
-//    geometry for every true on/off control in the flow.
-
-const MAX_PHOTO_BYTES = 15 * 1024 * 1024;
+//    geometry for every true on/off control in the flow. MAX_PHOTO_BYTES
+//    and PhotoUpload live in ./formPrimitives.
 
 /**
  * The payment receipt (spec §13) — a single-file upload with a clear
@@ -1813,144 +1933,3 @@ function ReceiptUpload({
   );
 }
 
-function PhotoUpload({
-  label,
-  hint,
-  removeLabel,
-  atLeastLabel,
-  enoughLabel,
-  moreNeededLabel,
-  tooLargeLabel,
-  notImageLabel,
-  brokenLabel,
-  files,
-  min,
-  max,
-  onChange,
-}: {
-  label: string;
-  hint?: string;
-  removeLabel: string;
-  atLeastLabel: (min: number) => string;
-  /** Shown once `files.length >= min` — the positive "you have enough"
-   *  state (spec §7). Only supplied where a minimum applies. */
-  enoughLabel?: (count: number) => string;
-  /** Shown while below `min` — how many more are needed. */
-  moreNeededLabel?: (remaining: number) => string;
-  tooLargeLabel?: string;
-  notImageLabel?: string;
-  brokenLabel?: string;
-  files: File[];
-  min?: number;
-  max: number;
-  onChange: (files: File[]) => void;
-}) {
-  const previews = useMemo(
-    () => files.map((file) => ({ file, url: URL.createObjectURL(file) })),
-    [files],
-  );
-  useEffect(() => {
-    return () => previews.forEach((p) => URL.revokeObjectURL(p.url));
-  }, [previews]);
-
-  // Client-side guards (spec §35): image type, a sane size ceiling, and
-  // a "couldn't read this file" state for a corrupt image.
-  const [notice, setNotice] = useState<string | null>(null);
-  const [broken, setBroken] = useState<Record<number, boolean>>({});
-
-  function accept(incoming: File[]) {
-    setNotice(null);
-    const ok: File[] = [];
-    for (const f of incoming) {
-      if (!f.type.startsWith("image/")) {
-        setNotice(notImageLabel ?? "Please choose an image file.");
-        continue;
-      }
-      if (f.size > MAX_PHOTO_BYTES) {
-        setNotice(tooLargeLabel ?? "That photo is too large.");
-        continue;
-      }
-      ok.push(f);
-    }
-    if (ok.length) {
-      setBroken({});
-      onChange([...files, ...ok].slice(0, max));
-    }
-  }
-
-  return (
-    <Field label={label} hint={hint}>
-      <div className="flex flex-wrap gap-2.5">
-        {previews.map(({ url }, i) => (
-          <div
-            key={i}
-            className="relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-md border border-border-default"
-          >
-            {broken[i] ? (
-              <span className="px-1 text-center font-sans text-[10px] leading-[1.2] text-state-error">
-                {brokenLabel ?? "Couldn't read this image"}
-              </span>
-            ) : (
-              <img
-                src={url}
-                alt=""
-                className="h-full w-full object-cover"
-                onError={() => setBroken((b) => ({ ...b, [i]: true }))}
-              />
-            )}
-            <button
-              type="button"
-              onClick={() => onChange(files.filter((_, idx) => idx !== i))}
-              className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-black/60"
-              aria-label={removeLabel}
-            >
-              <X size={12} strokeWidth={2} color="#fff" />
-            </button>
-          </div>
-        ))}
-        {files.length < max && (
-          <label className="flex h-20 w-20 cursor-pointer flex-col items-center justify-center gap-1 rounded-md border border-dashed border-border-strong transition-colors hover:border-solid">
-            <Upload size={16} strokeWidth={1.5} className="text-text-secondary" />
-            <input
-              type="file"
-              accept="image/*"
-              multiple={max > 1}
-              className="hidden"
-              onChange={(e) => {
-                accept(Array.from(e.target.files ?? []));
-                e.target.value = "";
-              }}
-            />
-          </label>
-        )}
-      </div>
-      {notice && (
-        <span role="alert" className="mt-1.5 block font-sans text-[12px] text-state-error">
-          {notice}
-        </span>
-      )}
-      {/* Progress toward the minimum (spec §7). Only files actually
-          accepted into `files` are counted — a rejected upload never
-          lands here. Neutral until the count is short, positive once
-          it's met; never a pre-interaction red error. */}
-      {min != null &&
-        (files.length >= min
-          ? enoughLabel && (
-              <span className="mt-1.5 block font-sans text-[12px] font-medium text-accent-primary">
-                {enoughLabel(files.length)}
-              </span>
-            )
-          : moreNeededLabel
-            ? (
-                <span className="mt-1.5 block font-sans text-[12px] text-text-secondary">
-                  {moreNeededLabel(min - files.length)}
-                </span>
-              )
-            : (
-                <span className="mt-1.5 block font-sans text-[12px] text-text-secondary">
-                  {atLeastLabel(min)}
-                </span>
-              ))}
-    </Field>
-  );
-}
