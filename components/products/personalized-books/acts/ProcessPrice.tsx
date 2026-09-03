@@ -210,18 +210,20 @@ function JourneyStep({ step, index }: { step: JourneyStepData; index: number }) 
         {step.n}
       </span>
 
-      {/* Image — trimmed ~12% from the column edge so the copy reads as
-          editorial content, not a caption; aspect ratio preserved. */}
+      {/* Image — trimmed ~12% and nudged toward the column's outer edge.
+          The inset lives on THIS box (which has a real width), NOT on the
+          grid item: an auto margin on the grid item makes it fit-content,
+          which collapses the `w-full` + aspect-ratio box (its only child
+          is an absolutely-positioned <Image fill>) to zero — hiding the
+          image. Aspect ratio preserved. */}
       <Reveal
         y={climax ? 20 : 14}
-        className={[
-          "mt-4 lg:mt-0",
-          imageLeft ? "lg:order-1 lg:mr-auto" : "lg:order-2 lg:ml-auto",
-        ].join(" ")}
+        className={["mt-4 lg:mt-0", imageLeft ? "lg:order-1" : "lg:order-2"].join(" ")}
       >
         <div
           className={[
             "relative w-full overflow-hidden rounded-[10px] ring-1 ring-[color:var(--surface-contrast)]/10 lg:max-w-[88%]",
+            imageLeft ? "lg:me-auto" : "lg:ms-auto",
             climax
               ? "aspect-[4/3] shadow-[0_26px_56px_-32px_rgba(28,42,58,0.30)]"
               : "aspect-[16/10] shadow-[0_20px_44px_-30px_rgba(28,42,58,0.20)]",
