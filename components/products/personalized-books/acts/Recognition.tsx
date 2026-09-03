@@ -85,7 +85,7 @@ export default function Recognition() {
     <section
       id="recognition"
       aria-labelledby="recognition-heading"
-      className="relative w-full overflow-hidden scroll-mt-20 bg-[#EFE7DA] md:scroll-mt-24"
+      className="relative w-full overflow-hidden scroll-mt-24 bg-[#EFE7DA] md:scroll-mt-28"
     >
       {/* Desktop / tablet illustration — a background layer flush to the
           section's right edge, over the recognition block. No box, no
@@ -97,12 +97,20 @@ export default function Recognition() {
           right-centre with the empty cream falling toward the text. */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-y-0 right-0 hidden w-[52%] md:block lg:w-[50%] xl:w-[46%]"
+        className={[
+          "pointer-events-none absolute inset-y-0 right-0 hidden w-[52%] md:block lg:w-[50%] xl:w-[46%]",
+          // POSITIONING ONLY. Scale the sketch up (~4 / 10 / 14% at
+          // md / lg / xl) and nudge it in from the right edge
+          // (~22 / 50 / 78px) so the boy sits nearer the centre with a
+          // shorter empty gap after the text. The blend fill + mode
+          // stay in `style` and are untouched.
+          "[background-size:104%] [background-position:right_22px_center]",
+          "lg:[background-size:110%] lg:[background-position:right_50px_center]",
+          "xl:[background-size:114%] xl:[background-position:right_78px_center]",
+        ].join(" ")}
         style={{
           ...SKETCH_MERGE,
           backgroundImage: `url("${sketchOpt(1200)}")`,
-          backgroundPosition: "right center",
-          backgroundSize: "contain",
         }}
       />
 
