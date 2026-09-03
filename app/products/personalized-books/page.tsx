@@ -52,7 +52,10 @@ export default function PersonalizedBooksPage() {
         <Close />
       </main>
 
-      <Footer ctaHref="#pricing" />
+      {/* Footer CTA button intentionally omitted here — this page already
+          carries the navbar CTA, the pricing-card CTAs and the emotional
+          closing CTA; the footer ends quietly. */}
+      <Footer showTopCtaButton={false} />
     </>
   );
 }

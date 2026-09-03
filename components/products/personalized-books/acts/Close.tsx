@@ -34,7 +34,7 @@ const COPY_EN = {
     },
     {
       q: "How long does it take?",
-      a: "Most books are ready in 5–7 days: you review the story, then it's printed and delivered.",
+      a: "Once you've reviewed and approved the story, it's 7–10 days within Uzbekistan and 15–25 days for international orders.",
     },
   ],
 };
@@ -61,7 +61,7 @@ const COPY_UZ: typeof COPY_EN = {
     },
     {
       q: "Qancha vaqt oladi?",
-      a: "Ko‘pchilik kitoblar 5–7 kunda tayyor bo‘ladi: Siz hikoyani ko‘rib chiqasiz, so‘ng u chop etilib yetkaziladi.",
+      a: "Siz hikoyani ko‘rib chiqib tasdiqlaganingizdan so‘ng: O‘zbekiston bo‘yicha 7–10 kun, xalqaro buyurtmalarda 15–25 kun.",
     },
   ],
 };

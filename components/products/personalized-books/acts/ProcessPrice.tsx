@@ -54,8 +54,8 @@ const COPY_EN = {
     },
     {
       n: "02",
-      title: "We create their story",
-      body: "The story and the illustrations are built around your child — as the hero.",
+      title: "We picture their world",
+      body: "Every scene and illustration is made so your child feels like the true hero of the story.",
       img: `${IMG}/step-2-create-story.webp`,
       alt: "A writer shaping the personalized story, with the draft and illustrations on screen",
       pos: "52% 42%",
@@ -70,7 +70,7 @@ const COPY_EN = {
     },
   ] satisfies JourneyStepData[],
   trust:
-    "Hardcover · anime-style illustration from your photos · built only from what you tell us · ready in 5–7 days",
+    "Hardcover · anime-style illustration from your photos · built only from what you tell us · ready in 7–10 days",
   cta: "Begin their story →",
 };
 
@@ -90,8 +90,8 @@ const COPY_UZ: typeof COPY_EN = {
     },
     {
       n: "02",
-      title: "Biz uning hikoyasini yaratamiz",
-      body: "Hikoya va rasmlar farzandingiz atrofida — uni bosh qahramon qilib — quriladi.",
+      title: "Uning dunyosini tasvirlaymiz",
+      body: "Har bir sahna va tasvir farzandingiz hikoyaning haqiqiy qahramonidek his qilishi uchun yaratiladi.",
       img: `${IMG}/step-2-create-story.webp`,
       alt: "Muallif shaxsiy hikoyani yaratmoqda — ekranda matn va rasmlar",
       pos: "52% 42%",
@@ -106,7 +106,7 @@ const COPY_UZ: typeof COPY_EN = {
     },
   ],
   trust:
-    "Qattiq muqova · suratlardan anime uslubidagi illyustratsiya · faqat Siz aytgan ma'lumot asosida · 5–7 kunda tayyor",
+    "Qattiq muqova · suratlardan anime uslubidagi illyustratsiya · faqat Siz aytgan ma'lumot asosida · 7–10 kunda tayyor",
   cta: "Uning hikoyasini boshlash →",
 };
 
@@ -145,7 +145,7 @@ function GoldThread({ variant }: { variant: "a" | "b" }) {
       : "M700,2 C700,46 300,12 300,58";
 
   return (
-    <div aria-hidden="true" className="relative hidden h-11 w-full lg:block">
+    <div aria-hidden="true" className="relative hidden h-8 w-full lg:block">
       <svg
         viewBox="0 0 1000 60"
         preserveAspectRatio="none"
@@ -174,35 +174,62 @@ function GoldThread({ variant }: { variant: "a" | "b" }) {
   );
 }
 
+/**
+ * One editorial row. ONE structural system for all three steps:
+ * a 2-column grid (image ~57% / copy ~43%) that is `items-center`, so
+ * every copy block sits at the visual centre of its image — no absolute
+ * positioning, no translateY, no per-row margin hacks. The alternation
+ * is pure `order`. On mobile every step stacks in the same reading
+ * order: step number → image → copy.
+ */
 function JourneyStep({ step, index }: { step: JourneyStepData; index: number }) {
-  const imageLeft = index !== 1; // 01 & 03 image-left, 02 image-right
+  const imageLeft = index !== 1; // rows 01 & 03: image left; row 02: image right
   const climax = index === 2;
 
-  const imageCols = imageLeft
-    ? climax
-      ? "lg:col-start-1 lg:col-end-9"
-      : "lg:col-start-1 lg:col-end-8"
-    : "lg:col-start-6 lg:col-end-13";
-  const copyCols = imageLeft
-    ? "lg:col-start-9 lg:col-end-13"
-    : "lg:col-start-1 lg:col-end-6";
+  const numberTone = climax
+    ? "text-[color:var(--accent-primary)]/[0.22]"
+    : "text-[color:var(--surface-contrast)]/[0.10]";
 
   return (
-    <div className="relative py-2 lg:grid lg:grid-cols-12 lg:items-center lg:gap-x-10 lg:py-5">
-      <Reveal y={climax ? 22 : 14} className={`relative ${imageCols}`}>
+    <div
+      className={[
+        "py-2 lg:grid lg:items-center lg:gap-x-12 lg:py-8",
+        // same rule every row, mirrored: the image track is always the
+        // wider ~57%, whichever side it sits on.
+        imageLeft ? "lg:grid-cols-[57fr_43fr]" : "lg:grid-cols-[43fr_57fr]",
+      ].join(" ")}
+    >
+      {/* Step number — mobile only, first in the stack so it is never
+          visually detached from its own step. */}
+      <span
+        aria-hidden="true"
+        className={`block font-display text-[2.75rem] font-medium leading-none lg:hidden ${numberTone}`}
+      >
+        {step.n}
+      </span>
+
+      {/* Image — slightly inset from the outer edge so the copy has room
+          to breathe; aspect ratio preserved per step. */}
+      <Reveal
+        y={climax ? 20 : 14}
+        className={[
+          "mt-4 lg:mt-0",
+          imageLeft ? "lg:order-1 lg:mr-auto" : "lg:order-2 lg:ml-auto",
+        ].join(" ")}
+      >
         <div
           className={[
-            "relative w-full overflow-hidden rounded-[10px] ring-1 ring-[color:var(--surface-contrast)]/10",
+            "relative w-full overflow-hidden rounded-[10px] ring-1 ring-[color:var(--surface-contrast)]/10 lg:max-w-[94%]",
             climax
-              ? "aspect-[4/3] shadow-[0_36px_72px_-30px_rgba(28,42,58,0.42)]"
-              : "aspect-[16/10] shadow-[0_26px_54px_-28px_rgba(28,42,58,0.30)]",
+              ? "aspect-[4/3] shadow-[0_28px_60px_-32px_rgba(28,42,58,0.32)]"
+              : "aspect-[16/10] shadow-[0_20px_46px_-30px_rgba(28,42,58,0.22)]",
           ].join(" ")}
         >
           <Image
             src={step.img}
             alt={step.alt}
             fill
-            sizes="(min-width: 1024px) 58vw, 100vw"
+            sizes="(min-width: 1024px) 52vw, 100vw"
             quality={100}
             className="object-cover"
             style={{ objectPosition: step.pos }}
@@ -210,27 +237,24 @@ function JourneyStep({ step, index }: { step: JourneyStepData; index: number }) 
         </div>
       </Reveal>
 
-      <Reveal delay={90} className={`relative mt-6 lg:mt-0 ${copyCols}`}>
+      {/* Number (desktop, in flow) + copy — vertically centred against
+          the image by the row's `items-center`. */}
+      <Reveal
+        delay={90}
+        className={["mt-5 lg:mt-0", imageLeft ? "lg:order-2" : "lg:order-1"].join(" ")}
+      >
         <span
           aria-hidden="true"
-          className={[
-            "pointer-events-none absolute -top-6 left-0 font-display font-medium leading-none lg:-top-9",
-            "text-[3rem] lg:text-[5rem]",
-            climax
-              ? "text-[color:var(--accent-primary)]/[0.18]"
-              : "text-[color:var(--surface-contrast)]/[0.09]",
-          ].join(" ")}
+          className={`hidden font-display text-[4.25rem] font-medium leading-none lg:block ${numberTone}`}
         >
           {step.n}
         </span>
-        <div className="relative pt-7 lg:pt-9">
-          <h3 className="font-display text-[1.375rem] font-medium leading-[1.25] tracking-[-0.01em] text-text-primary md:text-[1.5rem]">
-            {step.title}
-          </h3>
-          <p className="mt-2.5 max-w-[34ch] font-sans text-[0.9375rem] leading-[1.7] text-text-secondary">
-            {step.body}
-          </p>
-        </div>
+        <h3 className="font-display text-[1.375rem] font-medium leading-[1.25] tracking-[-0.01em] text-text-primary md:text-[1.5rem] lg:mt-4">
+          {step.title}
+        </h3>
+        <p className="mt-3 max-w-[44ch] font-sans text-[0.9375rem] leading-[1.75] text-text-secondary md:text-[1rem]">
+          {step.body}
+        </p>
       </Reveal>
     </div>
   );

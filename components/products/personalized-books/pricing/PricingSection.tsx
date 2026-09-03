@@ -68,39 +68,39 @@ const PLANS: Array<{
 const CHROME_EN = {
   eyebrow: "Pricing",
   heading: "Simple, transparent pricing",
-  subheading: "No hidden fees. Every book is made to order and ready in 5–7 business days.",
+  subheading: "No hidden fees. Every book is made to order.",
   pagesStory: (pages: string) => `${pages} page personalized story`,
   choosePlan: (label: string) => `Choose ${label}`,
   mostChosen: "Most chosen",
   extraCopies: (amount: string) => `Extra copies: +${amount} each`,
-  readyIn: "Ready in 5–7 business days",
+  readyInUz: "Ready in 7–10 days",
+  readyInIntl: "Ready in 15–25 days",
   marketUz: "Uzbekistan",
   marketIntl: "International",
   marketAria: "Order region",
   deliveryUz: "Delivery — free within Tashkent, 40 000 so‘m to other regions",
   deliveryIntl: "Delivery — international post, $15 per order",
-  sealTop: "Save",
-  sealAmount: (pct: number) => `${pct}%`,
-  sealSr: (pct: number, was: string) => `Save ${pct}% — was ${was}`,
+  badgeLabel: (pct: number) => `Save ${pct}%`,
+  badgeSr: (pct: number, was: string) => `Save ${pct}% — was ${was}`,
 };
 
 const CHROME_UZ: typeof CHROME_EN = {
   eyebrow: "Narxlar",
-  heading: "Sodda va shaffof narxlar",
-  subheading: "Yashirin to'lovlar yo'q. Har bir kitob buyurtma asosida tayyorlanadi va 5–7 ish kunida tayyor bo'ladi.",
+  heading: "Sodda va Shaffof Narxlar",
+  subheading: "Yashirin to'lovlar yo'q. Har bir kitob buyurtma asosida tayyorlanadi.",
   pagesStory: (pages) => `${pages} betlik shaxsiylashtirilgan hikoya`,
   choosePlan: (label) => `${label} tanlash`,
   mostChosen: "Eng ko'p tanlanadi",
   extraCopies: (amount) => `Qo'shimcha nusxalar: har biri +${amount}`,
-  readyIn: "5–7 ish kunida tayyor",
+  readyInUz: "7–10 kunda tayyor",
+  readyInIntl: "15–25 kunda tayyor",
   marketUz: "O‘zbekiston",
   marketIntl: "Xalqaro",
   marketAria: "Buyurtma hududi",
   deliveryUz: "Yetkazib berish — Toshkent bo‘yicha bepul, boshqa viloyatlarga 40 000 so‘m",
   deliveryIntl: "Yetkazib berish — xalqaro pochta orqali, buyurtmasiga $15",
-  sealTop: "Chegirma",
-  sealAmount: (pct) => `−${pct}%`,
-  sealSr: (pct, was) => `${pct}% chegirma — avvalgi narx ${was}`,
+  badgeLabel: (pct) => `${pct}% TEJAYSIZ`,
+  badgeSr: (pct, was) => `${pct}% tejaysiz — avvalgi narx ${was}`,
 };
 
 /** "499 000" — the bare number; the currency word is rendered
@@ -124,71 +124,19 @@ const ANCHOR_PRICE: Record<Market, Record<BookType, number>> = {
   INTERNATIONAL: { single: 59, multi: 84 },
 };
 
-/** Stamped-look starburst outline for the discount seal — an irregular
- *  14-point star. The per-point jitter is a fixed table, so the shape
- *  reads hand-cut but is byte-identical every render. Pure geometry. */
-function starburstPath(spikes: number, cx: number, cy: number, outer: number, inner: number): string {
-  const jitter = [1, 0.94, 1.04, 0.9, 1.06, 0.96, 1.01, 0.92, 1.05, 0.95, 1.02, 0.93, 1.03, 0.97];
-  const step = Math.PI / spikes;
-  let d = "";
-  for (let i = 0; i < spikes * 2; i += 1) {
-    const isOuter = i % 2 === 0;
-    const r = isOuter ? outer * (jitter[(i / 2) % jitter.length] ?? 1) : inner;
-    const angle = i * step - Math.PI / 2;
-    const x = cx + Math.cos(angle) * r;
-    const y = cy + Math.sin(angle) * r;
-    d += `${i === 0 ? "M" : "L"}${x.toFixed(2)} ${y.toFixed(2)} `;
-  }
-  return `${d}Z`;
-}
-
-const SEAL_PATH = starburstPath(14, 50, 50, 47, 36);
-
-/** Deep sealing-wax red — reads as a pressed wax stamp, not a bright
- *  "SALE" sticker, so it draws the eye without breaking the premium
- *  feel. Paired with a bright-gold dashed ring + cream lettering. */
-const SEAL_WAX = "#8E2626";
-
-/** Discount medallion — a pressed wax-seal starburst that sits BESIDE
- *  the live price. Deliberately large so it's the second thing the eye
- *  lands on after the price. Decorative: aria-hidden, with the saving
- *  announced in an sr-only line next to the price. One CSS scale/fade on
- *  entry (see the <style> block), then fully static; prefers-reduced-
- *  motion drops the entrance entirely. */
-function DiscountSeal({ topText, amount }: { topText: string; amount: string }) {
+/** Savings badge — a compact, restrained capsule that sits right next to
+ *  the live price so the eye reads: live price → how much is saved →
+ *  (below) the struck "was" price. Deep-navy fill, thin gold hairline,
+ *  a whisper of elevation. No star, no jagged edge, no "SALE" sticker
+ *  energy. Decorative: aria-hidden, with the saving spoken in an sr-only
+ *  line beside the price. */
+function SavingsBadge({ label }: { label: string }) {
   return (
     <span
       aria-hidden="true"
-      className="pb-seal pointer-events-none relative inline-flex h-[58px] w-[58px] shrink-0 select-none items-center justify-center sm:h-[64px] sm:w-[64px] md:h-[82px] md:w-[82px] lg:h-[90px] lg:w-[90px]"
+      className="inline-flex shrink-0 select-none items-center whitespace-nowrap rounded-full border border-[color:var(--gold-mid)] bg-[color:var(--surface-contrast)] px-2.5 py-1 font-sans text-[10.5px] font-semibold uppercase leading-none tracking-[0.05em] text-[color:var(--surface-base)] shadow-[0_1px_5px_-2px_rgba(28,42,58,0.35)]"
     >
-      <span
-        className="relative inline-flex h-full w-full items-center justify-center"
-        style={{ transform: "rotate(-8deg)" }}
-      >
-        <svg
-          viewBox="0 0 100 100"
-          className="absolute inset-0 h-full w-full drop-shadow-[0_3px_10px_rgba(102,20,20,0.4)]"
-        >
-          <path d={SEAL_PATH} fill={SEAL_WAX} />
-          <circle
-            cx="50"
-            cy="50"
-            r="33"
-            fill="none"
-            stroke="var(--gold-highlight)"
-            strokeWidth="1.9"
-            strokeDasharray="1.8 2.8"
-          />
-        </svg>
-        <span className="relative flex flex-col items-center leading-none text-[color:var(--surface-base)]">
-          <span className="font-sans text-[7.5px] font-bold uppercase tracking-[0.14em] sm:text-[8px] md:text-[10px]">
-            {topText}
-          </span>
-          <span className="mt-[3px] font-display text-[16px] font-semibold sm:text-[17px] md:text-[21px] lg:text-[23px]">
-            {amount}
-          </span>
-        </span>
-      </span>
+      {label}
     </span>
   );
 }
@@ -227,16 +175,6 @@ export default function PricingSection() {
 
   return (
     <section id="pricing" className="w-full bg-surface-base py-16 md:py-20 lg:py-28">
-      <style>{`
-        .pb-seal { animation: pb-seal-in 560ms cubic-bezier(0.34, 1.4, 0.5, 1) both; }
-        @keyframes pb-seal-in {
-          from { opacity: 0; transform: scale(0.55); }
-          to   { opacity: 1; transform: scale(1); }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .pb-seal { animation: none; }
-        }
-      `}</style>
       <div className="mx-auto max-w-[1440px] px-5 md:px-10 lg:px-16">
         <div className="mx-auto max-w-lg text-center">
           <p className="mb-3 font-sans text-[13px] font-medium uppercase tracking-[0.16em] text-accent-primary">
@@ -296,65 +234,69 @@ export default function PricingSection() {
                 key={plan.type}
                 className={[
                   "relative flex flex-col rounded-lg p-7",
-                  plan.featured ? "border-[1.5px] border-transparent" : "border border-border-default bg-surface-overlay",
+                  plan.featured
+                    ? "border-[1.5px] border-transparent shadow-[0_16px_40px_-26px_rgba(28,42,58,0.22)]"
+                    : "border border-border-default bg-surface-overlay",
                 ].join(" ")}
                 style={
                   plan.featured
                     ? {
-                        backgroundImage: `linear-gradient(var(--surface-overlay), var(--surface-overlay)), ${GOLD_GRADIENT}`,
+                        // warm tint (a 4% gold wash over the white card fill)
+                        // + the same gold gradient BORDER as .tm-cta-gold.
+                        backgroundImage: `linear-gradient(rgba(199,154,75,0.045), rgba(199,154,75,0.045)), linear-gradient(var(--surface-overlay), var(--surface-overlay)), ${GOLD_GRADIENT}`,
                         backgroundOrigin: "border-box",
-                        backgroundClip: "padding-box, border-box",
+                        backgroundClip: "padding-box, padding-box, border-box",
                       }
                     : undefined
                 }
               >
-                {plan.featured && (
-                  // .tm-cta-gold sets `position: relative` in an unlayered
-                  // globals.css rule, which beats Tailwind's `absolute`
-                  // utility regardless of source order (unlayered always
-                  // wins over layered) — without this inline override the
-                  // badge silently reverts to a normal-flow flex child and
-                  // stretches to the card's full width. Inline style is the
-                  // one thing with higher priority than an unlayered rule.
-                  <span
-                    className="tm-cta-gold left-7 -top-3 whitespace-nowrap px-3 py-1 font-sans text-[10.5px] font-medium uppercase tracking-wide"
-                    style={{ position: "absolute", borderRadius: "999px" }}
-                  >
-                    {t.mostChosen}
+                {/* Plan label + (featured) an integrated "most chosen"
+                    micro-chip — part of the card's header row, not a
+                    sticker pinned over the border. */}
+                <div className="flex items-center justify-between gap-3">
+                  <span className="font-sans text-[12px] font-medium uppercase tracking-wide text-text-secondary">
+                    {label}
                   </span>
-                )}
-
-                <span className="font-sans text-[12px] font-medium uppercase tracking-wide text-text-secondary">
-                  {label}
-                </span>
-
-                {/* Price hierarchy: live selling price (dominant) → discount
-                    seal → struck "was" price → the delivery/production row
-                    below the grid. flex-wrap lets the seal drop under the
-                    price on very narrow cards instead of overflowing. */}
-                <div className="mt-2.5 flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
-                  <div className="min-w-0">
-                    <span className="font-display text-[30px] font-medium leading-none text-text-primary">
-                      {priced.value}
-                      {priced.unit && (
-                        <span className="font-sans text-[14px] font-normal"> {priced.unit}</span>
-                      )}
+                  {plan.featured && (
+                    <span className="shrink-0 rounded-full border border-[color:var(--gold-mid)]/40 bg-[color:var(--gold-mid)]/[0.08] px-2 py-0.5 font-sans text-[9.5px] font-semibold uppercase tracking-[0.08em] text-[color:var(--gold-base)]">
+                      {t.mostChosen}
                     </span>
-                    {hasDiscount && (
-                      <div className="mt-1.5">
-                        <span className="font-sans text-[14px] text-text-muted line-through">
-                          {anchorText}
-                        </span>
-                        <span className="sr-only">{t.sealSr(savingPct, anchorText)}</span>
-                      </div>
-                    )}
-                  </div>
-                  {hasDiscount && <DiscountSeal topText={t.sealTop} amount={t.sealAmount(savingPct)} />}
+                  )}
                 </div>
 
-                <p className="mt-1 font-sans text-[12.5px] text-text-secondary">{t.pagesStory(info.pages)}</p>
+                {/* Price hierarchy (identical in both cards):
+                    live price + savings badge on one line → struck "was"
+                    price → short descriptor → hairline → features → CTA.
+                    flex-wrap lets the badge drop under the price on a very
+                    narrow card instead of overflowing. */}
+                <div className="mt-3 flex flex-wrap items-center gap-x-2.5 gap-y-2">
+                  <span className="font-display text-[30px] font-medium leading-none text-text-primary">
+                    {priced.value}
+                    {priced.unit && (
+                      <span className="font-sans text-[14px] font-normal"> {priced.unit}</span>
+                    )}
+                  </span>
+                  {hasDiscount && (
+                    <>
+                      <SavingsBadge label={t.badgeLabel(savingPct)} />
+                      <span className="sr-only">{t.badgeSr(savingPct, anchorText)}</span>
+                    </>
+                  )}
+                </div>
 
-                <div className="mt-5 flex-1">
+                {hasDiscount && (
+                  <div className="mt-2">
+                    <span className="font-sans text-[16px] text-text-muted line-through md:text-[17.5px]">
+                      {anchorText}
+                    </span>
+                  </div>
+                )}
+
+                <p className={`${hasDiscount ? "mt-2.5" : "mt-2"} font-sans text-[12.5px] text-text-secondary`}>
+                  {t.pagesStory(info.pages)}
+                </p>
+
+                <div className="mt-5 flex-1 border-t border-border-subtle pt-4">
                   {plan.features.map((f, i) => {
                     const Icon = f.icon;
                     return (
@@ -385,27 +327,33 @@ export default function PricingSection() {
           })}
         </div>
 
-        <div className="mt-9 flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
-          <div className="flex items-center gap-2">
-            <Copy size={16} strokeWidth={1.5} className="text-text-secondary" />
-            <span className="font-sans text-[13px] text-text-secondary">
-              {t.extraCopies(
-                (() => {
-                  const p = priceParts(MARKET_PRICING[market].extraCopy, market);
-                  return p.unit ? `${p.value} ${p.unit}` : p.value;
-                })(),
-              )}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Truck size={16} strokeWidth={1.5} className="shrink-0 text-text-secondary" />
-            <span className="font-sans text-[13px] text-text-secondary">
-              {market === "UZ" ? t.deliveryUz : t.deliveryIntl}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Clock size={16} strokeWidth={1.5} className="text-text-secondary" />
-            <span className="font-sans text-[13px] text-text-secondary">{t.readyIn}</span>
+        {/* Purchase reassurance — a calm strip, not footnotes and not
+            cards. One hairline sets it apart from the plan grid. */}
+        <div className="mx-auto mt-12 max-w-3xl border-t border-border-subtle pt-8">
+          <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
+            <div className="flex items-center gap-2.5">
+              <Copy size={17} strokeWidth={1.75} className="shrink-0 text-accent-primary" />
+              <span className="font-sans text-[13.5px] leading-snug text-text-secondary md:text-[14px]">
+                {t.extraCopies(
+                  (() => {
+                    const p = priceParts(MARKET_PRICING[market].extraCopy, market);
+                    return p.unit ? `${p.value} ${p.unit}` : p.value;
+                  })(),
+                )}
+              </span>
+            </div>
+            <div className="flex items-center gap-2.5">
+              <Truck size={17} strokeWidth={1.75} className="shrink-0 text-accent-primary" />
+              <span className="font-sans text-[13.5px] leading-snug text-text-secondary md:text-[14px]">
+                {market === "UZ" ? t.deliveryUz : t.deliveryIntl}
+              </span>
+            </div>
+            <div className="flex items-center gap-2.5">
+              <Clock size={17} strokeWidth={1.75} className="shrink-0 text-accent-primary" />
+              <span className="font-sans text-[13.5px] leading-snug text-text-secondary md:text-[14px]">
+                {market === "UZ" ? t.readyInUz : t.readyInIntl}
+              </span>
+            </div>
           </div>
         </div>
       </div>

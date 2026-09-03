@@ -61,7 +61,7 @@ export interface TalimoonHeroProps {
   primaryCtaHref?: string;
   secondaryCtaLabel?: string;
   secondaryCtaHref?: string;
-  /** Compact practical/trust line beneath the CTAs (e.g. "499 000 so'mdan · 5–7 kun"). */
+  /** Compact practical/trust line beneath the CTAs (e.g. "499 000 so'mdan · 7–10 kun"). */
   trailerLabel?: string;
 }
 
@@ -93,7 +93,7 @@ const DEFAULT_COPY_EN = {
     "Your child's likeness, their character, their interests — and the meaning you want to reach their heart — held inside a story made for them alone.",
   primaryCtaLabel: "Create my child's story →",
   secondaryCtaLabel: "How it works ↓",
-  trailerLabel: "From 499 000 so‘m · 5–7 days",
+  trailerLabel: "From 499 000 so‘m · 7–10 days",
 };
 
 const DEFAULT_COPY_UZ: typeof DEFAULT_COPY_EN = {
@@ -106,7 +106,7 @@ const DEFAULT_COPY_UZ: typeof DEFAULT_COPY_EN = {
     "Farzandingizning qiyofasi, xarakteri, qiziqishlari va Siz uning qalbiga yetkazmoqchi bo‘lgan ma’no — faqat u uchun yaratilgan hikoyada.",
   primaryCtaLabel: "Farzandimning hikoyasini yaratish →",
   secondaryCtaLabel: "Qanday ishlaydi ↓",
-  trailerLabel: "499 000 so‘mdan · 5–7 kun",
+  trailerLabel: "499 000 so‘mdan · 7–10 kun",
 };
 
 export default function TalimoonHero({

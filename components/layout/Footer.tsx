@@ -136,12 +136,21 @@ export interface FooterProps {
    * call to action. Nothing else about the Footer changes.
    */
   showTopCta?: boolean;
+  /**
+   * Keep the Footer's top area (wordmark + tagline) but drop ONLY the
+   * gold CTA button. The personalized-books product page sets this
+   * `false`: that page already carries the navbar CTA, the pricing-card
+   * CTAs and one emotional closing CTA, so a fourth gold button in the
+   * footer only competes — the footer should end quietly there.
+   */
+  showTopCtaButton?: boolean;
 }
 
 export function Footer({
   showHowItWorksLink = true,
   ctaHref = "/begin",
   showTopCta = true,
+  showTopCtaButton = true,
 }: FooterProps) {
   const t = useT(FOOTER_EN, FOOTER_UZ);
   const pathname = usePathname();
@@ -172,12 +181,14 @@ export function Footer({
               </p>
             </div>
 
-            <Link
-              href={ctaHref}
-              className="tm-cta-gold inline-flex h-11 shrink-0 items-center justify-center whitespace-nowrap px-4 text-[13px] font-medium tracking-[0.015em]"
-            >
-              {ctaLabel}
-            </Link>
+            {showTopCtaButton && (
+              <Link
+                href={ctaHref}
+                className="tm-cta-gold inline-flex h-11 shrink-0 items-center justify-center whitespace-nowrap px-4 text-[13px] font-medium tracking-[0.015em]"
+              >
+                {ctaLabel}
+              </Link>
+            )}
           </div>
         ) : null}
 
