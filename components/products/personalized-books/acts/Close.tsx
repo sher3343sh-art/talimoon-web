@@ -72,7 +72,7 @@ export default function Close() {
 
   return (
     <section aria-labelledby="close-heading" className="w-full bg-surface-base">
-      <div className="mx-auto max-w-[760px] px-5 py-16 text-center sm:px-8 md:py-20 lg:py-24">
+      <div className="mx-auto max-w-[760px] px-5 pb-16 pt-12 text-center sm:px-8 md:pb-20 md:pt-14 lg:pb-16 lg:pt-16">
         <Reveal>
           <div aria-hidden="true" className="mx-auto mb-9 h-px w-14 bg-accent-primary/40" />
           <h2
@@ -112,7 +112,7 @@ export default function Close() {
         </Reveal>
 
         {/* Compact FAQ */}
-        <div className="mx-auto mt-16 max-w-[620px] text-start md:mt-20">
+        <div className="mx-auto mt-14 max-w-[620px] text-start md:mt-16">
           <h3 className="font-sans text-[11.5px] font-semibold uppercase tracking-[0.2em] text-text-muted">
             {t.faqHeading}
           </h3>

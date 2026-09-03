@@ -74,13 +74,14 @@ const CHROME_EN = {
   choosePlan: (label: string) => `Choose ${label}`,
   mostChosen: "Most chosen",
   extraCopies: (amount: string) => `Extra copies: +${amount} each`,
-  readyInUz: "Ready in 7–10 days",
-  readyInIntl: "Ready in 15–25 days",
+  extraCopiesIntl: (amount: string) => `Additional copy — +${amount} each`,
+  readyInUz: "Preparation time — 7–10 days",
+  readyInIntl: "Preparation time — 15–25 days",
   marketUz: "Uzbekistan",
   marketIntl: "International",
   marketAria: "Order region",
   deliveryUz: "Delivery — free within Tashkent, 40 000 so‘m to other regions",
-  deliveryIntl: "Delivery — international post, $15 per order",
+  deliveryIntl: "International delivery service — $15",
   badgeUrgency: "NOW ONLY",
   badgePercent: (pct: number) => `−${pct}%`,
   badgeSr: (pct: number, was: string) => `${pct}% off, now only — was ${was}`,
@@ -88,19 +89,20 @@ const CHROME_EN = {
 
 const CHROME_UZ: typeof CHROME_EN = {
   eyebrow: "Narxlar",
-  heading: "Sodda va Shaffof Narxlar",
+  heading: "Sodda va Shaffof narxlar",
   subheading: "Yashirin to'lovlar yo'q. Har bir kitob buyurtma asosida tayyorlanadi.",
   pagesStory: (pages) => `${pages} betlik shaxsiylashtirilgan hikoya`,
   choosePlan: (label) => `${label} tanlash`,
   mostChosen: "Eng ko'p tanlanadi",
   extraCopies: (amount) => `Qo'shimcha nusxalar: har biri +${amount}`,
-  readyInUz: "7–10 kunda tayyor",
-  readyInIntl: "15–25 kunda tayyor",
+  extraCopiesIntl: (amount) => `Qo‘shimcha nusxa — har biri +${amount}`,
+  readyInUz: "Tayyorlash muddati — 7–10 kun",
+  readyInIntl: "Tayyorlash muddati — 15–25 kun",
   marketUz: "O‘zbekiston",
   marketIntl: "Xalqaro",
   marketAria: "Buyurtma hududi",
   deliveryUz: "Yetkazib berish — Toshkent bo‘yicha bepul, boshqa viloyatlarga 40 000 so‘m",
-  deliveryIntl: "Yetkazib berish — xalqaro pochta orqali, buyurtmasiga $15",
+  deliveryIntl: "Xalqaro yetkazib berish xizmati — $15",
   badgeUrgency: "FAQAT HOZIR",
   badgePercent: (pct) => `−${pct}%`,
   badgeSr: (pct, was) => `Faqat hozir ${pct}% chegirma — avvalgi narx ${was}`,
@@ -171,7 +173,7 @@ export default function PricingSection() {
   const market: Market = preference ?? "UZ";
 
   return (
-    <section id="pricing" className="w-full bg-surface-base py-16 md:py-20 lg:py-28">
+    <section id="pricing" className="w-full bg-surface-base pb-14 pt-16 md:pb-16 md:pt-20 lg:pb-16 lg:pt-20">
       <div className="mx-auto max-w-[1440px] px-5 md:px-10 lg:px-16">
         <div className="mx-auto max-w-lg text-center">
           <p className="mb-3 font-sans text-[13px] font-medium uppercase tracking-[0.16em] text-accent-primary">
@@ -331,9 +333,9 @@ export default function PricingSection() {
         <div className="mx-auto mt-12 max-w-3xl border-t border-border-subtle pt-8">
           <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
             <div className="flex items-center gap-2.5">
-              <Copy size={17} strokeWidth={1.75} className="shrink-0 text-accent-primary" />
-              <span className="font-sans text-[13.5px] leading-snug text-text-secondary md:text-[14px]">
-                {t.extraCopies(
+              <Copy size={18} strokeWidth={1.75} className="shrink-0 text-accent-primary" />
+              <span className="font-sans text-[14.5px] leading-snug text-text-secondary md:text-[15px]">
+                {(market === "UZ" ? t.extraCopies : t.extraCopiesIntl)(
                   (() => {
                     const p = priceParts(MARKET_PRICING[market].extraCopy, market);
                     return p.unit ? `${p.value} ${p.unit}` : p.value;
@@ -342,14 +344,14 @@ export default function PricingSection() {
               </span>
             </div>
             <div className="flex items-center gap-2.5">
-              <Truck size={17} strokeWidth={1.75} className="shrink-0 text-accent-primary" />
-              <span className="font-sans text-[13.5px] leading-snug text-text-secondary md:text-[14px]">
+              <Truck size={18} strokeWidth={1.75} className="shrink-0 text-accent-primary" />
+              <span className="font-sans text-[14.5px] leading-snug text-text-secondary md:text-[15px]">
                 {market === "UZ" ? t.deliveryUz : t.deliveryIntl}
               </span>
             </div>
             <div className="flex items-center gap-2.5">
-              <Clock size={17} strokeWidth={1.75} className="shrink-0 text-accent-primary" />
-              <span className="font-sans text-[13.5px] leading-snug text-text-secondary md:text-[14px]">
+              <Clock size={18} strokeWidth={1.75} className="shrink-0 text-accent-primary" />
+              <span className="font-sans text-[14.5px] leading-snug text-text-secondary md:text-[15px]">
                 {market === "UZ" ? t.readyInUz : t.readyInIntl}
               </span>
             </div>
