@@ -21,7 +21,7 @@
  */
 
 import { useState } from "react";
-import { Book, Clock, Copy, Globe, Image as ImageIcon, Users, User } from "lucide-react";
+import { Book, Clock, Copy, Truck, Image as ImageIcon, Users, User } from "lucide-react";
 import { useLanguage, useT } from "@/lib/i18n/LanguageContext";
 import PersonalizedBookOrderForm from "@/components/begin/PersonalizedBookOrderForm";
 import {
@@ -77,8 +77,8 @@ const CHROME_EN = {
   marketUz: "Uzbekistan",
   marketIntl: "International",
   marketAria: "Order region",
-  deliveryUz: "Tashkent city — free · other regions — 40 000 so‘m",
-  deliveryIntl: "International postal delivery — $15 per order",
+  deliveryUz: "Delivery — free within Tashkent, 40 000 so‘m to other regions",
+  deliveryIntl: "Delivery — international post, $15 per order",
   sealTop: "Save",
   sealAmount: (pct: number) => `${pct}%`,
   sealSr: (pct: number, was: string) => `Save ${pct}% — was ${was}`,
@@ -96,8 +96,8 @@ const CHROME_UZ: typeof CHROME_EN = {
   marketUz: "O‘zbekiston",
   marketIntl: "Xalqaro",
   marketAria: "Buyurtma hududi",
-  deliveryUz: "Toshkent shahri — bepul · boshqa viloyatlar — 40 000 so‘m",
-  deliveryIntl: "Xalqaro pochta orqali yetkazib berish — buyurtmasiga $15",
+  deliveryUz: "Yetkazib berish — Toshkent bo‘yicha bepul, boshqa viloyatlarga 40 000 so‘m",
+  deliveryIntl: "Yetkazib berish — xalqaro pochta orqali, buyurtmasiga $15",
   sealTop: "Chegirma",
   sealAmount: (pct) => `−${pct}%`,
   sealSr: (pct, was) => `${pct}% chegirma — avvalgi narx ${was}`,
@@ -144,42 +144,49 @@ function starburstPath(spikes: number, cx: number, cy: number, outer: number, in
 
 const SEAL_PATH = starburstPath(14, 50, 50, 47, 36);
 
-/** Editorial discount medallion — navy stamp, dashed gold ring, cream
- *  lettering, set at a slight angle like a pressed wax seal. It sits
- *  BESIDE the live price, never over it. Decorative: aria-hidden, with
- *  the saving announced in an sr-only line next to the price. Entrance
- *  is one CSS scale/fade (see the <style> block), then fully static;
- *  prefers-reduced-motion drops the entrance entirely. */
+/** Deep sealing-wax red — reads as a pressed wax stamp, not a bright
+ *  "SALE" sticker, so it draws the eye without breaking the premium
+ *  feel. Paired with a bright-gold dashed ring + cream lettering. */
+const SEAL_WAX = "#8E2626";
+
+/** Discount medallion — a pressed wax-seal starburst that sits BESIDE
+ *  the live price. Deliberately large so it's the second thing the eye
+ *  lands on after the price. Decorative: aria-hidden, with the saving
+ *  announced in an sr-only line next to the price. One CSS scale/fade on
+ *  entry (see the <style> block), then fully static; prefers-reduced-
+ *  motion drops the entrance entirely. */
 function DiscountSeal({ topText, amount }: { topText: string; amount: string }) {
   return (
     <span
       aria-hidden="true"
-      className="pb-seal pointer-events-none relative inline-flex h-[54px] w-[54px] shrink-0 select-none items-center justify-center sm:h-[62px] sm:w-[62px]"
+      className="pb-seal pointer-events-none relative inline-flex h-[58px] w-[58px] shrink-0 select-none items-center justify-center sm:h-[64px] sm:w-[64px] md:h-[82px] md:w-[82px] lg:h-[90px] lg:w-[90px]"
     >
       <span
         className="relative inline-flex h-full w-full items-center justify-center"
-        style={{ transform: "rotate(-7deg)" }}
+        style={{ transform: "rotate(-8deg)" }}
       >
         <svg
           viewBox="0 0 100 100"
-          className="absolute inset-0 h-full w-full drop-shadow-[0_2px_6px_rgba(33,29,24,0.25)]"
+          className="absolute inset-0 h-full w-full drop-shadow-[0_3px_10px_rgba(102,20,20,0.4)]"
         >
-          <path d={SEAL_PATH} fill="var(--surface-contrast)" />
+          <path d={SEAL_PATH} fill={SEAL_WAX} />
           <circle
             cx="50"
             cy="50"
             r="33"
             fill="none"
-            stroke="var(--gold-mid)"
-            strokeWidth="1.6"
+            stroke="var(--gold-highlight)"
+            strokeWidth="1.9"
             strokeDasharray="1.8 2.8"
           />
         </svg>
         <span className="relative flex flex-col items-center leading-none text-[color:var(--surface-base)]">
-          <span className="font-sans text-[7px] font-semibold uppercase tracking-[0.16em] sm:text-[7.5px]">
+          <span className="font-sans text-[7.5px] font-bold uppercase tracking-[0.14em] sm:text-[8px] md:text-[10px]">
             {topText}
           </span>
-          <span className="mt-[2px] font-display text-[13px] font-semibold sm:text-[15px]">{amount}</span>
+          <span className="mt-[3px] font-display text-[16px] font-semibold sm:text-[17px] md:text-[21px] lg:text-[23px]">
+            {amount}
+          </span>
         </span>
       </span>
     </span>
@@ -221,9 +228,9 @@ export default function PricingSection() {
   return (
     <section id="pricing" className="w-full bg-surface-base py-16 md:py-20 lg:py-28">
       <style>{`
-        .pb-seal { animation: pb-seal-in 520ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+        .pb-seal { animation: pb-seal-in 560ms cubic-bezier(0.34, 1.4, 0.5, 1) both; }
         @keyframes pb-seal-in {
-          from { opacity: 0; transform: scale(0.72); }
+          from { opacity: 0; transform: scale(0.55); }
           to   { opacity: 1; transform: scale(1); }
         }
         @media (prefers-reduced-motion: reduce) {
@@ -323,8 +330,9 @@ export default function PricingSection() {
 
                 {/* Price hierarchy: live selling price (dominant) → discount
                     seal → struck "was" price → the delivery/production row
-                    below the grid. */}
-                <div className="mt-2.5 flex items-start justify-between gap-3">
+                    below the grid. flex-wrap lets the seal drop under the
+                    price on very narrow cards instead of overflowing. */}
+                <div className="mt-2.5 flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
                   <div className="min-w-0">
                     <span className="font-display text-[30px] font-medium leading-none text-text-primary">
                       {priced.value}
@@ -390,7 +398,7 @@ export default function PricingSection() {
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <Globe size={16} strokeWidth={1.5} className="text-text-secondary" />
+            <Truck size={16} strokeWidth={1.5} className="shrink-0 text-text-secondary" />
             <span className="font-sans text-[13px] text-text-secondary">
               {market === "UZ" ? t.deliveryUz : t.deliveryIntl}
             </span>
