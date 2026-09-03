@@ -13,7 +13,6 @@
  * with a hard opt-out for prefers-reduced-motion.
  */
 
-import Image from "next/image";
 import { useT } from "@/lib/i18n/LanguageContext";
 import { Reveal } from "../_shared/Reveal";
 
@@ -51,20 +50,33 @@ const COPY_UZ: typeof COPY_EN = {
 const INDENT = ["0", "1.5rem", "0.5rem", "2.25rem", "0.75rem", "1.75rem"];
 
 /** Approved pencil illustration — 1536×1024, boy on the right, large
- *  empty cream on the left (created to match this section's ground). */
-const SKETCH_SRC =
+ *  empty cream on the left. Served through Next's image optimiser as a
+ *  CSS background (see SKETCH_MERGE): `q=75` because `next.config.ts`
+ *  only allows [75, 100]. */
+const SKETCH_RAW =
   "/images/products/personalized-books/familiar-moments-child-memory-sketch.png";
+const sketchOpt = (w: number) =>
+  `/_next/image?url=${encodeURIComponent(SKETCH_RAW)}&w=${w}&q=75`;
 
-/** Soft, wide left-edge fade: the sketch's cream ground already matches
- *  the section, this only guarantees no rectangular seam near the text.
- *  Alpha only — it never darkens the drawing, and the ramp is wide
- *  enough that there is no visible fade band. */
-const SKETCH_LEFT_FADE =
-  "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.5) 20%, #000 40%, #000 100%)";
-/** Mobile: the sketch stacks under the text, so soften top + bottom
- *  instead so it emerges from / melts back into the page. */
-const SKETCH_VERTICAL_FADE =
-  "linear-gradient(to bottom, transparent 0%, #000 12%, #000 86%, transparent 100%)";
+/**
+ * SEAMLESS MERGE, measured from the rendered page:
+ *   section ground = #EFE7DA (239,231,218)
+ *   sketch ground  = ~#FAF2E7 (250,242,231) — flat, a uniform ~+11/channel
+ *                    lighter, which is why the raw PNG reads as a pale panel.
+ *
+ * `background-blend-mode: darken` blends the element's OWN two background
+ * layers — the sketch over an #EFE7DA fill — so every pixel lighter than
+ * #EFE7DA (i.e. the empty cream ground and any blown highlight) resolves
+ * to exactly #EFE7DA, and every graphite line and the boy (all darker)
+ * pass through untouched. It is NOT an opacity reduction — full contrast,
+ * the child stays crisp — and because it blends background layers on one
+ * element it is immune to stacking context / isolation / Reveal.
+ */
+const SKETCH_MERGE: React.CSSProperties = {
+  backgroundColor: "#EFE7DA",
+  backgroundBlendMode: "darken",
+  backgroundRepeat: "no-repeat",
+};
 
 export default function Recognition() {
   const t = useT(COPY_EN, COPY_UZ);
@@ -75,31 +87,26 @@ export default function Recognition() {
       aria-labelledby="recognition-heading"
       className="relative w-full overflow-hidden scroll-mt-20 bg-[#EFE7DA] md:scroll-mt-24"
     >
-      {/* Desktop / tablet illustration — absolutely placed against the
+      {/* Desktop / tablet illustration — a background layer flush to the
           section's right edge, over the recognition block. No box, no
-          border, no shadow, no wrapper background: the sketch's own
-          pale-cream ground is the same family as the section, and the
-          soft left-edge mask lets its faint pencil work dissolve toward
-          the text. `inset-y-0` (not a fixed height) so it never adds
-          section height. */}
-      <Reveal
-        y={0}
-        delay={140}
-        className="pointer-events-none absolute inset-y-0 right-0 z-0 hidden w-[52%] md:block lg:w-[50%] xl:w-[46%]"
-      >
-        <Image
-          src={SKETCH_SRC}
-          alt=""
-          aria-hidden="true"
-          fill
-          sizes="(min-width: 1280px) 46vw, (min-width: 768px) 52vw, 1px"
-          quality={90}
-          className="object-contain object-right"
-          style={{ WebkitMaskImage: SKETCH_LEFT_FADE, maskImage: SKETCH_LEFT_FADE }}
-        />
-      </Reveal>
+          border, no shadow: `background-blend-mode: darken` (see
+          SKETCH_MERGE) merges the sketch's cream ground into the section
+          exactly, so there is no visible rectangle. `inset-y-0` (not a
+          fixed height) so it never adds section height. `background-size:
+          contain` keeps the whole boy; `right center` puts him in the
+          right-centre with the empty cream falling toward the text. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-y-0 right-0 hidden w-[52%] md:block lg:w-[50%] xl:w-[46%]"
+        style={{
+          ...SKETCH_MERGE,
+          backgroundImage: `url("${sketchOpt(1200)}")`,
+          backgroundPosition: "right center",
+          backgroundSize: "contain",
+        }}
+      />
 
-      <div className="relative z-10 mx-auto max-w-[900px] px-5 py-14 sm:px-8 md:py-20 lg:py-24">
+      <div className="relative mx-auto max-w-[900px] px-5 py-14 sm:px-8 md:py-20 lg:py-24">
         {/* Left narrative column — constrained from md up so the boy
             never collides with the text. */}
         <div className="md:max-w-[22rem] lg:max-w-[27rem]">
@@ -137,24 +144,18 @@ export default function Recognition() {
         </div>
 
         {/* Mobile illustration — stacked under the text, wide and
-            atmospheric; the empty cream on the sketch's left is cropped
-            by object-position, and a top/bottom fade keeps it edgeless. */}
-        <Reveal
-          y={12}
-          delay={60}
-          className="pointer-events-none relative mt-10 aspect-[16/10] w-full md:hidden"
-        >
-          <Image
-            src={SKETCH_SRC}
-            alt=""
-            aria-hidden="true"
-            fill
-            sizes="(min-width: 768px) 1px, 100vw"
-            quality={90}
-            className="object-cover object-[78%_center]"
-            style={{ WebkitMaskImage: SKETCH_VERTICAL_FADE, maskImage: SKETCH_VERTICAL_FADE }}
-          />
-        </Reveal>
+            atmospheric. Same `background-blend-mode: darken` merge;
+            `cover` biased right crops the empty cream on the left. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none mt-10 aspect-[16/11] w-full md:hidden"
+          style={{
+            ...SKETCH_MERGE,
+            backgroundImage: `url("${sketchOpt(828)}")`,
+            backgroundPosition: "80% center",
+            backgroundSize: "cover",
+          }}
+        />
 
         <Reveal delay={80} className="mt-10 md:mt-14">
           <p className="text-balance font-display text-[1.875rem] font-medium leading-[1.2] tracking-[-0.02em] text-text-primary sm:text-[2.5rem] md:text-[3.125rem]">
