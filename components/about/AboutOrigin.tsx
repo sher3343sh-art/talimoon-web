@@ -485,8 +485,8 @@ export function AboutOrigin() {
                 alt={t.pdgtal.logoAlt}
                 width={2172}
                 height={464}
-                sizes="(max-width: 768px) 200px, 240px"
-                className="h-auto w-[200px] md:w-[240px]"
+                sizes="(max-width: 768px) 240px, 288px"
+                className="h-auto w-[240px] md:w-[288px]"
               />
             </a>
             <p
