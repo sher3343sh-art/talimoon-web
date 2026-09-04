@@ -183,6 +183,22 @@ const VARIANT: Record<JourneyWorld, 'wide' | 'tall' | 'compact'> = {
   'wisdom-science': 'compact',
 };
 
+const WORLD_FALLBACK_MEDIA: Record<
+  JourneyWorld,
+  { primary: string; secondary?: string }
+> = {
+  'talimoon-life': {
+    primary: '/images/journey/journey-talimoon-life-child-book-moment.png',
+    secondary: '/images/journey/journey-talimoon-life-book-detail.png',
+  },
+  parents: {
+    primary: '/images/journey/journey-parents-listening-child.png',
+  },
+  'wisdom-science': {
+    primary: '/images/journey/journey-habits-knowledge-research.png',
+  },
+};
+
 // ── Prepared editorial marks (empty media frame) ──────────────────
 const TICK_COLOR = 'rgba(184,147,91,0.5)';
 
@@ -348,6 +364,9 @@ function WorldPortal({
 
   const primaryView = mediaView(preview.primary, locale);
   const secondaryView = mediaView(preview.secondary, locale);
+  const fallbackMedia = WORLD_FALLBACK_MEDIA[world];
+  const primarySrc = primaryView?.src ?? fallbackMedia.primary;
+  const secondarySrc = secondaryView?.src ?? fallbackMedia.secondary ?? null;
 
   const sourceRef =
     world === 'wisdom-science' && preview.primary?.references?.length
@@ -533,8 +552,8 @@ function WorldPortal({
           <div className="relative min-w-0 pb-8 pe-6 sm:pb-12 sm:pe-12 lg:pb-14 lg:pe-14">
             <MediaFrame
               ratio="aspect-[4/3] sm:aspect-[3/2] lg:aspect-auto lg:h-[430px]"
-              src={primaryView?.src}
-              alt={primaryView?.alt}
+              src={primarySrc}
+              alt={primaryView?.alt || name}
               priority
               playCue={primaryView?.isVideo}
               markerLabel={wc.mediaType}
@@ -547,8 +566,8 @@ function WorldPortal({
               <div className="p-[6px]" style={{ backgroundColor: CREAM }}>
                 <MediaFrame
                   ratio="aspect-[3/4]"
-                  src={secondaryView?.src}
-                  alt={secondaryView?.alt}
+                  src={secondarySrc}
+                  alt={secondaryView?.alt || `${name} — detail`}
                   markerLabel={undefined}
                   sizes="180px"
                 />
@@ -579,8 +598,8 @@ function WorldPortal({
               ? 'aspect-[4/5] sm:aspect-[3/2] lg:aspect-auto lg:h-[420px]'
               : 'aspect-[4/3] sm:aspect-[3/2] lg:aspect-auto lg:h-[420px]'
           }
-          src={primaryView?.src}
-          alt={primaryView?.alt}
+          src={primarySrc}
+          alt={primaryView?.alt || name}
           playCue={primaryView?.isVideo}
           focal={variant === 'compact'}
           markerLabel={wc.mediaType}
