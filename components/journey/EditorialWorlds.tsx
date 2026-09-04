@@ -554,14 +554,14 @@ function WorldPortal({
         <div className="grid gap-7 md:gap-9 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:items-center lg:gap-14">
           <div className="relative min-w-0 pb-8 pe-6 sm:pb-12 sm:pe-12 lg:pb-14 lg:pe-14">
             <MediaFrame
-              ratio="aspect-[1/1] sm:aspect-[3/2] lg:aspect-auto lg:h-[430px]"
+              ratio="aspect-[4/3] sm:aspect-[3/2] lg:aspect-auto lg:h-[430px]"
               src={primarySrc}
               alt={primaryView?.alt || name}
               priority
               playCue={primaryView?.isVideo}
               markerLabel={wc.mediaType}
               sizes="(max-width: 1024px) 92vw, 46vw"
-              imageClassName="max-sm:object-[55%_50%] sm:object-center"
+              imageClassName="max-sm:object-[100%_50%] sm:object-center"
             />
             {/* the smaller overlapping frame */}
             <div
