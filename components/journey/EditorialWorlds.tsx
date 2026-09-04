@@ -561,7 +561,7 @@ function WorldPortal({
               playCue={primaryView?.isVideo}
               markerLabel={wc.mediaType}
               sizes="(max-width: 1024px) 92vw, 46vw"
-              imageClassName="max-sm:object-[86%_38%] sm:object-center"
+              imageClassName="max-sm:object-[100%_50%] sm:object-center"
             />
             {/* the smaller overlapping frame */}
             <div
