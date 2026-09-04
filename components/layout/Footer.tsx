@@ -79,10 +79,10 @@ const FOOTER_UZ: typeof FOOTER_EN = {
 };
 
 const EXPLORE_LINKS = [
-  { key: "about", href: "#about" },
-  { key: "howItWorks", href: "#how-it-works" },
-  { key: "pricing", href: "#pricing" },
-  { key: "faq", href: "#faq" },
+  { key: "about", href: "/about" },
+  { key: "howItWorks", href: "/products/personalized-books#how-it-works" },
+  { key: "pricing", href: "/products/personalized-books#pricing" },
+  { key: "faq", href: "/products/personalized-books#faq" },
 ] as const satisfies readonly { key: keyof typeof FOOTER_EN; href: string }[];
 
 const RESOURCES_LINKS = [
@@ -92,15 +92,15 @@ const RESOURCES_LINKS = [
 ] as const satisfies readonly { key: keyof typeof FOOTER_EN; href: string }[];
 
 const SOCIAL_LINKS = [
-  { label: "Instagram", href: "#" },
-  { label: "Facebook", href: "#" },
-  { label: "Telegram", href: "#" },
+  { label: "Instagram", href: "https://www.instagram.com/talimoon_" },
+  { label: "Telegram", href: "https://t.me/talimoon_kids" },
+  { label: "YouTube", href: "https://youtube.com/@talimoon" },
 ];
 
 const CONTACT_LINKS = [
   { key: "email", value: "hello@talimoon.com", href: "mailto:hello@talimoon.com" },
-  { label: "Telegram", value: "@talimoon", href: "#" },
-  { label: "Instagram", value: "@talimoon", href: "#" },
+  { label: "Telegram", value: "@talimoon_kids", href: "https://t.me/talimoon_kids" },
+  { label: "Instagram", value: "@talimoon_", href: "https://www.instagram.com/talimoon_" },
 ] as const;
 
 const columnHeadingClass =
@@ -157,7 +157,7 @@ export function Footer({
   const ctaLabel = pathname === PERSONALIZED_BOOKS_PATH ? t.ctaCreateStory : t.ctaOrderNow;
   const exploreLinks = showHowItWorksLink
     ? EXPLORE_LINKS
-    : EXPLORE_LINKS.filter((link) => link.href !== "#how-it-works");
+    : EXPLORE_LINKS.filter((link) => link.key !== "howItWorks");
 
   return (
     <footer className="w-full bg-[var(--surface-contrast,#1C2A3A)]">
@@ -229,7 +229,7 @@ export function Footer({
             <ul className="mt-5 space-y-3">
               {SOCIAL_LINKS.map((link) => (
                 <li key={link.label}>
-                  <a href={link.href} className={linkClass}>
+                  <a href={link.href} target="_blank" rel="noreferrer" className={linkClass}>
                     {link.label}
                   </a>
                 </li>
@@ -242,7 +242,12 @@ export function Footer({
             <ul className="mt-5 space-y-3">
               {CONTACT_LINKS.map((contact) => (
                 <li key={"key" in contact ? contact.key : contact.label}>
-                  <a href={contact.href} className={linkClass}>
+                  <a
+                    href={contact.href}
+                    target={contact.href.startsWith("https://") ? "_blank" : undefined}
+                    rel={contact.href.startsWith("https://") ? "noreferrer" : undefined}
+                    className={linkClass}
+                  >
                     <span className="text-[var(--text-inverse-muted,rgba(247,243,236,0.7))]">
                       {"key" in contact ? t[contact.key] : contact.label}:{" "}
                     </span>

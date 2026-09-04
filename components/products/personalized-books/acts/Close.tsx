@@ -112,7 +112,7 @@ export default function Close() {
         </Reveal>
 
         {/* Compact FAQ */}
-        <div className="mx-auto mt-12 max-w-[620px] text-start md:mt-14">
+        <div id="faq" className="mx-auto mt-12 max-w-[620px] scroll-mt-24 text-start md:mt-14">
           <h3 className="font-sans text-[11.5px] font-semibold uppercase tracking-[0.2em] text-text-muted">
             {t.faqHeading}
           </h3>

@@ -249,8 +249,9 @@ export default function ProcessPrice() {
   return (
     <>
       <section
+        id="how-it-works"
         aria-labelledby="process-heading"
-        className="w-full bg-gradient-to-b from-surface-base via-surface-base to-[#F3ECDE]"
+        className="w-full scroll-mt-24 bg-gradient-to-b from-surface-base via-surface-base to-[#F3ECDE]"
       >
         <div className="mx-auto max-w-[1180px] px-5 pb-10 pt-14 sm:px-8 md:pb-12 md:pt-16 lg:pb-12 lg:pt-20">
           {/* Intro — a wide, centred editorial header. The headline spreads
