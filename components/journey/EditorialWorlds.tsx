@@ -264,6 +264,7 @@ function MediaFrame({
   focal,
   playCue,
   sizes = '(max-width: 1024px) 100vw, 50vw',
+  imageClassName,
 }: {
   ratio: string;
   src?: string | null;
@@ -273,6 +274,8 @@ function MediaFrame({
   focal?: boolean;
   playCue?: boolean;
   sizes?: string;
+  /** Extra classes appended to the image (e.g. a mobile-only object-position). */
+  imageClassName?: string;
 }) {
   return (
     <div
@@ -286,7 +289,7 @@ function MediaFrame({
           fill
           priority={priority}
           sizes={sizes}
-          className="object-cover motion-safe:transition-transform motion-safe:duration-[900ms] motion-safe:ease-[cubic-bezier(0.22,1,0.36,1)] motion-safe:group-hover:scale-[1.03] motion-safe:group-focus-visible:scale-[1.03]"
+          className={`object-cover motion-safe:transition-transform motion-safe:duration-[900ms] motion-safe:ease-[cubic-bezier(0.22,1,0.36,1)] motion-safe:group-hover:scale-[1.03] motion-safe:group-focus-visible:scale-[1.03] ${imageClassName ?? ''}`}
         />
       ) : (
         <div
@@ -558,6 +561,7 @@ function WorldPortal({
               playCue={primaryView?.isVideo}
               markerLabel={wc.mediaType}
               sizes="(max-width: 1024px) 92vw, 46vw"
+              imageClassName="max-sm:object-[86%_38%] sm:object-center"
             />
             {/* the smaller overlapping frame */}
             <div
@@ -595,7 +599,7 @@ function WorldPortal({
         <MediaFrame
           ratio={
             variant === 'tall'
-              ? 'aspect-[4/5] sm:aspect-[3/2] lg:aspect-auto lg:h-[420px]'
+              ? 'aspect-[3/2] lg:aspect-auto lg:h-[420px]'
               : 'aspect-[4/3] sm:aspect-[3/2] lg:aspect-auto lg:h-[420px]'
           }
           src={primarySrc}
@@ -604,6 +608,9 @@ function WorldPortal({
           focal={variant === 'compact'}
           markerLabel={wc.mediaType}
           sizes="(max-width: 1024px) 92vw, 40vw"
+          imageClassName={
+            variant === 'tall' ? 'max-sm:object-[64%_50%] sm:object-center' : undefined
+          }
         />
         <div className="mt-6 flex flex-1 flex-col">
           {numEl}
