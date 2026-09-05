@@ -86,6 +86,18 @@
   /* Shadow primitives */
   --shadow-step-1: 0 4px 16px rgba(33, 29, 24, 0.08);
   --shadow-step-2: 0 16px 48px rgba(33, 29, 24, 0.18);
+  --shadow-step-media:
+    0 34px 72px -34px rgba(28, 42, 58, 0.4),
+    0 16px 34px -22px rgba(33, 29, 24, 0.24),
+    0 3px 10px rgba(33, 29, 24, 0.08);
+  --shadow-step-media-soft:
+    0 24px 54px -32px rgba(28, 42, 58, 0.3),
+    0 8px 22px -16px rgba(33, 29, 24, 0.18),
+    0 2px 7px rgba(33, 29, 24, 0.06);
+  --shadow-step-media-hover:
+    0 42px 82px -34px rgba(28, 42, 58, 0.46),
+    0 20px 40px -22px rgba(33, 29, 24, 0.28),
+    0 4px 12px rgba(33, 29, 24, 0.09);
 
   /* Motion primitives */
   --duration-step-1: 150ms;
@@ -144,6 +156,9 @@
   --shadow-none: none;
   --shadow-elevated: var(--shadow-step-1);
   --shadow-modal: var(--shadow-step-2);
+  --shadow-media: var(--shadow-step-media);
+  --shadow-media-soft: var(--shadow-step-media-soft);
+  --shadow-media-hover: var(--shadow-step-media-hover);
 
   /* -- 9. Motion variables (§10, §22) -- */
   --duration-fast: var(--duration-step-1);
@@ -887,6 +902,51 @@ body {
     /* keep the gold eyeliner rim even with the loop disabled */
     filter: drop-shadow(0 0 2px var(--gold-mid))
       drop-shadow(0 0 1px var(--gold-mid));
+  }
+}
+
+/* Premium media elevation -------------------------------------------------
+   Reserved for story photographs and video surfaces. The layered shadow
+   reads as a soft pool of depth on TALIMOON's warm paper backgrounds; it is
+   intentionally not a generic card treatment. */
+.tm-media-float,
+.tm-media-float-soft {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+  border-radius: clamp(14px, 1.5vw, 20px);
+  background: var(--surface-raised);
+  transform: translateZ(0);
+}
+
+.tm-media-float {
+  box-shadow: var(--shadow-media);
+}
+
+.tm-media-float-soft {
+  box-shadow: var(--shadow-media-soft);
+}
+
+.tm-media-float-interactive {
+  transition:
+    transform var(--duration-base) var(--ease-standard),
+    box-shadow var(--duration-base) var(--ease-standard),
+    border-color var(--duration-base) var(--ease-standard);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .tm-media-float-interactive:hover,
+  .tm-media-float-interactive:focus-within {
+    transform: translateY(-4px);
+    border-color: var(--border-default);
+    box-shadow: var(--shadow-media-hover);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tm-media-float-interactive {
+    transition: none;
   }
 }
 

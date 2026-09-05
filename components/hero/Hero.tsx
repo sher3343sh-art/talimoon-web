@@ -372,9 +372,14 @@ const getScrimColor = (type: ScrimType): string =>
     : 'rgba(247, 242, 234, 0.40)';
 
 const getScrimGradient = (type: ScrimType, isMobile: boolean): string => {
-  const color = getScrimColor(type);
-  const direction = isMobile ? 'to bottom' : 'to right';
-  return `linear-gradient(${direction}, transparent 0%, transparent 45%, ${color} 100%)`;
+  if (isMobile) {
+    const color = getScrimColor(type);
+    return `linear-gradient(to bottom, transparent 0%, transparent 45%, ${color} 100%)`;
+  }
+
+  const base = type === 'ink' ? '42, 36, 29' : '247, 242, 234';
+  const peak = type === 'ink' ? 0.45 : 0.4;
+  return `linear-gradient(to right, rgba(${base}, 0) 0%, rgba(${base}, 0.015) 24%, rgba(${base}, 0.055) 42%, rgba(${base}, 0.14) 62%, rgba(${base}, ${peak * 0.65}) 80%, rgba(${base}, ${peak}) 100%)`;
 };
 
 // Description renders at a deliberately reduced alpha relative to the
@@ -902,9 +907,9 @@ const HeroSlide = memo(
               priority={priority}
               frozen={frozen}
             />
-            <div className="absolute inset-0 z-10 flex items-center justify-end">
-              <div className="relative w-[35%] h-full">
-                <HeroScrim type={scrim} isMobile={false} />
+            <div className="absolute inset-0 z-10">
+              <HeroScrim type={scrim} isMobile={false} />
+              <div className="absolute inset-y-0 end-0 w-[35%]">
                 <HeroTextBlock
                   eyebrow={textData.name}
                   headline={textData.headline}

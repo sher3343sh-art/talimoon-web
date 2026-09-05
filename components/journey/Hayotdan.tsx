@@ -28,7 +28,14 @@ import {
   mediaPolicy,
   resolveEntryContent,
 } from '@/lib/journey/content';
-import { toLocale, type JourneyEntry, type JourneyFormat } from '@/lib/journey/types';
+import {
+  JOURNEY_WORLDS,
+  toLocale,
+  worldName,
+  type JourneyEntry,
+  type JourneyFormat,
+  type JourneyWorld,
+} from '@/lib/journey/types';
 import { useLanguage, useT } from '@/lib/i18n/LanguageContext';
 import {
   Band,
@@ -47,7 +54,10 @@ import {
 } from './shared';
 
 const EN = {
-  heading: 'From TALIMOON life',
+  heading: 'Journey journal',
+  intro: 'Stories, films, useful ideas and discoveries — gathered in one living editorial stream.',
+  filterLabel: 'Filter the journal',
+  all: 'All stories',
   more: 'See more',
   story: 'Read the story',
   thought: 'Read the thought',
@@ -63,7 +73,10 @@ const EN = {
     'Reportage, film, a small moment, a thought — from TALIMOON’s life. The first ones, soon.',
 };
 const UZ: typeof EN = {
-  heading: 'Hayotdan',
+  heading: 'Journey jurnali',
+  intro: 'Hikoyalar, videolar, foydali fikrlar va kashfiyotlar — barchasi bitta jonli jurnal oqimida.',
+  filterLabel: 'Jurnalni saralash',
+  all: 'Barchasi',
   more: "Ko'proq ko'rish",
   story: "Hikoyani ko'ring",
   thought: "Fikrni o'qish",
@@ -152,7 +165,7 @@ export function StreamEntry({
       <article dir={direction} className="mx-auto max-w-[820px]">
         {photo ? (
           <Link href={href} className="mb-6 block md:mb-8">
-            <div className="relative aspect-[16/9] w-full overflow-hidden">
+            <div className="tm-media-float tm-media-float-interactive relative aspect-[16/9] w-full">
               <Image
                 src={photo.src}
                 alt={content.coverAlt ?? ''}
@@ -265,7 +278,7 @@ export function StreamEntry({
         className={`grid items-center gap-6 md:grid-cols-2 md:gap-12 ${flip ? 'md:[&>*:first-child]:order-2' : ''}`}
       >
         {photo ? (
-          <div className="relative aspect-[4/3] w-full overflow-hidden">
+          <div className="tm-media-float-soft relative aspect-[4/3] w-full">
             <Image
               src={photo.src}
               alt={content.coverAlt ?? ''}
@@ -345,7 +358,7 @@ export function StreamEntry({
     return (
       <article dir={direction} className="mx-auto max-w-[1000px]">
         <Link href={href} className="group block">
-          <div className="relative aspect-[16/9] w-full overflow-hidden">
+          <div className="tm-media-float tm-media-float-interactive relative aspect-[16/9] w-full">
             {poster ? (
               <Image
                 src={poster.src}
@@ -491,7 +504,7 @@ export function StreamEntry({
   return (
     <article dir={direction}>
       {photo ? (
-        <div className="relative -mx-6 aspect-[16/10] w-[calc(100%+3rem)] overflow-hidden sm:mx-0 sm:aspect-[2/1] sm:w-full">
+        <div className="tm-media-float relative -mx-6 aspect-[16/10] w-[calc(100%+3rem)] sm:mx-0 sm:aspect-[2/1] sm:w-full">
           <Image
             src={photo.src}
             alt={content.coverAlt ?? ''}
@@ -539,8 +552,19 @@ export function StreamEntry({
 // ── The stream ─────────────────────────────────────────────────────
 export function Hayotdan() {
   const t = useT(EN, UZ);
+  const { language } = useLanguage();
+  const locale = toLocale(language);
+  const [world, setWorld] = useState<JourneyWorld | null>(null);
   const [limit, setLimit] = useState(STREAM_PAGE_SIZE);
-  const page = useMemo(() => getStreamEntries({ limit }), [limit]);
+  const page = useMemo(
+    () =>
+      getStreamEntries({
+        limit,
+        world: world ?? undefined,
+        excludePromoted: false,
+      }),
+    [limit, world],
+  );
   const empty = page.total === 0;
 
   return (
@@ -562,6 +586,54 @@ export function Hayotdan() {
           >
             {t.heading}
           </h2>
+          <p
+            className="mx-auto mt-5 max-w-[56ch] text-center text-[16px] leading-[1.75] md:text-[17px]"
+            style={{ fontFamily: BODY, color: NAVY_64 }}
+          >
+            {t.intro}
+          </p>
+
+          <div
+            className="mt-8 flex flex-wrap justify-center gap-2 md:mt-10"
+            role="group"
+            aria-label={t.filterLabel}
+          >
+            <button
+              type="button"
+              onClick={() => {
+                setWorld(null);
+                setLimit(STREAM_PAGE_SIZE);
+              }}
+              aria-pressed={world === null}
+              className={`min-h-11 rounded-full border px-5 text-[13px] font-semibold transition-colors ${
+                world === null
+                  ? 'border-[var(--surface-contrast)] bg-[var(--surface-contrast)] text-[var(--text-inverse)]'
+                  : 'border-[var(--border-default)] bg-[var(--surface-raised)] text-[var(--text-secondary)] hover:border-[var(--accent-primary)] hover:text-[var(--text-primary)]'
+              }`}
+              style={{ fontFamily: BODY }}
+            >
+              {t.all}
+            </button>
+            {JOURNEY_WORLDS.map((item) => (
+              <button
+                key={item}
+                type="button"
+                onClick={() => {
+                  setWorld(item);
+                  setLimit(STREAM_PAGE_SIZE);
+                }}
+                aria-pressed={world === item}
+                className={`min-h-11 rounded-full border px-5 text-[13px] font-semibold transition-colors ${
+                  world === item
+                    ? 'border-[var(--surface-contrast)] bg-[var(--surface-contrast)] text-[var(--text-inverse)]'
+                    : 'border-[var(--border-default)] bg-[var(--surface-raised)] text-[var(--text-secondary)] hover:border-[var(--accent-primary)] hover:text-[var(--text-primary)]'
+                }`}
+                style={{ fontFamily: BODY }}
+              >
+                {worldName(item, locale)}
+              </button>
+            ))}
+          </div>
         </Rise>
 
         {empty ? (

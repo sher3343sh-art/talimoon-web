@@ -279,7 +279,7 @@ function MediaFrame({
 }) {
   return (
     <div
-      className={`relative w-full overflow-hidden ${ratio}`}
+      className={`tm-media-float tm-media-float-interactive relative w-full ${ratio}`}
       style={{ backgroundColor: CREAM_RAISED }}
     >
       {src ? (
@@ -552,7 +552,7 @@ function WorldPortal({
     return (
       <Link href={worldPath(world)} aria-label={name} className={linkClass}>
         <div className="grid gap-7 md:gap-9 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:items-center lg:gap-14">
-          <div className="relative min-w-0 pb-8 pe-6 sm:pb-12 sm:pe-12 lg:pb-14 lg:pe-14">
+          <div className="relative min-w-0 pb-12 pe-6 sm:pb-12 sm:pe-12 lg:pb-14 lg:pe-14">
             <MediaFrame
               ratio="aspect-[4/3] sm:aspect-[3/2] lg:aspect-auto lg:h-[430px]"
               src={primarySrc}
@@ -565,7 +565,7 @@ function WorldPortal({
             />
             {/* the smaller overlapping frame */}
             <div
-              className="absolute bottom-0 end-0 w-[38%] max-w-[180px] motion-safe:transition-transform motion-safe:duration-500 motion-safe:group-hover:-translate-y-1"
+              className="absolute -bottom-5 end-0 w-[38%] max-w-[180px] sm:bottom-0 motion-safe:transition-transform motion-safe:duration-500 motion-safe:group-hover:-translate-y-1"
             >
               <div className="p-[6px]" style={{ backgroundColor: CREAM }}>
                 <MediaFrame
@@ -631,8 +631,11 @@ function mediaView(entry: JourneyEntry | null, locale: Locale) {
   const { content } = resolveEntryContent(entry, locale);
   const policy = mediaPolicy(entry);
   const asset = entry.cover ?? entry.video?.poster ?? null;
+  const isFixturePlaceholder = asset?.src.startsWith('/journey/fixtures/');
   const src =
-    policy.showMedia && asset && asset.src.trim() !== '' ? asset.src : null;
+    policy.showMedia && asset && asset.src.trim() !== '' && !isFixturePlaceholder
+      ? asset.src
+      : null;
   const headline = content.title ?? content.standfirst ?? '';
   const meta = content.kicker
     ? [content.kicker.label, content.kicker.dateLabel].filter(Boolean).join(' · ')

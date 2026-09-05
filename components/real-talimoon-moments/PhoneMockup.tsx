@@ -536,7 +536,7 @@ export function PhoneMockup({
   return (
     <div className="relative mx-auto w-full max-w-[300px]">
       {/* Outer bezel */}
-      <div className="relative aspect-[9/17.12] w-full rounded-[2.75rem] bg-[var(--ink-950,#211D18)] p-[10px] shadow-[0_20px_50px_rgba(42,36,29,0.18)]">
+      <div className="relative aspect-[9/17.12] w-full rounded-[2.75rem] bg-[var(--ink-950,#211D18)] p-[10px] shadow-[var(--shadow-media)]">
         {/* Side buttons — decorative, reinforce device realism */}
         <span aria-hidden="true" className="absolute -left-[1.5px] top-[104px] h-8 w-[3px] rounded-full bg-[var(--ink-950,#211D18)]" />
         <span aria-hidden="true" className="absolute -left-[1.5px] top-[144px] h-14 w-[3px] rounded-full bg-[var(--ink-950,#211D18)]" />

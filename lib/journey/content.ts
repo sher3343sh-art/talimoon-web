@@ -177,6 +177,7 @@ export function getStreamEntries(
     offset?: number;
     limit?: number;
     world?: JourneyWorld;
+    excludePromoted?: boolean;
   } = {},
 ): StreamPage {
   const offset = Math.max(0, opts.offset ?? 0);
@@ -186,7 +187,7 @@ export function getStreamEntries(
 
   if (opts.world) {
     all = all.filter((e) => e.world === opts.world);
-  } else {
+  } else if (opts.excludePromoted !== false) {
     const excluded = new Set<string>();
     const f = getFeaturedEntry()?.entry.id;
     if (f) excluded.add(f);

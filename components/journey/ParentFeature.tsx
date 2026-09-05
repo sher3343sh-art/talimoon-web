@@ -135,7 +135,7 @@ function ParentFeatureCard({
     >
       {cover ? (
         <Link href={href} className="group relative block">
-          <div className="relative aspect-[4/3] w-full overflow-hidden">
+          <div className="tm-media-float tm-media-float-interactive relative aspect-[4/3] w-full">
             <Image
               src={cover.src}
               alt={content.coverAlt ?? ''}

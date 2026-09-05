@@ -144,7 +144,7 @@ function BlockView({
     case 'image':
       return (
         <figure className={block.full ? 'mx-auto w-full max-w-[1000px]' : READING}>
-          <div className="relative aspect-[3/2] w-full overflow-hidden">
+          <div className="tm-media-float relative aspect-[3/2] w-full">
             <Image
               src={block.asset.src}
               alt={block.alt}
@@ -167,7 +167,7 @@ function BlockView({
               { a: block.a, alt: block.altA },
               { a: block.b, alt: block.altB },
             ].map((it, i) => (
-              <div key={i} className="relative aspect-[3/4] w-full overflow-hidden">
+              <div key={i} className="tm-media-float-soft relative aspect-[3/4] w-full">
                 <Image
                   src={it.a.src}
                   alt={it.alt}
@@ -188,7 +188,7 @@ function BlockView({
       return (
         <div className="mx-auto grid w-full max-w-[1000px] gap-3 sm:grid-cols-2">
           {block.items.map((it, i) => (
-            <div key={i} className="relative aspect-[4/3] w-full overflow-hidden">
+            <div key={i} className="tm-media-float-soft relative aspect-[4/3] w-full">
               <Image
                 src={it.asset.src}
                 alt={it.alt}
@@ -452,7 +452,7 @@ export function EntryDetail({ entry }: { entry: JourneyEntry }) {
       ) : photo ? (
         <div className="w-full overflow-hidden bg-surface-base">
           <figure className="mx-auto w-full max-w-[1200px]">
-            <div className="relative aspect-[16/10] w-full sm:aspect-[2/1]">
+            <div className="tm-media-float relative aspect-[16/10] w-full sm:aspect-[2/1]">
               <Image
                 src={photo.src}
                 alt={content.coverAlt ?? ''}

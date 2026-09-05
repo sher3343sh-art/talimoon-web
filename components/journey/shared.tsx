@@ -377,7 +377,7 @@ export function VideoPlayer({
           preload="none"
           playsInline
           poster={video.poster.src}
-          className="aspect-video w-full bg-[#0c1116]"
+          className="tm-media-float aspect-video w-full bg-[#0c1116]"
         >
           <source src={video.src} />
           {video.captionsSrc ? (
@@ -385,7 +385,7 @@ export function VideoPlayer({
           ) : null}
         </video>
       ) : (
-        <div className="relative aspect-video w-full overflow-hidden bg-[#0c1116]">
+        <div className="tm-media-float relative aspect-video w-full bg-[#0c1116]">
           <iframe
             src={`https://www.youtube-nocookie.com/embed/${video.src}?rel=0`}
             title="Video"
