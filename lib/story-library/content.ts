@@ -42,8 +42,8 @@ export const YUSUF_YASMINA: Series = {
     en: 'Yusuf & Yasmina',
   },
   blurb: {
-    uz: "Ezgulik, do'stlik va jasoratni kashf etadigan bolalar — bir hikoya, qism-qism davom etadi.",
-    en: 'Two children discovering kindness, friendship and courage — one story, told part by part.',
+    uz: "Mehr, do'stlik va jasoratni kashf etayotgan ikki qahramon. Har bir qism ularning olamini yanada kengaytiradi.",
+    en: 'Two young heroes discovering kindness, friendship and courage. Each new chapter opens their world a little wider.',
   },
 };
 

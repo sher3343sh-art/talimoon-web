@@ -12,13 +12,13 @@ import { BODY, DISPLAY, Eyebrow, NAVY, NAVY_64 } from './shared';
 
 const EN = {
   eyebrow: 'Story Library',
-  heading: 'Real family stories, and the world of Yusuf & Yasmina.',
-  body: 'A small, growing collection — personalized books that families have chosen to share, alongside TALIMOON’s own continuing story world.',
+  heading: 'One library. Two worlds of stories.',
+  body: 'Discover personalized stories shared with parents’ permission, and the continuing adventures of Yusuf & Yasmina.',
 };
 const UZ: typeof EN = {
   eyebrow: 'Hikoyalar kutubxonasi',
-  heading: 'Haqiqiy oila hikoyalari va Yusuf va Yasmina olami.',
-  body: "Kichik, ammo o'sib boruvchi to'plam — oilalar baham ko'rishni tanlagan shaxsiy kitoblar va TALIMOONning davom etayotgan hikoya olami.",
+  heading: 'Bir kutubxona. Ikki hikoya olami.',
+  body: 'Ota-onalar ruxsati bilan ulashilgan shaxsiylashtirilgan hikoyalar va Yusuf va Yasminaning davomli sarguzashtlarini kashf eting.',
 };
 
 export function LibraryHeader() {

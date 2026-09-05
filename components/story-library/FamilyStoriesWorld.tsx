@@ -31,20 +31,20 @@ import {
 } from './shared';
 
 const EN = {
-  eyebrow: 'Family Stories',
-  heading: 'Real books, made for one child, shared with permission.',
-  body: 'After a family approves their personalized book, they can choose to let its digital version live here — so other families can meet it too.',
-  consentNote: 'Shared with each family’s permission.',
-  emptyLead: 'No family stories are published yet.',
-  viewAll: 'See Family Stories',
+  eyebrow: 'Personalized collections',
+  heading: 'Made for one child. Shared by their family.',
+  body: 'Each book carries a child’s name, interests and familiar world. Only the stories families choose to share are collected here.',
+  consentNote: 'Only with the family’s permission.',
+  emptyLead: 'The first approved stories will appear here soon.',
+  viewAll: 'Explore the collections',
 };
 const UZ: typeof EN = {
-  eyebrow: 'Oila hikoyalari',
-  heading: "Bir bola uchun yaratilgan, ruxsat bilan baham ko'rilgan haqiqiy kitoblar.",
-  body: "Oila o'z shaxsiy kitobini tasdiqlagach, uning raqamli nusxasini shu yerda qoldirishni tanlashi mumkin — boshqa oilalar ham u bilan tanishsin.",
-  consentNote: "Har bir oilaning roziligi bilan baham ko'rilgan.",
-  emptyLead: "Hozircha oila hikoyalari e'lon qilinmagan.",
-  viewAll: "Oila hikoyalarini ko'rish",
+  eyebrow: "Shaxsiylashtirilgan to'plamlar",
+  heading: 'Bir bola uchun yaratilgan. Oilasi tomonidan ulashilgan.',
+  body: "Har bir kitobda bolaning ismi, qiziqishlari va unga tanish olam bor. Bu yerda faqat oilasi ulashishni tanlagan hikoyalar jamlanadi.",
+  consentNote: 'Faqat oila ruxsati bilan.',
+  emptyLead: 'Ilk ruxsat berilgan hikoyalar tez orada shu yerda paydo bo‘ladi.',
+  viewAll: "To'plamlarni ko'rish",
 };
 
 // gentle, fixed "hand-placed" transforms for the frame cluster

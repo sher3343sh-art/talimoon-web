@@ -3,7 +3,7 @@
  * ----------------------------------------------------------------
  * One curated entry, then the two worlds introduced editorially:
  *
- *   header  →  featured (editorial panel until a story is curated)
+ *   rotating showcase hero
  *           →  World I: Family Stories (warm mantel cluster)
  *           →  World II: Yusuf & Yasmina (the numbered spine)
  *           →  "Most loved this month" (hidden until real engagement)
@@ -15,8 +15,7 @@
 
 import { getHallData } from '@/lib/story-library/content';
 import { Band } from './shared';
-import { LibraryHeader } from './LibraryHeader';
-import { FeaturedIntro } from './FeaturedIntro';
+import { StoryLibraryHero } from './StoryLibraryHero';
 import { FamilyStoriesWorld } from './FamilyStoriesWorld';
 import { YusufYasminaSpine } from './YusufYasminaSpine';
 import { MostLovedStrip } from './MostLovedStrip';
@@ -26,12 +25,7 @@ export function Hall() {
 
   return (
     <>
-      <Band labelledBy="story-library-heading" className="pt-28 pb-14 md:pt-36 md:pb-16">
-        <LibraryHeader />
-        <div className="mt-12 md:mt-16">
-          <FeaturedIntro featured={data.featured} />
-        </div>
-      </Band>
+      <StoryLibraryHero />
 
       <Band tone="raised" className="py-20 md:py-28">
         <FamilyStoriesWorld stories={data.family} />

@@ -984,7 +984,16 @@ export default function PersonalizedBookOrderForm({
         for (const photo of character.photos) {
           const k = charIdx++;
           if (session.characterPhotoDone[k]) continue;
-          await uploadFile({ orderCode, capabilityToken, kind: "character_photo", file: photo });
+          await uploadFile({
+            orderCode,
+            capabilityToken,
+            kind: "character_photo",
+            file: photo,
+            // Lets the backend name the stored file after this character
+            // (e.g. "Singlisi_Madina_01.png") instead of a generic number.
+            characterRole: character.relation.trim(),
+            characterName: character.name.trim(),
+          });
           session.characterPhotoDone[k] = true;
         }
       }

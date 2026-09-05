@@ -33,22 +33,22 @@ import {
 } from './shared';
 
 const EN = {
-  eyebrow: 'A continuing story',
+  eyebrow: 'An ongoing adventure',
   qism: (n: number) => `${String(n).padStart(2, '0')}-QISM`,
   comingSoon: 'Coming soon',
   titleSoon: 'Coming soon',
-  spineEnd: 'The story continues.',
+  spineEnd: 'The adventure continues.',
   beginsSoon: 'The first part is being prepared.',
-  viewAll: 'Enter Yusuf & Yasmina',
+  viewAll: 'Begin the adventure',
 };
 const UZ: typeof EN = {
-  eyebrow: 'Davom etuvchi hikoya',
+  eyebrow: 'Davomli sarguzasht',
   qism: (n: number) => `${String(n).padStart(2, '0')}-QISM`,
   comingSoon: 'Tez orada',
   titleSoon: 'Tez orada',
-  spineEnd: 'Hikoya davom etadi.',
+  spineEnd: 'Sarguzasht davom etadi.',
   beginsSoon: 'Birinchi qism tayyorlanmoqda.',
-  viewAll: "Yusuf va Yasmina olamiga kirish",
+  viewAll: 'Sarguzashtni boshlash',
 };
 
 function EpisodeNode({

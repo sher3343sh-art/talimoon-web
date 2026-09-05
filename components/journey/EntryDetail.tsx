@@ -286,6 +286,75 @@ function BlockView({
           ) : null}
         </blockquote>
       );
+    case 'fact':
+      return (
+        <aside className={`${READING} overflow-hidden border border-[#b8935b4d] bg-[#17263A] px-6 py-7 text-[#F7F1E7] shadow-[0_22px_60px_rgba(23,38,58,0.12)] md:px-9 md:py-9`}>
+          <div className="flex items-start gap-5 md:gap-8">
+            <p
+              className="shrink-0 whitespace-nowrap text-[30px] leading-none tracking-[-0.035em] text-[#D3B168] tabular-nums md:text-[38px]"
+              style={{ fontFamily: BODY, fontWeight: 700 }}
+            >
+              {block.value}
+            </p>
+            <div className="border-s border-[#d3b16866] ps-5 md:ps-7">
+              <p
+                className="text-[18px] leading-[1.35] md:text-[22px]"
+                style={{ fontFamily: DISPLAY, fontWeight: 600 }}
+              >
+                {block.label}
+              </p>
+              {block.note ? (
+                <p
+                  className="mt-2 text-[13px] leading-[1.65] text-[#F7F1E7]/65 md:text-[14px]"
+                  style={{ fontFamily: BODY }}
+                >
+                  {block.note}
+                </p>
+              ) : null}
+            </div>
+          </div>
+        </aside>
+      );
+    case 'steps':
+      return (
+        <section className="mx-auto w-full max-w-[900px] py-3">
+          {block.label ? (
+            <p
+              className="mb-5 text-center text-[11px] uppercase text-[#B8935B]"
+              style={{ fontFamily: BODY, fontWeight: 700, letterSpacing: '0.22em' }}
+            >
+              {block.label}
+            </p>
+          ) : null}
+          <ol className="grid overflow-hidden border border-[#b8935b3d] bg-[#FBF8F2] md:grid-cols-3">
+            {block.items.map((item, index) => (
+              <li
+                key={`${item.title}-${index}`}
+                className="relative border-b border-[#b8935b33] px-6 py-6 last:border-b-0 md:border-b-0 md:border-e md:last:border-e-0 md:px-7 md:py-8"
+              >
+                <span
+                  className="text-[12px] text-[#B8935B]"
+                  style={{ fontFamily: BODY, fontWeight: 700, letterSpacing: '0.14em' }}
+                >
+                  0{index + 1}
+                </span>
+                <h3
+                  className="mt-3 text-[22px] text-[#1C2A3A] md:text-[24px]"
+                  style={{ fontFamily: DISPLAY, fontWeight: 600, lineHeight: 1.2 }}
+                >
+                  {item.title}
+                </h3>
+                <p
+                  className="mt-2 text-[14px] text-[#1C2A3AB8] md:text-[15px]"
+                  style={{ fontFamily: BODY, lineHeight: 1.65 }}
+                >
+                  {item.text}
+                </p>
+              </li>
+            ))}
+          </ol>
+        </section>
+      );
     case 'note':
       return (
         <p
@@ -497,7 +566,10 @@ export function EntryDetail({ entry }: { entry: JourneyEntry }) {
       ) : photo ? (
         <div className="w-full overflow-hidden bg-surface-base">
           <figure className="mx-auto w-full max-w-[680px] px-4 sm:px-0">
-            <div className="tm-media-float relative aspect-[16/10] w-full sm:aspect-[2/1]">
+            <div
+              className="tm-media-float relative w-full"
+              style={{ aspectRatio: `${photo.width} / ${photo.height}` }}
+            >
               <Image
                 src={photo.src}
                 alt={content.coverAlt ?? ''}

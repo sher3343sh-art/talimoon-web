@@ -249,9 +249,16 @@ export async function uploadFile(args: {
   kind: ArtifactKind;
   file: File;
   childRef?: string;
+  /** kind=character_photo only — lets the backend name the stored file
+   *  after this character instead of a generic number (e.g.
+   *  "Singlisi_Madina_01.png"). Purely cosmetic metadata. */
+  characterRole?: string;
+  characterName?: string;
 }): Promise<void> {
   const qs = new URLSearchParams({ kind: args.kind });
   if (args.childRef) qs.set("childRef", args.childRef);
+  if (args.characterRole) qs.set("characterRole", args.characterRole);
+  if (args.characterName) qs.set("characterName", args.characterName);
   const form = new FormData();
   form.append("file", args.file);
   const res = await fetch(apiUrl(`/v1/orders/${args.orderCode}/files?${qs.toString()}`), {

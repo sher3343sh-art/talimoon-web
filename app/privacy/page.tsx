@@ -1,0 +1,447 @@
+import type { Metadata } from "next";
+import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
+import { LegalDocument, type LegalCopy } from "@/components/legal/LegalDocument";
+
+export const metadata: Metadata = {
+  title: "Privacy Policy — TALIMOON",
+  description:
+    "How TALIMOON collects, uses, and protects the information you share when you order a personalized children's book.",
+};
+
+/**
+ * /privacy — public, no login. Server component (so it can carry
+ * `metadata`); the bilingual body renders through the shared
+ * client-side <LegalDocument>. Footer mirrors the About page:
+ * no commercial pre-footer CTA, and no #how-it-works anchor exists
+ * on this route.
+ */
+
+const EN: LegalCopy = {
+  title: "Privacy Policy",
+  effectiveLabel: "Effective date",
+  effectiveDate: "4 September 2026",
+  intro: [
+    "TALIMOON ('TALIMOON', 'we', or 'us') creates personalized children's books and related storytelling products. This Privacy Policy explains what information we collect when you order from us or use our website, why we use it, and the choices you have.",
+    "Please read it together with our Terms of Service.",
+  ],
+  sections: [
+    {
+      heading: "Who we are",
+      blocks: [
+        {
+          kind: "p",
+          text: "TALIMOON is a personalized children's book and storytelling brand. We design and produce custom books in which a child is the central character, based on details a parent or guardian shares with us.",
+        },
+        {
+          kind: "p",
+          text: "For any question about this policy or about your information, you can reach us at talimoon.production@gmail.com.",
+        },
+      ],
+    },
+    {
+      heading: "Information you provide",
+      blocks: [
+        {
+          kind: "p",
+          text: "When you place an order or contact us, you may give us:",
+        },
+        {
+          kind: "list",
+          items: [
+            "Contact information — the name, phone number, email address, messaging handle, and delivery address of the person placing the order.",
+            "The child's first name and age.",
+            "The child's interests, favourite things, and preferences.",
+            "Personality traits, family context, and other background you choose to share so the story feels personal.",
+            "Photographs of the child that you upload for illustration reference.",
+            "Photographs and details of additional characters (for example a parent, sibling, or friend) that you choose to include.",
+            "Order and delivery information — what you ordered, delivery choices, and the payment confirmation details you send us.",
+            "Communications — messages, questions, and feedback you send us about an order.",
+          ],
+        },
+        {
+          kind: "p",
+          text: "Please share only what is needed to create the book, and do not send us sensitive information that we have not asked for.",
+        },
+      ],
+    },
+    {
+      heading: "Why we use your information",
+      blocks: [
+        { kind: "p", text: "We use the information above to:" },
+        {
+          kind: "list",
+          items: [
+            "create the personalized book you ordered;",
+            "prepare the illustrations, text, and story content for that book;",
+            "process, confirm, and manage your order;",
+            "communicate with you about your order, including questions and updates;",
+            "arrange production, printing, and delivery, and provide customer support;",
+            "keep operational records and protect the security and integrity of our service.",
+          ],
+        },
+        {
+          kind: "p",
+          text: "We use your information for these purposes only. We do not use children's photographs or personal details for advertising, or for any purpose unrelated to your order.",
+        },
+      ],
+    },
+    {
+      heading: "Children's information",
+      blocks: [
+        {
+          kind: "p",
+          text: "Our products are ordered by an adult — a parent, guardian, or another adult authorized to act for the child.",
+        },
+        {
+          kind: "list",
+          items: [
+            "By placing an order, you confirm that you are that adult, or that you have permission from them.",
+            "You confirm that you have the authority to share the child's name, age, details, and photographs with us for the purpose of creating the order.",
+            "We use a child's information only to create and fulfill the personalized product or service that was ordered, and for the related support and record-keeping described in this policy.",
+          ],
+        },
+        {
+          kind: "p",
+          text: "If you believe a child's information has been shared with us without proper authority, contact us at talimoon.production@gmail.com and we will review it and, where appropriate, delete it.",
+        },
+      ],
+    },
+    {
+      heading: "Storage and service providers",
+      blocks: [
+        {
+          kind: "p",
+          text: "We operate our service with the help of trusted third-party providers — for example cloud hosting and file-storage services, messaging and email tools, printing partners, and delivery couriers.",
+        },
+        {
+          kind: "p",
+          text: "Photographs and order details you send us may be stored on reputable cloud-storage services (which may include services such as Google Drive) so our team can produce your book. These providers process the information on our behalf and under our instructions.",
+        },
+        {
+          kind: "p",
+          text: "For security reasons, we do not describe our internal technical setup here.",
+        },
+      ],
+    },
+    {
+      heading: "Sharing your information",
+      blocks: [
+        {
+          kind: "p",
+          text: "We do not sell your personal information, and we do not share it with third parties for their own marketing.",
+        },
+        { kind: "p", text: "We share information only:" },
+        {
+          kind: "list",
+          items: [
+            "with the service providers described above, and only as needed for them to help us operate the service and fulfill your order;",
+            "when you ask us to, or with your consent;",
+            "when required by law, legal process, or a valid request from a public authority;",
+            "to establish, exercise, or defend legal claims, or to protect the rights, safety, and property of TALIMOON, our customers, or others.",
+          ],
+        },
+      ],
+    },
+    {
+      heading: "How long we keep information",
+      blocks: [
+        {
+          kind: "p",
+          text: "We keep your information only for as long as is reasonably necessary to:",
+        },
+        {
+          kind: "list",
+          items: [
+            "create and deliver your order;",
+            "provide customer support and handle any questions or disputes;",
+            "meet operational, accounting, and legal requirements.",
+          ],
+        },
+        {
+          kind: "p",
+          text: "When we no longer need the information, we take reasonable steps to delete it or remove its connection to you. If you would like us to delete information sooner, contact us and we will do so where we are not required to keep it.",
+        },
+      ],
+    },
+    {
+      heading: "Security",
+      blocks: [
+        {
+          kind: "p",
+          text: "We use technical and organizational measures that are intended to protect the information you share with us against loss, misuse, and unauthorized access. No method of transmission or storage can be guaranteed to be completely secure, but we work to protect your information and to limit access to those who need it to do their work.",
+        },
+      ],
+    },
+    {
+      heading: "Your choices and requests",
+      blocks: [
+        {
+          kind: "p",
+          text: "You may contact us at talimoon.production@gmail.com to:",
+        },
+        {
+          kind: "list",
+          items: [
+            "ask what information we hold about you or your child;",
+            "ask us to correct information that is wrong or out of date;",
+            "ask us to delete information, subject to any records we are required or reasonably need to keep.",
+          ],
+        },
+        {
+          kind: "p",
+          text: "We will respond within a reasonable time, and we may need to confirm your identity and your relationship to the child before we act.",
+        },
+      ],
+    },
+    {
+      heading: "Third-party services",
+      blocks: [
+        {
+          kind: "p",
+          text: "Some parts of the experience depend on outside companies — for example payment providers, messaging platforms, and delivery services. When you use those services, or when we pass limited information to them to complete your order, their own privacy practices apply to what they do with it. We encourage you to read their policies.",
+        },
+      ],
+    },
+    {
+      heading: "Changes to this policy",
+      blocks: [
+        {
+          kind: "p",
+          text: "We may update this Privacy Policy from time to time. When we do, we will change the effective date at the top of this page. If the changes are significant, we will take reasonable steps to let customers with active orders know.",
+        },
+      ],
+    },
+    {
+      heading: "Contact us",
+      blocks: [
+        {
+          kind: "p",
+          text: "If you have any question about this Privacy Policy or about how your information is handled, contact us at talimoon.production@gmail.com.",
+        },
+      ],
+    },
+  ],
+};
+
+const UZ: LegalCopy = {
+  title: "Maxfiylik siyosati",
+  effectiveLabel: "Kuchga kirgan sana",
+  effectiveDate: "2026-yil 4-sentabr",
+  intro: [
+    "TALIMOON ('TALIMOON', 'biz') bolalar uchun shaxsiylashtirilgan kitoblar va u bilan bog'liq hikoya mahsulotlarini yaratadi. Ushbu Maxfiylik siyosati siz buyurtma berganingizda yoki veb-saytimizdan foydalanganingizda qanday ma'lumotlarni to'plashimizni, ulardan nima uchun foydalanishimizni va sizda qanday tanlov borligini tushuntiradi.",
+    "Iltimos, uni Foydalanish shartlari bilan birga o'qing.",
+  ],
+  sections: [
+    {
+      heading: "Biz kimmiz",
+      blocks: [
+        {
+          kind: "p",
+          text: "TALIMOON — bolalar uchun shaxsiylashtirilgan kitoblar va hikoyalar brendi. Biz ota-ona yoki vasiy ulashgan ma'lumotlar asosida, bola asosiy qahramon bo'lgan maxsus kitoblarni ishlab chiqamiz.",
+        },
+        {
+          kind: "p",
+          text: "Ushbu siyosat yoki ma'lumotlaringiz bo'yicha har qanday savol uchun biz bilan talimoon.production@gmail.com orqali bog'lanishingiz mumkin.",
+        },
+      ],
+    },
+    {
+      heading: "Siz taqdim etadigan ma'lumotlar",
+      blocks: [
+        {
+          kind: "p",
+          text: "Buyurtma berganingizda yoki biz bilan bog'langaningizda siz quyidagilarni taqdim etishingiz mumkin:",
+        },
+        {
+          kind: "list",
+          items: [
+            "Aloqa ma'lumotlari — buyurtma beruvchi shaxsning ismi, telefon raqami, elektron pochta manzili, messenjerdagi manzili va yetkazib berish manzili.",
+            "Bolaning ismi va yoshi.",
+            "Bolaning qiziqishlari, yoqtirgan narsalari va afzalliklari.",
+            "Hikoya shaxsiy chiqishi uchun siz ulashishni istagan xarakter xususiyatlari, oilaviy vaziyat va boshqa ma'lumotlar.",
+            "Rasm chizishda namuna sifatida foydalanish uchun siz yuklaydigan bola fotosuratlari.",
+            "Buyurtmaga qo'shishni istagan qo'shimcha qahramonlarning (masalan, ota-ona, aka-uka yoki do'stning) fotosuratlari va ma'lumotlari.",
+            "Buyurtma va yetkazib berish ma'lumotlari — nima buyurtma qilganingiz, yetkazib berish tanlovlari va siz yuboradigan to'lov tasdig'i.",
+            "Yozishmalar — buyurtma yuzasidan bizga yo'llagan xabarlar, savollar va fikr-mulohazalar.",
+          ],
+        },
+        {
+          kind: "p",
+          text: "Iltimos, faqat kitobni yaratish uchun zarur bo'lgan ma'lumotlarni ulashing va biz so'ramagan maxfiy ma'lumotlarni yubormang.",
+        },
+      ],
+    },
+    {
+      heading: "Ma'lumotlardan nima uchun foydalanamiz",
+      blocks: [
+        {
+          kind: "p",
+          text: "Yuqoridagi ma'lumotlardan biz quyidagi maqsadlarda foydalanamiz:",
+        },
+        {
+          kind: "list",
+          items: [
+            "siz buyurtma qilgan shaxsiylashtirilgan kitobni yaratish;",
+            "o'sha kitob uchun rasmlar, matn va hikoya mazmunini tayyorlash;",
+            "buyurtmangizni qabul qilish, tasdiqlash va boshqarish;",
+            "buyurtmangiz yuzasidan siz bilan bog'lanish, jumladan savollar va yangiliklar;",
+            "ishlab chiqarish, chop etish va yetkazib berishni tashkil qilish hamda mijozlarni qo'llab-quvvatlash;",
+            "operatsion yozuvlarni yuritish va xizmatimizning xavfsizligi hamda yaxlitligini himoya qilish.",
+          ],
+        },
+        {
+          kind: "p",
+          text: "Biz ma'lumotlaringizdan faqat shu maqsadlarda foydalanamiz. Bolalarning fotosuratlari va shaxsiy ma'lumotlaridan reklama uchun yoki buyurtmangizga aloqador bo'lmagan hech qanday maqsadda foydalanmaymiz.",
+        },
+      ],
+    },
+    {
+      heading: "Bolalar haqidagi ma'lumotlar",
+      blocks: [
+        {
+          kind: "p",
+          text: "Mahsulotlarimiz voyaga yetgan shaxs — ota-ona, vasiy yoki bola nomidan ish yuritishga vakolatli boshqa kattalar tomonidan buyurtma qilinadi.",
+        },
+        {
+          kind: "list",
+          items: [
+            "Buyurtma berish orqali siz o'sha shaxs ekanligingizni yoki undan ruxsat olganingizni tasdiqlaysiz.",
+            "Siz bolaning ismi, yoshi, ma'lumotlari va fotosuratlarini buyurtmani yaratish maqsadida biz bilan ulashishga vakolatingiz borligini tasdiqlaysiz.",
+            "Biz bola haqidagi ma'lumotlardan faqat buyurtma qilingan shaxsiylashtirilgan mahsulot yoki xizmatni yaratish va yetkazib berish uchun, shuningdek ushbu siyosatda tavsiflangan qo'llab-quvvatlash va yozuvlarni yuritish uchun foydalanamiz.",
+          ],
+        },
+        {
+          kind: "p",
+          text: "Agar bola haqidagi ma'lumot tegishli vakolatsiz biz bilan ulashilgan deb hisoblasangiz, talimoon.production@gmail.com orqali bog'laning — biz uni ko'rib chiqamiz va zarur bo'lsa, o'chirib tashlaymiz.",
+        },
+      ],
+    },
+    {
+      heading: "Saqlash va xizmat ko'rsatuvchi hamkorlar",
+      blocks: [
+        {
+          kind: "p",
+          text: "Biz xizmatimizni ishonchli uchinchi tomon provayderlari yordamida yuritamiz — masalan, bulutli hosting va fayl saqlash xizmatlari, xabar almashish va elektron pochta vositalari, chop etish hamkorlari va yetkazib berish kuryerlari.",
+        },
+        {
+          kind: "p",
+          text: "Siz yuboradigan fotosuratlar va buyurtma ma'lumotlari jamoamiz kitobingizni tayyorlashi uchun obro'li bulutli saqlash xizmatlarida (jumladan, Google Drive kabi xizmatlarda) saqlanishi mumkin. Bu provayderlar ma'lumotlarni bizning nomimizdan va ko'rsatmalarimiz asosida qayta ishlaydi.",
+        },
+        {
+          kind: "p",
+          text: "Xavfsizlik sabablariga ko'ra biz bu yerda ichki texnik tuzilmamizni tavsiflamaymiz.",
+        },
+      ],
+    },
+    {
+      heading: "Ma'lumotlarni ulashish",
+      blocks: [
+        {
+          kind: "p",
+          text: "Biz shaxsiy ma'lumotlaringizni sotmaymiz va uni uchinchi tomonlarga ularning o'z reklama maqsadlari uchun bermaymiz.",
+        },
+        { kind: "p", text: "Biz ma'lumotlarni faqat quyidagi hollarda ulashamiz:" },
+        {
+          kind: "list",
+          items: [
+            "yuqorida tavsiflangan xizmat ko'rsatuvchi hamkorlar bilan — va faqat ular bizga xizmatni yuritish va buyurtmangizni bajarishda yordam berishi uchun zarur bo'lgan darajada;",
+            "siz so'raganingizda yoki roziligingiz bilan;",
+            "qonun, sud jarayoni yoki davlat organining qonuniy talabi bo'yicha zarur bo'lganda;",
+            "huquqiy da'volarni o'rnatish, amalga oshirish yoki himoya qilish uchun, yoxud TALIMOON, mijozlarimiz yoki boshqalarning huquqlari, xavfsizligi va mulkini himoya qilish uchun.",
+          ],
+        },
+      ],
+    },
+    {
+      heading: "Ma'lumotlarni qancha muddat saqlaymiz",
+      blocks: [
+        {
+          kind: "p",
+          text: "Biz ma'lumotlaringizni faqat quyidagilar uchun asosli ravishda zarur bo'lgan muddat davomida saqlaymiz:",
+        },
+        {
+          kind: "list",
+          items: [
+            "buyurtmangizni yaratish va yetkazib berish;",
+            "mijozlarni qo'llab-quvvatlash hamda har qanday savol yoki nizolarni hal qilish;",
+            "operatsion, buxgalteriya va qonuniy talablarni bajarish.",
+          ],
+        },
+        {
+          kind: "p",
+          text: "Ma'lumot bizga endi kerak bo'lmaganda, biz uni o'chirish yoki siz bilan bog'liqligini yo'qotish uchun asosli choralar ko'ramiz. Agar ma'lumotni ertaroq o'chirishimizni istasangiz, biz bilan bog'laning — saqlash majburiyati bo'lmagan hollarda buni bajaramiz.",
+        },
+      ],
+    },
+    {
+      heading: "Xavfsizlik",
+      blocks: [
+        {
+          kind: "p",
+          text: "Biz siz ulashadigan ma'lumotlarni yo'qotish, suiiste'mol qilish va ruxsatsiz kirishdan himoya qilishga qaratilgan texnik va tashkiliy choralardan foydalanamiz. Ma'lumot uzatish yoki saqlashning hech bir usuli to'liq xavfsiz ekanligini kafolatlab bo'lmaydi, biroq biz ma'lumotlaringizni himoya qilish va unga kirishni faqat ish yuzasidan zarur bo'lgan shaxslar bilan cheklash ustida ishlaymiz.",
+        },
+      ],
+    },
+    {
+      heading: "Sizning tanlovlaringiz va so'rovlaringiz",
+      blocks: [
+        {
+          kind: "p",
+          text: "Quyidagilar uchun biz bilan talimoon.production@gmail.com orqali bog'lanishingiz mumkin:",
+        },
+        {
+          kind: "list",
+          items: [
+            "siz yoki bolangiz haqida qanday ma'lumot saqlashimizni so'rash;",
+            "noto'g'ri yoki eskirgan ma'lumotni tuzatishimizni so'rash;",
+            "ma'lumotni o'chirishimizni so'rash — biz saqlashga majbur bo'lgan yoki asosli ravishda saqlashimiz zarur bo'lgan yozuvlar bundan mustasno.",
+          ],
+        },
+        {
+          kind: "p",
+          text: "Biz so'rovingizga asosli muddat ichida javob beramiz va choralar ko'rishdan oldin shaxsingizni hamda bola bilan aloqangizni tasdiqlashimiz kerak bo'lishi mumkin.",
+        },
+      ],
+    },
+    {
+      heading: "Uchinchi tomon xizmatlari",
+      blocks: [
+        {
+          kind: "p",
+          text: "Tajribaning ba'zi qismlari tashqi kompaniyalarga bog'liq — masalan, to'lov provayderlari, xabar almashish platformalari va yetkazib berish xizmatlari. Siz o'sha xizmatlardan foydalanganingizda yoki biz buyurtmangizni yakunlash uchun ularga cheklangan ma'lumotni uzatganimizda, ular bilan bog'liq amallarga o'sha kompaniyalarning o'z maxfiylik qoidalari tatbiq etiladi. Ularning qoidalari bilan tanishishni tavsiya qilamiz.",
+        },
+      ],
+    },
+    {
+      heading: "Siyosatga o'zgartirishlar",
+      blocks: [
+        {
+          kind: "p",
+          text: "Biz ushbu Maxfiylik siyosatini vaqti-vaqti bilan yangilashimiz mumkin. Yangilaganimizda, sahifaning yuqorisidagi kuchga kirish sanasini o'zgartiramiz. O'zgarishlar jiddiy bo'lsa, faol buyurtmasi bor mijozlarni xabardor qilish uchun asosli choralar ko'ramiz.",
+        },
+      ],
+    },
+    {
+      heading: "Biz bilan bog'lanish",
+      blocks: [
+        {
+          kind: "p",
+          text: "Ushbu Maxfiylik siyosati yoki ma'lumotlaringiz qanday ishlov ko'rishi bo'yicha savolingiz bo'lsa, talimoon.production@gmail.com orqali biz bilan bog'laning.",
+        },
+      ],
+    },
+  ],
+};
+
+export default function PrivacyPage() {
+  return (
+    <>
+      <Navbar />
+      <main>
+        <LegalDocument en={EN} uz={UZ} />
+      </main>
+      <Footer showTopCta={false} showHowItWorksLink={false} />
+    </>
+  );
+}
