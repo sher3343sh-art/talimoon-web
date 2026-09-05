@@ -135,16 +135,29 @@ const ANCHOR_PRICE: Record<Market, Record<BookType, number>> = {
  *  cream/gold type, a whisper of depth. No starburst, no red, no
  *  supermarket-sticker energy, no animation. Decorative: aria-hidden,
  *  with the saving spoken in an sr-only line beside the price. */
-function SavingsBadge({ urgency, percent }: { urgency: string; percent: string }) {
+function SavingsBadge({
+  urgency,
+  percent,
+  featured,
+}: {
+  urgency: string;
+  percent: string;
+  featured?: boolean;
+}) {
   return (
     <span
       aria-hidden="true"
-      className="inline-flex shrink-0 select-none flex-col items-center justify-center rounded-md border border-[color:var(--gold-mid)] bg-[color:var(--surface-contrast)] px-2.5 py-1.5 text-center leading-none shadow-[0_2px_8px_-2px_rgba(28,42,58,0.4)]"
+      className={[
+        "inline-flex shrink-0 select-none items-center justify-center gap-1.5 rounded-full border px-2.5 py-1.5 text-center leading-none",
+        featured
+          ? "border-[color:var(--gold-highlight)]/50 bg-[color:var(--gold-mid)]/[0.10] text-[color:var(--gold-highlight)]"
+          : "border-[color:var(--gold-mid)]/35 bg-[color:var(--gold-mid)]/[0.08] text-[color:var(--gold-shadow)]",
+      ].join(" ")}
     >
-      <span className="font-sans text-[8px] font-semibold uppercase tracking-[0.16em] text-[color:var(--gold-highlight)]">
+      <span className="font-sans text-[8.5px] font-semibold uppercase tracking-[0.14em]">
         {urgency}
       </span>
-      <span className="mt-1 font-display text-[17px] font-semibold tracking-[-0.01em] text-[color:var(--surface-base)]">
+      <span className="font-display text-[14px] font-semibold tracking-[-0.01em]">
         {percent}
       </span>
     </span>
@@ -215,7 +228,7 @@ export default function PricingSection() {
           })}
         </div>
 
-        <div className="mx-auto mt-10 grid max-w-3xl gap-6 sm:grid-cols-2">
+        <div className="mx-auto mt-12 grid max-w-[880px] gap-5 sm:grid-cols-[0.92fr_1.08fr] sm:items-stretch">
           {PLANS.map((plan) => {
             const info = PRICING[plan.type];
             const label = language === "UZ" ? info.labelUz : info.label;
@@ -232,19 +245,17 @@ export default function PricingSection() {
               <div
                 key={plan.type}
                 className={[
-                  "relative flex flex-col rounded-lg p-7",
+                  "relative flex flex-col rounded-[18px] p-7 transition-[transform,box-shadow] duration-300 motion-reduce:transition-none",
                   plan.featured
-                    ? "border-[1.5px] border-transparent shadow-[0_16px_40px_-26px_rgba(28,42,58,0.22)]"
-                    : "border border-border-default bg-surface-overlay",
+                    ? "order-first min-h-[450px] border-[1.5px] border-transparent bg-[color:var(--surface-contrast)] text-surface-base shadow-[0_30px_65px_-32px_rgba(21,34,53,0.65)] sm:order-none sm:-mt-3 sm:min-h-[470px] sm:p-9"
+                    : "min-h-[430px] border border-[color:var(--gold-mid)]/20 bg-surface-overlay shadow-[0_18px_48px_-34px_rgba(28,42,58,0.30)] sm:hover:-translate-y-1 sm:hover:shadow-[0_24px_54px_-32px_rgba(28,42,58,0.34)]",
                 ].join(" ")}
                 style={
                   plan.featured
                     ? {
-                        // warm tint (a 4% gold wash over the white card fill)
-                        // + the same gold gradient BORDER as .tm-cta-gold.
-                        backgroundImage: `linear-gradient(rgba(199,154,75,0.045), rgba(199,154,75,0.045)), linear-gradient(var(--surface-overlay), var(--surface-overlay)), ${GOLD_GRADIENT}`,
+                        backgroundImage: `linear-gradient(145deg, #223249 0%, #152235 100%), ${GOLD_GRADIENT}`,
                         backgroundOrigin: "border-box",
-                        backgroundClip: "padding-box, padding-box, border-box",
+                        backgroundClip: "padding-box, border-box",
                       }
                     : undefined
                 }
@@ -253,11 +264,11 @@ export default function PricingSection() {
                     micro-chip — part of the card's header row, not a
                     sticker pinned over the border. */}
                 <div className="flex items-center justify-between gap-3">
-                  <span className="font-sans text-[12px] font-medium uppercase tracking-wide text-text-secondary">
+                  <span className={`font-sans text-[11.5px] font-medium uppercase tracking-[0.14em] ${plan.featured ? "text-[color:var(--gold-highlight)]/80" : "text-text-secondary"}`}>
                     {label}
                   </span>
                   {plan.featured && (
-                    <span className="shrink-0 rounded-full border border-[color:var(--gold-mid)]/40 bg-[color:var(--gold-mid)]/[0.08] px-2 py-0.5 font-sans text-[9.5px] font-semibold uppercase tracking-[0.08em] text-[color:var(--gold-base)]">
+                    <span className="shrink-0 rounded-full border border-[color:var(--gold-highlight)]/45 bg-[color:var(--gold-mid)]/[0.09] px-2.5 py-1 font-sans text-[9px] font-semibold uppercase tracking-[0.12em] text-[color:var(--gold-highlight)]">
                       {t.mostChosen}
                     </span>
                   )}
@@ -269,10 +280,10 @@ export default function PricingSection() {
                     flex-wrap lets the badge drop under the price on a very
                     narrow card instead of overflowing. */}
                 <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
-                  <span className="font-display text-[30px] font-medium leading-none text-text-primary">
+                  <span className={`font-display text-[32px] font-medium leading-none tracking-[-0.025em] sm:text-[36px] ${plan.featured ? "text-surface-base" : "text-text-primary"}`}>
                     {priced.value}
                     {priced.unit && (
-                      <span className="font-sans text-[14px] font-normal"> {priced.unit}</span>
+                      <span className={`font-sans text-[13px] font-normal ${plan.featured ? "text-surface-base/70" : "text-text-secondary"}`}> {priced.unit}</span>
                     )}
                   </span>
                   {hasDiscount && (
@@ -280,6 +291,7 @@ export default function PricingSection() {
                       <SavingsBadge
                         urgency={t.badgeUrgency}
                         percent={t.badgePercent(savingPct)}
+                        featured={plan.featured}
                       />
                       <span className="sr-only">{t.badgeSr(savingPct, anchorText)}</span>
                     </>
@@ -288,28 +300,26 @@ export default function PricingSection() {
 
                 {hasDiscount && (
                   <div className="mt-2">
-                    <span className="font-sans text-[18px] text-text-muted line-through md:text-[19px]">
+                    <span className={`font-sans text-[15px] line-through ${plan.featured ? "text-surface-base/45" : "text-text-muted"}`}>
                       {anchorText}
                     </span>
                   </div>
                 )}
 
-                <p className={`${hasDiscount ? "mt-2.5" : "mt-2"} font-sans text-[12.5px] text-text-secondary`}>
+                <p className={`${hasDiscount ? "mt-2.5" : "mt-2"} font-sans text-[12.5px] ${plan.featured ? "text-surface-base/68" : "text-text-secondary"}`}>
                   {t.pagesStory(info.pages)}
                 </p>
 
-                <div className="mt-5 flex-1 border-t border-border-subtle pt-4">
+                <div className={`mt-6 flex-1 border-t pt-4 ${plan.featured ? "border-[color:var(--gold-mid)]/20" : "border-border-subtle"}`}>
                   {plan.features.map((f, i) => {
                     const Icon = f.icon;
                     return (
                       <div
                         key={i}
-                        className={["flex items-start gap-2.5 py-2", i === 0 ? "" : "border-t border-border-subtle"].join(
-                          " "
-                        )}
+                        className={["flex items-start gap-2.5 py-2.5", i === 0 ? "" : plan.featured ? "border-t border-surface-base/10" : "border-t border-border-subtle"].join(" ")}
                       >
-                        <Icon size={16} strokeWidth={1.5} className="mt-0.5 shrink-0 text-accent-primary" />
-                        <span className="font-sans text-[13px] text-text-primary">
+                        <Icon size={16} strokeWidth={1.5} className={`mt-0.5 shrink-0 ${plan.featured ? "text-[color:var(--gold-highlight)]" : "text-accent-primary"}`} />
+                        <span className={`font-sans text-[13px] leading-[1.45] ${plan.featured ? "text-surface-base/88" : "text-text-primary"}`}>
                           {language === "UZ" ? f.textUz : f.text}
                         </span>
                       </div>
@@ -319,7 +329,12 @@ export default function PricingSection() {
 
                 <Link
                   href="/begin/personalized-book/form"
-                  className="tm-cta-gold mt-6 flex h-12 w-full items-center justify-center font-sans text-[13.5px] font-medium tracking-[0.015em]"
+                  className={[
+                    "mt-6 flex h-12 w-full items-center justify-center rounded-lg font-sans text-[13.5px] font-medium tracking-[0.015em] transition-all duration-200",
+                    plan.featured
+                      ? "tm-cta-gold shadow-[0_12px_28px_-14px_rgba(226,196,119,0.75)]"
+                      : "border border-[color:var(--gold-mid)]/60 text-[color:var(--gold-shadow)] hover:border-[color:var(--gold-base)] hover:bg-[color:var(--gold-mid)]/[0.06]",
+                  ].join(" ")}
                 >
                   {t.choosePlan(label)} →
                 </Link>
@@ -330,11 +345,11 @@ export default function PricingSection() {
 
         {/* Purchase reassurance — a calm strip, not footnotes and not
             cards. One hairline sets it apart from the plan grid. */}
-        <div className="mx-auto mt-10 max-w-3xl border-t border-border-subtle pt-6">
-          <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
+        <div className="mx-auto mt-7 max-w-[880px] border-y border-[color:var(--gold-mid)]/20 px-5 py-5">
+          <div className="grid gap-4 sm:grid-cols-3 sm:gap-5">
             <div className="flex items-center gap-2.5">
               <Copy size={18} strokeWidth={1.75} className="shrink-0 text-accent-primary" />
-              <span className="font-sans text-[14.5px] leading-snug text-text-secondary md:text-[15px]">
+              <span className="font-sans text-[13px] leading-snug text-text-secondary">
                 {(market === "UZ" ? t.extraCopies : t.extraCopiesIntl)(
                   (() => {
                     const p = priceParts(MARKET_PRICING[market].extraCopy, market);
@@ -345,13 +360,13 @@ export default function PricingSection() {
             </div>
             <div className="flex items-center gap-2.5">
               <Truck size={18} strokeWidth={1.75} className="shrink-0 text-accent-primary" />
-              <span className="font-sans text-[14.5px] leading-snug text-text-secondary md:text-[15px]">
+              <span className="font-sans text-[13px] leading-snug text-text-secondary">
                 {market === "UZ" ? t.deliveryUz : t.deliveryIntl}
               </span>
             </div>
             <div className="flex items-center gap-2.5">
               <Clock size={18} strokeWidth={1.75} className="shrink-0 text-accent-primary" />
-              <span className="font-sans text-[14.5px] leading-snug text-text-secondary md:text-[15px]">
+              <span className="font-sans text-[13px] leading-snug text-text-secondary">
                 {market === "UZ" ? t.readyInUz : t.readyInIntl}
               </span>
             </div>
