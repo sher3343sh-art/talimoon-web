@@ -33,28 +33,28 @@ import { StoryLibraryIllustration } from "./StoryLibraryIllustration";
 import { useT } from "@/lib/i18n/LanguageContext";
 
 const COPY_EN = {
-  eyebrow: "Story Library",
-  heading: "Where Every Story Comes Alive.",
+  eyebrow: "TALIMOON WORLDS",
+  heading: "Story Library",
   description:
-    "Real TALIMOON family stories, shared with permission, alongside the continuing world of Yusuf & Yasmina.",
-  cta: "Explore Story Library",
+    "Personalized stories and the magical adventures of Yusuf & Yasmina. Real examples are shared with parents' permission.",
+  cta: "Open the Library",
   // No engagement metrics here: the library is small and curated, and
   // the home page must not imply a scale it doesn't have. Two calm
   // lines about the two worlds do the work instead.
   worlds: [
-    "Family stories",
+    "Personalized stories",
     "Yusuf & Yasmina",
   ],
 };
 
 const COPY_UZ: typeof COPY_EN = {
-  eyebrow: "Hikoyalar kutubxonasi",
-  heading: "Har bir hikoya jonlanadigan joy.",
+  eyebrow: "TALIMOON OLAMLARI",
+  heading: "Hikoyalar kutubxonasi",
   description:
-    "Haqiqiy TALIMOON oila hikoyalari — ruxsat bilan baham ko'rilgan — va Yusuf va Yasmina olamining davomi.",
-  cta: "Hikoyalar kutubxonasini ko'rish",
+    "Shaxsiylashtirilgan hikoyalar va Yusuf va Yasminaning sehrli sarguzashtlari. Namunalar ota-onalar roziligi bilan ulashilgan.",
+  cta: "Kutubxonani ochish",
   worlds: [
-    "Oila hikoyalari",
+    "Shaxsiy hikoyalar",
     "Yusuf va Yasmina",
   ],
 };
