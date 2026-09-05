@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, MapPin, Upload } from "lucide-react";
 import { useLanguage, useT } from "@/lib/i18n/LanguageContext";
 import { toLocale } from "@/lib/journey/types";
@@ -12,9 +12,9 @@ import {
   DELIVERY_REGIONS,
   PAYMENT_ACCOUNTS,
   STEPS,
+  TRAITS,
   TraitId,
   type StepId,
-  buildPricingSnapshot,
   calculateOrderTotal,
   countryLabel,
   deliveryRegionLabel,
@@ -22,6 +22,16 @@ import {
   paymentMethodsForMarket,
   type Market,
 } from "./orderFormData";
+import {
+  buildSubmitPayload,
+  finalizeOrder,
+  isBackendBookLanguage,
+  planChildPhotoUploads,
+  submitOrder,
+  uploadFile,
+} from "@/lib/order/api";
+import { buildAddressText } from "@/lib/order/addressText";
+import Turnstile, { type TurnstileHandle } from "./Turnstile";
 import { PaymentAccount } from "./PaymentAccount";
 import { setMarketPreference, useMarketPreference, marketFromLocation } from "@/lib/order/market";
 import { useFlowScroll } from "@/lib/order/useFlowScroll";
@@ -171,6 +181,7 @@ const CHROME_EN = {
   photosEnough: (n: number) => `${n} photo${n === 1 ? "" : "s"} — enough`,
   photosMoreNeeded: (n: number) =>
     `Upload ${n} more photo${n === 1 ? "" : "s"} to continue`,
+  childPhotosMoreNeeded: (who: string) => `${who} still needs at least 3 photos`,
   removePhoto: "Remove photo",
   photoTooLarge: "That photo is too large. Please choose one under 15 MB.",
   photoNotImage: "Please choose an image file.",
@@ -198,6 +209,7 @@ const CHROME_EN = {
   receiptDone: "Receipt uploaded",
   receiptReplace: "Replace",
   receiptError: "Please upload the payment receipt to finish.",
+  submitError: "We couldn't send your order. Please try again.",
 
   reviewLanguage: "Book language",
   reviewAddress: "Delivery",
@@ -317,6 +329,7 @@ const CHROME_UZ: typeof CHROME_EN = {
   atLeastPhotos: (min: number) => `Kamida ${min} ta surat kerak`,
   photosEnough: (n: number) => `${n} ta surat — yetarli`,
   photosMoreNeeded: (n: number) => `Davom etish uchun yana ${n} ta rasm yuklang`,
+  childPhotosMoreNeeded: (who: string) => `${who} uchun kamida 3 ta surat kerak`,
   removePhoto: "Suratni o'chirish",
   photoTooLarge: "Bu surat juda katta. Iltimos, 15 MB dan kichigini tanlang.",
   photoNotImage: "Iltimos, rasm faylini tanlang.",
@@ -345,6 +358,7 @@ const CHROME_UZ: typeof CHROME_EN = {
   receiptDone: "Chek yuklandi",
   receiptReplace: "Almashtirish",
   receiptError: "Yakunlash uchun to‘lov chekini yuklang.",
+  submitError: "Buyurtmangizni yuborishda xatolik yuz berdi. Iltimos, qayta urinib ko'ring.",
 
   reviewLanguage: "Kitob tili",
   reviewAddress: "Yetkazib berish",
@@ -404,7 +418,8 @@ interface FormData {
    *  photos step then generates one upload block per named entry. */
   wantsCharacters: boolean;
   additionalCharacters: AdditionalCharacter[];
-  childPhotos: File[];
+  // Child photos live on each ChildProfile (`children[i].photos`) — one
+  // upload block per child on the photos step, not a shared pool.
   wantsSpecialPhoto: boolean;
   specialPhoto: File | null;
   /** Stable machine code (spec §41) — "" until chosen. */
@@ -434,7 +449,6 @@ function emptyForm(market: Market = "UZ"): FormData {
     personalMessage: "",
     wantsCharacters: false,
     additionalCharacters: [],
-    childPhotos: [],
     wantsSpecialPhoto: false,
     specialPhoto: null,
     bookLanguageCode: "",
@@ -469,16 +483,19 @@ function isStepComplete(stepId: StepId, data: FormData): boolean {
     }
     case "photos": {
       // Only photos actually accepted into state count (a rejected file
-      // never reaches state). Each named additional character needs at
+      // never reaches state). EVERY child needs its OWN at least
+      // MIN_CHILD_PHOTOS — a shared/pooled count is not enough once there
+      // is more than one child. Each named additional character needs at
       // least MIN_CHARACTER_PHOTOS before the step can advance.
+      const childPhotosOk = data.children.every(
+        (c) => (c.photos?.length ?? 0) >= MIN_CHILD_PHOTOS,
+      );
       const characterPhotosOk =
         !data.wantsCharacters ||
         data.additionalCharacters
           .filter(additionalCharacterNamed)
           .every((c) => c.photos.length >= MIN_CHARACTER_PHOTOS);
-      return (
-        data.childPhotos.length >= MIN_CHILD_PHOTOS && characterPhotosOk
-      );
+      return childPhotosOk && characterPhotosOk;
     }
     case "review": {
       // Phone + book language + an answered delivery question. If the
@@ -590,6 +607,31 @@ export default function PersonalizedBookOrderForm({
    *  an Enter race can't send the order twice (spec §6). */
   const [submitting, setSubmitting] = useState(false);
   const [showStepError, setShowStepError] = useState(false);
+  /** Set only on a failed submit attempt; cleared at the start of the next
+   *  one. Never carries the raw error — see submitOrderFlow(). */
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const turnstileRef = useRef<TurnstileHandle>(null);
+  /** Generated once for the whole submission attempt and reused on every
+   *  retry, so a network retry never creates a second order (spec: the
+   *  backend dedupes POST /v1/orders by this key). */
+  const idempotencyKeyRef = useRef<string | null>(null);
+  /** The capability token lives ONLY here — component memory for the
+   *  active flow. Never written to localStorage/sessionStorage/cookies,
+   *  never logged. Per-item `*Done` flags let a retry (after e.g. an
+   *  upload fails) resume without re-sending artifacts that already
+   *  landed — resending an already-stored photo would get a NEW sequential
+   *  filename server-side and create a duplicate, not a harmless no-op. */
+  const orderSessionRef = useRef<{
+    orderCode: string;
+    capabilityToken: string;
+    childSlots: Array<{ childRef: string }>;
+    /** [childIndex][photoIndex] — one done-flag per child's own photo, not
+     *  a single flat pool (see planChildPhotoUploads). */
+    childPhotoDone: boolean[][];
+    specialPhotoDone: boolean;
+    characterPhotoDone: boolean[];
+    receiptDone: boolean;
+  } | null>(null);
 
   // Switching market is ONE atomic transition (spec §17): currency,
   // every price, the delivery rules AND any stale delivery/address
@@ -824,6 +866,145 @@ export default function PersonalizedBookOrderForm({
     setShowStepError(false);
   }
 
+  /**
+   * The real submit path: Turnstile → create order → upload every
+   * declared artifact → finalize → the existing success screen. Safe to
+   * call again after a failure — it resumes from whatever already
+   * succeeded (same idempotencyKey, same order, only not-yet-uploaded
+   * artifacts, finalize is backend-idempotent on retry).
+   */
+  async function submitOrderFlow(): Promise<void> {
+    try {
+      if (!idempotencyKeyRef.current) {
+        idempotencyKeyRef.current =
+          typeof crypto !== "undefined" && crypto.randomUUID
+            ? crypto.randomUUID()
+            : `web-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      }
+
+      const namedCharacters = data.additionalCharacters.filter(additionalCharacterNamed);
+
+      let session = orderSessionRef.current;
+      if (!session) {
+        if (!isBackendBookLanguage(data.bookLanguageCode)) {
+          throw new Error(t.submitError);
+        }
+        const token = await turnstileRef.current?.execute();
+        if (!token) throw new Error(t.submitError);
+
+        const addressText = buildAddressText(data.orderer.deliveryAddress, data.market, bookLoc);
+        const characterPhotoCount = namedCharacters.reduce((n, c) => n + c.photos.length, 0);
+        const extraCharactersText =
+          namedCharacters.length > 0
+            ? namedCharacters.map((c) => additionalCharacterLabel(c)).join("; ")
+            : undefined;
+        const traitLabels = data.traits.length
+          ? data.traits.map((id) => {
+              const tr = TRAITS.find((x) => x.id === id);
+              return tr ? (bookLoc === "uz" ? tr.uz : tr.en) : id;
+            })
+          : undefined;
+
+        const payload = buildSubmitPayload({
+          idempotencyKey: idempotencyKeyRef.current,
+          turnstileToken: token,
+          market: data.market,
+          bookType: data.bookType,
+          copies: data.copies,
+          deliveryRequired: wantsDelivery,
+          regionCode: data.orderer.deliveryAddress.regionCode || undefined,
+          countryCode: data.orderer.deliveryAddress.countryCode || undefined,
+          clientDeclaredTotal: totals.grandTotal,
+          declaredArtifacts: {
+            childPhotoCount: data.children.reduce((n, c) => n + (c.photos?.length ?? 0), 0),
+            wantsSpecialPhoto: data.wantsSpecialPhoto,
+            characterPhotoCount,
+            hasReceipt: data.receipt != null,
+          },
+          orderer: { fullName: data.orderer.name, phone: data.orderer.phone },
+          addressText,
+          children: data.children.map((c) => ({ name: c.name, age: c.age })),
+          interests: data.interests || undefined,
+          dreams: data.dreams || undefined,
+          traits: traitLabels,
+          weaknesses: data.weaknesses || undefined,
+          extraInfo: data.extraInfo || undefined,
+          giftFrom: data.giftFrom || undefined,
+          personalMessage: data.wantsPersonalMessage ? data.personalMessage || undefined : undefined,
+          extraCharacters: extraCharactersText,
+          bookLanguage: data.bookLanguageCode,
+        });
+
+        const result = await submitOrder(payload);
+        session = {
+          orderCode: result.orderCode,
+          capabilityToken: result.capabilityToken,
+          childSlots: result.childSlots,
+          childPhotoDone: data.children.map((c) => (c.photos ?? []).map(() => false)),
+          specialPhotoDone: false,
+          characterPhotoDone: namedCharacters.flatMap((c) => c.photos.map(() => false)),
+          receiptDone: false,
+        };
+        orderSessionRef.current = session;
+      }
+
+      const { orderCode, capabilityToken, childSlots } = session;
+
+      // Each child has its own photos and its own backend childRef (see
+      // planChildPhotoUploads for the proven childSlots[i] <-> children[i]
+      // ordering contract). Only not-yet-uploaded photos are included, so a
+      // retry never re-sends (and duplicates) a photo that already landed.
+      const childPhotoTasks = planChildPhotoUploads(
+        data.children.map((c) => ({ photos: c.photos ?? [] })),
+        childSlots,
+        session.childPhotoDone,
+      );
+      for (const task of childPhotoTasks) {
+        await uploadFile({
+          orderCode,
+          capabilityToken,
+          kind: "child_photo",
+          file: task.file,
+          childRef: task.childRef,
+        });
+        session.childPhotoDone[task.childIndex][task.photoIndex] = true;
+      }
+
+      if (data.wantsSpecialPhoto && data.specialPhoto && !session.specialPhotoDone) {
+        await uploadFile({ orderCode, capabilityToken, kind: "special_photo", file: data.specialPhoto });
+        session.specialPhotoDone = true;
+      }
+
+      let charIdx = 0;
+      for (const character of namedCharacters) {
+        for (const photo of character.photos) {
+          const k = charIdx++;
+          if (session.characterPhotoDone[k]) continue;
+          await uploadFile({ orderCode, capabilityToken, kind: "character_photo", file: photo });
+          session.characterPhotoDone[k] = true;
+        }
+      }
+
+      if (data.receipt && !session.receiptDone) {
+        await uploadFile({ orderCode, capabilityToken, kind: "receipt", file: data.receipt });
+        session.receiptDone = true;
+      }
+
+      await finalizeOrder({
+        orderCode,
+        capabilityToken,
+        notify: { customerName: data.orderer.name, phone: data.orderer.phone },
+      });
+
+      setSubmitted(true);
+    } catch {
+      // Never surface the raw error (status text, validation detail) to the
+      // customer — same "never leak internals" posture as the backend.
+      setSubmitError(t.submitError);
+      setSubmitting(false);
+    }
+  }
+
   /** This step's gate — one call into the centralized rule (spec §6). */
   const canContinue = () => isStepComplete(step.id, data);
   /** Whether the primary button should read as ready (also false while a
@@ -849,39 +1030,8 @@ export default function PersonalizedBookOrderForm({
     }
     if (isLastStep) {
       setSubmitting(true);
-      // A submitted order PRESERVES the prices that applied right now —
-      // never recalculated from a later config (spec §35–37). This is
-      // the payload shape the order-intake API will store.
-      const snapshot = buildPricingSnapshot({
-        market: data.market,
-        countryCode:
-          data.orderer.deliveryAddress.countryCode ||
-          (data.market === "UZ" ? "UZ" : ""),
-        bookType: data.bookType,
-        copies: data.copies,
-        deliveryRequired: wantsDelivery,
-        regionCode: data.orderer.deliveryAddress.regionCode,
-      });
-      // Structured additional-character intake — relationship + name +
-      // how many reference photos each carries. This is the shape the
-      // order-intake API's `profile.additionalCharacters` expects; each
-      // entry maps 1:1 to a server-issued `characterRef` at POST time,
-      // and its photos upload as `kind=character_photo` against that ref.
-      const additionalCharacters = data.additionalCharacters
-        .filter(additionalCharacterNamed)
-        .map((c) => ({
-          relation: c.relation.trim(),
-          name: c.name.trim(),
-          photoCount: c.photos.length,
-        }));
-      // TODO: POST this to the order-intake API once it exists (upload +
-      // admin notification). Validated form state + pricing snapshot
-      // only for now.
-      if (typeof console !== "undefined") {
-        console.info("[order] pricing snapshot", snapshot);
-        console.info("[order] additional characters", additionalCharacters);
-      }
-      setSubmitted(true);
+      setSubmitError(null);
+      void submitOrderFlow();
       return;
     }
     setStepIndex((i) => Math.min(i + 1, STEPS.length - 1));
@@ -1040,6 +1190,8 @@ export default function PersonalizedBookOrderForm({
       data-order-flow=""
       className="mx-auto w-full max-w-container-content bg-surface-base px-6 py-16 sm:px-8 md:py-20 lg:px-16 lg:py-28"
     >
+      {/* Invisible/managed — renders no visible UI. See Turnstile.tsx. */}
+      <Turnstile ref={turnstileRef} siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY} />
       <div className="mx-auto max-w-xl">
         {/* Chapter header */}
         <div className="mb-8 flex items-center justify-between gap-4">
@@ -1142,21 +1294,54 @@ export default function PersonalizedBookOrderForm({
 
           {step.id === "photos" && (
             <>
-              <PhotoUpload
-                label={t.childPhotos}
-                hint={t.childPhotosHint}
-                removeLabel={t.removePhoto}
-                atLeastLabel={t.atLeastPhotos}
-                enoughLabel={t.photosEnough}
-                moreNeededLabel={t.photosMoreNeeded}
-                tooLargeLabel={t.photoTooLarge}
-                notImageLabel={t.photoNotImage}
-                brokenLabel={t.photoBroken}
-                files={data.childPhotos}
-                min={MIN_CHILD_PHOTOS}
-                max={MAX_CHILD_PHOTOS}
-                onChange={(files) => update("childPhotos", files)}
-              />
+              {/* One child ⇒ exactly the same single block as before (spec:
+                  single-child UX unchanged). 2+ children ⇒ one block PER
+                  CHILD, named, so it's unambiguous which photos belong to
+                  whom — same PhotoUpload primitive, same visual language as
+                  the additional-characters photo blocks below. */}
+              {data.children.length <= 1 ? (
+                <PhotoUpload
+                  label={t.childPhotos}
+                  hint={t.childPhotosHint}
+                  removeLabel={t.removePhoto}
+                  atLeastLabel={t.atLeastPhotos}
+                  enoughLabel={t.photosEnough}
+                  moreNeededLabel={t.photosMoreNeeded}
+                  tooLargeLabel={t.photoTooLarge}
+                  notImageLabel={t.photoNotImage}
+                  brokenLabel={t.photoBroken}
+                  files={data.children[0]?.photos ?? []}
+                  min={MIN_CHILD_PHOTOS}
+                  max={MAX_CHILD_PHOTOS}
+                  onChange={(files) =>
+                    data.children[0] && patchChild(data.children[0].id, { photos: files })
+                  }
+                />
+              ) : (
+                <div className="space-y-5" data-testid="per-child-photos">
+                  <p className="font-sans text-[13px] font-medium text-text-primary">
+                    {t.childPhotos}
+                  </p>
+                  {data.children.map((child) => (
+                    <PhotoUpload
+                      key={child.id}
+                      label={child.name.trim() || t.childPhotos}
+                      hint={t.childPhotosHint}
+                      removeLabel={t.removePhoto}
+                      atLeastLabel={t.atLeastPhotos}
+                      enoughLabel={t.photosEnough}
+                      moreNeededLabel={t.photosMoreNeeded}
+                      tooLargeLabel={t.photoTooLarge}
+                      notImageLabel={t.photoNotImage}
+                      brokenLabel={t.photoBroken}
+                      files={child.photos ?? []}
+                      min={MIN_CHILD_PHOTOS}
+                      max={MAX_CHILD_PHOTOS}
+                      onChange={(files) => patchChild(child.id, { photos: files })}
+                    />
+                  ))}
+                </div>
+              )}
 
               <SwitchRow
                 label={t.wantsSpecialPhoto}
@@ -1198,18 +1383,23 @@ export default function PersonalizedBookOrderForm({
 
               {showStepError && !canContinue() && (
                 <p role="alert" className="font-sans text-[13px] text-state-error">
-                  {data.childPhotos.length < MIN_CHILD_PHOTOS
-                    ? t.photosMoreNeeded(MIN_CHILD_PHOTOS - data.childPhotos.length)
-                    : (() => {
-                        const short = data.additionalCharacters
-                          .filter(additionalCharacterNamed)
-                          .find((c) => c.photos.length < MIN_CHARACTER_PHOTOS);
-                        return short
-                          ? t.characterPhotosMoreNeeded(
-                              additionalCharacterLabel(short),
-                            )
-                          : t.photosMoreNeeded(0);
-                      })()}
+                  {(() => {
+                    const shortChild = data.children.find(
+                      (c) => (c.photos?.length ?? 0) < MIN_CHILD_PHOTOS,
+                    );
+                    if (shortChild) {
+                      const have = shortChild.photos?.length ?? 0;
+                      return data.children.length <= 1
+                        ? t.photosMoreNeeded(MIN_CHILD_PHOTOS - have)
+                        : t.childPhotosMoreNeeded(shortChild.name.trim() || t.childPhotos);
+                    }
+                    const shortCharacter = data.additionalCharacters
+                      .filter(additionalCharacterNamed)
+                      .find((c) => c.photos.length < MIN_CHARACTER_PHOTOS);
+                    return shortCharacter
+                      ? t.characterPhotosMoreNeeded(additionalCharacterLabel(shortCharacter))
+                      : t.photosMoreNeeded(0);
+                  })()}
                 </p>
               )}
             </>
@@ -1816,6 +2006,12 @@ export default function PersonalizedBookOrderForm({
                 </p>
               )}
             </>
+          )}
+
+          {isLastStep && submitError && (
+            <p role="alert" className="font-sans text-[13px] text-state-error">
+              {submitError}
+            </p>
           )}
         </div>
 
