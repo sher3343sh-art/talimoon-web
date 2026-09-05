@@ -164,7 +164,7 @@ const SLIDES: readonly HeroSlideData[] = [
       alt: 'Yusuf and Yasmina characters with playful expressions',
       focalPoint: { x: 0.3, y: 0.5 },
       // Keep Yusuf and Yasmina centred in the narrow portrait crop.
-      mobileFocalPoint: { x: 0.16, y: 0.42 },
+      mobileFocalPoint: { x: 0.26, y: 0.42 },
     },
     scrim: 'cream',
     navColor: 'ink',
@@ -187,7 +187,7 @@ const SLIDES: readonly HeroSlideData[] = [
       alt: 'A glowing library shelf with diverse books',
       focalPoint: { x: 0.4, y: 0.5 },
       // Favour the illustrated family and story collection on mobile.
-      mobileFocalPoint: { x: 0.06, y: 0.52 },
+      mobileFocalPoint: { x: 0.16, y: 0.52 },
     },
     scrim: 'cream',
     navColor: 'ink',
@@ -260,7 +260,9 @@ const HERO_CONFIG: HeroConfig = {
 // still-water REFLECTION of the scene. The extra height is what lets
 // the caption sit down on the reflection instead of over the real
 // image. old: clamp(380px, 115vw, 460px).
-const MOBILE_HERO_HEIGHT = 'clamp(475px, 144vw, 575px)';
+// v8 — pull the portrait crop back by roughly 9% so faces retain a
+// comfortable amount of surrounding scene while staying the focal point.
+const MOBILE_HERO_HEIGHT = 'clamp(435px, 132vw, 525px)';
 
 // ONE unified bottom shadow for mobile: it darkens the scene's foot,
 // the waterline and the whole reflection as a single fall-off that
