@@ -140,7 +140,8 @@ const SLIDES: readonly HeroSlideData[] = [
       src: '/images/hero/slide-personalized-books.webp',
       alt: 'A child reading a personalized book in warm bedroom light',
       focalPoint: { x: 0.35, y: 0.5 },
-      mobileFocalPoint: { x: 0.34, y: 0.32 },
+      // Mobile crop follows the two children, not the empty room.
+      mobileFocalPoint: { x: 0.16, y: 0.42 },
     },
     scrim: 'ink',
     navColor: 'cream',
@@ -162,7 +163,8 @@ const SLIDES: readonly HeroSlideData[] = [
       src: '/images/hero/slide-yusuf-yasmina.webp',
       alt: 'Yusuf and Yasmina characters with playful expressions',
       focalPoint: { x: 0.3, y: 0.5 },
-      mobileFocalPoint: { x: 0.25, y: 0.34 },
+      // Keep Yusuf and Yasmina centred in the narrow portrait crop.
+      mobileFocalPoint: { x: 0.16, y: 0.42 },
     },
     scrim: 'cream',
     navColor: 'ink',
@@ -184,7 +186,8 @@ const SLIDES: readonly HeroSlideData[] = [
       src: '/images/hero/slide-story-library.webp',
       alt: 'A glowing library shelf with diverse books',
       focalPoint: { x: 0.4, y: 0.5 },
-      mobileFocalPoint: { x: 0.25, y: 0.36 },
+      // Favour the illustrated family and story collection on mobile.
+      mobileFocalPoint: { x: 0.06, y: 0.52 },
     },
     scrim: 'cream',
     navColor: 'ink',
@@ -206,7 +209,8 @@ const SLIDES: readonly HeroSlideData[] = [
       src: '/images/hero/slide-talimoon-toys.webp',
       alt: 'Studio shot of Talimoon toys with soft shadows',
       focalPoint: { x: 0.45, y: 0.5 },
-      mobileFocalPoint: { x: 0.25, y: 0.3 },
+      // Centre the children and character toys instead of the room.
+      mobileFocalPoint: { x: 0.21, y: 0.46 },
     },
     scrim: 'ink',
     navColor: 'cream',
@@ -228,7 +232,8 @@ const SLIDES: readonly HeroSlideData[] = [
       src: '/images/hero/slide-ecosystem.webp',
       alt: 'Abstract connected world of books, toys, and characters',
       focalPoint: { x: 0.3, y: 0.5 },
-      mobileFocalPoint: { x: 0.34, y: 0.36 },
+      // Anchor the mobile frame on the family group.
+      mobileFocalPoint: { x: 0.1, y: 0.42 },
     },
     scrim: 'ink',
     navColor: 'cream',
