@@ -140,7 +140,7 @@ const SLIDES: readonly HeroSlideData[] = [
       src: '/images/hero/slide-personalized-books.webp',
       alt: 'A child reading a personalized book in warm bedroom light',
       focalPoint: { x: 0.35, y: 0.5 },
-      mobileFocalPoint: { x: 0.25, y: 0.32 },
+      mobileFocalPoint: { x: 0.34, y: 0.32 },
     },
     scrim: 'ink',
     navColor: 'cream',
@@ -228,7 +228,7 @@ const SLIDES: readonly HeroSlideData[] = [
       src: '/images/hero/slide-ecosystem.webp',
       alt: 'Abstract connected world of books, toys, and characters',
       focalPoint: { x: 0.3, y: 0.5 },
-      mobileFocalPoint: { x: 0.25, y: 0.36 },
+      mobileFocalPoint: { x: 0.34, y: 0.36 },
     },
     scrim: 'ink',
     navColor: 'cream',
@@ -759,6 +759,7 @@ interface HeroSlideProps {
   slide: HeroSlideData;
   isMobile: boolean;
   priority: boolean;
+  showText?: boolean;
   // v4 — this instance is the dissolving VEIL copy, not the live slide:
   // freeze the Ken Burns at its end pose, skip the text intro, and drop
   // the mobile backdrop-filter (its wrapper animates opacity, and a
@@ -772,6 +773,7 @@ const HeroSlide = memo(
     slide,
     isMobile,
     priority,
+    showText = true,
     frozen = false,
   }: HeroSlideProps) {
     const { image, scrim, ...textData } = slide;
@@ -868,32 +870,13 @@ const HeroSlide = memo(
               </div>
             </div>
 
-            {/* backdrop-filter defocus — live layer only. On the
-                dissolving veil its opacity-animating wrapper would make
-                this white-flash on mobile, so the veil goes without. */}
-            {!frozen && (
-              <div
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-0 z-[4]"
-                style={{
-                  backdropFilter: 'blur(3px)',
-                  WebkitBackdropFilter: 'blur(3px)',
-                  WebkitMaskImage: MOBILE_BLUR_MASK,
-                  maskImage: MOBILE_BLUR_MASK,
-                }}
+            {showText && !frozen && (
+              <MobileHeroText
+                eyebrow={textData.name}
+                headline={textData.headline}
+                description={textData.description}
               />
             )}
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-0 z-[5]"
-              style={{ backgroundImage: MOBILE_GRADIENT }}
-            />
-            <MobileHeroText
-              eyebrow={textData.name}
-              headline={textData.headline}
-              description={textData.description}
-              animateIn={!frozen}
-            />
           </>
         ) : (
           // Desktop: full-bleed scene + same HeroScrim + HeroTextBlock
@@ -909,16 +892,17 @@ const HeroSlide = memo(
             />
             <div className="absolute inset-0 z-10">
               <HeroScrim type={scrim} isMobile={false} />
-              <div className="absolute inset-y-0 end-0 w-[35%]">
-                <HeroTextBlock
-                  eyebrow={textData.name}
-                  headline={textData.headline}
-                  description={textData.description}
-                  isMobile={false}
-                  scrimType={scrim}
-                  animateIn={!frozen}
-                />
-              </div>
+              {showText && !frozen && (
+                <div className="absolute inset-y-0 end-0 w-[35%]">
+                  <HeroTextBlock
+                    eyebrow={textData.name}
+                    headline={textData.headline}
+                    description={textData.description}
+                    isMobile={false}
+                    scrimType={scrim}
+                  />
+                </div>
+              )}
             </div>
           </>
         )}
@@ -934,6 +918,7 @@ const HeroSlide = memo(
     prev.slide.headline === next.slide.headline &&
     prev.isMobile === next.isMobile &&
     prev.priority === next.priority &&
+    prev.showText === next.showText &&
     prev.frozen === next.frozen
 );
 
@@ -1109,10 +1094,59 @@ export function HeroSlider({ onNavColorChange }: HeroSliderProps) {
                 slide={slides[layerIdx[layer]]}
                 isMobile={isMobile}
                 priority={layerIdx[layer] === 0}
+                showText={false}
+                frozen={dissolvingOut}
               />
             </motion.div>
           );
         })}
+      </div>
+
+      {/* One permanent mobile contrast treatment for all five slides.
+          Keeping blur + shadow outside the two dissolving image layers
+          prevents them from doubling or exposing a hard edge midway
+          through a transition. */}
+      {isMobile && (
+        <>
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 z-[25]"
+            style={{
+              backdropFilter: 'blur(3px)',
+              WebkitBackdropFilter: 'blur(3px)',
+              WebkitMaskImage: MOBILE_BLUR_MASK,
+              maskImage: MOBILE_BLUR_MASK,
+            }}
+          />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 z-[26]"
+            style={{ backgroundImage: MOBILE_GRADIENT }}
+          />
+        </>
+      )}
+
+      {/* Text has one owner, independent from the two persistent image
+          layers. This guarantees that an outgoing slide can never leave
+          a translucent copy of its words over the incoming headline. */}
+      <div key={`hero-copy-${liveSlide.id}-${liveSlide.headline}`} className="absolute inset-0 z-30">
+        {isMobile ? (
+          <MobileHeroText
+            eyebrow={liveSlide.name}
+            headline={liveSlide.headline}
+            description={liveSlide.description}
+          />
+        ) : (
+          <div className="absolute inset-y-0 end-0 w-[35%]">
+            <HeroTextBlock
+              eyebrow={liveSlide.name}
+              headline={liveSlide.headline}
+              description={liveSlide.description}
+              isMobile={false}
+              scrimType={liveSlide.scrim}
+            />
+          </div>
+        )}
       </div>
 
       {/* Landing gradient into the section below (BrandValues). v6: the
