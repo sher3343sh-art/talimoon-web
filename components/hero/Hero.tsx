@@ -412,7 +412,7 @@ const getDescriptionColor = (scrim: ScrimType): string =>
 const getTextBlockBackdrop = (scrim: ScrimType): string => {
   const base = scrim === 'ink' ? '42, 36, 29' : '247, 242, 234';
   const peakAlpha = scrim === 'ink' ? 0.1 : 0.08;
-  return `radial-gradient(ellipse 72% 62% at 50% 50%, rgba(${base}, ${peakAlpha}) 0%, rgba(${base}, 0) 100%)`;
+  return `linear-gradient(to right, rgba(${base}, 0) 0%, rgba(${base}, ${peakAlpha * 0.18}) 28%, rgba(${base}, ${peakAlpha * 0.55}) 66%, rgba(${base}, ${peakAlpha}) 100%)`;
 };
 
 // ============================================================
@@ -767,6 +767,7 @@ interface HeroSlideProps {
   isMobile: boolean;
   priority: boolean;
   showText?: boolean;
+  showScrim?: boolean;
   // v4 — this instance is the dissolving VEIL copy, not the live slide:
   // freeze the Ken Burns at its end pose, skip the text intro, and drop
   // the mobile backdrop-filter (its wrapper animates opacity, and a
@@ -781,6 +782,7 @@ const HeroSlide = memo(
     isMobile,
     priority,
     showText = true,
+    showScrim = true,
     frozen = false,
   }: HeroSlideProps) {
     const { image, scrim, ...textData } = slide;
@@ -898,7 +900,7 @@ const HeroSlide = memo(
               frozen={frozen}
             />
             <div className="absolute inset-0 z-10">
-              <HeroScrim type={scrim} isMobile={false} />
+              {showScrim && <HeroScrim type={scrim} isMobile={false} />}
               {showText && !frozen && (
                 <div className="absolute inset-y-0 end-0 w-[35%]">
                   <HeroTextBlock
@@ -926,6 +928,7 @@ const HeroSlide = memo(
     prev.isMobile === next.isMobile &&
     prev.priority === next.priority &&
     prev.showText === next.showText &&
+    prev.showScrim === next.showScrim &&
     prev.frozen === next.frozen
 );
 
@@ -1102,6 +1105,7 @@ export function HeroSlider({ onNavColorChange }: HeroSliderProps) {
                 isMobile={isMobile}
                 priority={layerIdx[layer] === 0}
                 showText={false}
+                showScrim={false}
                 frozen={dissolvingOut}
               />
             </motion.div>
@@ -1131,6 +1135,15 @@ export function HeroSlider({ onNavColorChange }: HeroSliderProps) {
             style={{ backgroundImage: MOBILE_GRADIENT }}
           />
         </>
+      )}
+
+      {/* One desktop contrast layer shared by both image planes. Keeping
+          it outside the crossfade prevents two differently coloured
+          scrims from stacking and exposing the text-column boundary. */}
+      {!isMobile && (
+        <div className="pointer-events-none absolute inset-0 z-[25]">
+          <HeroScrim type={liveSlide.scrim} isMobile={false} />
+        </div>
       )}
 
       {/* Text has one owner, independent from the two persistent image
