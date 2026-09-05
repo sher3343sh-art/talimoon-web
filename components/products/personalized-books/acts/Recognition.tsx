@@ -114,7 +114,7 @@ export default function Recognition() {
         }}
       />
 
-      <div className="relative mx-auto max-w-[900px] px-5 py-14 sm:px-8 md:py-16 lg:py-20">
+      <div className="relative mx-auto max-w-[900px] px-5 py-10 sm:px-8 sm:py-12 md:py-16 lg:py-20">
         {/* Left narrative column — constrained from md up so the boy
             never collides with the text. */}
         <div className="md:max-w-[22rem] lg:max-w-[27rem]">
@@ -124,27 +124,27 @@ export default function Recognition() {
             </p>
             <h2
               id="recognition-heading"
-              className="mt-4 max-w-[18ch] font-display text-[1.75rem] font-medium leading-[1.15] tracking-[-0.015em] text-text-primary sm:text-[2.125rem] md:text-[2.5rem]"
+              className="mt-3 max-w-[18ch] font-display text-[1.75rem] font-medium leading-[1.15] tracking-[-0.015em] text-text-primary sm:mt-4 sm:text-[2.125rem] md:text-[2.5rem]"
             >
               {t.question}
             </h2>
           </Reveal>
 
-          <ul className="mt-9 space-y-1.5 md:mt-11 md:space-y-2">
+          <ul className="mt-6 space-y-0.5 sm:mt-8 sm:space-y-1.5 md:mt-11 md:space-y-2">
             {t.phrases.map((p, i) => (
               <Reveal
                 as="li"
                 key={i}
                 delay={i * 55}
                 y={10}
-                className="font-display text-[1.25rem] font-normal italic leading-[1.5] text-text-primary/55 sm:text-[1.5rem] md:text-[1.75rem]"
+                className="font-display text-[1.1875rem] font-normal italic leading-[1.4] text-text-primary/55 sm:text-[1.5rem] sm:leading-[1.5] md:text-[1.75rem]"
               >
                 <span style={{ display: "inline-block", marginInlineStart: INDENT[i] }}>{p}</span>
               </Reveal>
             ))}
           </ul>
 
-          <Reveal delay={120} className="mt-10 md:mt-12">
+          <Reveal delay={120} className="mt-6 sm:mt-8 md:mt-12">
             <p className="font-sans text-[1.0625rem] leading-[1.7] text-text-secondary md:text-[1.125rem]">
               {t.heard}
             </p>
@@ -156,17 +156,17 @@ export default function Recognition() {
             `cover` biased right crops the empty cream on the left. */}
         <div
           aria-hidden="true"
-          className="pointer-events-none mt-10 aspect-[16/11] w-full md:hidden"
+          className="pointer-events-none -mx-5 mt-6 aspect-[16/10] w-[calc(100%+2.5rem)] sm:mx-0 sm:mt-8 sm:aspect-[16/9] sm:w-full md:hidden"
           style={{
             ...SKETCH_MERGE,
             backgroundImage: `url("${sketchOpt(828)}")`,
-            backgroundPosition: "80% center",
-            backgroundSize: "cover",
+            backgroundPosition: "76% 54%",
+            backgroundSize: "155%",
           }}
         />
 
-        <Reveal delay={80} className="mt-10 md:mt-12">
-          <p className="text-balance font-display text-[1.875rem] font-medium leading-[1.2] tracking-[-0.02em] text-text-primary sm:text-[2.5rem] md:text-[3.125rem]">
+        <Reveal delay={80} className="mt-6 sm:mt-8 md:mt-12">
+          <p className="text-balance font-display text-[1.75rem] font-medium leading-[1.18] tracking-[-0.02em] text-text-primary sm:text-[2.5rem] sm:leading-[1.2] md:text-[3.125rem]">
             {t.turn[0]}
             <br />
             {t.turn[1]}

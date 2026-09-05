@@ -154,10 +154,9 @@ export default function TalimoonHero({
           --accent-primary: #BA8450;
           --accent-primary-hover: #9C7A47;
           position: relative;
-          min-height: min(92vh, 960px);
-          height: 100vh;
-          max-height: 820px;
-          min-height: 680px;
+          height: calc(100svh - 80px);
+          max-height: 760px;
+          min-height: 620px;
           width: 100%;
           overflow: hidden;
           background: var(--surface-warm-100);
@@ -190,9 +189,8 @@ export default function TalimoonHero({
           width: 100%;
           height: 100%;
           filter: saturate(0.92) contrast(0.97);
-          /* Opaque behind the navbar on purpose — only the bottom dissolves. */
-          -webkit-mask-image: linear-gradient(to bottom, black 0%, black 95.5%, transparent 100%);
-                  mask-image: linear-gradient(to bottom, black 0%, black 95.5%, transparent 100%);
+          /* Keep the photograph solid to the lower edge. A bottom mask
+             created a pale band that looked like unused hero space. */
         }
         /* Warm placeholder — visible while loading, and as the graceful
            fallback if the image fails to load. */
@@ -252,35 +250,15 @@ export default function TalimoonHero({
           background: linear-gradient(
             to right,
             transparent 0%,
-            transparent 60%,
-            rgba(247,242,234,0.04) 70%,
-            rgba(247,242,234,0.10) 76%,
-            rgba(247,242,234,0.18) 81%,
-            rgba(247,242,234,0.28) 85%,
-            rgba(247,242,234,0.42) 88%,
-            rgba(247,242,234,0.60) 90%,
-            rgba(247,242,234,0.80) 92%,
-            var(--surface-warm-100) 96%,
+            transparent 72%,
+            rgba(247,242,234,0.05) 78%,
+            rgba(247,242,234,0.14) 83%,
+            rgba(247,242,234,0.30) 87%,
+            rgba(247,242,234,0.52) 91%,
+            rgba(247,242,234,0.76) 94%,
+            rgba(247,242,234,0.94) 97%,
             var(--surface-warm-100) 100%
           );
-        }
-        /* Bottom edge — atmospheric dissolve right at the seam. */
-        .tm-hero__image-zone::before{
-          content: "";
-          position: absolute;
-          inset: 0;
-          z-index: 2;
-          background: linear-gradient(
-            to bottom,
-            transparent 0%,
-            transparent 90%,
-            rgba(247,242,234,0.10) 93%,
-            rgba(247,242,234,0.35) 95%,
-            rgba(247,242,234,0.68) 96.5%,
-            var(--surface-warm-100) 98%,
-            var(--surface-warm-100) 100%
-          );
-          pointer-events: none;
         }
 
         /* ---------- Content zone ---------- */
@@ -419,10 +397,6 @@ export default function TalimoonHero({
           .tm-hero__logo{ color: var(--text-primary); }
           .tm-hero__image-zone{ position: relative; width: 100%; height: 60vh; top: 0; left: 0; }
           .tm-hero__image-zone::after{ background: none; }
-          .tm-hero__photo{
-            -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
-                    mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
-          }
           .tm-hero__content{ margin-left: 0; width: 100%; padding: 48px 24px 64px; }
           .tm-hero__headline{ max-width: 16ch; }
           .tm-hero__subhead{ max-width: none; }
