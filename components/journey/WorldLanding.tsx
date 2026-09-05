@@ -99,7 +99,7 @@ export function WorldLanding({ world }: { world: JourneyWorld }) {
           </Rise>
         ) : (
           <>
-            <ol className="mt-14 md:mt-16">
+            <ol className="mt-14 border-t border-[#1c2a3a17] pt-10 md:mt-16 md:pt-14">
               {shown.map((entry, i) => {
                 const heavy =
                   entry.weight === 'lead' || entry.weight === 'feature';
@@ -115,7 +115,7 @@ export function WorldLanding({ world }: { world: JourneyWorld }) {
                 return (
                   <li key={entry.id} className={gap}>
                     <Rise>
-                      <StreamEntry entry={entry} index={i} />
+                      <StreamEntry entry={entry} index={i} showWorldTag={false} />
                     </Rise>
                   </li>
                 );

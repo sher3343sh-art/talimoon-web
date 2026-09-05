@@ -315,6 +315,7 @@ export type Block =
     }
   | { t: 'gallery'; items: { asset: JourneyImage; alt: string }[] }
   | { t: 'video'; video: JourneyVideo }
+  | { t: 'videoPlaceholder'; label: string; title: string; note: string }
   | { t: 'quote'; text: string; attribution?: string; role?: string }
   | { t: 'note'; text: string }
   | { t: 'cta'; label: string; href: string }

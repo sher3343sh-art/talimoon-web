@@ -114,7 +114,7 @@ function BlockView({
       return (
         <p
           className={`${READING} text-[17px] md:text-[19px]`}
-          style={{ fontFamily: BODY, color: 'rgba(28,42,58,0.82)', lineHeight: 1.8 }}
+          style={{ fontFamily: BODY, color: 'rgba(28,42,58,0.82)', lineHeight: 1.7 }}
         >
           {block.text}
         </p>
@@ -122,14 +122,14 @@ function BlockView({
     case 'heading':
       return block.level === 3 ? (
         <h3
-          className={`${READING} pt-4 text-[20px] md:text-[24px]`}
+          className={`${READING} pt-2 text-[20px] md:text-[24px]`}
           style={{ fontFamily: DISPLAY, fontWeight: 600, color: NAVY, lineHeight: 1.3 }}
         >
           {block.text}
         </h3>
       ) : (
         <h2
-          className={`${READING} pt-6 text-[24px] md:text-[30px]`}
+          className={`${READING} pt-3 text-[24px] md:text-[30px]`}
           style={{
             fontFamily: DISPLAY,
             fontWeight: 600,
@@ -210,6 +210,51 @@ function BlockView({
           className="mx-auto w-full max-w-[1000px]"
           transcriptLabel={transcriptLabel}
         />
+      );
+    case 'videoPlaceholder':
+      return (
+        <div className="mx-auto w-full max-w-[1000px]">
+          <div
+            className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-[2px] border px-6 text-center shadow-[0_24px_70px_rgba(28,42,58,0.13)]"
+            style={{
+              borderColor: 'rgba(184,147,91,0.32)',
+              background:
+                'radial-gradient(circle at 50% 46%, rgba(184,147,91,0.15), transparent 34%), linear-gradient(145deg, #243449 0%, #111d2c 68%, #0c1623 100%)',
+            }}
+          >
+            <div
+              aria-hidden="true"
+              className="absolute inset-5 border"
+              style={{ borderColor: 'rgba(255,255,255,0.08)' }}
+            />
+            <div className="relative z-10 max-w-[460px]">
+              <span
+                className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border text-[17px] md:h-16 md:w-16"
+                style={{ borderColor: 'rgba(211,177,104,0.72)', color: '#D3B168' }}
+              >
+                &#9654;
+              </span>
+              <p
+                className="mt-6 text-[11px] uppercase md:text-[12px]"
+                style={{ fontFamily: BODY, fontWeight: 700, letterSpacing: '0.24em', color: '#D3B168' }}
+              >
+                {block.label}
+              </p>
+              <p
+                className="mt-3 text-[23px] text-white md:text-[31px]"
+                style={{ fontFamily: DISPLAY, fontWeight: 600, lineHeight: 1.2 }}
+              >
+                {block.title}
+              </p>
+              <p
+                className="mx-auto mt-3 max-w-[38ch] text-[13px] md:text-[15px]"
+                style={{ fontFamily: BODY, lineHeight: 1.65, color: 'rgba(255,255,255,0.62)' }}
+              >
+                {block.note}
+              </p>
+            </div>
+          </div>
+        </div>
       );
     case 'quote':
       return (
@@ -352,7 +397,7 @@ export function EntryDetail({ entry }: { entry: JourneyEntry }) {
 
   return (
     <article dir={direction}>
-      <Band className="pt-24 pb-10 md:pt-32 md:pb-12">
+      <Band className="pt-20 pb-8 md:pt-28 md:pb-10">
         <div className={READING}>
           <Link
             href="/journey"
@@ -364,7 +409,7 @@ export function EntryDetail({ entry }: { entry: JourneyEntry }) {
           </Link>
         </div>
 
-        <div className={`${READING} mt-10`}>
+        <div className={`${READING} mt-7 md:mt-8`}>
           <WorldLabel
             world={entry.world}
             language={language}
@@ -380,7 +425,7 @@ export function EntryDetail({ entry }: { entry: JourneyEntry }) {
           ) : null}
           {content.title ? (
             <h1
-              className="mt-4 text-[30px] sm:text-[36px] md:text-[44px] lg:text-[50px]"
+              className="mt-3 text-[30px] sm:text-[36px] md:text-[44px] lg:text-[50px]"
               style={{
                 fontFamily: DISPLAY,
                 fontWeight: 600,
@@ -395,7 +440,7 @@ export function EntryDetail({ entry }: { entry: JourneyEntry }) {
           ) : null}
           {content.standfirst ? (
             <p
-              className="mt-5 max-w-[46ch] text-[17px] md:text-[19px]"
+              className="mt-4 max-w-[46ch] text-[17px] md:text-[19px]"
               style={{ fontFamily: BODY, color: NAVY_64, lineHeight: 1.7 }}
             >
               {content.standfirst}
@@ -403,7 +448,7 @@ export function EntryDetail({ entry }: { entry: JourneyEntry }) {
           ) : null}
           {content.keyIdea ? (
             <div
-              className="mt-6 border-s ps-5"
+              className="mt-5 border-s ps-5"
               style={{ borderColor: 'rgba(184,147,91,0.4)' }}
             >
               <p
@@ -421,7 +466,7 @@ export function EntryDetail({ entry }: { entry: JourneyEntry }) {
           ) : null}
           {content.author ? (
             <p
-              className="mt-6 text-[12px] uppercase"
+              className="mt-5 text-[12px] uppercase"
               style={{
                 fontFamily: BODY,
                 fontWeight: 600,
@@ -466,7 +511,7 @@ export function EntryDetail({ entry }: { entry: JourneyEntry }) {
             </div>
             {coverCredit ? (
               <figcaption
-                className="mt-3 text-[12px]"
+                className="mt-2 text-[12px]"
                 style={{
                   fontFamily: BODY,
                   color: NAVY_48,
@@ -489,15 +534,15 @@ export function EntryDetail({ entry }: { entry: JourneyEntry }) {
         </div>
       ) : null}
 
-      <Band className="py-14 md:py-20">
-        <div className="space-y-7 md:space-y-8">
+      <Band className="py-10 md:py-14">
+        <div className="space-y-5 md:space-y-6">
           {content.blocks.map((block, i) => (
             <BlockView key={i} block={block} transcriptLabel={t.transcript} />
           ))}
         </div>
 
         {entry.references && entry.references.length > 0 ? (
-          <div className={`${READING} mt-14 border-t border-[#1c2a3a17] pt-8`}>
+          <div className={`${READING} mt-10 border-t border-[#1c2a3a17] pt-7`}>
             <h2
               className="text-[12px] uppercase"
               style={{
@@ -541,7 +586,7 @@ export function EntryDetail({ entry }: { entry: JourneyEntry }) {
           </div>
         ) : null}
 
-        <div className={`${READING} mt-14 border-t border-[#1c2a3a17] pt-6`}>
+        <div className={`${READING} mt-10 border-t border-[#1c2a3a17] pt-5`}>
           <button
             type="button"
             onClick={onShare}

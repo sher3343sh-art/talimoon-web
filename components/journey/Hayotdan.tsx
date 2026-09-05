@@ -98,7 +98,7 @@ function cta(format: JourneyFormat, t: typeof EN): string {
     case 'photo-story':
     case 'moment':
     case 'event':
-      return t.story;
+      return t.detail;
     case 'thought':
       return t.thought;
     case 'guide':
@@ -118,9 +118,11 @@ function cta(format: JourneyFormat, t: typeof EN): string {
 export function StreamEntry({
   entry,
   index,
+  showWorldTag = true,
 }: {
   entry: JourneyEntry;
   index: number;
+  showWorldTag?: boolean;
 }) {
   const { language } = useLanguage();
   const t = useT(EN, UZ);
@@ -145,13 +147,13 @@ export function StreamEntry({
   // The restrained world tag every stream entry carries — above the
   // kicker. `block` so it inherits the parent's text alignment
   // (centred for thought, left otherwise).
-  const worldTag = (
+  const worldTag = showWorldTag ? (
     <WorldLabel
       world={entry.world}
       language={language}
       className="mb-2.5 block"
     />
-  );
+  ) : null;
 
   // ── knowledge — guide / book-insight / research-explainer.
   //    Left-aligned, question headline, key idea pulled out. The

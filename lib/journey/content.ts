@@ -38,7 +38,245 @@ import {
  * Append a `JourneyEntry` here to publish it — the page composes
  * itself. `featured: true` pins one entry to THE OPENING.
  */
-const PRODUCTION_ENTRIES: readonly JourneyEntry[] = [];
+const PRODUCTION_ENTRIES: readonly JourneyEntry[] = [
+  {
+    id: 'talimoon-diary-01',
+    slug: 'talimoon-goyalari-qayerdan-tugiladi',
+    world: 'talimoon-life',
+    format: 'reportage',
+    weight: 'lead',
+    status: 'published',
+    featured: true,
+    publishedAtISO: '2026-09-05T09:00:00.000Z',
+    tags: ['talimoon-kundaligi', 'doha', 'qatar-national-library', 'ilk-kunlar'],
+    defaultLocale: 'uz',
+    indexable: true,
+    media: { consent: 'not-applicable' },
+    relatedSlugs: ['hali-kichkina-keyin-organadi'],
+    translations: {
+      uz: {
+        kicker: { label: 'TALIMOON KUNDALIGI · 01', dateLabel: '5 SENTABR, 2026' },
+        title: 'TALIMOON g‘oyalari qayerdan tug‘iladi?',
+        standfirst:
+          'TALIMOON’ning ilk kunlari. Bir tomonda minglab kitoblar, ikkinchi tomonda esa hali qurilayotgan yangi platforma. Bu safar ish stolimiz Qatar National Library’da.',
+        author: 'Qatar National Library · Doha, Qatar',
+        blocks: [
+          {
+            t: 'videoPlaceholder',
+            label: 'TALIMOON MINI-FILMI',
+            title: 'G‘oyalar tug‘iladigan joy',
+            note: '60–70 soniyalik hujjatli video shu yerda joylanadi.',
+          },
+          { t: 'paragraph', text: 'Bugun TALIMOON ustidagi ish Qatar National Library’da davom etmoqda.' },
+          { t: 'paragraph', text: 'Atrofda minglab kitoblar. Turli tillar, turli hikoyalar, turli avlodlar uchun yaratilgan bilimlar. Stol ustida esa ikki kompyuter va ularda asta-sekin o‘z shaklini topayotgan TALIMOON.' },
+          { t: 'paragraph', text: 'Bu TALIMOON’ning hali ilk kunlari.' },
+          { t: 'paragraph', text: 'Hozir biz ko‘rayotgan har bir sahifa, sinab ko‘rayotgan har bir yechim va qayta ko‘rib chiqayotgan har bir detal kelajakda bolaning qo‘liga yetib boradigan tajribaning bir qismiga aylanishi mumkin.' },
+          { t: 'heading', level: 2, text: 'Ilhom — shunchaki yangi g‘oya emas' },
+          { t: 'paragraph', text: 'Biz kitoblarni ko‘ramiz. Hikoyalar qanday taqdim etilganini kuzatamiz. Bolalar uchun yaratilgan muhitlarni o‘rganamiz. Yaxshi tajriba ortidagi kichik detallarni izlaymiz.' },
+          { t: 'paragraph', text: 'Va doim bir savolga qaytamiz:' },
+          { t: 'quote', text: 'Farzand uchun bundan ham mazmunliroq tajribani qanday yarata olamiz?' },
+          { t: 'paragraph', text: 'TALIMOON’da biz kitobni shunchaki o‘qiladigan mahsulot sifatida tasavvur qilmaymiz. Hikoya bolaning o‘zini unda ko‘rishiga, yangi narsani kashf etishiga, savol berishiga va o‘rganganini uzoq vaqt eslab qolishiga sabab bo‘lishini istaymiz.' },
+          { t: 'heading', level: 2, text: 'G‘oyalar bir joyda tug‘ilmaydi' },
+          { t: 'paragraph', text: 'Shu sabab TALIMOON bir joyda yaratilmaydi.' },
+          { t: 'paragraph', text: 'Ba’zan g‘oya kitob sahifasidan keladi. Ba’zan bir bolaning qiziqishidan. Ba’zan suhbatdan, kuzatuvdan yoki javobini hali topmagan savoldan.' },
+          { t: 'paragraph', text: 'Bugun esa bu izlanish Doha shahrida, Qatar National Library’dagi minglab kitoblar orasida davom etmoqda.' },
+          { t: 'quote', text: 'Bir tomonda o‘tmishdan bizgacha yetib kelgan bilimlar. Ikkinchi tomonda esa hali yozilmagan hikoyalar. O‘rtada TALIMOON.' },
+          { t: 'paragraph', text: 'Hali oldinda qilinadigan ishlar ko‘p. Yuzlab hikoyalar, yangi kitoblar, yangi tajribalar va bugun biz hali tasavvur qilayotgan bolalar olami bor.' },
+          { t: 'paragraph', text: 'Lekin katta yo‘llarning ham birinchi sahifasi bo‘ladi.' },
+          { t: 'paragraph', text: 'Bu — biznikining ilk sahifalaridan biri.' },
+          { t: 'note', text: 'Qatar National Library · Doha, Qatar · 5-sentabr, 2026 · TALIMOON kundaligi · 01' },
+        ],
+      },
+    },
+  },
+  {
+    id: 'parents-early-learning-01',
+    slug: 'hali-kichkina-keyin-organadi',
+    world: 'parents',
+    format: 'book-insight',
+    weight: 'feature',
+    status: 'published',
+    featured: false,
+    parentFeature: true,
+    publishedAtISO: '2026-09-05T08:30:00.000Z',
+    tags: ['ota-onalar-uchun', 'erta-talim', 'kitobdan-xulosa', 'masaru-ibuka'],
+    defaultLocale: 'uz',
+    indexable: true,
+    media: { consent: 'not-applicable' },
+    cover: {
+      id: 'parents-early-learning-cover-v2',
+      src: '/images/journey/parents-early-learning-cover-v2.png',
+      width: 1536,
+      height: 1024,
+      credit: 'TALIMOON vizualizatsiyasi',
+    },
+    references: [
+      {
+        kind: 'book',
+        author: 'Masaru Ibuka',
+        title: 'Uchdan keyin kech',
+        pages: '7, 17–18-betlar',
+      },
+    ],
+    relatedSlugs: [
+      'qobiliyati-otasiga-tortgan-rostdan-ham-shundaymi',
+      'talimoon-goyalari-qayerdan-tugiladi',
+    ],
+    translations: {
+      uz: {
+        kicker: { label: 'KITOBDAN XULOSA', dateLabel: 'OTA-ONALAR UCHUN' },
+        title: '“Hali kichkina, keyin o‘rganadi...” Rostdan ham shundaymi?',
+        standfirst:
+          'Bola o‘rganishni bog‘cha yoki maktabdan boshlamaydi. Uning qiziqishini “hali erta” deb keyinga qoldirmaslik nega muhim?',
+        coverAlt:
+          'Ona ikki yoshli farzandi bilan rasmlarga boy kitobni birga tomosha qilmoqda.',
+        author: 'TALIMOON tahririyati',
+        keyIdea:
+          'Maqsad bolani boshqalardan oldinga chiqarish emas — o‘rganishga tayyor paytida uning qiziqishini qo‘llab-quvvatlash.',
+        blocks: [
+          { t: 'paragraph', text: 'Farzandingiz hali ikki yoshda. Balki siz ham: “Hali kichkina, kattaroq bo‘lsa o‘rgatamiz”, deb o‘ylarsiz.' },
+          { t: 'paragraph', text: 'Ammo bola o‘rganishni bog‘cha yoki maktabdan boshlamaydi. U hozirdanoq sizning gaplaringizni eshitadi, atrofini kuzatadi, ko‘rganlarini eslab qoladi va har kuni yangi narsalarni o‘zlashtiradi.' },
+          { t: 'paragraph', text: 'Masaru Ibuka buni juda muhim davr deb hisoblaydi:' },
+          { t: 'quote', text: 'Asosiysi, hamma tajriba va ta’lim usullarini “o‘z vaqtida” joriy etishdir.', attribution: 'Masaru Ibuka', role: '“Uchdan keyin kech”' },
+          { t: 'paragraph', text: 'Bu bolani ikki yoshida o‘qishga, yozishga yoki hisoblashga majburlash kerak degani emas.' },
+          { t: 'heading', level: 2, text: 'Imkoniyat yarating, bosim emas' },
+          { t: 'paragraph', text: 'Aksincha, unga o‘rganish uchun imkoniyat yaratish kerak.' },
+          { t: 'paragraph', text: 'U bilan kattalardek suhbatlashing. Birga kitob varaqlang. Rasmlardagi narsalarni nomlang. Savol bersa, imkon qadar javobsiz qoldirmang. Biror hayvon, mashina, rang yoki tabiat hodisasiga qiziqsa, shu qiziqishini yangi so‘z, kitob yoki tajriba bilan davom ettiring.' },
+          { t: 'paragraph', text: 'Ibukaning yana bir muhim fikri bor:' },
+          { t: 'quote', text: 'Erta ta’lim buyuk daholarni tarbiyalab yetishtirishni maqsad qilmaydi.', attribution: 'Masaru Ibuka', role: '“Uchdan keyin kech”' },
+          { t: 'paragraph', text: 'Demak, maqsad farzandingizni boshqalardan oldinga chiqarish emas.' },
+          { t: 'heading', level: 2, text: 'Qiziqishni keyinga qoldirmang' },
+          { t: 'paragraph', text: 'Maqsad — u o‘rganishga tayyor bo‘lgan paytda “hali erta” deb uning qiziqishini keyinga qoldirmaslik.' },
+        ],
+      },
+    },
+  },
+  {
+    id: 'parents-ability-environment-02',
+    slug: 'qobiliyati-otasiga-tortgan-rostdan-ham-shundaymi',
+    world: 'parents',
+    format: 'book-insight',
+    weight: 'feature',
+    status: 'published',
+    featured: false,
+    publishedAtISO: '2026-09-05T08:00:00.000Z',
+    tags: ['ota-onalar-uchun', 'qobiliyat', 'muhit', 'kitobdan-xulosa', 'masaru-ibuka'],
+    defaultLocale: 'uz',
+    indexable: true,
+    media: { consent: 'not-applicable' },
+    cover: {
+      id: 'parents-ability-environment-cover-v1',
+      src: '/images/journey/parents-ability-environment-cover-v1.png',
+      width: 1536,
+      height: 1024,
+      credit: 'TALIMOON vizualizatsiyasi',
+    },
+    references: [
+      {
+        kind: 'book',
+        author: 'Masaru Ibuka',
+        title: 'Uchdan keyin kech',
+        note: 'Bolaning qobiliyati, ta’lim va tashqi muhitning ta’siri haqidagi qismlar.',
+      },
+    ],
+    relatedSlugs: [
+      'mening-bolamning-bunga-qobiliyati-yoq',
+      'hali-kichkina-keyin-organadi',
+      'talimoon-goyalari-qayerdan-tugiladi',
+    ],
+    translations: {
+      uz: {
+        kicker: { label: 'KITOBDAN XULOSA', dateLabel: 'OTA-ONALAR UCHUN' },
+        title: '“Qobiliyati otasiga tortgan...” Rostdan ham shundaymi?',
+        standfirst:
+          'Bolaning qobiliyati faqat nasl bilan belgilanadimi? Balki bugun ko‘rinmayotgan iste’dod o‘zini namoyon qilish uchun imkoniyat kutayotgandir.',
+        coverAlt:
+          'Ota qizining yog‘och shakllardan mustaqil yangi tuzilma yasashini kuzatmoqda.',
+        author: 'TALIMOON tahririyati',
+        keyIdea:
+          'Bolaning qobiliyatini faqat izlamang — uning rivojlanishi uchun muhit ham yarating.',
+        blocks: [
+          { t: 'paragraph', text: '“Otasi matematikaga kuchli edi, bolasi ham shunga tortibdi.”' },
+          { t: 'paragraph', text: '“Onasi tillarni tez o‘rganadi, qiziga ham o‘tgan.”' },
+          { t: 'paragraph', text: 'Bunday gaplarni ko‘p eshitamiz. Bola biror narsani yaxshi bajarsa, buni ko‘pincha tug‘ma qobiliyat bilan tushuntiramiz.' },
+          { t: 'paragraph', text: 'Ammo Masaru Ibuka bunga boshqa tomondan qaraydi.' },
+          { t: 'paragraph', text: 'Uning fikricha, bolaning qanday qobiliyatlari rivojlanishida nasldan tashqari uning qanday muhitda ulg‘ayayotgani va dastlabki yillarda qanday tajribalar olayotgani ham katta rol o‘ynaydi.' },
+          { t: 'quote', text: 'Ta’lim va tashqi muhit bola qobiliyatini rivojlantiruvchi asosiy omillardir.', attribution: 'Masaru Ibuka', role: '“Uchdan keyin kech”' },
+          { t: 'heading', level: 2, text: 'Xulosa chiqarishga shoshilmang' },
+          { t: 'paragraph', text: 'Bu fikr ota-ona uchun juda muhim.' },
+          { t: 'paragraph', text: 'Chunki “Unda bu qobiliyat tug‘ma yo‘q” deb o‘ylasak, bolaga o‘sha qobiliyatini kashf qilish imkoniyatini bermasdan turib xulosa chiqarib qo‘yishimiz mumkin.' },
+          { t: 'paragraph', text: 'Shuning uchun farzandingizni faqat bugun nimaga qodir ekaniga qarab baholamang.' },
+          { t: 'heading', level: 2, text: 'Qobiliyatga imkoniyat kerak' },
+          { t: 'paragraph', text: 'Turli kitoblarni ko‘rsating. Yangi narsalarni sinab ko‘rishiga imkon bering. Savollariga javob bering. Nimaga ko‘proq qiziqayotganini kuzating. Biror ishni sekin o‘rgansa, darrov undan voz kechmang.' },
+          { t: 'quote', text: 'Bolaning qobiliyatini faqat izlamang — uning rivojlanishi uchun muhit ham yarating.' },
+          { t: 'paragraph', text: 'Chunki bugun hali ko‘rinmayotgan qobiliyat, balki o‘zini namoyon qilish uchun imkoniyat kutayotgandir.' },
+        ],
+      },
+    },
+  },
+  {
+    id: 'parents-method-matters-03',
+    slug: 'mening-bolamning-bunga-qobiliyati-yoq',
+    world: 'parents',
+    format: 'book-insight',
+    weight: 'feature',
+    status: 'published',
+    featured: false,
+    publishedAtISO: '2026-09-05T07:30:00.000Z',
+    tags: ['ota-onalar-uchun', 'qobiliyat', 'orgatish-usuli', 'kitobdan-xulosa', 'masaru-ibuka'],
+    defaultLocale: 'uz',
+    indexable: true,
+    media: { consent: 'not-applicable' },
+    cover: {
+      id: 'parents-method-matters-cover-v3',
+      src: '/images/journey/parents-method-matters-cover-v3.png',
+      width: 1536,
+      height: 1024,
+      credit: 'TALIMOON vizualizatsiyasi',
+    },
+    references: [
+      {
+        kind: 'book',
+        author: 'Masaru Ibuka',
+        title: 'Uchdan keyin kech',
+        note: 'Shinichi Suzuki tajribasi va o‘qitish usulining ahamiyati haqidagi qism.',
+      },
+    ],
+    relatedSlugs: [
+      'qobiliyati-otasiga-tortgan-rostdan-ham-shundaymi',
+      'hali-kichkina-keyin-organadi',
+    ],
+    translations: {
+      uz: {
+        kicker: { label: 'KITOBDAN XULOSA', dateLabel: 'OTA-ONALAR UCHUN' },
+        title: '“Bunga qobiliyati yo‘q...” Balki mos yo‘l hali topilmagandir?',
+        standfirst:
+          'Bola bugun uddalay olmayotgan narsa uning imkoniyati chegarasi emas. Ba’zan undan ko‘proq harakatni emas, bizdan boshqa usulni talab qiladi.',
+        coverAlt:
+          'Ona o‘g‘liga rangli shakllardan tuzilgan vazifani kichik bosqichlarda bajarishga yordam bermoqda.',
+        author: 'TALIMOON tahririyati',
+        keyIdea:
+          'Ba’zan bolaga yetishmayotgan narsa qobiliyat emas — shunchaki unga mos yo‘l hali topilmagan bo‘lishi mumkin.',
+        blocks: [
+          { t: 'paragraph', text: 'Farzandingiz biror narsani boshqalarga qaraganda sekinroq o‘rgansa, xayolingizdan: “Shekilli, bunga qobiliyati yo‘q...” degan fikr o‘tishi mumkin.' },
+          { t: 'paragraph', text: 'Lekin bola bugun uddalay olmayotgan narsa uning imkoniyati chegarasi degani emas.' },
+          { t: 'paragraph', text: 'Masaru Ibuka kitobida Shinichi Suzukining bolalarni o‘qitish tajribasini keltirib, juda keskin bir fikrni beradi:' },
+          { t: 'quote', text: 'Qoloq bolalar yo‘q. Barchasi o‘qitish usuliga bog‘liq.', attribution: 'Masaru Ibuka', role: '“Uchdan keyin kech”' },
+          { t: 'heading', level: 2, text: 'Bola emas, usul o‘zgarishi mumkin' },
+          { t: 'paragraph', text: 'Demak, bola tushunmayotganida faqat undan ko‘proq harakat qilishni talab qilish emas, biz ham usulimizni o‘zgartirib ko‘rishimiz kerak.' },
+          { t: 'paragraph', text: 'Bir tushuntirish ishlamadimi — boshqacha tushuntiring. Qiyin bo‘ldimi — kichik qismlarga ajrating. Ko‘rsatib bering, keyin birga bajaring. Xato qildimi — yana urinishi uchun vaqt bering.' },
+          { t: 'heading', level: 2, text: 'Hukm bolaning ichki ovoziga aylanmasin' },
+          { t: 'paragraph', text: 'Eng muhimi, bolaning oldida “Sen buni eplay olmaysan” yoki “Senda bunga qobiliyat yo‘q” degan hukmni aytishga shoshilmang.' },
+          { t: 'paragraph', text: 'Chunki bola sizning u haqidagi fikringizni asta-sekin o‘zi haqidagi fikrga aylantirishi mumkin.' },
+          { t: 'paragraph', text: 'Shuning uchun “Nega eplay olmayapti?” degan savol o‘rniga, avval boshqacha savol bering:' },
+          { t: 'quote', text: 'Buni unga yana qanday yo‘l bilan tushuntirib ko‘rsam bo‘ladi?' },
+          { t: 'paragraph', text: 'Ba’zan bolaga yetishmayotgan narsa qobiliyat emas.' },
+          { t: 'paragraph', text: 'Shunchaki unga mos yo‘l hali topilmagan bo‘lishi mumkin.' },
+        ],
+      },
+    },
+  },
+];
 
 /**
  * Real YAQIN KUNLAR pulse items not (yet) backed by a full entry.
