@@ -330,10 +330,10 @@ export default function PricingSection() {
                 <Link
                   href="/begin/personalized-book/form"
                   className={[
-                    "mt-6 flex h-12 w-full items-center justify-center rounded-lg font-sans text-[13.5px] font-medium tracking-[0.015em] transition-all duration-200",
+                    "tm-cta-gold mt-6 flex h-12 w-full items-center justify-center rounded-lg font-sans text-[13.5px] font-medium tracking-[0.015em] transition-all duration-200",
                     plan.featured
-                      ? "tm-cta-gold shadow-[0_12px_28px_-14px_rgba(226,196,119,0.75)]"
-                      : "border border-[color:var(--gold-mid)]/60 text-[color:var(--gold-shadow)] hover:border-[color:var(--gold-base)] hover:bg-[color:var(--gold-mid)]/[0.06]",
+                      ? "shadow-[0_12px_28px_-14px_rgba(226,196,119,0.75)]"
+                      : "shadow-[0_10px_24px_-16px_rgba(164,124,52,0.55)]",
                   ].join(" ")}
                 >
                   {t.choosePlan(label)} →

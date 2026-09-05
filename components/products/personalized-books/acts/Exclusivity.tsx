@@ -25,7 +25,7 @@ const COPY_EN = {
   recognition: "“That's me!”",
   recognitionNote:
     "A child turns a page and finds their own face, their own room, the people they love — living inside the adventure.",
-  imageAlt: "The TALIMOON personalized hardcover, closed and open",
+  imageAlt: "A child joyfully discovering herself inside her personalized TALIMOON story",
 };
 
 const COPY_UZ: typeof COPY_EN = {
@@ -37,7 +37,7 @@ const COPY_UZ: typeof COPY_EN = {
   recognition: "“Bu men-ku!”",
   recognitionNote:
     "Bola sahifani ochadi va o‘z yuzini, o‘z xonasini, sevgan insonlarini — sarguzasht ichida yashayotgan holda ko‘radi.",
-  imageAlt: "TALIMOON shaxsiy qattiq muqovali kitobi — yopiq va ochiq holatda",
+  imageAlt: "Bola o‘zini TALIMOON hikoyasi ichida quvonch bilan kashf etmoqda",
 };
 
 export default function Exclusivity() {
@@ -71,15 +71,14 @@ export default function Exclusivity() {
           {/* Product imagery — the real TALIMOON book, from the hero
               photograph (the strongest genuine product asset in the repo). */}
           <Reveal className="order-2 lg:order-1">
-            <div className="relative mx-auto aspect-[5/4] w-full max-w-[460px] overflow-hidden rounded-[14px] shadow-[0_18px_48px_-18px_rgba(33,29,24,0.20)] ring-1 ring-border-subtle lg:max-w-none">
+            <div className="relative mx-auto aspect-[3/2] w-full max-w-[460px] overflow-hidden rounded-[14px] shadow-[0_18px_48px_-18px_rgba(33,29,24,0.20)] ring-1 ring-border-subtle lg:max-w-none">
               <Image
-                src="/images/products/personalized-books/hero/hero-v13.webp"
+                src="/images/products/personalized-books/exclusivity/exclusive-book-moment.webp"
                 alt={t.imageAlt}
                 fill
                 sizes="(min-width: 1024px) 46vw, 90vw"
                 quality={100}
-                className="object-cover"
-                style={{ objectPosition: "34% 68%" }}
+                className="object-cover object-center"
               />
             </div>
           </Reveal>
