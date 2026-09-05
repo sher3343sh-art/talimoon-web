@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, Check, MapPin, Upload } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, LoaderCircle, MapPin, Upload } from "lucide-react";
 import { useLanguage, useT } from "@/lib/i18n/LanguageContext";
 import { toLocale } from "@/lib/journey/types";
 import {
@@ -92,6 +92,8 @@ const CHROME_EN = {
   back: "Back",
   continue: "Continue",
   sendOrder: "Send order",
+  submittingTitle: "Your information is being uploaded",
+  submittingBody: "Please wait a moment and do not leave this page.",
 
   // Completion — the order is SUBMITTED, not in production. Review →
   // confirmation → 5–7 day preparation → delivery notification.
@@ -242,6 +244,8 @@ const CHROME_UZ: typeof CHROME_EN = {
   back: "Orqaga",
   continue: "Davom etish",
   sendOrder: "Buyurtma yuborish",
+  submittingTitle: "Ma’lumotlaringiz yuklanmoqda",
+  submittingBody: "Iltimos, biroz kuting va sahifadan chiqib ketmang.",
 
   doneHeading: "Buyurtmangiz qabul qilindi",
   doneBody: [
@@ -1192,6 +1196,31 @@ export default function PersonalizedBookOrderForm({
     >
       {/* Invisible/managed — renders no visible UI. See Turnstile.tsx. */}
       <Turnstile ref={turnstileRef} siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY} />
+      {submitting && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-[#1C2A3A]/35 px-6 backdrop-blur-[3px]"
+          role="status"
+          aria-live="assertive"
+          aria-busy="true"
+        >
+          <div className="w-full max-w-sm rounded-2xl border border-white/70 bg-surface-base px-7 py-8 text-center shadow-[0_24px_70px_rgba(28,42,58,0.28)]">
+            <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-accent-primary/25 bg-accent-primary/[0.1]">
+              <LoaderCircle
+                size={27}
+                strokeWidth={1.8}
+                className="animate-spin text-accent-primary"
+                aria-hidden="true"
+              />
+            </span>
+            <h3 className="mt-5 font-display text-[23px] font-medium leading-tight text-text-primary">
+              {t.submittingTitle}
+            </h3>
+            <p className="mt-2 font-sans text-[13.5px] leading-[1.65] text-text-secondary">
+              {t.submittingBody}
+            </p>
+          </div>
+        </div>
+      )}
       <div className="mx-auto max-w-xl">
         {/* Chapter header */}
         <div className="mb-8 flex items-center justify-between gap-4">
@@ -2029,7 +2058,11 @@ export default function PersonalizedBookOrderForm({
             ].join(" ")}
           >
             {isLastStep ? t.sendOrder : t.continue}
-            <ArrowRight size={14} strokeWidth={1.75} className="rtl:-scale-x-100" />
+            {submitting ? (
+              <LoaderCircle size={15} strokeWidth={2} className="animate-spin" aria-hidden="true" />
+            ) : (
+              <ArrowRight size={14} strokeWidth={1.75} className="rtl:-scale-x-100" />
+            )}
           </button>
         </div>
       </div>

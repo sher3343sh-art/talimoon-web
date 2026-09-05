@@ -393,11 +393,9 @@ export const BOOK_LANGUAGE_OPTIONS: readonly BookLanguageOption[] = [
   { code: "uz", label: "O‘zbekcha", status: "available" },
   { code: "en", label: "English", status: "available" },
   { code: "ru", label: "Русский", status: "available" },
-  // kk/ky/tg: not yet accepted by the talimoon-intake backend's
-  // bookLanguage contract (uz/ru/en/ar only) — "soon" until it is.
-  { code: "kk", label: "Қазақша", status: "soon" },
-  { code: "ky", label: "Кыргызча", status: "soon" },
-  { code: "tg", label: "Тоҷикӣ", status: "soon" },
+  { code: "kk", label: "Қазақша", status: "available" },
+  { code: "ky", label: "Кыргызча", status: "available" },
+  { code: "tg", label: "Тоҷикӣ", status: "available" },
   { code: "ar", label: "العربية", status: "available" },
 ] as const;
 

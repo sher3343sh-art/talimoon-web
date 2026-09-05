@@ -18,17 +18,14 @@ const BASE = {
 };
 
 describe("isBackendBookLanguage", () => {
-  it("accepts exactly the 4 backend-supported codes", () => {
+  it("accepts every supported book language code", () => {
     expect(isBackendBookLanguage("uz")).toBe(true);
     expect(isBackendBookLanguage("ru")).toBe(true);
     expect(isBackendBookLanguage("en")).toBe(true);
     expect(isBackendBookLanguage("ar")).toBe(true);
-  });
-
-  it("rejects languages the backend doesn't accept yet", () => {
-    expect(isBackendBookLanguage("kk")).toBe(false);
-    expect(isBackendBookLanguage("ky")).toBe(false);
-    expect(isBackendBookLanguage("tg")).toBe(false);
+    expect(isBackendBookLanguage("kk")).toBe(true);
+    expect(isBackendBookLanguage("ky")).toBe(true);
+    expect(isBackendBookLanguage("tg")).toBe(true);
   });
 });
 

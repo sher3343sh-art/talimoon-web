@@ -80,20 +80,22 @@ export function AdditionalCharacterFields({
               {copy.removeLabel}
             </button>
           </div>
-          <Field label={copy.relationLabel}>
-            <TextInput
-              value={c.relation}
-              onChange={(e) => onPatch(c.id, { relation: e.target.value })}
-              placeholder={copy.relationPlaceholder}
-            />
-          </Field>
-          <Field label={copy.nameLabel}>
-            <TextInput
-              value={c.name}
-              onChange={(e) => onPatch(c.id, { name: e.target.value })}
-              placeholder={copy.namePlaceholder}
-            />
-          </Field>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Field label={copy.relationLabel}>
+              <TextInput
+                value={c.relation}
+                onChange={(e) => onPatch(c.id, { relation: e.target.value })}
+                placeholder={copy.relationPlaceholder}
+              />
+            </Field>
+            <Field label={copy.nameLabel}>
+              <TextInput
+                value={c.name}
+                onChange={(e) => onPatch(c.id, { name: e.target.value })}
+                placeholder={copy.namePlaceholder}
+              />
+            </Field>
+          </div>
         </div>
       ))}
       {characters.length < MAX_ADDITIONAL_CHARACTERS && (

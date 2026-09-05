@@ -19,10 +19,18 @@ const API_BASE = process.env.NEXT_PUBLIC_INTAKE_API_URL;
 
 export type ArtifactKind = "child_photo" | "special_photo" | "character_photo" | "receipt";
 
-/** The 4 book languages talimoon-intake's backend currently accepts. */
-export type BackendBookLanguage = "uz" | "ru" | "en" | "ar";
+/** Book languages accepted by the TALIMOON order intake. */
+export type BackendBookLanguage = "uz" | "ru" | "en" | "kk" | "ky" | "tg" | "ar";
 
-const BACKEND_BOOK_LANGUAGES: readonly BackendBookLanguage[] = ["uz", "ru", "en", "ar"];
+const BACKEND_BOOK_LANGUAGES: readonly BackendBookLanguage[] = [
+  "uz",
+  "ru",
+  "en",
+  "kk",
+  "ky",
+  "tg",
+  "ar",
+];
 
 export function isBackendBookLanguage(code: string): code is BackendBookLanguage {
   return (BACKEND_BOOK_LANGUAGES as readonly string[]).includes(code);
