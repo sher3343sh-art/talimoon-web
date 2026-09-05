@@ -567,13 +567,34 @@ function WorldPortal({
             <div
               className="absolute -bottom-5 end-0 w-[38%] max-w-[180px] sm:bottom-0 motion-safe:transition-transform motion-safe:duration-500 motion-safe:group-hover:-translate-y-1"
             >
-              <div className="p-[6px]" style={{ backgroundColor: CREAM }}>
-                <MediaFrame
-                  ratio="aspect-[3/4]"
-                  src={secondarySrc}
-                  alt={secondaryView?.alt || `${name} — detail`}
-                  markerLabel={undefined}
-                  sizes="180px"
+              <div
+                className="relative rounded-[20px] p-px"
+                style={{
+                  background:
+                    'linear-gradient(145deg, rgba(255,255,255,0.98) 0%, rgba(184,147,91,0.62) 48%, rgba(126,91,40,0.34) 100%)',
+                  boxShadow:
+                    '0 24px 48px -24px rgba(28,35,50,0.42), 0 10px 24px -16px rgba(28,35,50,0.34), 0 1px 0 rgba(255,255,255,0.88)',
+                }}
+              >
+                <div
+                  className="rounded-[19px] p-[5px]"
+                  style={{
+                    background:
+                      'linear-gradient(145deg, rgba(253,251,247,0.99), rgba(247,241,230,0.96))',
+                  }}
+                >
+                  <MediaFrame
+                    ratio="aspect-[3/4]"
+                    src={secondarySrc}
+                    alt={secondaryView?.alt || `${name} — detail`}
+                    markerLabel={undefined}
+                    sizes="180px"
+                  />
+                </div>
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-[2px] rounded-[18px]"
+                  style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.6)' }}
                 />
               </div>
             </div>
