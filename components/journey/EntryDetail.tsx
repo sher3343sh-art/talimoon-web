@@ -46,7 +46,7 @@ import {
 } from './shared';
 
 const EN = {
-  back: 'HAYOT',
+  back: 'Back',
   share: 'Share',
   copied: 'Link copied',
   more: 'HAYOT continues',
@@ -56,7 +56,7 @@ const EN = {
   link: 'Link',
 };
 const UZ: typeof EN = {
-  back: 'HAYOT',
+  back: 'Orqaga',
   share: 'Ulashish',
   copied: 'Havola nusxalandi',
   more: 'HAYOT DAVOM ETADI',
@@ -490,13 +490,13 @@ export function EntryDetail({ entry }: { entry: JourneyEntry }) {
 
       {leadVideo ? (
         <div className="w-full bg-surface-base">
-          <div className="mx-auto w-full max-w-[1200px]">
+          <div className="mx-auto w-full max-w-[1000px] px-4 sm:px-6">
             <VideoPlayer video={leadVideo} transcriptLabel={t.transcript} />
           </div>
         </div>
       ) : photo ? (
         <div className="w-full overflow-hidden bg-surface-base">
-          <figure className="mx-auto w-full max-w-[1200px]">
+          <figure className="mx-auto w-full max-w-[680px] px-4 sm:px-0">
             <div className="tm-media-float relative aspect-[16/10] w-full sm:aspect-[2/1]">
               <Image
                 src={photo.src}

@@ -368,7 +368,14 @@ function WorldPortal({
   const primaryView = mediaView(preview.primary, locale);
   const secondaryView = mediaView(preview.secondary, locale);
   const fallbackMedia = WORLD_FALLBACK_MEDIA[world];
-  const primarySrc = primaryView?.src ?? fallbackMedia.primary;
+  // World 02 has its own enduring gateway artwork. Article covers belong
+  // inside the journal stream and detail pages, not in this visual index.
+  const fixedGatewayArtwork = world === 'parents';
+  const primarySrc = fixedGatewayArtwork
+    ? fallbackMedia.primary
+    : primaryView?.src ?? fallbackMedia.primary;
+  const primaryAlt = fixedGatewayArtwork ? name : primaryView?.alt || name;
+  const primaryPlayCue = fixedGatewayArtwork ? false : primaryView?.isVideo;
   const secondarySrc = secondaryView?.src ?? fallbackMedia.secondary ?? null;
 
   const sourceRef =
@@ -556,9 +563,9 @@ function WorldPortal({
             <MediaFrame
               ratio="aspect-[4/3] sm:aspect-[3/2] lg:aspect-auto lg:h-[430px]"
               src={primarySrc}
-              alt={primaryView?.alt || name}
+              alt={primaryAlt}
               priority
-              playCue={primaryView?.isVideo}
+              playCue={primaryPlayCue}
               markerLabel={wc.mediaType}
               sizes="(max-width: 1024px) 92vw, 46vw"
               imageClassName="max-sm:object-[100%_50%] sm:object-center"
@@ -624,8 +631,8 @@ function WorldPortal({
               : 'aspect-[4/3] sm:aspect-[3/2] lg:aspect-auto lg:h-[420px]'
           }
           src={primarySrc}
-          alt={primaryView?.alt || name}
-          playCue={primaryView?.isVideo}
+          alt={primaryAlt}
+          playCue={primaryPlayCue}
           focal={variant === 'compact'}
           markerLabel={wc.mediaType}
           sizes="(max-width: 1024px) 92vw, 40vw"

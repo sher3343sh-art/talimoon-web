@@ -12,9 +12,9 @@
  * of every format (photo reportage, video, thought, moment, update,
  * campaign) and every block type. No component changes.
  *
- * Development fixtures (`dev-fixtures.ts`) are merged in ONLY when
- * `process.env.NODE_ENV === 'development'`. They never reach a
- * production build.
+ * Development fixtures (`dev-fixtures.ts`) are opt-in and merged only
+ * when `NEXT_PUBLIC_JOURNEY_FIXTURES=1` in development. Real content is
+ * therefore the default locally as well as in production.
  *
  * These accessors are pure functions over local data with no
  * server-only imports, so they are safe to call from Server and
@@ -286,15 +286,14 @@ const PRODUCTION_ENTRIES: readonly JourneyEntry[] = [
 const PRODUCTION_PULSE: readonly PulseSeed[] = [];
 
 /**
- * Dev fixtures are merged ONLY in development. `process.env.NODE_ENV`
- * is statically replaced with `'production'` in a production build,
- * so the `require('./dev-fixtures')` call below is dead code the
- * bundler eliminates entirely — the fixture module and its strings
- * never reach the production bundle, and `ENTRIES` / `PULSE` are
- * exactly the (empty) production arrays.
+ * Fixtures are deliberately opt-in. This keeps placeholder cards out
+ * of the real editorial pages during normal local review.
  */
 const DEV = (() => {
-  if (process.env.NODE_ENV !== 'development') {
+  if (
+    process.env.NODE_ENV !== 'development' ||
+    process.env.NEXT_PUBLIC_JOURNEY_FIXTURES !== '1'
+  ) {
     return { entries: [] as JourneyEntry[], pulse: [] as PulseSeed[] };
   }
   // eslint-disable-next-line @typescript-eslint/no-require-imports
