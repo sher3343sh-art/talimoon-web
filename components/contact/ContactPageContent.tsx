@@ -67,11 +67,11 @@ export function ContactPageContent() {
   const t = useT(EN, UZ, RU);
   const regions = [
     { name: t.qatar, number: CONTACT.qatarPhone.value, tel: CONTACT.qatarPhone.href, messageHref: `https://wa.me/97477472723?text=${whatsappMessage}`, messageLabel: t.whatsapp, messageIcon: MessageCircle },
-    { name: t.uzbekistan, number: CONTACT.uzbekistanPhone.value, tel: CONTACT.uzbekistanPhone.href, messageHref: "https://t.me/+998972560020", messageLabel: t.telegramWrite, messageIcon: Send },
+    { name: t.uzbekistan, number: CONTACT.uzbekistanPhone.value, tel: CONTACT.uzbekistanPhone.href, messageHref: "https://t.me/Talimoon_DM", messageLabel: t.telegramWrite, messageIcon: Send },
   ];
   const channels = [
     { name: t.email, value: "hello@talimoon.com", href: "mailto:hello@talimoon.com", icon: Mail },
-    { name: t.telegram, value: "@talimoon_ · DM", href: "https://t.me/talimoon_kids", icon: Send },
+    { name: t.telegram, value: "@Talimoon_DM", href: "https://t.me/Talimoon_DM", icon: Send },
     { name: t.instagram, value: "@talimoon_ · DM", href: "https://ig.me/m/talimoon_", icon: MessageCircle },
   ];
 

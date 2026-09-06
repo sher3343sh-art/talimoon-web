@@ -18,8 +18,8 @@ export const SOCIAL = {
     handle: "@talimoon_",
   },
   telegram: {
-    url: "https://t.me/talimoon_kids",
-    handle: "@Talimoon_kids",
+    url: "https://t.me/Talimoon_DM",
+    handle: "@Talimoon_DM",
   },
   youtube: {
     url: "https://www.youtube.com/@talimoonofficial",
@@ -33,8 +33,8 @@ export const CONTACT = {
     href: "mailto:hello@talimoon.com",
   },
   telegram: {
-    value: "@Talimoon_kids",
-    href: "https://t.me/talimoon_kids",
+    value: "@Talimoon_DM",
+    href: "https://t.me/Talimoon_DM",
   },
   /** Instagram as a contact channel — opens a direct message, not the profile. */
   instagramDM: {
