@@ -14,14 +14,15 @@ interface Product {
   tagline: string;
   taglineUz: string;
   /**
-   * Card artwork. One visual family — the same painted "world" images
-   * as the home "Our Products" doors — so the three cards clearly read
-   * as siblings, each opening a different world (spec §2). These are
-   * ASSET SLOTS: swap the path for approved final order-flow art when
-   * it lands; do not invent replacement artwork here.
-   *   personalized-books → the open-book world the child steps into
-   *   yusuf-yasmina      → the approved Yusuf & Yasmina world
-   *   toys               → the TALIMOON toy / character world
+   * Card artwork — the approved editorial images made specifically for
+   * this order-entry page (`/public/images/begin`). One warm visual
+   * family, each a full-bleed rectangular ~4:3 scene, NOT an arch /
+   * doorway silhouette: the image itself is a confident part of the
+   * card (SEE → IMAGINE → CHOOSE → BEGIN). Swap the path here if the
+   * approved art is re-exported; do not invent replacement artwork.
+   *   personalized-books → child unwrapping their own TALIMOON book
+   *   yusuf-yasmina      → Yusuf & Yasmina overlooking their world
+   *   toys               → child building a world from TALIMOON toys
    */
   image: string;
   active: boolean;
@@ -34,7 +35,7 @@ const PRODUCTS: Product[] = [
     nameUz: "Shaxsiylashtirilgan kitoblar",
     tagline: "Your child becomes the hero of a story created especially for them.",
     taglineUz: "Farzandingiz maxsus u uchun yaratilgan hikoyaning bosh qahramoniga aylanadi.",
-    image: "/images/home/OurProducts/books-world.webp",
+    image: "/images/begin/personalized-books.png",
     active: true,
   },
   {
@@ -43,7 +44,7 @@ const PRODUCTS: Product[] = [
     nameUz: "Yusuf va Yasmina",
     tagline: "Faith-filled adventures that inspire kindness, courage, and character.",
     taglineUz: "Mehr-shafqat, jasorat va halollikni ilhomlantiruvchi imonli sarguzashtlar.",
-    image: "/images/home/OurProducts/yusuf.webp",
+    image: "/images/begin/yusuf-yasmina.png",
     active: false,
   },
   {
@@ -52,7 +53,7 @@ const PRODUCTS: Product[] = [
     nameUz: "Talimoon o'yinchoqlari",
     tagline: "Beautiful toys that transform everyday play into joyful learning.",
     taglineUz: "Kundalik o'yinni quvonchli bilim olishga aylantiruvchi go'zal o'yinchoqlar.",
-    image: "/images/home/OurProducts/toys.webp",
+    image: "/images/begin/talimoon-toys.png",
     active: false,
   },
 ];
@@ -105,7 +106,7 @@ export default function ProductSelect() {
         </h1>
       </div>
 
-      <div className="mx-auto mt-12 grid max-w-4xl gap-5 sm:grid-cols-3">
+      <div className="mx-auto mt-12 grid max-w-4xl gap-x-6 gap-y-10 sm:mt-14 sm:grid-cols-3 sm:gap-x-6 lg:gap-x-8">
         {PRODUCTS.map((product) => {
           const name = language === "UZ" ? product.nameUz : product.name;
           const tagline = language === "UZ" ? product.taglineUz : product.tagline;
@@ -116,42 +117,62 @@ export default function ProductSelect() {
               disabled={!product.active}
               onClick={() => product.active && openProduct(product.id)}
               className={[
-                "group relative flex flex-col items-start rounded-md border border-border-default bg-surface-overlay p-6 text-left transition-all duration-200",
-                "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-primary",
-                "disabled:cursor-not-allowed",
-                product.active ? "opacity-100" : "opacity-55",
+                "group relative flex h-full flex-col text-left",
+                "rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent-primary",
+                product.active
+                  ? "transition-transform duration-300 ease-out motion-safe:hover:-translate-y-1"
+                  : "cursor-not-allowed",
               ].join(" ")}
             >
-              <span className="relative mb-5 block aspect-[4/3] w-full overflow-hidden rounded-md border border-border-subtle bg-surface-base">
+              <span
+                className={[
+                  "relative block aspect-[4/3] w-full overflow-hidden rounded-lg bg-surface-raised",
+                  "ring-1 ring-black/[0.05]",
+                  product.active
+                    ? "shadow-[0_3px_16px_-8px_rgba(42,36,29,0.18)] transition-shadow duration-300 ease-out motion-safe:group-hover:shadow-[0_16px_40px_-16px_rgba(42,36,29,0.28)]"
+                    : "shadow-[0_2px_12px_-8px_rgba(42,36,29,0.12)]",
+                ].join(" ")}
+              >
                 <Image
                   src={product.image}
-                  alt=""
+                  alt={name}
                   fill
-                  sizes="(min-width: 640px) 22rem, 90vw"
-                  className="object-cover"
+                  priority
+                  sizes="(min-width: 640px) 19rem, 92vw"
+                  className={[
+                    "object-cover object-center",
+                    product.active
+                      ? "transition-transform duration-[600ms] ease-out motion-safe:group-hover:scale-[1.03]"
+                      : "opacity-[0.97]",
+                  ].join(" ")}
                 />
               </span>
 
-              <h3 className="font-display text-[19px] font-medium text-text-primary">
+              <h3 className="mt-4 font-display text-[19px] font-medium leading-snug text-text-primary lg:text-[20px]">
                 {name}
               </h3>
-              <p className="mt-2 font-sans text-[13.5px] leading-[1.5] text-text-secondary">
+              <p
+                className={[
+                  "mt-1.5 max-w-[34ch] font-sans text-[13.5px] leading-[1.55]",
+                  product.active ? "text-text-secondary" : "text-text-muted",
+                ].join(" ")}
+              >
                 {tagline}
               </p>
 
               <span
                 className={[
-                  "mt-5 inline-flex items-center gap-1.5 font-sans text-[13px] font-medium",
-                  product.active ? "text-text-primary" : "text-text-secondary",
+                  "mt-auto inline-flex items-center gap-1.5 pt-4 font-sans text-[12px] font-medium uppercase tracking-[0.14em]",
+                  product.active ? "text-text-primary" : "text-text-muted",
                 ].join(" ")}
               >
                 {product.active ? (
                   <>
                     {chrome.stepInside}
                     <ArrowRight
-                      size={14}
+                      size={13}
                       strokeWidth={1.75}
-                      className="transition-transform duration-200 group-hover:translate-x-0.5"
+                      className="transition-transform duration-300 ease-out motion-safe:group-hover:translate-x-1"
                     />
                   </>
                 ) : (
