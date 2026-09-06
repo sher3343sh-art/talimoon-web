@@ -9,6 +9,7 @@ import {
 import "./globals.css";
 import { MaskDefs } from "@/components/ui/MaskDefs";
 import { LanguageProvider } from "@/lib/i18n/LanguageContext";
+import { PwaInstallPrompt } from "@/components/pwa/PwaInstallPrompt";
 
 
 const fraunces = Fraunces({
@@ -50,6 +51,26 @@ export const metadata: Metadata = {
   title: "TALIMOON | Personalized Children's Books",
   description:
     "Personalized storybooks that place your child at the heart of every adventure.",
+  manifest: "/manifest.webmanifest",
+  applicationName: "TALIMOON",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "TALIMOON",
+  },
+  formatDetection: { telephone: false },
+  icons: {
+    apple: "/pwa/icon-192.png",
+    icon: [
+      { url: "/pwa/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/pwa/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+  },
+};
+
+export const viewport = {
+  themeColor: "#101A29",
+  viewportFit: "cover" as const,
 };
 
 export default function RootLayout({
@@ -63,7 +84,7 @@ export default function RootLayout({
   className={`${fraunces.variable} ${plusJakartaSans.variable} ${geistMono.variable} ${cormorantGaramond.variable} ${manrope.variable} antialiased min-h-full flex flex-col`}
 >
   <MaskDefs />
-  <LanguageProvider>{children}</LanguageProvider>
+  <LanguageProvider>{children}<PwaInstallPrompt /></LanguageProvider>
 </body>
     </html>
   );
