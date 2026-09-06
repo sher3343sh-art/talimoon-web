@@ -46,6 +46,14 @@ const UZ: typeof EN = {
   emptyLead: 'Ilk ruxsat berilgan hikoyalar tez orada shu yerda paydo bo‘ladi.',
   viewAll: "To'plamlarni ko'rish",
 };
+const RU: typeof EN = {
+  eyebrow: 'Именные коллекции',
+  heading: 'Создано для одного ребёнка. Опубликовано его семьёй.',
+  body: 'В каждой книге отражены имя, интересы и близкий ребёнку мир. Здесь собраны только те истории, которыми семьи решили поделиться.',
+  consentNote: 'Только с согласия семьи.',
+  emptyLead: 'Первые одобренные истории скоро появятся здесь.',
+  viewAll: 'Смотреть коллекции',
+};
 
 // gentle, fixed "hand-placed" transforms for the frame cluster
 const FRAMES = [
@@ -56,7 +64,7 @@ const FRAMES = [
 ];
 
 export function FamilyStoriesWorld({ stories }: { stories: Story[] }) {
-  const t = useT(EN, UZ);
+  const t = useT(EN, UZ, RU);
   const reduced = useReducedMotion();
   const isEmpty = stories.length === 0;
 

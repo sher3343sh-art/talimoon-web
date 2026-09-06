@@ -79,6 +79,13 @@ const defaultNavLinksUz = [
   { label: "Sovg'a qilish", href: "#gifting" },
 ];
 
+const defaultNavLinksRu = [
+  { label: "Как это работает", href: "#how-it-works" },
+  { label: "Мастерство", href: "#craftsmanship" },
+  { label: "Коллекции", href: "#collections" },
+  { label: "Подарки", href: "#gifting" },
+];
+
 // Verified location: public/images/products/personalized-books/hero/hero-v13.png
 const DEFAULT_HERO_IMAGE_SRC =
   "/images/products/personalized-books/hero/hero-v13.webp";
@@ -109,6 +116,19 @@ const DEFAULT_COPY_UZ: typeof DEFAULT_COPY_EN = {
   trailerLabel: "499 000 so‘mdan · 7–10 kun",
 };
 
+const DEFAULT_COPY_RU: typeof DEFAULT_COPY_EN = {
+  imageAlt: "Ребёнок читает, погружённый в историю, которую держит в руках",
+  logoText: "Talimoon",
+  kicker: "ИМЕННАЯ ИСТОРИЯ",
+  headline: "Это не просто книга с именем Вашего ребёнка на обложке.",
+  follow: "Это история, в которой он живёт.",
+  subhead:
+    "Облик Вашего ребёнка, его характер, увлечения и тот смысл, который Вы хотите донести до его сердца: всё это заключено в истории, созданной только для него.",
+  primaryCtaLabel: "Создать историю моего ребёнка →",
+  secondaryCtaLabel: "Как это работает ↓",
+  trailerLabel: "От 499 000 сум · 7–10 дней",
+};
+
 export default function TalimoonHero({
   imageSrc = DEFAULT_HERO_IMAGE_SRC,
   imageAlt,
@@ -126,9 +146,9 @@ export default function TalimoonHero({
   trailerLabel,
 }: TalimoonHeroProps) {
   const [errored, setErrored] = useState(false);
-  const t = useT(DEFAULT_COPY_EN, DEFAULT_COPY_UZ);
-  const defaultNavLinks = useT(defaultNavLinksEn, defaultNavLinksUz);
-  const sectionLabel = useT("Hero", "Bosh banner");
+  const t = useT(DEFAULT_COPY_EN, DEFAULT_COPY_UZ, DEFAULT_COPY_RU);
+  const defaultNavLinks = useT(defaultNavLinksEn, defaultNavLinksUz, defaultNavLinksRu);
+  const sectionLabel = useT("Hero", "Bosh banner", "Главный баннер");
 
   imageAlt ??= t.imageAlt;
   logoText ??= t.logoText;

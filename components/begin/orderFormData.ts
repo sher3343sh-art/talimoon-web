@@ -185,7 +185,7 @@ export function isDeliveryRegionCode(v: string): v is DeliveryRegionCode {
   return DELIVERY_REGIONS.some((r) => r.code === v);
 }
 
-export function deliveryRegionLabel(code: string, locale: "uz" | "en"): string {
+export function deliveryRegionLabel(code: string, locale: "uz" | "en" | "ru"): string {
   const r = DELIVERY_REGIONS.find((x) => x.code === code);
   if (!r) return "";
   return locale === "uz" ? r.labelUz : r.label;
@@ -283,7 +283,7 @@ export const COUNTRIES: readonly CountryOption[] = [
   { code: "OTHER", label: "Another country", labelUz: "Boshqa davlat" },
 ];
 
-export function countryLabel(code: string, locale: "uz" | "en"): string {
+export function countryLabel(code: string, locale: "uz" | "en" | "ru"): string {
   const c = COUNTRIES.find((x) => x.code === code);
   if (!c) return "";
   return locale === "uz" ? c.labelUz : c.label;
@@ -361,14 +361,14 @@ export function buildPricingSnapshot(opts: {
 }
 
 export const TRAITS = [
-  { id: "learning", en: "Love of learning", uz: "Bilimga ishtiyoq" },
-  { id: "responsibility", en: "Responsibility", uz: "Mas'uliyat" },
-  { id: "patience", en: "Patience", uz: "Sabr-toqat" },
-  { id: "gratitude", en: "Gratitude", uz: "Minnatdorchilik" },
-  { id: "courage", en: "Courage", uz: "Jasorat" },
-  { id: "kindness", en: "Kindness", uz: "Mehribonlik" },
-  { id: "cleanliness", en: "Cleanliness", uz: "Ozodalik" },
-  { id: "manners", en: "Good manners", uz: "Odob-axloq" },
+  { id: "learning", en: "Love of learning", uz: "Bilimga ishtiyoq", ru: "Любовь к знаниям" },
+  { id: "responsibility", en: "Responsibility", uz: "Mas'uliyat", ru: "Ответственность" },
+  { id: "patience", en: "Patience", uz: "Sabr-toqat", ru: "Терпение" },
+  { id: "gratitude", en: "Gratitude", uz: "Minnatdorchilik", ru: "Благодарность" },
+  { id: "courage", en: "Courage", uz: "Jasorat", ru: "Смелость" },
+  { id: "kindness", en: "Kindness", uz: "Mehribonlik", ru: "Доброта" },
+  { id: "cleanliness", en: "Cleanliness", uz: "Ozodalik", ru: "Опрятность" },
+  { id: "manners", en: "Good manners", uz: "Odob-axloq", ru: "Хорошие манеры" },
 ] as const;
 
 export type TraitId = (typeof TRAITS)[number]["id"];

@@ -52,6 +52,17 @@ const UZ: typeof EN = {
   end: 'Hikoya davom etadi.',
   preparing: 'Birinchi qism tayyorlanmoqda.',
 };
+const RU: typeof EN = {
+  back: 'Библиотека историй',
+  sibling: 'Семейные истории',
+  eyebrow: 'Продолжающаяся история',
+  start: 'Начать с начала',
+  cont: 'Продолжить',
+  comingSoon: 'Скоро',
+  qism: (n: number) => `${String(n).padStart(2, '0')}-QISM`,
+  end: 'История продолжается.',
+  preparing: 'Первая часть готовится.',
+};
 
 function toLocale(lang: string): Locale {
   const l = lang.toLowerCase();
@@ -65,7 +76,7 @@ export function SeriesHub({
   series: Series;
   episodes: Story[];
 }) {
-  const t = useT(EN, UZ);
+  const t = useT(EN, UZ, RU);
   const { language } = useLanguage();
   const reduced = useReducedMotion();
   const locale = toLocale(language);

@@ -45,6 +45,11 @@ const UZ: typeof EN = {
   today: 'Bugun',
   empty: "Oldinda nima borligi shu yerda ko'rinadi — yangi qismlar, tashriflar, tanlov.",
 };
+const RU: typeof EN = {
+  heading: 'Что впереди',
+  today: 'Сегодня',
+  empty: 'Что впереди — появится здесь: новые части, визиты, конкурс.',
+};
 
 const STRAND_EN: Record<PulseStrand, string> = {
   episode: 'New part',
@@ -60,12 +65,20 @@ const STRAND_UZ: Record<PulseStrand, string> = {
   story: 'Yangi hikoya',
   announcement: "E'lon",
 };
+const STRAND_RU: Record<PulseStrand, string> = {
+  episode: 'Новая часть',
+  visit: 'Визит',
+  campaign: 'Конкурс',
+  story: 'Новая история',
+  announcement: 'Объявление',
+};
 
 export function YaqinKunlar() {
   const { language } = useLanguage();
   const locale = toLocale(language);
-  const t = useT(EN, UZ);
-  const strand = language === 'UZ' ? STRAND_UZ : STRAND_EN;
+  const t = useT(EN, UZ, RU);
+  const strand =
+    language === 'UZ' ? STRAND_UZ : language === 'RU' ? STRAND_RU : STRAND_EN;
 
   const items = useMemo(() => getPulse(locale), [locale]);
 

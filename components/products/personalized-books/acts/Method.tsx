@@ -85,10 +85,41 @@ const COPY_UZ: typeof COPY_EN = {
   cta: "Farzandimga nimani yetkazmoqchiman? →",
 };
 
+const COPY_RU: typeof COPY_EN = {
+  eyebrow: "Как это работает",
+  heading: ["Мы не повторяем нравоучение.", "Мы превращаем его в историю Вашего ребёнка."],
+  pickLabel: "Что бы Вы хотели воспитать в своём ребёнке?",
+  examples: [
+    {
+      wish: "Больше уверенности в себе",
+      parentSays: "«Хотелось бы, чтобы он больше верил в себя»",
+      inStory:
+        "Герой сталкивается с трудностью, принимает решение, пробует, и переживает маленькую настоящую победу. Ему никогда не говорят «верь в себя». Он сам видит внутри истории ту силу, что всегда была его собственной.",
+    },
+    {
+      wish: "Доброта к брату или сестре",
+      parentSays: "«Хотелось бы, чтобы он был мягче с братом»",
+      inStory:
+        "Вместо «не деритесь» брат и сестра попадают в приключение, которое получается только тогда, когда важна сила каждого. Внутри истории они чувствуют, что нужны друг другу.",
+    },
+    {
+      wish: "Интерес к учёбе",
+      parentSays: "«Хотелось бы, чтобы ему было интереснее в школе»",
+      inStory:
+        "Знание становится тем, что герой на самом деле использует, чтобы двигаться вперёд. Учёба перестаёт быть обязанностью и становится тем, что несёт вперёд всё приключение.",
+    },
+  ] satisfies Example[],
+  close: [
+    "Вы говорите нам, что хотите донести до сердца Вашего ребёнка.",
+    "Мы превращаем это в историю, к которой он будет возвращаться сам.",
+  ],
+  cta: "Что я хочу передать своему ребёнку? →",
+};
+
 export default function Method() {
-  const t = useT(COPY_EN, COPY_UZ);
-  const roleParent = useT("The parent", "Ota-ona");
-  const roleStory = useT("Inside the story", "Hikoya ichida");
+  const t = useT(COPY_EN, COPY_UZ, COPY_RU);
+  const roleParent = useT("The parent", "Ota-ona", "Родитель");
+  const roleStory = useT("Inside the story", "Hikoya ichida", "Внутри истории");
   const reduced = usePrefersReducedMotion();
   const [active, setActive] = useState(0);
   const ex = t.examples[active] ?? t.examples[0]!;

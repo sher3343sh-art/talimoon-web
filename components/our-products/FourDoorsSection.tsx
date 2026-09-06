@@ -106,6 +106,21 @@ const VARIANT_COPY_UZ: typeof VARIANT_COPY_EN = {
   },
 };
 
+const VARIANT_COPY_RU: typeof VARIANT_COPY_EN = {
+  "personalized-books": {
+    title: "Именные книги",
+    tagline: "Ваш ребёнок становится героем истории, созданной специально для него.",
+  },
+  "yusuf-yasmina": {
+    title: "Юсуф и Ясмина",
+    tagline: "Наполненные верой приключения, вдохновляющие на доброту, смелость и прекрасный характер.",
+  },
+  "talimoon-toys": {
+    title: "Игрушки TALIMOON",
+    tagline: "Красивые игрушки, превращающие повседневную игру в радостное познание мира.",
+  },
+};
+
 const VARIANTS: DoorVariant[] = [
   {
     id: "personalized-books",
@@ -234,9 +249,19 @@ const SECTION_COPY_UZ: typeof SECTION_COPY_EN = {
   madeWithLove: "Sevgi bilan yaratilgan",
 };
 
+const SECTION_COPY_RU: typeof SECTION_COPY_EN = {
+  eyebrow: "Наши продукты",
+  heading: "За каждой дверью, целый мир.",
+  description:
+    "Выберите путешествие, которое вдохновит Вашего ребёнка незабываемыми историями, содержательными приключениями и радостной игрой.",
+  safe: "Безопасно и подходит для детей",
+  meaningful: "Содержательно и нравственно",
+  madeWithLove: "Создано с любовью",
+};
+
 export function FourDoorsSection() {
-  const t = useT(SECTION_COPY_EN, SECTION_COPY_UZ);
-  const variantCopy = useT(VARIANT_COPY_EN, VARIANT_COPY_UZ);
+  const t = useT(SECTION_COPY_EN, SECTION_COPY_UZ, SECTION_COPY_RU);
+  const variantCopy = useT(VARIANT_COPY_EN, VARIANT_COPY_UZ, VARIANT_COPY_RU);
   const localizedVariants = VARIANTS.map((variant) => ({
     ...variant,
     title: variantCopy[variant.id as keyof typeof VARIANT_COPY_EN].title,

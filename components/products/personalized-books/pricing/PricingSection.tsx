@@ -37,31 +37,53 @@ import { useMarketPreference } from "@/lib/order/market";
 const PLANS: Array<{
   type: BookType;
   featured?: boolean;
-  features: { icon: React.ElementType; text: string; textUz: string }[];
+  features: { icon: React.ElementType; text: string; textUz: string; textRu: string }[];
 }> = [
   {
     type: "single",
     features: [
-      { icon: User, text: "Your child as the story's hero", textUz: "Farzandingiz hikoyaning bosh qahramoni" },
+      {
+        icon: User,
+        text: "Your child as the story's hero",
+        textUz: "Farzandingiz hikoyaning bosh qahramoni",
+        textRu: "Ваш ребёнок в роли главного героя истории",
+      },
       {
         icon: ImageIcon,
         text: "Custom illustrations from their photos",
         textUz: "Ularning suratlaridan yaratilgan maxsus illyustratsiyalar",
+        textRu: "Индивидуальные иллюстрации по фотографиям Вашего ребёнка",
       },
-      { icon: Book, text: "Hardcover keepsake edition", textUz: "Qattiq muqovali, umrbod saqlanadigan nashr" },
+      {
+        icon: Book,
+        text: "Hardcover keepsake edition",
+        textUz: "Qattiq muqovali, umrbod saqlanadigan nashr",
+        textRu: "Издание в твёрдом переплёте на долгую память",
+      },
     ],
   },
   {
     type: "multi",
     featured: true,
     features: [
-      { icon: Users, text: "All siblings woven into one story", textUz: "Barcha farzandlar bitta hikoyada birlashadi" },
+      {
+        icon: Users,
+        text: "All siblings woven into one story",
+        textUz: "Barcha farzandlar bitta hikoyada birlashadi",
+        textRu: "Все братья и сёстры в одной общей истории",
+      },
       {
         icon: ImageIcon,
         text: "Custom illustrations from their photos",
         textUz: "Ularning suratlaridan yaratilgan maxsus illyustratsiyalar",
+        textRu: "Индивидуальные иллюстрации по фотографиям Ваших детей",
       },
-      { icon: Book, text: "Hardcover keepsake edition", textUz: "Qattiq muqovali, umrbod saqlanadigan nashr" },
+      {
+        icon: Book,
+        text: "Hardcover keepsake edition",
+        textUz: "Qattiq muqovali, umrbod saqlanadigan nashr",
+        textRu: "Издание в твёрдом переплёте на долгую память",
+      },
     ],
   },
 ];
@@ -106,6 +128,27 @@ const CHROME_UZ: typeof CHROME_EN = {
   badgeUrgency: "FAQAT HOZIR",
   badgePercent: (pct) => `−${pct}%`,
   badgeSr: (pct, was) => `Faqat hozir ${pct}% chegirma — avvalgi narx ${was}`,
+};
+
+const CHROME_RU: typeof CHROME_EN = {
+  eyebrow: "Цены",
+  heading: "Простые, прозрачные цены",
+  subheading: "Никаких скрытых платежей. Каждая книга создаётся на заказ.",
+  pagesStory: (pages) => `Именная история объёмом ${pages} стр.`,
+  choosePlan: (label) => `Выбрать «${label}»`,
+  mostChosen: "Самый популярный",
+  extraCopies: (amount) => `Дополнительные экземпляры: +${amount} за штуку`,
+  extraCopiesIntl: (amount) => `Дополнительный экземпляр: +${amount} за штуку`,
+  readyInUz: "Срок подготовки: 7–10 дней",
+  readyInIntl: "Срок подготовки: 15–25 дней",
+  marketUz: "Узбекистан",
+  marketIntl: "Международный",
+  marketAria: "Регион заказа",
+  deliveryUz: "Доставка: бесплатно по Ташкенту, 40 000 сум в другие регионы",
+  deliveryIntl: "Международная доставка: $15",
+  badgeUrgency: "ТОЛЬКО СЕЙЧАС",
+  badgePercent: (pct) => `−${pct}%`,
+  badgeSr: (pct, was) => `Скидка ${pct}%, только сейчас, было ${was}`,
 };
 
 /** "499 000" — the bare number; the currency word is rendered
@@ -177,7 +220,7 @@ const GOLD_GRADIENT =
 
 export default function PricingSection() {
   const { language } = useLanguage();
-  const t = useT(CHROME_EN, CHROME_UZ);
+  const t = useT(CHROME_EN, CHROME_UZ, CHROME_RU);
   // Which MARKET the visitor is pricing for — not a currency picker.
   // Persisted (useMarketPreference) so the choice carries across the
   // page AND into the order form, which reads the same preference — no
@@ -320,7 +363,7 @@ export default function PricingSection() {
                       >
                         <Icon size={16} strokeWidth={1.5} className={`mt-0.5 shrink-0 ${plan.featured ? "text-[color:var(--gold-highlight)]" : "text-accent-primary"}`} />
                         <span className={`font-sans text-[13px] leading-[1.45] ${plan.featured ? "text-surface-base/88" : "text-text-primary"}`}>
-                          {language === "UZ" ? f.textUz : f.text}
+                          {language === "UZ" ? f.textUz : language === "RU" ? f.textRu : f.text}
                         </span>
                       </div>
                     );

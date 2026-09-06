@@ -95,6 +95,20 @@ const CHROME_UZ: typeof CHROME_EN = {
     `${label} bilan munosabat bildirish${active ? " — allaqachon bildirilgan" : ""}`,
 };
 
+const CHROME_RU: typeof CHROME_EN = {
+  play: (name: string) => `Воспроизвести видео от ${name}`,
+  pause: (name: string) => `Поставить на паузу видео от ${name}`,
+  prevMoment: "Предыдущий момент",
+  nextMoment: "Следующий момент",
+  mute: "Выключить звук",
+  unmute: "Включить звук",
+  enterFullscreen: "Во весь экран",
+  exitFullscreen: "Выйти из полноэкранного режима",
+  reactionLabels: { smile: "Улыбка", love: "Любовь", wow: "Восторг" } as Record<ReactionKey, string>,
+  reactWith: (label: string, active: boolean) =>
+    `Реакция «${label}»${active ? ", уже отмечено" : ""}`,
+};
+
 function PlayIcon({ className = "h-5 w-5" }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" className={`ml-0.5 ${className}`}>
@@ -245,7 +259,7 @@ function MomentScreen({
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const hasVideo = Boolean(moment.video);
-  const chrome = useT(CHROME_EN, CHROME_UZ);
+  const chrome = useT(CHROME_EN, CHROME_UZ, CHROME_RU);
 
   const togglePlay = () => {
     if (!hasVideo) {

@@ -20,9 +20,14 @@ const UZ: typeof EN = {
   heading: 'Bir kutubxona. Ikki hikoya olami.',
   body: 'Ota-onalar ruxsati bilan ulashilgan shaxsiylashtirilgan hikoyalar va Yusuf va Yasminaning davomli sarguzashtlarini kashf eting.',
 };
+const RU: typeof EN = {
+  eyebrow: 'Библиотека историй',
+  heading: 'Одна библиотека. Два мира историй.',
+  body: 'Откройте именные истории, опубликованные с согласия родителей, и продолжающиеся приключения Юсуфа и Ясмины.',
+};
 
 export function LibraryHeader() {
-  const t = useT(EN, UZ);
+  const t = useT(EN, UZ, RU);
   const reduced = useReducedMotion();
   return (
     <motion.div

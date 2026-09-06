@@ -19,7 +19,7 @@
 
 import type { ChildProfile, QualityAnswer, SelectableAnswer } from "./types";
 
-export type Locale = "uz" | "en";
+export type Locale = "uz" | "en" | "ru";
 
 // ── Appreciated qualities ────────────────────────────────────────
 export const QUALITY_KEYS = [
@@ -36,14 +36,14 @@ export type QualityKey = (typeof QUALITY_KEYS)[number];
 export const MAX_QUALITIES = 3;
 
 const QUALITY_LABELS: Record<QualityKey, Record<Locale, string>> = {
-  kind: { uz: "Mehribon", en: "Kind" },
-  curious: { uz: "Qiziquvchan", en: "Curious" },
-  hardworking: { uz: "Tirishqoq", en: "Hard-working" },
-  brave: { uz: "Jasur", en: "Brave" },
-  responsible: { uz: "Mas’uliyatli", en: "Responsible" },
-  sincere: { uz: "Samimiy", en: "Sincere" },
-  patient: { uz: "Sabrli", en: "Patient" },
-  "quick-minded": { uz: "Zehni o‘tkir", en: "Quick-minded" },
+  kind: { uz: "Mehribon", en: "Kind", ru: "Добрый" },
+  curious: { uz: "Qiziquvchan", en: "Curious", ru: "Любознательный" },
+  hardworking: { uz: "Tirishqoq", en: "Hard-working", ru: "Старательный" },
+  brave: { uz: "Jasur", en: "Brave", ru: "Смелый" },
+  responsible: { uz: "Mas’uliyatli", en: "Responsible", ru: "Ответственный" },
+  sincere: { uz: "Samimiy", en: "Sincere", ru: "Искренний" },
+  patient: { uz: "Sabrli", en: "Patient", ru: "Терпеливый" },
+  "quick-minded": { uz: "Zehni o‘tkir", en: "Quick-minded", ru: "Сообразительный" },
 };
 
 // ── Per-quality detail question (spec §4) ────────────────────────
@@ -60,80 +60,96 @@ const QUALITY_DETAIL: Record<
     prompt: {
       uz: (n) => `${n}ning mehribonligini qaysi paytlarda ko‘proq sezasiz?`,
       en: (n) => `When do you notice ${n}'s kindness most?`,
+      ru: (n) => `Когда доброта ${n} заметнее всего?`,
     },
     helper: {
       uz: "Masalan: ukasiga yordam berganda, hayvonlarga g‘amxo‘rlik qilganda yoki kimdir xafa bo‘lsa yoniga borganda.",
       en: "For example: helping a younger sibling, caring for an animal, or going over when someone is upset.",
+      ru: "Например: помогает младшему, заботится о животном или подходит к тому, кто расстроен.",
     },
   },
   curious: {
     prompt: {
       uz: (n) => `${n}ning qiziquvchanligi qaysi holatlarda ko‘proq bilinadi?`,
       en: (n) => `When does ${n}'s curiosity show most?`,
+      ru: (n) => `Когда любознательность ${n} проявляется сильнее всего?`,
     },
     helper: {
       uz: "Masalan: ko‘p savol berganda, yangi narsalarni sinab ko‘rganda yoki biror narsaning qanday ishlashini bilishga harakat qilganda.",
       en: "For example: asking lots of questions, trying new things, or working out how something works.",
+      ru: "Например: задаёт много вопросов, пробует новое или разбирается, как что-то устроено.",
     },
   },
   hardworking: {
     prompt: {
       uz: (n) => `${n}ning tirishqoqligini qaysi paytlarda ko‘proq sezasiz?`,
       en: (n) => `When do you notice ${n}'s effort most?`,
+      ru: (n) => `Когда старание ${n} заметнее всего?`,
     },
     helper: {
       uz: "Masalan: qiyin topshiriqdan qochmaganda, mashqni oxirigacha bajarganda yoki bir ishni qayta-qayta urinib ko‘rganda.",
       en: "For example: not shying away from a hard task, finishing a practice, or trying again and again.",
+      ru: "Например: не избегает трудного задания, доводит упражнение до конца или пробует снова и снова.",
     },
   },
   brave: {
     prompt: {
       uz: (n) => `${n}ning jasurligini qaysi holatlarda ko‘rgansiz?`,
       en: (n) => `When have you seen ${n}'s courage?`,
+      ru: (n) => `Когда Вы видели смелость ${n}?`,
     },
     helper: {
       uz: "Masalan: yangi narsani birinchi bo‘lib sinaganda, qo‘rqqan bo‘lsa ham harakat qilganda yoki haqiqatni ochiq aytganda.",
       en: "For example: being first to try something new, acting despite feeling afraid, or speaking the truth openly.",
+      ru: "Например: первым пробует новое, действует, даже когда боится, или открыто говорит правду.",
     },
   },
   responsible: {
     prompt: {
       uz: (n) => `${n}ning mas’uliyatini qaysi paytlarda sezasiz?`,
       en: (n) => `When do you notice ${n}'s sense of responsibility?`,
+      ru: (n) => `Когда Вы замечаете ответственность ${n}?`,
     },
     helper: {
       uz: "Masalan: va’dasida turganda, o‘z ishini eslatmasdan bajarganda yoki kichikroq bolaga qaraganda.",
       en: "For example: keeping a promise, doing their part without a reminder, or looking after someone smaller.",
+      ru: "Например: держит слово, делает своё дело без напоминаний или присматривает за младшим.",
     },
   },
   sincere: {
     prompt: {
       uz: (n) => `${n}ning samimiyligi qaysi holatlarda bilinadi?`,
       en: (n) => `When does ${n}'s sincerity come through?`,
+      ru: (n) => `Когда проявляется искренность ${n}?`,
     },
     helper: {
       uz: "Masalan: xatosini ochiq tan olganda, his-tuyg‘ularini yashirmasdan aytganda yoki chin dildan yordam taklif qilganda.",
       en: "For example: owning a mistake openly, saying how they really feel, or offering help wholeheartedly.",
+      ru: "Например: открыто признаёт ошибку, не скрывает своих чувств или от души предлагает помощь.",
     },
   },
   patient: {
     prompt: {
       uz: (n) => `${n}ning sabrini qaysi paytlarda ko‘proq sezasiz?`,
       en: (n) => `When do you notice ${n}'s patience most?`,
+      ru: (n) => `Когда терпение ${n} заметнее всего?`,
     },
     helper: {
       uz: "Masalan: navbatini kutganda, biror narsa darrov bo‘lmasa ham xotirjam turganda yoki qiyin ishni shoshmasdan bajarganda.",
       en: "For example: waiting their turn, staying calm when something isn't immediate, or working through a hard task unhurried.",
+      ru: "Например: ждёт своей очереди, сохраняет спокойствие, когда что-то не сразу, или без спешки делает трудное дело.",
     },
   },
   "quick-minded": {
     prompt: {
       uz: (n) => `${n}ning zehni o‘tkirligini qaysi holatlarda sezgansiz?`,
       en: (n) => `When have you noticed how sharp ${n}'s mind is?`,
+      ru: (n) => `Когда Вы замечали, насколько ${n} сообразителен(льна)?`,
     },
     helper: {
       uz: "Masalan: tez eslab qolganda, masalani tez tushunganda yoki kutilmagan yechim topganda.",
       en: "For example: remembering quickly, grasping a problem fast, or finding an unexpected solution.",
+      ru: "Например: быстро запоминает, схватывает задачу на лету или находит неожиданное решение.",
     },
   },
 };
@@ -155,32 +171,32 @@ export const MAX_GROWTH_BEHAVIORS = 3;
 
 const GROWTH: Record<GrowthKey, { full: Record<Locale, string>; soft: Record<Locale, string> }> = {
   waiting: {
-    full: { uz: "Sabr qilishga qiynaladi", en: "Finds it hard to wait" },
-    soft: { uz: "Sabr", en: "Patience" },
+    full: { uz: "Sabr qilishga qiynaladi", en: "Finds it hard to wait", ru: "Трудно даётся ожидание" },
+    soft: { uz: "Sabr", en: "Patience", ru: "Терпение" },
   },
   temper: {
-    full: { uz: "Xohlagani bo‘lmasa tez jahli chiqadi", en: "Gets frustrated when things don't go their way" },
-    soft: { uz: "Xotirjamlik", en: "Staying calm" },
+    full: { uz: "Xohlagani bo‘lmasa tez jahli chiqadi", en: "Gets frustrated when things don't go their way", ru: "Быстро раздражается, когда всё идёт не так, как хочется" },
+    soft: { uz: "Xotirjamlik", en: "Staying calm", ru: "Спокойствие" },
   },
   upset: {
-    full: { uz: "Tez xafa bo‘ladi", en: "Gets upset easily" },
-    soft: { uz: "Bardosh", en: "Resilience" },
+    full: { uz: "Tez xafa bo‘ladi", en: "Gets upset easily", ru: "Легко расстраивается" },
+    soft: { uz: "Bardosh", en: "Resilience", ru: "Устойчивость" },
   },
   finishing: {
-    full: { uz: "Boshlagan ishini oxiriga yetkazishga qiynaladi", en: "Finds it hard to finish what they start" },
-    soft: { uz: "Ishni yakunlash", en: "Following through" },
+    full: { uz: "Boshlagan ishini oxiriga yetkazishga qiynaladi", en: "Finds it hard to finish what they start", ru: "Трудно доводить начатое до конца" },
+    soft: { uz: "Ishni yakunlash", en: "Following through", ru: "Доводить до конца" },
   },
   order: {
-    full: { uz: "Tartibga rioya qilishga qiynaladi", en: "Finds it hard to keep to routines" },
-    soft: { uz: "Tartib", en: "Routine" },
+    full: { uz: "Tartibga rioya qilishga qiynaladi", en: "Finds it hard to keep to routines", ru: "Трудно придерживаться распорядка" },
+    soft: { uz: "Tartib", en: "Routine", ru: "Распорядок" },
   },
   sharing: {
-    full: { uz: "Boshqalar bilan bo‘lishishga qiynaladi", en: "Finds sharing hard" },
-    soft: { uz: "Baham ko‘rish", en: "Sharing" },
+    full: { uz: "Boshqalar bilan bo‘lishishga qiynaladi", en: "Finds sharing hard", ru: "Трудно делиться с другими" },
+    soft: { uz: "Baham ko‘rish", en: "Sharing", ru: "Делиться" },
   },
   confidence: {
-    full: { uz: "Ba’zan o‘ziga ishonchi yetmay qoladi", en: "Sometimes lacks self-belief" },
-    soft: { uz: "O‘ziga ishonch", en: "Self-belief" },
+    full: { uz: "Ba’zan o‘ziga ishonchi yetmay qoladi", en: "Sometimes lacks self-belief", ru: "Иногда не хватает уверенности в себе" },
+    soft: { uz: "O‘ziga ishonch", en: "Self-belief", ru: "Уверенность в себе" },
   },
 };
 
@@ -198,13 +214,13 @@ export type ValueKey = (typeof VALUE_KEYS)[number];
 export const MAX_VALUES = 3;
 
 const VALUE_LABELS: Record<ValueKey, Record<Locale, string>> = {
-  patience: { uz: "Sabr", en: "Patience" },
-  gratitude: { uz: "Shukr", en: "Gratitude" },
-  manners: { uz: "Odob", en: "Good manners" },
-  responsibility: { uz: "Mas’uliyat", en: "Responsibility" },
-  courage: { uz: "Jasorat", en: "Courage" },
-  compassion: { uz: "Mehr-shafqat", en: "Compassion" },
-  purity: { uz: "Poklik", en: "Purity" },
+  patience: { uz: "Sabr", en: "Patience", ru: "Терпение" },
+  gratitude: { uz: "Shukr", en: "Gratitude", ru: "Благодарность" },
+  manners: { uz: "Odob", en: "Good manners", ru: "Воспитанность" },
+  responsibility: { uz: "Mas’uliyat", en: "Responsibility", ru: "Ответственность" },
+  courage: { uz: "Jasorat", en: "Courage", ru: "Смелость" },
+  compassion: { uz: "Mehr-shafqat", en: "Compassion", ru: "Сострадание" },
+  purity: { uz: "Poklik", en: "Purity", ru: "Чистота" },
 };
 
 // ── Lookups ─────────────────────────────────────────────────────
@@ -229,16 +245,20 @@ export function qualityLabel(id: string, locale: Locale): string {
 export function qualityDetailPrompt(id: string, name: string, locale: Locale): string {
   const nm = name.trim();
   if (isQualityKey(id)) return QUALITY_DETAIL[id].prompt[locale](nm);
-  return locale === "uz"
-    ? `Bu jihat ${nm}da qaysi vaziyatlarda ko‘proq namoyon bo‘ladi?`
-    : `When do you notice this quality most in ${nm}?`;
+  if (locale === "uz")
+    return `Bu jihat ${nm}da qaysi vaziyatlarda ko‘proq namoyon bo‘ladi?`;
+  if (locale === "ru")
+    return `В каких ситуациях эта черта заметнее всего у ${nm}?`;
+  return `When do you notice this quality most in ${nm}?`;
 }
 /** The concrete for-instance helper under one quality's detail field. */
 export function qualityDetailHelper(id: string, locale: Locale): string {
   if (isQualityKey(id)) return QUALITY_DETAIL[id].helper[locale];
-  return locale === "uz"
-    ? "Xayolingizga biror kichik voqea yoki odati kelsa yozishingiz mumkin."
-    : "You can share a small moment or habit that comes to mind.";
+  if (locale === "uz")
+    return "Xayolingizga biror kichik voqea yoki odati kelsa yozishingiz mumkin.";
+  if (locale === "ru")
+    return "Можно рассказать о небольшом случае или привычке, которые приходят на ум.";
+  return "You can share a small moment or habit that comes to mind.";
 }
 export function valueLabel(v: string, locale: Locale): string {
   return isValueKey(v) ? VALUE_LABELS[v][locale] : v.trim();
@@ -265,7 +285,7 @@ export function valueOptions(locale: Locale) {
 function joinList(items: string[], locale: Locale): string {
   const clean = items.map((s) => s.trim()).filter(Boolean);
   if (clean.length <= 1) return clean[0] ?? "";
-  const and = locale === "uz" ? " va " : " and ";
+  const and = locale === "uz" ? " va " : locale === "ru" ? " и " : " and ";
   return clean.slice(0, -1).join(", ") + and + clean[clean.length - 1];
 }
 export function qualitiesDisplay(list: SelectableAnswer[] | undefined, locale: Locale): string {
@@ -477,9 +497,75 @@ const en: Phase03Copy = {
   nextChildCta: (nextName) => `Carry on with ${nextName.trim()}`,
 };
 
-export const PHASE03_COPY: Record<Locale, Phase03Copy> = { uz, en };
+const ru: Phase03Copy = {
+  continue: "Продолжить",
+  back: "Назад",
+
+  charLabel: (name) => `Характер ${name.trim()}`,
+  introLead: (name) =>
+    `Теперь узнаем чуть лучше то, что делает ${name.trim()} собой.`,
+  introSupport:
+    "Вместе назовём качества, которые Вы цените, привычки, которые хотелось бы мягко поддержать, и ценности, за которыми должна стоять история.",
+
+  trayTitle: "Вы выбрали",
+  selectionCount: (n, max) => `${n} / ${max} выбрано`,
+  removeAnswer: (label) => `Убрать «${label}»`,
+
+  q1: (name) => `Что Вас радует в ${name.trim()}?`,
+  q1Help: "Выберите до 3 или напишите свой вариант.",
+  customToggle: "＋ Добавить другое качество",
+  customPlaceholder: "Например: обходительный, справедливый, с инициативой...",
+  customAdd: "Добавить",
+  limitNote: (max) =>
+    `Вы выбрали ${max} качества. Уберите одно, чтобы добавить другое.`,
+  errQualities: "Пожалуйста, выберите хотя бы одно качество, прежде чем продолжить.",
+
+  q2SectionLabel: "ВЫБРАННЫЕ ВАМИ КАЧЕСТВА",
+  q2Intro: "Теперь по строчке о каждом — когда оно проявляется чаще всего?",
+  q2Placeholder: "Одного-двух предложений достаточно…",
+  q2ItemNone: "Пример сейчас не приходит на ум",
+  errExample:
+    "Для каждого качества добавьте пример или отметьте «Пример сейчас не приходит на ум».",
+
+  q3: (name) =>
+    `Есть ли привычка или поведение ${name.trim()}, которые Вы хотели бы мягко поддержать?`,
+  q3Help:
+    "В истории мы не поучаем — мы бережно показываем путь через события. Выберите до 3 или напишите свой вариант.",
+  q3CustomToggle: "＋ Добавить другую привычку или ситуацию",
+  q3CustomPlaceholder: "Например: расстраивается, когда проигрывает; неохотно встаёт по утрам...",
+  q3CustomHint: "Опишите привычку или ситуацию, а не самого ребёнка.",
+  q3None: "Нет ничего, над чем хотелось бы поработать особо",
+  q3NoneHelp: "Если выбрать это, отметки выше снимутся.",
+  errGrowth:
+    "Пожалуйста, выберите один пункт или отметьте «Нет ничего, над чем хотелось бы поработать особо».",
+
+  q4SectionLabel: "ВЫБРАННЫЕ ВАМИ СИТУАЦИИ",
+  q4Intro: "Для каждой, если хотите, добавьте, когда это обычно проявляется.",
+  q4ItemQuestion: "Когда это обычно проявляется?",
+  q4ItemPlaceholder:
+    "Например: когда проигрывает в игре или когда что-то нельзя получить сразу...",
+  q4ItemNone: "Нет конкретной ситуации",
+
+  q5: (name) =>
+    `Какие ценности Вы хотели бы, чтобы история укрепила в ${name.trim()}?`,
+  q5Help:
+    "Возможно, они уже есть — история просто помогает им окрепнуть. До 3.",
+  errValues: "Пожалуйста, выберите хотя бы одну ценность.",
+
+  pQualities: "ЧТО ВЫ В НЁМ ЦЕНИТЕ",
+  pGrowth: "РАЗВИВАЕМ",
+  pValues: "ИСТОРИЯ УКРЕПИТ",
+
+  milestoneHeading: (name) => `Теперь мы знаем ${name.trim()} немного лучше.`,
+  milestoneBridge: "Теперь добавим в историю несколько личных штрихов.",
+  nextChildLead: (doneName) => `Теперь мы знаем ${doneName.trim()} немного лучше.`,
+  nextChildBridge: (nextName) => `Теперь продолжим с ${nextName.trim()}.`,
+  nextChildCta: (nextName) => `Продолжить с ${nextName.trim()}`,
+};
+
+export const PHASE03_COPY: Record<Locale, Phase03Copy> = { uz, en, ru };
 export function phase03Copy(locale: string): Phase03Copy {
-  return locale === "uz" ? uz : en;
+  return locale === "uz" ? uz : locale === "ru" ? ru : en;
 }
 
 /** The first written per-quality detail (spec §4) — used as the one
@@ -513,6 +599,13 @@ export function composeCharSummary(child: ChildProfile, name: string, locale: Lo
     if (vals.length)
       parts.push(
         `Hikoyada esa ${joinList(vals, "uz")}ni tabiiy voqealar orqali yanada qo‘llab-quvvatlaymiz.`,
+      );
+  } else if (locale === "ru") {
+    if (q.length) parts.push(`Мы увидели, какой ${nm}: ${joinList(q, "ru")}.`);
+    if (example) parts.push(example.replace(/\.?$/, "."));
+    if (vals.length)
+      parts.push(
+        `А в истории через естественные события мягко укрепим ${joinList(vals, "ru")}.`,
       );
   } else {
     if (q.length) parts.push(`We've seen ${nm}'s ${joinList(q, "en")} side.`);

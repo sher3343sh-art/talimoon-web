@@ -29,7 +29,7 @@
 
 import type { ChildProfile, InterestAnswer } from "./types";
 
-export type Locale = "uz" | "en";
+export type Locale = "uz" | "en" | "ru";
 
 // ── Prepared interest categories — all NOUNS/topics, never activities
 //    (an activity is Q3's job; mixing the two blurs Q1 and Q3 into the
@@ -53,15 +53,15 @@ export type InterestKey = (typeof INTEREST_KEYS)[number];
 export const MAX_PRIMARY_INTERESTS = 3;
 
 const INTEREST_LABELS: Record<InterestKey, Record<Locale, string>> = {
-  football: { uz: "Futbol", en: "Football" },
-  cars: { uz: "Mashinalar", en: "Cars" },
-  planes: { uz: "Samolyotlar", en: "Planes" },
-  kittens: { uz: "Mushukchalar", en: "Kittens" },
-  wildAnimals: { uz: "Yovvoyi hayvonlar", en: "Wild animals" },
-  books: { uz: "Kitoblar", en: "Books" },
-  nature: { uz: "Tabiat", en: "Nature" },
-  music: { uz: "Musiqa", en: "Music" },
-  drawings: { uz: "Rasm", en: "Drawing" },
+  football: { uz: "Futbol", en: "Football", ru: "Футбол" },
+  cars: { uz: "Mashinalar", en: "Cars", ru: "Машины" },
+  planes: { uz: "Samolyotlar", en: "Planes", ru: "Самолёты" },
+  kittens: { uz: "Mushukchalar", en: "Kittens", ru: "Котята" },
+  wildAnimals: { uz: "Yovvoyi hayvonlar", en: "Wild animals", ru: "Дикие животные" },
+  books: { uz: "Kitoblar", en: "Books", ru: "Книги" },
+  nature: { uz: "Tabiat", en: "Nature", ru: "Природа" },
+  music: { uz: "Musiqa", en: "Music", ru: "Музыка" },
+  drawings: { uz: "Rasm", en: "Drawing", ru: "Рисование" },
 };
 
 export function isInterestKey(v: string): v is InterestKey {
@@ -92,38 +92,47 @@ const INTEREST_DETAIL_EXAMPLES: Partial<Record<InterestKey, Record<Locale, strin
   football: {
     uz: "Masalan: o‘zi o‘ynash, Real Madridni kuzatish, jamoalar...",
     en: "For example: playing it, following Real Madrid, the teams...",
+    ru: "Например: играть самому, следить за «Реалом», команды...",
   },
   cars: {
     uz: "Masalan: o‘yinchoq mashinalar, chizish, markalar yoki modellar...",
     en: "For example: toy cars, drawing them, the brands or models...",
+    ru: "Например: игрушечные машинки, рисовать их, марки или модели...",
   },
   planes: {
     uz: "Masalan: qanday uchishi, turlari yoki modellarini yig‘ish...",
     en: "For example: how they fly, the types, or building models...",
+    ru: "Например: как они летают, виды или сборка моделей...",
   },
   kittens: {
     uz: "Masalan: parvarish qilish, o‘ynash yoki ularning xatti-harakati...",
     en: "For example: caring for them, playing, or how they behave...",
+    ru: "Например: заботиться о них, играть или как они себя ведут...",
   },
   wildAnimals: {
     uz: "Masalan: qaysi hayvon, ularning yashashi yoki xatti-harakati...",
     en: "For example: which animal, how they live, or how they behave...",
+    ru: "Например: какое животное, как они живут или как себя ведут...",
   },
   books: {
     uz: "Masalan: hikoyalar, rasmlar yoki muayyan mavzular...",
     en: "For example: the stories, the illustrations, or certain topics...",
+    ru: "Например: сюжеты, иллюстрации или определённые темы...",
   },
   nature: {
     uz: "Masalan: o‘simliklar, hasharotlar, tosh yig‘ish yoki sayr...",
     en: "For example: plants, insects, collecting stones, or walks...",
+    ru: "Например: растения, насекомые, собирать камешки или прогулки...",
   },
   music: {
     uz: "Masalan: tinglash, kuylash yoki biror cholg‘u...",
     en: "For example: listening, singing, or a particular instrument...",
+    ru: "Например: слушать, петь или какой-то инструмент...",
   },
   drawings: {
     uz: "Masalan: nima chizadi, ranglar yoki chizib bo‘lib so‘zlab berish...",
     en: "For example: what they draw, the colours, or telling a story about it...",
+    ru: "Например: что рисует, цвета или рассказывать историю по рисунку...",
   },
 };
 
@@ -140,7 +149,7 @@ export function interestDetailPlaceholder(
 function joinList(items: string[], locale: Locale): string {
   const clean = items.map((s) => s.trim()).filter(Boolean);
   if (clean.length <= 1) return clean[0] ?? "";
-  const and = locale === "uz" ? " va " : " and ";
+  const and = locale === "uz" ? " va " : locale === "ru" ? " и " : " and ";
   return clean.slice(0, -1).join(", ") + and + clean[clean.length - 1];
 }
 
@@ -390,10 +399,82 @@ const en: Phase02Copy = {
   nextChildCta: (nextName) => `Meet ${nextName.trim()}`,
 };
 
-export const PHASE02_COPY: Record<Locale, Phase02Copy> = { uz, en };
+// ── Russian (respectful "Вы") ────────────────────────────────────
+const ru: Phase02Copy = {
+  continue: "Продолжить",
+  back: "Назад",
+
+  worldLabel: (name) => `Мир ${name.trim()}`,
+
+  trayTitle: "Вы выбрали",
+  selectionCount: (n, max) => `${n} / ${max} выбрано`,
+  removeAnswer: (label) => `Убрать «${label}»`,
+
+  q1Label: "ИНТЕРЕСЫ",
+  q1: (name) => `Что интересно ${name.trim()}?`,
+  q1Help: "Выберите до 3 или напишите свой вариант.",
+  customToggle: "＋ Добавить другой интерес",
+  customPlaceholder: "Например: динозавры, поезда, космос...",
+  customAdd: "Добавить",
+  interestLimitNote:
+    "Вы выбрали 3 основных интереса. Уберите один, чтобы добавить другой.",
+  errInterests: "Пожалуйста, выберите хотя бы один или напишите свой.",
+
+  q2Label: "ЧУТЬ ПОДРОБНЕЕ",
+  q2: (name) => `Что именно в выбранном нравится ${name.trim()} больше всего?`,
+  q2Help: "По несколько слов на каждый пункт — этого достаточно.",
+  q2Example:
+    "Например: какой именно вид, какая черта или что конкретно привлекает внимание. (Футбол — играть самому, футболисты или команды; машины — играть, рисовать, марки или модели.)",
+  q2ItemQuestion: (name) => `Что именно в этом нравится ${name.trim()} больше всего?`,
+  q2Placeholder: "Несколько слов...",
+  q2SkipLabel: "Главное мы отметили",
+  q2SkipSupport: "Если больше нет важных деталей, отметьте это и продолжайте.",
+
+  q3Label: "ЛЮБИМОЕ ЗАНЯТИЕ",
+  q3: (name) => `За каким занятием ${name.trim()} забывает о времени?`,
+  q3Help:
+    "Вспомните занятие, которое в свободное время он выбирает сам, снова и снова, без напоминаний.",
+  q3Example:
+    "Например: выбегает во двор погонять мяч, подолгу сидит с конструктором, рисует или снова и снова мастерит одно и то же.",
+  q3Placeholder: "Например: играя в футбол во дворе, забывает о времени...",
+  q3None: "Нет одного такого занятия",
+  errActivity: "Пожалуйста, напишите или выберите «Нет одного такого занятия».",
+
+  q4Label: "МЕЧТА",
+  q4: (name) => `Кем ${name.trim()} хочет стать, когда вырастет?`,
+  q4Help: "Например: футболист, лётчик, врач, инженер, художник...",
+  q4Placeholder: "Например: лётчик...",
+  q4NotYet: "Ещё не думал(а) об этом",
+  errChildDream: "Пожалуйста, напишите его(её) мечту.",
+
+  q4bTransition: "Ничего страшного — впереди ещё много времени. 😊",
+  q4b: (name) => `Каким Вы представляете будущее ${name.trim()}?`,
+  q4bHelp: (name) =>
+    `Вы можете написать, какую профессию хотели бы для ${name.trim()}. Или что желаете, чтобы он(а) вырос(ла) добрым, честным, уверенным в себе человеком, нашедшим свой путь. А ещё — любое другое пожелание от сердца, своими словами.`,
+  q4bPlaceholder:
+    "Например: хотел(а) бы, чтобы стал(а) врачом. Но главное — чтобы вырос(ла) хорошим человеком и нашёл(нашла) своё дело...",
+  q4BackToDream: "Вообще-то мечта есть",
+  errAdultHope: "Пожалуйста, напишите Ваше пожелание.",
+
+  pLoves: "ИНТЕРЕСУЕТСЯ",
+  pDetail: "ОСОБЕННО НРАВИТСЯ",
+  pAbsorbs: "УХОДИТ С ГОЛОВОЙ",
+  pDreams: "МЕЧТАЕТ",
+  pHope: "ВАШЕ ПОЖЕЛАНИЕ",
+  portraitEmpty: "Откроем это вместе.",
+
+  milestoneHeading: (name) => `Мы заметно ближе к миру ${name.trim()}.`,
+  milestoneBridge: (name) =>
+    `Теперь узнаем характер ${name.trim()} немного лучше.`,
+  nextChildLead: (doneName) => `Мы заметно ближе к миру ${doneName.trim()}.`,
+  nextChildBridge: (nextName) => `Теперь продолжим с ${nextName.trim()}.`,
+  nextChildCta: (nextName) => `Познакомиться с ${nextName.trim()}`,
+};
+
+export const PHASE02_COPY: Record<Locale, Phase02Copy> = { uz, en, ru };
 
 export function phase02Copy(locale: string): Phase02Copy {
-  return locale === "uz" ? uz : en;
+  return locale === "uz" ? uz : locale === "ru" ? ru : en;
 }
 
 // ── Natural summary — only from what the adult actually told us ───
@@ -414,6 +495,15 @@ export function composeSummary(child: ChildProfile, locale: Locale): string {
     if (child.dreamStatus === "has-dream" && child.childDream?.trim()) {
       parts.push(`bir kuni ${child.childDream.trim()} orzusida`);
     }
+  } else if (locale === "ru") {
+    if (interests.length) parts.push(`любит ${joinList(interests, "ru")}`);
+    if (details) parts.push(details);
+    if (child.favoriteActivity?.trim() && !child.noFavoriteActivity) {
+      parts.push(`с головой уходит в ${child.favoriteActivity.trim()}`);
+    }
+    if (child.dreamStatus === "has-dream" && child.childDream?.trim()) {
+      parts.push(`мечтает о ${child.childDream.trim()}`);
+    }
   } else {
     if (interests.length) parts.push(`loves ${joinList(interests, "en")}`);
     if (details) parts.push(details);
@@ -426,14 +516,11 @@ export function composeSummary(child: ChildProfile, locale: Locale): string {
   }
 
   if (!parts.length) return "";
+  const conj = locale === "uz" ? " va " : locale === "ru" ? " и " : " and ";
   const joined =
-    locale === "uz"
-      ? parts.length === 1
-        ? parts[0]
-        : parts.slice(0, -1).join(", ") + " va " + parts[parts.length - 1]
-      : parts.length === 1
-        ? parts[0]
-        : parts.slice(0, -1).join(", ") + " and " + parts[parts.length - 1];
+    parts.length === 1
+      ? parts[0]
+      : parts.slice(0, -1).join(", ") + conj + parts[parts.length - 1];
   const sentence = joined.charAt(0).toLocaleUpperCase() + joined.slice(1) + ".";
   return sentence;
 }

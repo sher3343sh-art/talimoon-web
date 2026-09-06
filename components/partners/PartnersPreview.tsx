@@ -48,8 +48,16 @@ const COPY_UZ: typeof COPY_EN = {
   reservedSlots: "Zaxiradagi hamkor o'rinlari",
 };
 
+const COPY_RU: typeof COPY_EN = {
+  eyebrow: "Надёжные партнёры",
+  heading: "Растём вместе",
+  description:
+    "Здесь появятся будущие партнёрства с образовательными учреждениями, издательствами и организациями, ориентированными на семью.",
+  reservedSlots: "Зарезервированные места партнёров",
+};
+
 export function PartnersPreview() {
-  const t = useT(COPY_EN, COPY_UZ);
+  const t = useT(COPY_EN, COPY_UZ, COPY_RU);
 
   return (
     <section

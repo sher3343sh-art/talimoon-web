@@ -3,9 +3,8 @@
 /**
  * The Hall — "how the library grows" banner.
  * ----------------------------------------------------------------
- * Replaces the old dark reading-ground editorial panel (see the now
- * unused `FeaturedIntro`/`EditorialPanel`) with a wide editorial
- * banner: warm cream base, real HTML copy on the left, and an organic
+ * Replaces the old dark reading-ground editorial panel with a wide
+ * editorial banner: warm cream base, real HTML copy on the left, and an organic
  * navy silhouette on the right framing a still-empty visual stage for
  * a future book-composition asset.
  *
@@ -52,6 +51,18 @@ const UZ: typeof EN = {
   trustLine: "Ruxsatsiz hech bir shaxsiy kitob e'lon qilinmaydi.",
   cta: 'Qanday ishlashini ko‘ring',
 };
+const RU: typeof EN = {
+  eyebrow: 'Как история попадает в библиотеку',
+  heading: 'Каждая история начинается в семье.',
+  body: 'Именная книга TALIMOON появляется здесь только тогда, когда семья сама решает поделиться ею. Без явного согласия она остаётся полностью личной.',
+  trust: [
+    { title: 'Только с согласия родителей', icon: 'heart' },
+    { title: 'Бережное отношение к личным данным', icon: 'shield' },
+    { title: 'Источник вдохновения для семей', icon: 'spark' },
+  ],
+  trustLine: 'Ни одна личная книга не публикуется без согласия.',
+  cta: 'Узнать больше',
+};
 
 const TRUST_ICONS: Record<(typeof EN)['trust'][number]['icon'], LucideIcon> = {
   heart: HeartHandshake,
@@ -82,7 +93,7 @@ function Spark({ className }: { className?: string }) {
 }
 
 export function HowTheLibraryGrows() {
-  const t = useT(EN, UZ);
+  const t = useT(EN, UZ, RU);
   const reduced = useReducedMotion();
 
   return (

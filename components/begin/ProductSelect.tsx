@@ -71,8 +71,15 @@ const CHROME_UZ: typeof CHROME_EN = {
   comingSoon: "Tez orada",
 };
 
+const CHROME_RU: typeof CHROME_EN = {
+  eyebrow: "Начать заказ",
+  heading: "Какой мир Вы открываете сегодня?",
+  stepInside: "Начать заказ",
+  comingSoon: "Скоро",
+};
+
 export default function ProductSelect() {
-  const chrome = useT(CHROME_EN, CHROME_UZ);
+  const chrome = useT(CHROME_EN, CHROME_UZ, CHROME_RU);
   const { language } = useLanguage();
   const router = useRouter();
 

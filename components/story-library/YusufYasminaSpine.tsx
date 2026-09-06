@@ -50,6 +50,15 @@ const UZ: typeof EN = {
   beginsSoon: 'Birinchi qism tayyorlanmoqda.',
   viewAll: 'Sarguzashtni boshlash',
 };
+const RU: typeof EN = {
+  eyebrow: 'Продолжающееся приключение',
+  qism: (n: number) => `${String(n).padStart(2, '0')}-QISM`,
+  comingSoon: 'Скоро',
+  titleSoon: 'Скоро',
+  spineEnd: 'Приключение продолжается.',
+  beginsSoon: 'Первая часть готовится.',
+  viewAll: 'Начать приключение',
+};
 
 function EpisodeNode({
   story,
@@ -120,7 +129,7 @@ export function YusufYasminaSpine({
   series: Series;
   episodes: Story[];
 }) {
-  const t = useT(EN, UZ);
+  const t = useT(EN, UZ, RU);
   const { language } = useLanguage();
   const reduced = useReducedMotion();
   const locale = (language.toLowerCase() as 'uz' | 'en' | 'ru' | 'ar') ?? 'uz';

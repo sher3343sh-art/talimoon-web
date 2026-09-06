@@ -15,9 +15,10 @@ import { Band, DISPLAY, GOLD, NAVY } from './shared';
 
 const EN = { line: 'Life goes on.' };
 const UZ: typeof EN = { line: 'Hayot davom etadi.' };
+const RU: typeof EN = { line: 'Жизнь продолжается.' };
 
 export function HayotEnding() {
-  const t = useT(EN, UZ);
+  const t = useT(EN, UZ, RU);
   return (
     <Band className="border-t border-[#1c2a3a17] py-24 md:py-32">
       <div className="text-center">

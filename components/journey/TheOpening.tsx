@@ -70,6 +70,13 @@ const UZ: typeof EN = {
   watch: "Ko'rish",
   more: 'Batafsil',
 };
+const RU: typeof EN = {
+  story: 'Читать историю',
+  thought: 'Читать размышление',
+  conversation: 'Читать беседу',
+  watch: 'Смотреть',
+  more: 'Читать далее',
+};
 
 function ctaLabel(format: JourneyFormat, t: typeof EN): string {
   switch (format) {
@@ -95,7 +102,7 @@ export function TheOpening() {
 
 function Opening({ result }: { result: FeaturedResult }) {
   const { language } = useLanguage();
-  const t = useT(EN, UZ);
+  const t = useT(EN, UZ, RU);
   const reduced = useReducedMotion();
   const { entry } = result;
 

@@ -391,6 +391,155 @@ const CHROME_UZ: typeof CHROME_EN = {
     "Iltimos, telefon raqamini kiriting, kitob tilini tanlang, yetkazib beriladigan davlatni tanlang va yetkazib berish savoliga javob bering (yetkazib berish kerak bo‘lsa, to‘liq manzil bilan).",
 };
 
+const CHROME_RU: typeof CHROME_EN = {
+  back: "Назад",
+  continue: "Продолжить",
+  sendOrder: "Отправить заказ",
+  submittingTitle: "Загружаем Ваши данные",
+  submittingBody: "Пожалуйста, подождите немного и не покидайте эту страницу.",
+
+  doneHeading: "Ваш заказ принят",
+  doneBody: [
+    "Мы получили всю предоставленную Вами информацию. Теперь команда TALIMOON внимательно её изучит.",
+    "Если понадобится что-то уточнить, мы свяжемся с Вами. Если всё в порядке, мы пришлём сообщение с подтверждением заказа.",
+    "После подтверждения книга обычно готовится в течение 5–7 дней. Когда она будет готова, мы сообщим Вам о деталях доставки.",
+  ],
+  doneNote: "Уведомления о статусе заказа будут приходить на указанный Вами номер телефона.",
+
+  heroesLabel: "Герои этой истории",
+  years: (age: number | null) => (age == null ? "" : `, ${age} лет`),
+
+  phone: "Номер телефона",
+  deliveryQ: "Нужна ли Вам доставка книги?",
+  deliveryYes: "Да, нужна доставка",
+  deliveryNo: "Нет, заберу самостоятельно",
+  deliveryRegionField: "Область / регион",
+  deliveryRegionPlaceholder: "Выберите…",
+  pickupSummary: "Самовывоз: без платы за доставку",
+  deliveryFree: "Бесплатно",
+  rowBook: "Книга",
+  rowExtraCopies: (n: number) => (n === 1 ? "Дополнительный экземпляр" : `Дополнительные экземпляры × ${n}`),
+  rowDelivery: "Доставка",
+  payAmount: "Сумма к оплате",
+  addrDistrict: "Город / район",
+  addrStreet: "Улица / махалля",
+  addrBuilding: "Дом / строение",
+  addrApartment: "Квартира",
+  addrLandmark: "Ориентир",
+  optional: "(необязательно)",
+  locationCta: "Указать место доставки",
+  locationHint:
+    "Если хотите, можно прикрепить геолокацию, чтобы курьеру было проще найти адрес.",
+  locationAttached: "Геолокация прикреплена",
+  locationClear: "Убрать геолокацию",
+  locationDenied: "Не удалось получить геолокацию. Вы можете продолжить с указанным адресом.",
+  locationUnsupported:
+    "Это устройство не поддерживает передачу геолокации. Указанного адреса достаточно.",
+  locationLoading: "Определяем местоположение…",
+
+  namePlaceholder: "Имя",
+  agePlaceholder: "Возраст",
+  pagesUnit: "стр.",
+
+  interests: "Чем он(а) любит заниматься?",
+  interestsHint: "Увлечения, любимые игры, всё, что вызывает у него(неё) восторг.",
+  dreams: "Кем он(а) мечтает стать?",
+  qualities: (max: number) => `Качества, которые нужно подчеркнуть (выберите до ${max})`,
+  weaknesses: "Есть что-то, над чем стоит мягко поработать?",
+  weaknessesHint:
+    "Необязательно: привычки или поведение, на которые хотелось бы деликатно обратить внимание в истории.",
+  extraInfo: "Что ещё сделает историю более личной?",
+
+  giftFrom: "От кого этот подарок?",
+  giftFromHint: "Имя и степень родства, например: мама, Нилуфар",
+  giftFromError: "Пожалуйста, ответьте на этот вопрос, чтобы продолжить.",
+  wantsPersonalMessage: "Добавить личное послание",
+  personalMessageQ: (name: string) =>
+    `Хотите оставить ${name} несколько тёплых слов от себя в конце книги?`,
+  personalMessageHint:
+    "Ваша нежность, пожелание или короткая фраза, которую хочется сказать ему (ей).",
+  personalMessagePlaceholder: (name: string) =>
+    `Например: «${name}, я всегда буду гордиться тобой. Береги своё доброе и смелое сердце. Я очень тебя люблю».`,
+  wantsCharacters: "Добавить других персонажей",
+  characterRelationLabel: "Кем приходится",
+  characterRelationPlaceholder: "например: мама",
+  characterNameLabel: "Имя",
+  characterNamePlaceholder: "например: Дилноза",
+  addCharacter: "+ Добавить ещё персонажа",
+  removeCharacter: "Удалить",
+  characterNeedsBoth: "Укажите, кем приходится каждый персонаж, и его имя, либо удалите запись.",
+
+  childPhotos: "Фотографии ребёнка",
+  childPhotosHint: "3–5 чётких, хорошо освещённых фотографий с видимым лицом",
+  wantsSpecialPhoto: "Добавить особую фотографию для последней страницы",
+  specialPhoto: "Особая фотография для последней страницы",
+  specialPhotoHint:
+    "Эта фотография используется на последней странице книги в своём настоящем виде: она не превращается в рисунок в стиле аниме или мультфильма. Поэтому выберите как можно более чёткий и светлый снимок: семейное фото или то, что особенно дорого Вам.",
+  specialPhotoNote: "Фотография используется в неизменном виде.",
+  characterPhotosSection: "Фотографии дополнительных персонажей",
+  characterMinPhotos: "Загрузите минимум 2 фотографии",
+  characterPhotosMoreNeeded: (who: string) => `Для «${who}» ещё нужно минимум 2 фотографии`,
+  atLeastPhotos: (min: number) => `Требуется минимум ${min} фотографии`,
+  photosEnough: (n: number) => `${n} фото — достаточно`,
+  photosMoreNeeded: (n: number) =>
+    `Загрузите ещё ${n} фото, чтобы продолжить`,
+  childPhotosMoreNeeded: (who: string) => `Для «${who}» ещё нужно минимум 3 фотографии`,
+  removePhoto: "Удалить фотографию",
+  photoTooLarge: "Эта фотография слишком большая. Пожалуйста, выберите файл до 15 МБ.",
+  photoNotImage: "Пожалуйста, выберите файл изображения.",
+  photoBroken: "Не удалось прочитать это изображение. Пожалуйста, выберите другое.",
+
+  bookLanguageQ: "На каком языке Вы хотите получить книгу?",
+  languageSoon: "Скоро будет доступно",
+  numberOfCopies: "Количество экземпляров",
+  total: "Итого",
+
+  payUzHeading: "Оплата для Узбекистана",
+  payUzBody: "Вы можете оплатить переводом с карты на карту, указанную ниже.",
+  payIntlHeading: "Международная оплата",
+  payIntlBody:
+    "Для международных заказов Вы можете оплатить переводом с карты на одну из карт ниже.",
+  cardNumberLabel: "Номер карты",
+  cardHolderLabel: "Владелец карты",
+  copyAction: "Копировать",
+  copiedAction: "Скопировано",
+  payNote:
+    "Пока оплата принимается только переводом с карты на карту. Автоматическая онлайн-оплата появится совсем скоро.",
+  receiptQ: "Загрузите чек об оплате",
+  receiptHint:
+    "Вы можете загрузить чек об оплате или скриншот из банковского приложения.",
+  receiptDone: "Чек загружен",
+  receiptReplace: "Заменить",
+  receiptError: "Пожалуйста, загрузите чек об оплате, чтобы завершить заказ.",
+  submitError: "Не удалось отправить Ваш заказ. Пожалуйста, попробуйте ещё раз.",
+
+  reviewLanguage: "Язык книги",
+  reviewAddress: "Доставка",
+  reviewCharacters: "Другие персонажи",
+  reviewPrivateNote: "Личная заметка для TALIMOON",
+  reviewPrivateHint: "Используется только для понимания ситуации: в книге не отображается.",
+  reviewGrowthContext: "Ситуации",
+
+  // Market / destination
+  orderRegion: "Регион заказа",
+  marketUz: "Узбекистан",
+  marketIntl: "Международный",
+  change: "Изменить",
+  countryQ: "Для какой страны оформляется заказ?",
+  countryField: "Страна",
+  countrySelect: "Выберите…",
+  addrState: "Штат / область / регион",
+  addrCity: "Город",
+  addrLine: "Улица / адрес",
+  addrPostal: "Почтовый индекс",
+  addrNote: "Примечание к доставке",
+  intlDelivery: "Международная почтовая доставка",
+  intlDeliveryHelp: "Единая почтовая плата за весь заказ.",
+
+  errReview:
+    "Пожалуйста, укажите номер телефона, выберите язык книги, выберите страну назначения и ответьте на вопрос о доставке (с полным адресом, если нужна доставка).",
+};
+
 // ─── Types ──────────────────────────────────────────────────────────────────
 
 interface FormData {
@@ -558,10 +707,10 @@ export default function PersonalizedBookOrderForm({
 }) {
   const { language } = useLanguage();
   const locale = toLocale(language);
-  /** The order sub-components (ChildWorld, phase copy helpers) only
-   *  speak uz / en; everything else falls back to en. */
-  const bookLoc: "uz" | "en" = locale === "uz" ? "uz" : "en";
-  const t = useT(CHROME_EN, CHROME_UZ);
+  /** The order sub-components (ChildWorld, phase copy helpers) now speak
+   *  uz / en / ru; anything else (currently just "ar") falls back to en. */
+  const bookLoc: "uz" | "en" | "ru" = locale === "uz" || locale === "ru" ? locale : "en";
+  const t = useT(CHROME_EN, CHROME_UZ, CHROME_RU);
 
   /** Localised copy for the additional-characters sub-components (kept
    *  out of LanguageContext so they stay trivially testable). */
@@ -905,7 +1054,7 @@ export default function PersonalizedBookOrderForm({
         const traitLabels = data.traits.length
           ? data.traits.map((id) => {
               const tr = TRAITS.find((x) => x.id === id);
-              return tr ? (bookLoc === "uz" ? tr.uz : tr.en) : id;
+              return tr ? (bookLoc === "uz" ? tr.uz : bookLoc === "ru" ? tr.ru : tr.en) : id;
             })
           : undefined;
 
@@ -1196,7 +1345,8 @@ export default function PersonalizedBookOrderForm({
   /** Used to personalise the "personal touch" / personal-message copy.
    *  Falls back to a warm generic when no name is entered yet. */
   const firstChildName =
-    data.children[0]?.name.trim() || (bookLoc === "uz" ? "farzandingiz" : "your child");
+    data.children[0]?.name.trim() ||
+    (bookLoc === "uz" ? "farzandingiz" : bookLoc === "ru" ? "Вашего ребёнка" : "your child");
 
   return (
     <section

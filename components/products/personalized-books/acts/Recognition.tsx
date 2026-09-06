@@ -78,8 +78,23 @@ const SKETCH_MERGE: React.CSSProperties = {
   backgroundRepeat: "no-repeat",
 };
 
+const COPY_RU: typeof COPY_EN = {
+  eyebrow: "Знакомые моменты",
+  question: "Сколько раз Вы говорили одно и то же?",
+  phrases: [
+    "Перестань плакать…",
+    "Не капризничай…",
+    "Не деритесь…",
+    "Будь добр с братом…",
+    "Учись хорошо…",
+    "Не ври…",
+  ],
+  heard: "Он слышал всё это.",
+  turn: ["Возможно, дело не в том, чтобы повторять снова.", "Возможно, до него нужно донести это иначе."],
+};
+
 export default function Recognition() {
-  const t = useT(COPY_EN, COPY_UZ);
+  const t = useT(COPY_EN, COPY_UZ, COPY_RU);
 
   return (
     <section

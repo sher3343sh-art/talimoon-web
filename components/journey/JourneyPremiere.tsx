@@ -35,6 +35,16 @@ const UZ: typeof EN = {
   play: "Premyeralarni davom ettirish",
 };
 
+const RU: typeof EN = {
+  eyebrow: "НОВОЕ В JOURNEY",
+  read: "Открыть историю",
+  watch: "Смотреть премьеру",
+  enter: "Войти в этот мир",
+  slide: "Премьера",
+  pause: "Остановить премьеры",
+  play: "Продолжить премьеры",
+};
+
 const FALLBACK_ART: Record<JourneyWorld, string> = {
   "talimoon-life": "/images/journey/journey-talimoon-life-child-book-moment.png",
   parents: "/images/journey/journey-parents-listening-child.png",
@@ -44,7 +54,7 @@ const FALLBACK_ART: Record<JourneyWorld, string> = {
 export function JourneyPremiere() {
   const { language } = useLanguage();
   const locale = toLocale(language);
-  const t = useT(EN, UZ);
+  const t = useT(EN, UZ, RU);
   const reducedMotion = useReducedMotion();
   const [active, setActive] = useState(0);
   const [manuallyPaused, setManuallyPaused] = useState(false);

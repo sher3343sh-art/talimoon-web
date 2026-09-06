@@ -40,8 +40,20 @@ const COPY_UZ: typeof COPY_EN = {
   imageAlt: "Bola o‘zini TALIMOON hikoyasi ichida quvonch bilan kashf etmoqda",
 };
 
+const COPY_RU: typeof COPY_EN = {
+  eyebrow: "Создано для одного ребёнка",
+  heading: "Такую книгу Вы не найдёте в магазине.",
+  follow: "Потому что там нет Вашего ребёнка.",
+  items: ["Его имя.", "Его облик.", "Его мир.", "Его близкие.", "Его история."],
+  recognitionLabel: "Момент, когда книга открывается",
+  recognition: "«Это же я!»",
+  recognitionNote:
+    "Ребёнок переворачивает страницу и видит своё лицо, свою комнату, близких людей: они оживают внутри приключения.",
+  imageAlt: "Ребёнок с радостью узнаёт себя в своей именной истории TALIMOON",
+};
+
 export default function Exclusivity() {
-  const t = useT(COPY_EN, COPY_UZ);
+  const t = useT(COPY_EN, COPY_UZ, COPY_RU);
 
   return (
     <section

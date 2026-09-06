@@ -91,6 +91,25 @@ const UZ: typeof EN = {
     "Reportaj, video, kichik lahza, bir fikr — TALIMOON hayotidan. Ilklari tez orada.",
   read: "O'qish",
 };
+const RU: typeof EN = {
+  heading: 'Журнал Journey',
+  intro: 'Истории, фильмы, полезные идеи и открытия — собраны в одном живом редакционном потоке.',
+  filterLabel: 'Отфильтровать журнал',
+  all: 'Все истории',
+  more: 'Показать ещё',
+  story: 'Читать историю',
+  thought: 'Читать мысль',
+  conversation: 'Читать беседу',
+  watch: 'Смотреть',
+  take_part: 'Участвовать',
+  results: 'Смотреть результаты',
+  ended: 'Завершено',
+  detail: 'Подробнее',
+  read: 'Читать',
+  emptyTitle: 'Это пространство — для историй.',
+  emptyBody:
+    'Репортаж, фильм, маленький момент, мысль — из жизни TALIMOON. Первые — скоро.',
+};
 
 function cta(format: JourneyFormat, t: typeof EN): string {
   switch (format) {
@@ -125,7 +144,7 @@ export function StreamEntry({
   showWorldTag?: boolean;
 }) {
   const { language } = useLanguage();
-  const t = useT(EN, UZ);
+  const t = useT(EN, UZ, RU);
   const { content, direction } = resolveEntryContent(entry, toLocale(language));
   const policy = mediaPolicy(entry);
   const photo =
@@ -553,7 +572,7 @@ export function StreamEntry({
 
 // ── The stream ─────────────────────────────────────────────────────
 export function Hayotdan() {
-  const t = useT(EN, UZ);
+  const t = useT(EN, UZ, RU);
   const { language } = useLanguage();
   const locale = toLocale(language);
   const [world, setWorld] = useState<JourneyWorld | null>(null);

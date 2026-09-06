@@ -12,9 +12,10 @@
  * plain section shell. Every section builds its own rhythm on top —
  * no shared "heading + paragraph + 3 cards" block.
  *
- * i18n: sections pass `useT(EN, UZ)` copy objects. RU/AR fall back to
- * EN, exactly as the rest of the site does today. Layout uses logical
- * flow / centred measures so it does not depend on Uzbek text length.
+ * i18n: sections pass `useT(EN, UZ, RU)` copy objects — RU is real,
+ * translated content, not a fallback; only AR still falls back to EN.
+ * Layout uses logical flow / centred measures so it does not depend on
+ * Uzbek or Russian text length.
  */
 
 import React from 'react';

@@ -28,12 +28,18 @@ const CHROME_UZ: typeof CHROME_EN = {
   reactionsSuffix: "ta reaksiya",
 };
 
+const CHROME_RU: typeof CHROME_EN = {
+  rowLabel: "Отклики других семей",
+  labels: { smile: "Улыбка", love: "Любовь", wow: "Восторг" },
+  reactionsSuffix: "реакций",
+};
+
 export function ReactionRow({
   reactions,
 }: {
   reactions: { smile: number; love: number; wow: number };
 }) {
-  const t = useT(CHROME_EN, CHROME_UZ);
+  const t = useT(CHROME_EN, CHROME_UZ, CHROME_RU);
 
   return (
     <div className="mt-6 flex items-center gap-6" aria-label={t.rowLabel}>

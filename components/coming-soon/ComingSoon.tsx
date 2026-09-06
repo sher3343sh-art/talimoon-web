@@ -18,8 +18,13 @@ const CHROME_UZ: typeof CHROME_EN = {
   backToHome: "Bosh sahifaga qaytish",
 };
 
+const CHROME_RU: typeof CHROME_EN = {
+  comingSoon: "Скоро",
+  backToHome: "Вернуться на главную",
+};
+
 export function ComingSoon({ title, message }: ComingSoonProps) {
-  const t = useT(CHROME_EN, CHROME_UZ);
+  const t = useT(CHROME_EN, CHROME_UZ, CHROME_RU);
 
   return (
     <main className="flex min-h-[60vh] w-full flex-col items-center justify-center bg-[var(--surface-base)] px-6 py-32 text-center">

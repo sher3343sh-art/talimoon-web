@@ -49,10 +49,16 @@ const UZ: typeof EN = {
   emptyBody:
     "Bolalar, hissiyot, o'yin, o'qish va kundalik oila hayoti haqida qisqa, ishonchli yozuvlar.",
 };
+const RU: typeof EN = {
+  read: 'Читать',
+  emptyTitle: 'Что-то полезное для родителей уже в пути.',
+  emptyBody:
+    'Короткие, надёжные материалы о детях, эмоциях, игре, чтении и повседневной семейной жизни.',
+};
 
 export function ParentFeature() {
   const { language } = useLanguage();
-  const t = useT(EN, UZ);
+  const t = useT(EN, UZ, RU);
   const entry = useMemo(() => getParentFeature(), []);
 
   const resolved = useMemo(

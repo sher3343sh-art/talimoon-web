@@ -15,8 +15,13 @@ const COPY_UZ: typeof COPY_EN = {
   message: "Bu dunyo hali yozilmoqda. Tez orada hikoyalar ortidagi oila bilan tanishasiz.",
 };
 
+const COPY_RU: typeof COPY_EN = {
+  title: "Юсуф и Ясмина",
+  message: "Этот мир ещё пишется. Совсем скоро Вы познакомитесь с семьёй, стоящей за этими историями.",
+};
+
 export default function YusufAndYasminaPage() {
-  const t = useT(COPY_EN, COPY_UZ);
+  const t = useT(COPY_EN, COPY_UZ, COPY_RU);
 
   return (
     <>

@@ -78,6 +78,27 @@ const FOOTER_UZ: typeof FOOTER_EN = {
   craftedWithCare: "Oilalar uchun mehr bilan yaratilgan.",
 };
 
+const FOOTER_RU: typeof FOOTER_EN = {
+  tagline: "Истории, которые останутся с ними на всю жизнь.",
+  ctaOrderNow: "Оформить заказ",
+  ctaCreateStory: "Создать свою историю",
+  talimoonHome: "Главная страница TALIMOON",
+  exploreHeading: "Разделы",
+  resourcesHeading: "Ресурсы",
+  socialHeading: "Соцсети",
+  contactHeading: "Контакты",
+  about: "О нас",
+  howItWorks: "Как это работает",
+  pricing: "Цены",
+  faq: "Вопросы и ответы",
+  privacyPolicy: "Политика конфиденциальности",
+  terms: "Условия использования",
+  contact: "Контакты",
+  email: "Email",
+  copyright: "© 2026 TALIMOON.",
+  craftedWithCare: "Создано с любовью для семей.",
+};
+
 const EXPLORE_LINKS = [
   { key: "about", href: "/about" },
   { key: "howItWorks", href: "/products/personalized-books#how-it-works" },
@@ -152,7 +173,7 @@ export function Footer({
   showTopCta = true,
   showTopCtaButton = true,
 }: FooterProps) {
-  const t = useT(FOOTER_EN, FOOTER_UZ);
+  const t = useT(FOOTER_EN, FOOTER_UZ, FOOTER_RU);
   const pathname = usePathname();
   const ctaLabel = pathname === PERSONALIZED_BOOKS_PATH ? t.ctaCreateStory : t.ctaOrderNow;
   const exploreLinks = showHowItWorksLink

@@ -60,9 +60,10 @@ function worldRows(child: ChildProfile, locale: Locale): Row[] {
 }
 
 function charRows(child: ChildProfile, locale: Locale): Row[] {
+  const characterLocale = locale === "uz" ? "uz" : "en";
   const c = phase03Copy(locale);
   const rows: Row[] = [];
-  const qualities = qualitiesDisplay(child.appreciatedQualities, locale);
+  const qualities = qualitiesDisplay(child.appreciatedQualities, characterLocale);
   if (qualities) {
     // Each selected quality's own written detail (spec §4) — joined for
     // the portrait's one supporting line; "no example" items add nothing.
@@ -77,13 +78,13 @@ function charRows(child: ChildProfile, locale: Locale): Row[] {
       sub: detail || undefined,
     });
   }
-  const growth = !child.noGrowthArea ? growthDisplay(child.growthBehaviors, locale) : "";
+  const growth = !child.noGrowthArea ? growthDisplay(child.growthBehaviors, characterLocale) : "";
   if (growth) {
     // A prepared behaviour is shown as its dignified word; the adult's
     // own words are shown as written (never re-worded).
     rows.push({ key: "growth", label: c.pGrowth, value: growth });
   }
-  const values = valuesDisplay(child.desiredValues, locale);
+  const values = valuesDisplay(child.desiredValues, characterLocale);
   if (values) rows.push({ key: "values", label: c.pValues, value: values });
   return rows;
 }
@@ -157,7 +158,7 @@ export function ChildWorld({
     variant !== "full"
       ? ""
       : phase === "character"
-        ? composeCharSummary(child, child.name, locale)
+        ? composeCharSummary(child, child.name, locale === "uz" ? "uz" : "en")
         : composeSummary(child, locale);
 
   const worldLabel =

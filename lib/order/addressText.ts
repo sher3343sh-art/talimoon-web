@@ -14,7 +14,7 @@ const ADDRESS_TEXT_MAX = 600;
 export function buildAddressText(
   address: DeliveryAddress,
   market: Market,
-  locale: "uz" | "en",
+  locale: "uz" | "en" | "ru",
 ): string | undefined {
   if (address.choice !== "delivery") return undefined;
 

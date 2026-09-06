@@ -77,6 +77,12 @@ const MOMENT_COPY_UZ: Record<string, { name: string; childAge: string }> = {
   layla: { name: "Laylaning oilasi", childAge: "4 yosh" },
 };
 
+const MOMENT_COPY_RU: Record<string, { name: string; childAge: string }> = {
+  madinabonu: { name: "Мадинабону", childAge: "7 лет" },
+  yusuf: { name: "Семья Юсуфа", childAge: "7 лет" },
+  layla: { name: "Семья Лейлы", childAge: "4 года" },
+};
+
 const MOMENTS: Moment[] = [
   {
     id: "madinabonu",
@@ -119,6 +125,13 @@ const SECTION_COPY_UZ: typeof SECTION_COPY_EN = {
     "Farzandlari o'zlarining shaxsiylashtirilgan hikoyasini birinchi marta ko'rayotgan oilalarning samimiy his-tuyg'ularini tomosha qiling.",
 };
 
+const SECTION_COPY_RU: typeof SECTION_COPY_EN = {
+  eyebrow: "Настоящие моменты TALIMOON",
+  heading: "Настоящие семьи. Настоящая радость.",
+  description:
+    "Смотрите искренние эмоции семей, которые впервые видят именную историю своего ребёнка.",
+};
+
 const reveal: Variants = {
   hidden: { opacity: 0, y: 24 },
   visible: {
@@ -132,12 +145,14 @@ export function RealTalimoonMoments() {
   const [selectedId, setSelectedId] = useState(MOMENTS[0].id);
   const reducedMotion = useReducedMotion();
   const { language } = useLanguage();
-  const t = useT(SECTION_COPY_EN, SECTION_COPY_UZ);
+  const t = useT(SECTION_COPY_EN, SECTION_COPY_UZ, SECTION_COPY_RU);
 
   const moments =
     language === "UZ"
       ? MOMENTS.map((m) => ({ ...m, ...MOMENT_COPY_UZ[m.id] }))
-      : MOMENTS;
+      : language === "RU"
+        ? MOMENTS.map((m) => ({ ...m, ...MOMENT_COPY_RU[m.id] }))
+        : MOMENTS;
 
   const selectedIndex = moments.findIndex((m) => m.id === selectedId);
   const selected = moments[selectedIndex] ?? moments[0];

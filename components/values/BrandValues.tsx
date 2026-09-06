@@ -148,6 +148,39 @@ const VALUES_UZ: readonly ValueItem[] = [
   },
 ] as const;
 
+const VALUES_RU: readonly ValueItem[] = [
+  {
+    id: 'knowledge',
+    title: 'Знание',
+    description: 'Пробуждает любовь к познанию на всю жизнь.',
+    iconSrc: '/images/values/icon/Knowledge.webp',
+  },
+  {
+    id: 'character',
+    title: 'Характер',
+    description: 'Формирует доброту, уважение и достойное поведение.',
+    iconSrc: '/images/values/icon/Character.webp',
+  },
+  {
+    id: 'imagination',
+    title: 'Воображение',
+    description: 'Вдохновляет на творчество и самостоятельное мышление.',
+    iconSrc: '/images/values/icon/Imagination.webp',
+  },
+  {
+    id: 'compassion',
+    title: 'Сострадание',
+    description: 'Воспитывает эмпатию и душевную теплоту.',
+    iconSrc: '/images/values/icon/Compassion.webp',
+  },
+  {
+    id: 'wisdom',
+    title: 'Мудрость',
+    description: 'Ведёт ребёнка к жизни, наполненной характером и смыслом.',
+    iconSrc: '/images/values/icon/Wisdom.webp',
+  },
+] as const;
+
 // ============================================================
 // Scroll animation — same macro sequence and timing as before:
 // Eyebrow → Headline → Description → Five Values.
@@ -268,9 +301,17 @@ const HEADLINE_UZ: typeof HEADLINE_EN = {
     "Talimoon bolalar uchun bilim, tarbiya va tasavvurni birlashtirgan mazmun yaratadi.",
 };
 
+const HEADLINE_RU: typeof HEADLINE_EN = {
+  line1: 'Каждая история начинается',
+  line2Pre: 'с одной-единственной страницы',
+  highlight: 'света',
+  subhead:
+    'TALIMOON создаёт контент для детей, в котором соединяются знания, воспитание и воображение.',
+};
+
 function Headline() {
   const { language } = useLanguage();
-  const t = useT(HEADLINE_EN, HEADLINE_UZ);
+  const t = useT(HEADLINE_EN, HEADLINE_UZ, HEADLINE_RU);
   const highlightSpan = (
     <span
       style={{
@@ -340,7 +381,7 @@ function Headline() {
 // ============================================================
 
 function HeadlineDeck() {
-  const t = useT(HEADLINE_EN, HEADLINE_UZ);
+  const t = useT(HEADLINE_EN, HEADLINE_UZ, HEADLINE_RU);
   return (
     <motion.p
       variants={sequenceItem}
@@ -379,7 +420,7 @@ function HeadlineDeck() {
 // ============================================================
 
 function MobileValuesScene() {
-  const t = useT(HEADLINE_EN, HEADLINE_UZ);
+  const t = useT(HEADLINE_EN, HEADLINE_UZ, HEADLINE_RU);
   return (
     <motion.div
       variants={sequenceItem}
@@ -459,6 +500,7 @@ function MobileValuesScene() {
             const keys = [
               'bilim, tarbiya va tasavvurni',
               'knowledge, upbringing, and imagination',
+              'знания, воспитание и воображение',
             ];
             const key = keys.find((k) => d.includes(k));
             if (!key) return d;
@@ -581,6 +623,12 @@ const SECTION_COPY_UZ: typeof SECTION_COPY_EN = {
     "Bolalikda qalbga singdirilgan qadriyatlar bir umr hamroh bo'ladi. Shuning uchun Talimoon yaratgan har bir hikoya, kitob va mahsulot besh asosiy qadriyatga tayanadi.",
 };
 
+const SECTION_COPY_RU: typeof SECTION_COPY_EN = {
+  eyebrow: 'НАШИ ЦЕННОСТИ',
+  description:
+    'Ценности, заложенные в сердце ребёнка в детстве, остаются с ним на всю жизнь. Поэтому каждая история, книга и продукт TALIMOON опираются на пять главных ценностей.',
+};
+
 // 2026 — a quiet editorial transition at the end of Values that
 // routes to /about. Wording is plain on purpose: the visitor should
 // know exactly where it leads (who TALIMOON is, why it exists, what
@@ -656,6 +704,28 @@ const REFLECT_UZ: ReflectCopy = {
   ],
 };
 
+const REFLECT_RU: ReflectCopy = {
+  prompt: 'Вы когда-нибудь задумывались?',
+  items: [
+    {
+      q: 'Каким человеком Вы хотите, чтобы вырос Ваш ребёнок?',
+      s: 'Какие ценности формируются в его сердце уже сегодня и станут ориентиром для всей его будущей жизни?',
+    },
+    {
+      q: 'Что формирует мир Вашего ребёнка прямо сейчас?',
+      s: 'Какой след оставляют в его сердце то, что он смотрит, слушает, читает и во что играет?',
+    },
+    {
+      q: 'Способен ли он выбрать правильное, даже когда рядом никого нет, чтобы подсказать?',
+      s: 'Становятся ли знания, хорошие манеры, доброта и самостоятельное мышление его собственным внутренним компасом?',
+    },
+    {
+      q: 'Однажды он пойдёт своим собственным путём. Что Вы хотите, чтобы осталось в его сердце?',
+      s: 'Ценности, заложенные в его сердце сегодня, завтра проявятся в его решениях, отношениях и в том, каким человеком он станет.',
+    },
+  ],
+};
+
 function AskMark() {
   return (
     <svg
@@ -681,7 +751,7 @@ function AskMark() {
 }
 
 function ReflectiveQuestions() {
-  const t = useT(REFLECT_EN, REFLECT_UZ);
+  const t = useT(REFLECT_EN, REFLECT_UZ, REFLECT_RU);
 
   return (
     <motion.div
@@ -774,8 +844,8 @@ function ReflectiveQuestions() {
 
 export function BrandValues() {
   const { language } = useLanguage();
-  const sectionCopy = useT(SECTION_COPY_EN, SECTION_COPY_UZ);
-  const values = useT(VALUES_EN, VALUES_UZ);
+  const sectionCopy = useT(SECTION_COPY_EN, SECTION_COPY_UZ, SECTION_COPY_RU);
+  const values = useT(VALUES_EN, VALUES_UZ, VALUES_RU);
   const aboutLinkLabel = ABOUT_LINK[language] ?? ABOUT_LINK.EN;
 
   return (

@@ -24,9 +24,14 @@ const UZ: typeof EN = {
   headline: 'TALIMOON hayoti va bilim maydoni shu yerda yoziladi.',
   body: "TALIMOON nima qilyapti, ota-onalar uchun foydali g‘oyalar va kundalik odatlarni dalillar asosida tushuntirish. Ilk yozuvlar tez orada.",
 };
+const RU: typeof EN = {
+  eyebrow: 'HAYOT',
+  headline: 'Живое пространство редакции и знаний TALIMOON.',
+  body: 'Что делает TALIMOON, полезные идеи для родителей и объяснение повседневных привычек через доказательства. Первые материалы — скоро.',
+};
 
 export function JourneyFoundation() {
-  const t = useT(EN, UZ);
+  const t = useT(EN, UZ, RU);
 
   return (
     <Band

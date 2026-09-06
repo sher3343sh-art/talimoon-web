@@ -45,8 +45,21 @@ const UZ: CP = {
     "Yerdagi kichik ochiq kitob yuqoriga qarab keng manzaraga aylanadi — tepaliklar, ravoq, yo'l va yulduzlar — bola hikoyani shunday ko'radi.",
 };
 
+const RU: CP = {
+  headline: 'Мы смотрим на мир глазами ребёнка.',
+  lines: [
+    ['Обычная история', 'становится приключением.'],
+    ['Обычный вопрос', 'становится открытием.'],
+    ['Обычная игра', 'становится целым новым миром.'],
+  ],
+  support:
+    'Поэтому в каждом продукте TALIMOON на первом месте стоят любопытство, воображение и чувства ребёнка.',
+  artAlt:
+    'Маленькая раскрытая книга на земле разворачивается вверх в широкий пейзаж (холмы, арку, тропу и звёзды): именно так ребёнок видит историю.',
+};
+
 export function AboutChildPerspective() {
-  const t = useT(EN, UZ);
+  const t = useT(EN, UZ, RU);
   const reduced = useReducedMotion();
 
   return (

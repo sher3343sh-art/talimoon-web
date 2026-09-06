@@ -90,6 +90,25 @@ const UZ: typeof EN = {
   notAvailable: 'Bu hikoyani hozir o‘qib bo‘lmaydi.',
   back: 'Hikoyalar kutubxonasiga',
 };
+const RU: typeof EN = {
+  begin: 'Начать историю',
+  exit: 'Выйти',
+  narrationOn: 'Выключить озвучку',
+  narrationOff: 'Включить озвучку',
+  play: 'Воспроизвести',
+  pause: 'Пауза',
+  prev: 'Предыдущая страница',
+  next: 'Следующая страница',
+  fs: 'Во весь экран',
+  fsExit: 'Выйти из полноэкранного режима',
+  autoTurn: 'Автоматически переворачивать страницы',
+  page: (a: number, b: number) => `Страница ${a} из ${b}`,
+  theEnd: 'Конец.',
+  nextPart: 'Следующая часть',
+  readAgain: 'Прочитать снова',
+  notAvailable: 'Эта история сейчас недоступна для чтения.',
+  back: 'Назад в Библиотеку историй',
+};
 
 function toLocale(lang: string): Locale {
   const l = lang.toLowerCase();
@@ -167,7 +186,7 @@ const Icon = {
 };
 
 export function Reader({ slug }: { slug: string }) {
-  const t = useT(EN, UZ);
+  const t = useT(EN, UZ, RU);
   const { language } = useLanguage();
   const router = useRouter();
   const reduced = useReducedMotion();

@@ -51,8 +51,16 @@ function QuietLink({ href, children, external }: { href: string; children: React
   );
 }
 
+const RU: typeof EN = {
+  mark: 'TALIMOON',
+  headline: 'Хорошее будущее начинается в детстве.',
+  support: 'Мы хотели бы стать его частью.',
+  explore: 'Исследовать мир TALIMOON',
+  contact: 'Связаться с нами',
+};
+
 export function AboutQuietEnding() {
-  const t = useT(EN, UZ);
+  const t = useT(EN, UZ, RU);
   const reduced = useReducedMotion();
 
   return (

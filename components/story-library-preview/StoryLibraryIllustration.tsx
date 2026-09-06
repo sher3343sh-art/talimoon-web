@@ -32,10 +32,11 @@ const reveal: Variants = {
 
 const ALT_EN = "TALIMOON Story Library illustration representing reading, listening and watching stories.";
 const ALT_UZ = "TALIMOON Hikoyalar kutubxonasi tasviri — o'qish, tinglash va tomosha qilish orqali hikoyalarni his qilish.";
+const ALT_RU = "Иллюстрация Библиотеки историй TALIMOON: истории можно читать, слушать и смотреть.";
 
 export function StoryLibraryIllustration() {
   const reducedMotion = useReducedMotion();
-  const alt = useT(ALT_EN, ALT_UZ);
+  const alt = useT(ALT_EN, ALT_UZ, ALT_RU);
   const rawX = useMotionValue(0);
   const rawY = useMotionValue(0);
   const x = useSpring(rawX, { stiffness: 90, damping: 20, mass: 0.7 });

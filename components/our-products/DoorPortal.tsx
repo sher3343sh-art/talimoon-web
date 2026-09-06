@@ -167,10 +167,15 @@ const DOOR_CHROME_UZ: typeof DOOR_CHROME_EN = {
   ctaLine1: "OLAMGA",
   ctaLine2: "QADAM QO'YING",
 };
+const DOOR_CHROME_RU: typeof DOOR_CHROME_EN = {
+  discover: "Узнать",
+  ctaLine1: "ШАГНИТЕ",
+  ctaLine2: "В ЭТОТ МИР",
+};
 
 export function DoorPortal({ variant }: DoorPortalProps) {
   const reducedMotion = useReducedMotion();
-  const chrome = useT(DOOR_CHROME_EN, DOOR_CHROME_UZ);
+  const chrome = useT(DOOR_CHROME_EN, DOOR_CHROME_UZ, DOOR_CHROME_RU);
   const { id, title, tagline, href, assets } = variant;
 
   // Optical centre of this door's opening (midpoint between the painted

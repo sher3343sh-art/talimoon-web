@@ -16,11 +16,10 @@
  * roles, `accent-primary`, `border-subtle`. Cream background,
  * existing typography, existing horizontal padding.
  *
- * i18n: the route passes `en` and `uz` copy objects of the same
- * shape and `useT` picks one, exactly like every other bilingual
- * surface on the site (RU/AR fall back to EN). Layout uses a centred
- * reading measure and logical flow, so it never depends on the
- * translated text length.
+ * i18n: the route passes `en`, `uz` and `ru` copy objects of the same
+ * shape and `useT` picks one (AR falls back to EN). Layout uses a
+ * centred reading measure and logical flow, so it never depends on
+ * the translated text length.
  *
  * No animation — a legal page should render and read instantly.
  */
@@ -74,8 +73,8 @@ function Blocks({ blocks }: { blocks: LegalBlock[] }) {
   );
 }
 
-export function LegalDocument({ en, uz }: { en: LegalCopy; uz: LegalCopy }) {
-  const t = useT(en, uz);
+export function LegalDocument({ en, uz, ru }: { en: LegalCopy; uz: LegalCopy; ru: LegalCopy }) {
+  const t = useT(en, uz, ru);
 
   return (
     <section className="w-full bg-surface-base px-6 pb-24 pt-24 md:px-10 md:pb-28 md:pt-28 lg:px-16 lg:pb-32 lg:pt-32">

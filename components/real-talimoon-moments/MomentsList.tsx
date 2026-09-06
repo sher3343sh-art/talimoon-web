@@ -22,6 +22,11 @@ const CHROME_UZ: typeof CHROME_EN = {
   sharingAlt: (name: string) => `${name} o'zining TALIMOON hikoyasini baham ko'rmoqda`,
 };
 
+const CHROME_RU: typeof CHROME_EN = {
+  listLabel: "Видео с историями наших клиентов",
+  sharingAlt: (name: string) => `${name} делится своей историей TALIMOON`,
+};
+
 function ArrowIcon() {
   return (
     <svg
@@ -48,7 +53,7 @@ export function MomentsList({
   selectedId: string;
   onSelect: (id: string) => void;
 }) {
-  const t = useT(CHROME_EN, CHROME_UZ);
+  const t = useT(CHROME_EN, CHROME_UZ, CHROME_RU);
 
   return (
     <div

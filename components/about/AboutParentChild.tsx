@@ -41,8 +41,19 @@ const UZ: PC = {
   artAlt: 'Ota-ona va bola orqa tomondan, bir-biriga yaqin o‘tirib, ochiq kitobni birga ko‘rmoqda.',
 };
 
+const RU: PC = {
+  headline: ['Создано для ребёнка.', 'Обретает смысл вместе с родителем.'],
+  body: [
+    'TALIMOON создаёт опыт, который доходит до ребёнка, не оставляя в стороне самых важных людей в его жизни.',
+    'Ведь хорошая история значит намного больше, когда она превращается в разговор, близость и время, проведённое вместе ребёнком и родителем.',
+  ],
+  closing:
+    'Ведь нет ничего дороже любимой истории ребёнка, пережитой вместе с Вами.',
+  artAlt: 'Родитель и ребёнок сидят рядом, вид сзади, вместе рассматривая открытую книгу.',
+};
+
 export function AboutParentChild() {
-  const t = useT(EN, UZ);
+  const t = useT(EN, UZ, RU);
   const reduced = useReducedMotion();
 
   return (

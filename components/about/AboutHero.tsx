@@ -29,9 +29,16 @@ const UZ: typeof EN = {
   artAlt:
     "Bola o'tirib, xayolidagi hikoya bo'laklariga — kitob, uzoqdagi ravoq, yulduzlar va kichik bir olamga qarab turibdi; ular yorug'lik ichida erib ketmoqda.",
 };
+const RU: typeof EN = {
+  eyebrow: 'О TALIMOON',
+  headline: 'Внутри каждого ребёнка живёт целый мир.',
+  body: 'TALIMOON создаётся, чтобы дарить истории, книги и впечатления, которые оставляют след в воображении, знаниях и сердце ребёнка.',
+  artAlt:
+    'Ребёнок сидит и смотрит на едва различимые обрывки истории: книгу, далёкую арку, звёзды и маленький мир, которые поднимаются вверх и растворяются в свете.',
+};
 
 export function AboutHero() {
-  const t = useT(EN, UZ);
+  const t = useT(EN, UZ, RU);
   const reduced = useReducedMotion();
 
   return (

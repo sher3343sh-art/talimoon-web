@@ -65,6 +65,31 @@ const NAV_LABELS_UZ: typeof NAV_LABELS_EN = {
   mobileNav: "Mobil navigatsiya",
 };
 
+// "Жизнь" mirrors the Uzbek brand adaptation ("Hayot" — TALIMOON's
+// living memory, not a literal "journey") and matches the world name
+// already shipped in lib/journey/types.ts ("ЖИЗНЬ TALIMOON"), so the
+// nav item and the world page's own heading use the same word.
+const NAV_LABELS_RU: typeof NAV_LABELS_EN = {
+  home: "Главная",
+  journey: "Жизнь",
+  storyLibrary: "Библиотека",
+  about: "О нас",
+  product: "Продукция",
+  personalizedBooks: "Именные книги",
+  yusufYasmina: "Юсуф и Ясмина",
+  storySeries: "Серия историй",
+  talimoonToys: "Игрушки TALIMOON",
+  login: "Войти",
+  ctaOrderNow: "Оформить заказ",
+  ctaCreateStory: "Создать свою историю",
+  talimoonHome: "Главная страница TALIMOON",
+  openMenu: "Открыть меню",
+  closeMenu: "Закрыть меню",
+  languagePrefix: "Язык",
+  primaryNav: "Основная навигация",
+  mobileNav: "Мобильная навигация",
+};
+
 const DESKTOP_NAV_ITEMS: NavItem[] = [
   { key: "home", href: "/" },
   { key: "product", dropdown: "product" },
@@ -173,7 +198,7 @@ export interface NavbarProps {
 export default function Navbar({ ctaHref = "/begin" }: NavbarProps) {
   const [scrolled, setScrolled] = useState(false);
   const { language, setLanguage } = useLanguage();
-  const t = useT(NAV_LABELS_EN, NAV_LABELS_UZ);
+  const t = useT(NAV_LABELS_EN, NAV_LABELS_UZ, NAV_LABELS_RU);
   const pathname = usePathname();
   // "Order Now" everywhere except the personalized-books product page,
   // which gets its own "Create Your Story" copy — that page already

@@ -98,6 +98,12 @@ interface HeroSlideData {
     readonly description: string;
     readonly alt: string;
   };
+  readonly copyRu: {
+    readonly name: string;
+    readonly headline: string;
+    readonly description: string;
+    readonly alt: string;
+  };
   readonly image: {
     readonly src: string;
     readonly alt: string;
@@ -136,6 +142,13 @@ const SLIDES: readonly HeroSlideData[] = [
         "Har bir kitob farzandingizning ismi, qiziqishlari va o'qish darajasiga moslashadi. Har safar — betakror sarguzasht.",
       alt: "Bola shaxsiylashtirilgan kitobni yotoqxonaning iliq yorug'ida o'qimoqda",
     },
+    copyRu: {
+      name: 'Именные книги',
+      headline: 'Истории, которые знают Вашего ребёнка',
+      description:
+        'Каждая книга подстраивается под имя, интересы и уровень чтения Вашего ребёнка. Каждый раз новое, неповторимое приключение.',
+      alt: 'Ребёнок читает именную книгу в тёплом свете спальни',
+    },
     image: {
       src: '/images/hero/slide-personalized-books.webp',
       alt: 'A child reading a personalized book in warm bedroom light',
@@ -158,6 +171,13 @@ const SLIDES: readonly HeroSlideData[] = [
       description:
         "Yusuf va Yasmina har bir sahifaga mehr, qiziquvchanlik va bir chimdim sho'xlik olib keladi.",
       alt: "Yusuf va Yasmina qahramonlari o'ynoqi ifodalar bilan",
+    },
+    copyRu: {
+      name: 'Юсуф и Ясмина',
+      headline: 'Познакомьтесь с семьёй, стоящей за историями',
+      description:
+        'Юсуф и Ясмина приносят на каждую страницу тепло, любознательность и капельку озорства.',
+      alt: 'Юсуф и Ясмина в игривых образах',
     },
     image: {
       src: '/images/hero/slide-yusuf-yasmina.webp',
@@ -182,6 +202,13 @@ const SLIDES: readonly HeroSlideData[] = [
         "Ertaklardan tortib ilmiy sarguzashtlargacha — har bir qiziquvchan aql uchun tobora boyib boruvchi kutubxona.",
       alt: "Turli kitoblar bilan porlab turgan kutubxona javoni",
     },
+    copyRu: {
+      name: 'Библиотека историй',
+      headline: 'Мир историй у Вас под рукой',
+      description:
+        'От сказок до научных приключений: постоянно растущая библиотека для каждого любознательного ума.',
+      alt: 'Светящаяся книжная полка с разными книгами',
+    },
     image: {
       src: '/images/hero/slide-story-library.webp',
       alt: 'A glowing library shelf with diverse books',
@@ -205,6 +232,13 @@ const SLIDES: readonly HeroSlideData[] = [
         "Hikoyalarni to'ldirish va o'yinni ilhomlantirish uchun yaratilgan yumshoq, sezgir hamrohlar.",
       alt: "Talimoon o'yinchoqlarining yumshoq soyalar bilan studiya suratga olinishi",
     },
+    copyRu: {
+      name: 'Игрушки TALIMOON',
+      headline: 'Игрушки, пробуждающие воображение',
+      description:
+        'Мягкие, приятные на ощупь спутники, созданные, чтобы дополнить истории и вдохновить на игру.',
+      alt: 'Студийная съёмка игрушек TALIMOON с мягкими тенями',
+    },
     image: {
       src: '/images/hero/slide-talimoon-toys.webp',
       alt: 'Studio shot of Talimoon toys with soft shadows',
@@ -227,6 +261,13 @@ const SLIDES: readonly HeroSlideData[] = [
       description:
         "Ekotizimning har bir bo'lagi ijodkorlik va bilimga bo'lgan muhabbatni tarbiyalash uchun birgalikda ishlaydi.",
       alt: "Kitoblar, o'yinchoqlar va qahramonlarning mavhum bog'langan olami",
+    },
+    copyRu: {
+      name: 'Экосистема TALIMOON',
+      headline: 'Книги, игрушки и персонажи: единый связанный мир',
+      description:
+        'Каждая часть экосистемы работает сообща, взращивая творчество и любовь к познанию.',
+      alt: 'Абстрактный связанный мир книг, игрушек и персонажей',
     },
     image: {
       src: '/images/hero/slide-ecosystem.webp',
@@ -786,7 +827,7 @@ const HeroSlide = memo(
     frozen = false,
   }: HeroSlideProps) {
     const { image, scrim, ...textData } = slide;
-    const slideWord = useT('slide', 'slayd');
+    const slideWord = useT('slide', 'slayd', 'слайд');
 
     // v3: mobile gets its own tuned focal point when the slide has one;
     // desktop's `focalPoint` is untouched either way.
@@ -954,24 +995,32 @@ const CAROUSEL_CHROME_UZ: typeof CAROUSEL_CHROME_EN = {
     `${n}/${total}-slayd: ${headline}`,
 };
 
+const CAROUSEL_CHROME_RU: typeof CAROUSEL_CHROME_EN = {
+  carouselLabel: 'Карусель избранных материалов',
+  currentSlideLabel: 'Текущий слайд',
+  slideOf: (n: number, total: number, headline: string) =>
+    `Слайд ${n} из ${total}: ${headline}`,
+};
+
 export function HeroSlider({ onNavColorChange }: HeroSliderProps) {
   const isMobile = useMediaQuery('(max-width: 767px)');
   const reducedMotion = useReducedMotion();
   const { language } = useLanguage();
-  const chrome = useT(CAROUSEL_CHROME_EN, CAROUSEL_CHROME_UZ);
+  const chrome = useT(CAROUSEL_CHROME_EN, CAROUSEL_CHROME_UZ, CAROUSEL_CHROME_RU);
 
   // Derives a fully-localized slide list from SLIDES' English base +
-  // each slide's `copyUz` — everything downstream (HeroSlide,
+  // each slide's `copyUz`/`copyRu` — everything downstream (HeroSlide,
   // HeroImage, HeroTextBlock, MobileHeroText) stays language-agnostic
   // and just renders whatever strings it's handed.
   const slides = useMemo<readonly HeroSlideData[]>(() => {
-    if (language !== 'UZ') return SLIDES;
+    if (language !== 'UZ' && language !== 'RU') return SLIDES;
+    const copyKey = language === 'UZ' ? 'copyUz' : 'copyRu';
     return SLIDES.map((slide) => ({
       ...slide,
-      name: slide.copyUz.name,
-      headline: slide.copyUz.headline,
-      description: slide.copyUz.description,
-      image: { ...slide.image, alt: slide.copyUz.alt },
+      name: slide[copyKey].name,
+      headline: slide[copyKey].headline,
+      description: slide[copyKey].description,
+      image: { ...slide.image, alt: slide[copyKey].alt },
     }));
   }, [language]);
 

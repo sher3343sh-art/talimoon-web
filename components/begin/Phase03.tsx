@@ -76,7 +76,8 @@ export default function Phase03({
   entry?: "start" | "end";
 }) {
   const { language } = useLanguage();
-  const locale: Locale = toLocale(language) === "uz" ? "uz" : "en";
+  const rawLocale = toLocale(language);
+  const locale: Locale = rawLocale === "uz" || rawLocale === "ru" ? rawLocale : "en";
   const dir = directionFor(toLocale(language));
   const c = phase03Copy(locale);
   const reduced = useReducedMotion();

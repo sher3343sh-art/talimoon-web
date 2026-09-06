@@ -77,6 +77,36 @@ const UZ: HeroSlide[] = [
   },
 ];
 
+const RU: HeroSlide[] = [
+  {
+    id: 'personalized-books',
+    eyebrow: 'Библиотека историй',
+    title: 'Каждая книга открывает свой собственный мир.',
+    description: 'Именные истории, созданные для одного ребёнка и бережно собранные в одной вечной библиотеке.',
+    image: '/images/story-library/hero/personalized-library-v1.png',
+    alt: 'Коллекция премиальных именных книг рядом с открытой иллюстрированной историей',
+    position: '100% center',
+  },
+  {
+    id: 'yusuf-yasmina',
+    eyebrow: 'Юсуф и Ясмина',
+    title: 'Приключение продолжается, страница за страницей.',
+    description: 'Мир, который продолжает расти: здесь двое юных героев открывают доброту, дружбу и смелость.',
+    image: '/images/story-library/hero/yusuf-yasmina-world-v1.png',
+    alt: 'Две изящные книги-истории, открывающиеся в волшебный мир приключений',
+    position: '100% center',
+  },
+  {
+    id: 'audio-library',
+    eyebrow: 'Аудиоистории',
+    title: 'Читайте. Слушайте. Проживайте вместе.',
+    description: 'Книги и аудиоформат встречаются в одном тёплом и постоянно растущем мире историй.',
+    image: '/images/story-library/hero/audio-library-v1.png',
+    alt: 'Открытая книга, наушники и цифровая аудиобиблиотека в уютной комнате для чтения',
+    position: '100% center',
+  },
+];
+
 const UI_EN = {
   label: 'Story Library highlights',
   pause: 'Pause highlights',
@@ -89,9 +119,15 @@ const UI_UZ: typeof UI_EN = {
   play: 'Almashishni davom ettirish',
 };
 
+const UI_RU: typeof UI_EN = {
+  label: 'Главные истории библиотеки',
+  pause: 'Приостановить смену слайдов',
+  play: 'Возобновить смену слайдов',
+};
+
 export function StoryLibraryHero() {
-  const slides = useT(EN, UZ);
-  const ui = useT(UI_EN, UI_UZ);
+  const slides = useT(EN, UZ, RU);
+  const ui = useT(UI_EN, UI_UZ, UI_RU);
   const reducedMotion = useReducedMotion();
   const [active, setActive] = useState(0);
   const [manuallyPaused, setManuallyPaused] = useState(false);

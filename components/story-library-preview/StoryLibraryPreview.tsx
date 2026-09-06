@@ -59,8 +59,20 @@ const COPY_UZ: typeof COPY_EN = {
   ],
 };
 
+const COPY_RU: typeof COPY_EN = {
+  eyebrow: "МИРЫ TALIMOON",
+  heading: "Библиотека историй",
+  description:
+    "Именные истории и волшебные приключения Юсуфа и Ясмины. Реальные примеры публикуются с согласия родителей.",
+  cta: "Открыть библиотеку",
+  worlds: [
+    "Именные истории",
+    "Юсуф и Ясмина",
+  ],
+};
+
 export function StoryLibraryPreview() {
-  const t = useT(COPY_EN, COPY_UZ);
+  const t = useT(COPY_EN, COPY_UZ, COPY_RU);
 
   return (
     <section

@@ -25,9 +25,10 @@ export type Partner = {
 
 const COPY_EN = { comingSoon: "Coming Soon", partnerLogo: "Partner logo" };
 const COPY_UZ: typeof COPY_EN = { comingSoon: "Tez orada", partnerLogo: "Hamkor logotipi" };
+const COPY_RU: typeof COPY_EN = { comingSoon: "Скоро", partnerLogo: "Логотип партнёра" };
 
 export function PartnerCard({ partner }: { partner: Partner }) {
-  const t = useT(COPY_EN, COPY_UZ);
+  const t = useT(COPY_EN, COPY_UZ, COPY_RU);
   const hasLogo = Boolean(partner.logoSrc);
 
   const card = (

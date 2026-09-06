@@ -22,10 +22,14 @@
  * value — no manual effect, no extra intermediate render caused by
  * an effect body calling setState.
  *
- * Only English and Uzbek have real translated content. Russian and
- * Arabic stay selectable in the menu (unchanged) but fall back to
- * English content via `useT` below — the same no-op behavior they
- * already had before this feature existed, not a regression.
+ * English, Uzbek and Russian have real translated content. Arabic
+ * stays selectable in the menu (unchanged) but falls back to English
+ * content via `useT` below — the same no-op behavior it already had
+ * before this feature existed, not a regression. Russian is no longer
+ * a fallback language: `useT` requires a real `ru` argument at every
+ * call site, so TypeScript itself fails a build that forgets one
+ * (see `useT` below) rather than silently serving English or Uzbek
+ * copy to a Russian-language visitor.
  */
 
 import { createContext, useContext, useSyncExternalStore, type ReactNode } from "react";
@@ -92,11 +96,16 @@ export function useLanguage() {
 }
 
 /**
- * Per-component translation picker: `const t = useT(EN_COPY, UZ_COPY)`
- * then read `t.heading`, `t.body`, etc. Only UZ has a real second
- * copy today; every other language reads the English object.
+ * Per-component translation picker: `const t = useT(EN_COPY, UZ_COPY,
+ * RU_COPY)` then read `t.heading`, `t.body`, etc. `ru` is REQUIRED
+ * (not optional) so a call site that forgets it fails `tsc`, not a
+ * Russian-language visitor silently reading English or Uzbek copy —
+ * this is a deliberate design constraint, not an oversight. AR has no
+ * real copy yet and reads the English object, same as before.
  */
-export function useT<T>(en: T, uz: T): T {
+export function useT<T>(en: T, uz: T, ru: T): T {
   const { language } = useLanguage();
-  return language === "UZ" ? uz : en;
+  if (language === "UZ") return uz;
+  if (language === "RU") return ru;
+  return en;
 }

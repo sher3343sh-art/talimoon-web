@@ -61,11 +61,18 @@ const UZ = {
   close: 'Boblar ro‘yxatini yopish',
   items: ['QANDAY YARALDI', 'QARASHIMIZ', 'TALIMOON DUNYOSI', 'BIZ KIMMIZ'],
 };
+const RU: typeof EN = {
+  navLabel: 'Главы страницы «О нас»',
+  eyebrow: 'Содержание',
+  open: 'Открыть список глав',
+  close: 'Закрыть список глав',
+  items: ['С ЧЕГО ВСЁ НАЧАЛОСЬ', 'НАШ ВЗГЛЯД', 'МИР TALIMOON', 'КТО МЫ'],
+};
 
 const num = (i: number) => String(i + 1).padStart(2, '0');
 
 export function AboutChapterNav() {
-  const t = useT(EN, UZ);
+  const t = useT(EN, UZ, RU);
   const reduced = useReducedMotion();
   const [active, setActive] = useState(0);
   // Present from the first paint — it only turns off once the story has

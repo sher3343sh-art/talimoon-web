@@ -15,8 +15,13 @@ const COPY_UZ: typeof COPY_EN = {
   message: "Hikoyalarimizni to'ldiruvchi yumshoq va sezgir o'yinchoq-hamrohlar tez orada yo'lga chiqadi.",
 };
 
+const COPY_RU: typeof COPY_EN = {
+  title: "Игрушки TALIMOON",
+  message: "Мягкие и приятные на ощупь игрушки-компаньоны, которые дополнят истории, уже в пути.",
+};
+
 export default function TalimoonToysPage() {
-  const t = useT(COPY_EN, COPY_UZ);
+  const t = useT(COPY_EN, COPY_UZ, COPY_RU);
 
   return (
     <>

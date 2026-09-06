@@ -172,7 +172,7 @@ const EN: LocaleTable = {
 };
 
 const RU: LocaleTable = {
-  parent: { option: "Мой ребёнок", possessive: "ваш ребёнок", usesNeutralCount: false },
+  parent: { option: "Мой ребёнок", possessive: "Ваш ребёнок", usesNeutralCount: false },
   grandparent: {
     option: "Мой внук / внучка",
     possessive: null,

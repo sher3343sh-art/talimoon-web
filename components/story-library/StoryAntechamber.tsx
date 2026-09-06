@@ -50,6 +50,15 @@ const UZ: typeof EN = {
   preparing: "Hikoyaning bu qismi tayyorlanmoqda.",
   titleSoon: 'Sarlavha tez orada',
 };
+const RU: typeof EN = {
+  backLibrary: 'Библиотека историй',
+  backSeries: 'Юсуф и Ясмина',
+  siblingFamily: 'Семейные истории',
+  begin: 'Начать',
+  comingSoon: 'Скоро',
+  preparing: 'Эта часть истории сейчас готовится.',
+  titleSoon: 'Название скоро появится',
+};
 
 function toLocale(lang: string): Locale {
   const l = lang.toLowerCase();
@@ -57,7 +66,7 @@ function toLocale(lang: string): Locale {
 }
 
 export function StoryAntechamber({ story }: { story: Story }) {
-  const t = useT(EN, UZ);
+  const t = useT(EN, UZ, RU);
   const { language } = useLanguage();
   const reduced = useReducedMotion();
   const locale = toLocale(language);

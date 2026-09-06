@@ -34,8 +34,19 @@ const UZ: typeof EN = {
   artAlt: "Keng ufq; oltin yo'l tashqariga davom etadi, uzoqdagi kichik shakllar yangi olamlarni eslatadi.",
 };
 
+const RU: typeof EN = {
+  eyebrow: 'Впереди',
+  headline: 'Мир, который начался с одной книги, всё ещё строится.',
+  body: 'Мы видим будущее TALIMOON не как набор отдельных продуктов, а как единый мир, который растёт вместе с ребёнком.',
+  closing: [
+    'Наша цель не в том, чтобы выпускать больше продуктов.',
+    'Она в том, чтобы создавать более качественный опыт, который становится значимой частью детства и семейной жизни.',
+  ],
+  artAlt: 'Широкий горизонт с золотой дорогой, уходящей вдаль, и едва заметными силуэтами, напоминающими о новых мирах.',
+};
+
 export function AboutFuture() {
-  const t = useT(EN, UZ);
+  const t = useT(EN, UZ, RU);
   const reduced = useReducedMotion();
 
   return (

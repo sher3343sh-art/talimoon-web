@@ -37,10 +37,15 @@ const UZ: typeof EN = {
   more: "Ko'proq ko'rish",
   empty: 'Bu olam uchun ilk yozuvlar tez orada.',
 };
+const RU: typeof EN = {
+  back: 'HAYOT',
+  more: 'Показать ещё',
+  empty: 'Первые материалы для этого мира уже в пути.',
+};
 
 export function WorldLanding({ world }: { world: JourneyWorld }) {
   const { language } = useLanguage();
-  const t = useT(EN, UZ);
+  const t = useT(EN, UZ, RU);
   const [limit, setLimit] = useState(STREAM_PAGE_SIZE);
 
   const all = useMemo(() => getWorldEntries(world), [world]);

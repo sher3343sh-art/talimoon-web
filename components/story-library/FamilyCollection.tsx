@@ -54,6 +54,18 @@ const UZ: typeof EN = {
   empty: "Hozircha oila hikoyalari e'lon qilinmagan. Dastlabkilari tayyorlanmoqda.",
   consentNote: "Har bir oilaning roziligi bilan baham ko'rilgan.",
 };
+const RU: typeof EN = {
+  back: 'Библиотека историй',
+  sibling: 'Юсуф и Ясмина',
+  eyebrow: 'Семейные истории',
+  heading: 'Настоящие книги, созданные для одного ребёнка и опубликованные с согласия семьи.',
+  lead: [
+    'Каждой семье, заказавшей именную книгу TALIMOON, позже деликатно предлагают поделиться её цифровой версией здесь.',
+    'Ничто не публикуется без явного согласия родителей. Поэтому эта полка наполняется медленно, история за историей, с благословения самих семей.',
+  ],
+  empty: 'Пока ни одна семейная история не опубликована. Первые уже готовятся.',
+  consentNote: 'Опубликовано с согласия каждой семьи.',
+};
 
 function toLocale(lang: string): Locale {
   const l = lang.toLowerCase();
@@ -63,7 +75,7 @@ function toLocale(lang: string): Locale {
 const FRAMES = [-3, 2, -1.5, 3, -2, 1];
 
 export function FamilyCollection({ stories }: { stories: Story[] }) {
-  const t = useT(EN, UZ);
+  const t = useT(EN, UZ, RU);
   const { language } = useLanguage();
   const reduced = useReducedMotion();
   const locale = toLocale(language);

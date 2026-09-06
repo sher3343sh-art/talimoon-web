@@ -44,7 +44,7 @@ const UZ_ORDINALS = [
   "oltinchi",
 ];
 const EN_ORDINALS = ["first", "second", "third", "fourth", "fifth", "sixth"];
-const RU_ORDINALS = ["первый", "второй", "третий", "четвёртый", "пятый", "шестой"];
+const RU_ORDINALS_INSTR = ["первым", "вторым", "третьим", "четвёртым", "пятым", "шестым"];
 const AR_ORDINALS = ["الأول", "الثاني", "الثالث", "الرابع", "الخامس", "السادس"];
 
 export interface Phase01Copy {
@@ -261,33 +261,33 @@ const ru: Phase01Copy = {
 
   childMoment: (index, total, name) => {
     const nm = name.trim();
-    if (nm) return index === 0 ? `Знакомимся с ${nm}.` : `Теперь знакомимся с ${nm}.`;
+    if (nm) return index === 0 ? `Вот и ${nm}.` : `А вот и ${nm}.`;
     if (total === 1) return "Тогда давайте познакомимся.";
     if (index === 0) return "Знакомимся с нашим первым героем.";
     if (index === total - 1) return "Остался ещё один 😊";
-    return `Теперь познакомимся с ${RU_ORDINALS[index]} героем.`;
+    return `Теперь познакомимся с ${RU_ORDINALS_INSTR[index]} героем.`;
   },
   childNamePrompt: (index, total, rel) => {
     if (total > 1) return "Имя";
     const noun = possessiveNoun(rel, "ru");
-    if (noun) return `Как зовут ${noun === "ваш ребёнок" ? "Вашего ребёнка" : noun}?`;
+    if (noun) return `Как зовут ${noun === "Ваш ребёнок" ? "Вашего ребёнка" : noun}?`;
     return "Как его(её) зовут?";
   },
   childNamePlaceholder: "Напишите имя...",
   childAgeQuestion: (name) =>
-    name.trim() ? `Сколько лет ${name.trim()}?` : "Сколько ему(ей) лет?",
+    name.trim() ? `${name.trim()}, сколько лет?` : "Сколько ему(ей) лет?",
   otherAge: "Другой возраст",
   yearsSuffix: (age) => `${age} лет`,
 
   childRelationshipQuestion: (name) => `Кем Вам приходится ${name.trim()}?`,
 
-  completionOneChild: (name, age) => `Итак, наш герой — ${name}, ${age} лет.`,
+  completionOneChild: (name, age) => `Итак, наш герой: ${name}, ${age} лет.`,
   completionOneChildSupport: (name) =>
-    `Теперь узнаем собственный мир ${name} немного лучше.`,
+    `Теперь узнаем немного ближе мир, в котором живёт ${name.trim()}.`,
   completionManyHeading: "Мы познакомились с нашими героями.",
   completionManyNames: (names) => joinNames(names, "ru"),
   completionManySupport: "Теперь узнаем мир каждого из них немного лучше.",
-  transitionCta: (firstName) => `Познакомиться с ${firstName}`,
+  transitionCta: (firstName) => `Заглянуть в мир, где живёт ${firstName.trim()}`,
 
   errHonorific: "Пожалуйста, выберите форму обращения.",
   errName: "Пожалуйста, введите Ваше имя.",

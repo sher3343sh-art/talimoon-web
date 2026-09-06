@@ -65,6 +65,16 @@ const UZ: typeof EN = {
   sources: 'Manbalar',
   link: 'Havola',
 };
+const RU: typeof EN = {
+  back: 'Назад',
+  share: 'Поделиться',
+  copied: 'Ссылка скопирована',
+  more: 'HAYOT ПРОДОЛЖАЕТСЯ',
+  otherLang: 'Пока показано на другом языке.',
+  transcript: 'Расшифровка',
+  sources: 'Источники',
+  link: 'Ссылка',
+};
 
 /** One reference → a quiet bibliographic line (no URL — that is a
  *  separate <a> so it wraps cleanly). Never fabricated. */
@@ -417,7 +427,7 @@ function BlockView({
 // ── The page ───────────────────────────────────────────────────────
 export function EntryDetail({ entry }: { entry: JourneyEntry }) {
   const { language } = useLanguage();
-  const t = useT(EN, UZ);
+  const t = useT(EN, UZ, RU);
   const { content, direction, isFallback } = useMemo(
     () => resolveEntryContent(entry, toLocale(language)),
     [entry, language],
