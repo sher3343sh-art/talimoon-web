@@ -11,6 +11,7 @@ import React from 'react';
 import Link from 'next/link';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useT } from '@/lib/i18n/LanguageContext';
+import { SOCIAL } from '@/lib/site/social';
 import { BODY, DISPLAY, GOLD, NAVY, NAVY_64, Section } from './shared';
 
 const EN = {
@@ -101,7 +102,7 @@ export function AboutQuietEnding() {
 
         <div className="mt-12 flex flex-col items-center gap-5 sm:flex-row sm:justify-center sm:gap-10">
           <QuietLink href="/#our-products">{t.explore}</QuietLink>
-          <QuietLink href="https://t.me/talimoon" external>
+          <QuietLink href={SOCIAL.telegram.url} external>
             {t.contact}
           </QuietLink>
         </div>

@@ -31,6 +31,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useT } from "@/lib/i18n/LanguageContext";
+import { SOCIAL, CONTACT } from "@/lib/site/social";
 
 // Mirrors Navbar's PERSONALIZED_BOOKS_PATH check — that page's CTA
 // reads "Create Your Story" instead of the site-wide "Order Now".
@@ -53,6 +54,8 @@ const FOOTER_EN = {
   terms: "Terms",
   contact: "Contact",
   email: "Email",
+  qatar: "Qatar",
+  uzbekistan: "Uzbekistan",
   copyright: "© 2026 TALIMOON.",
   craftedWithCare: "Crafted with care for families.",
 };
@@ -74,6 +77,8 @@ const FOOTER_UZ: typeof FOOTER_EN = {
   terms: "Foydalanish shartlari",
   contact: "Aloqa",
   email: "Email",
+  qatar: "Qatar",
+  uzbekistan: "O‘zbekiston",
   copyright: "© 2026 TALIMOON.",
   craftedWithCare: "Oilalar uchun mehr bilan yaratilgan.",
 };
@@ -95,6 +100,8 @@ const FOOTER_RU: typeof FOOTER_EN = {
   terms: "Условия использования",
   contact: "Контакты",
   email: "Email",
+  qatar: "Катар",
+  uzbekistan: "Узбекистан",
   copyright: "© 2026 TALIMOON.",
   craftedWithCare: "Создано с любовью для семей.",
 };
@@ -112,16 +119,22 @@ const RESOURCES_LINKS = [
   { key: "contact", href: "/contact" },
 ] as const satisfies readonly { key: keyof typeof FOOTER_EN; href: string }[];
 
+// Public profile pages — the "Ijtimoiy tarmoqlar" column. Same source of
+// truth as the navbar icons (lib/site/social.ts).
 const SOCIAL_LINKS = [
-  { label: "Instagram", href: "https://www.instagram.com/talimoon_" },
-  { label: "Telegram", href: "https://t.me/talimoon_kids" },
-  { label: "YouTube", href: "https://youtube.com/@talimoon" },
+  { label: "Instagram", href: SOCIAL.instagram.url },
+  { label: "Telegram", href: SOCIAL.telegram.url },
+  { label: "YouTube", href: SOCIAL.youtube.url },
 ];
 
+// The "Aloqa" column — reachable channels. Instagram here is the DM
+// deep-link, not the public profile (see lib/site/social.ts).
 const CONTACT_LINKS = [
-  { key: "email", value: "hello@talimoon.com", href: "mailto:hello@talimoon.com" },
-  { label: "Telegram", value: "@talimoon_kids", href: "https://t.me/talimoon_kids" },
-  { label: "Instagram", value: "@talimoon_", href: "https://www.instagram.com/talimoon_" },
+  { key: "email", value: CONTACT.email.value, href: CONTACT.email.href },
+  { label: "Telegram", value: CONTACT.telegram.value, href: CONTACT.telegram.href },
+  { label: "Instagram", value: CONTACT.instagramDM.value, href: CONTACT.instagramDM.href },
+  { key: "qatar", value: CONTACT.qatarPhone.value, href: CONTACT.qatarPhone.href },
+  { key: "uzbekistan", value: CONTACT.uzbekistanPhone.value, href: CONTACT.uzbekistanPhone.href },
 ] as const;
 
 const columnHeadingClass =
@@ -250,7 +263,13 @@ export function Footer({
             <ul className="mt-5 space-y-3">
               {SOCIAL_LINKS.map((link) => (
                 <li key={link.label}>
-                  <a href={link.href} target="_blank" rel="noreferrer" className={linkClass}>
+                  <a
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`TALIMOON ${link.label}`}
+                    className={linkClass}
+                  >
                     {link.label}
                   </a>
                 </li>
@@ -261,21 +280,24 @@ export function Footer({
           <div>
             <h3 className={columnHeadingClass}>{t.contactHeading}</h3>
             <ul className="mt-5 space-y-3">
-              {CONTACT_LINKS.map((contact) => (
-                <li key={"key" in contact ? contact.key : contact.label}>
-                  <a
-                    href={contact.href}
-                    target={contact.href.startsWith("https://") ? "_blank" : undefined}
-                    rel={contact.href.startsWith("https://") ? "noreferrer" : undefined}
-                    className={linkClass}
-                  >
-                    <span className="text-[var(--text-inverse-muted,rgba(247,243,236,0.7))]">
-                      {"key" in contact ? t[contact.key] : contact.label}:{" "}
-                    </span>
-                    {contact.value}
-                  </a>
-                </li>
-              ))}
+              {CONTACT_LINKS.map((contact) => {
+                const external = contact.href.startsWith("https://");
+                return (
+                  <li key={"key" in contact ? contact.key : contact.label}>
+                    <a
+                      href={contact.href}
+                      target={external ? "_blank" : undefined}
+                      rel={external ? "noopener noreferrer" : undefined}
+                      className={linkClass}
+                    >
+                      <span className="text-[var(--text-inverse-muted,rgba(247,243,236,0.7))]">
+                        {"key" in contact ? t[contact.key] : contact.label}:{" "}
+                      </span>
+                      <span className="whitespace-nowrap">{contact.value}</span>
+                    </a>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         </div>

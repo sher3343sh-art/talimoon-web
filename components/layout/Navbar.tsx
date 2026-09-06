@@ -5,6 +5,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useLanguage, useT } from "@/lib/i18n/LanguageContext";
+import { SOCIAL } from "@/lib/site/social";
 
 // The personalized-books product page is the one place the CTA reads
 // "Create Your Story" instead of the site-wide "Order Now" — see
@@ -119,22 +120,26 @@ const LANGUAGES = [
   { code: "AR", name: "العربية" },
 ] as const;
 
-// Social links with brand-colored icon paths
+// Social links with brand-colored icon paths. URLs come from the single
+// source of truth in lib/site/social.ts so navbar and footer stay in sync.
 const SOCIAL_LINKS = [
-  { 
-    name: "instagram" as const, 
-    label: "Instagram", 
-    href: "https://instagram.com/talimoon",
+  {
+    name: "instagram" as const,
+    label: "Instagram",
+    href: SOCIAL.instagram.url,
+    aria: "TALIMOON Instagram",
   },
-  { 
-    name: "telegram" as const, 
-    label: "Telegram", 
-    href: "https://t.me/talimoon",
+  {
+    name: "telegram" as const,
+    label: "Telegram",
+    href: SOCIAL.telegram.url,
+    aria: "TALIMOON Telegram",
   },
-  { 
-    name: "youtube" as const, 
-    label: "YouTube", 
-    href: "https://youtube.com/@talimoon",
+  {
+    name: "youtube" as const,
+    label: "YouTube",
+    href: SOCIAL.youtube.url,
+    aria: "TALIMOON YouTube",
   },
 ] as const;
 const SOCIAL_ICON_PATHS = {
@@ -892,7 +897,7 @@ export default function Navbar({ ctaHref = "/begin" }: NavbarProps) {
                 href={social.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label={social.label}
+                aria-label={social.aria}
                 className={[
                   social.name === "youtube"
                     ? "flex h-[30px] w-[30px] shrink-0 items-center justify-center"
@@ -1107,7 +1112,7 @@ export default function Navbar({ ctaHref = "/begin" }: NavbarProps) {
                       href={social.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      aria-label={social.label}
+                      aria-label={social.aria}
                       className={[
                         "flex h-5 w-5 shrink-0 items-center justify-center",
                         "text-[var(--text-tertiary,#726C65)]",
