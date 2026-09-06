@@ -368,9 +368,11 @@ function WorldPortal({
   const primaryView = mediaView(preview.primary, locale);
   const secondaryView = mediaView(preview.secondary, locale);
   const fallbackMedia = WORLD_FALLBACK_MEDIA[world];
-  // World 02 has its own enduring gateway artwork. Article covers belong
-  // inside the journal stream and detail pages, not in this visual index.
-  const fixedGatewayArtwork = world === 'parents';
+  // Worlds 02 and 03 have their own enduring gateway artwork. Article
+  // covers belong inside their journal streams and detail pages, not in
+  // this visual index where a newly published piece would replace the
+  // category's established visual identity.
+  const fixedGatewayArtwork = world === 'parents' || world === 'wisdom-science';
   const primarySrc = fixedGatewayArtwork
     ? fallbackMedia.primary
     : primaryView?.src ?? fallbackMedia.primary;

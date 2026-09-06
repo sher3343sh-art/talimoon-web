@@ -41,7 +41,44 @@ function Control({ label, onClick, children, disabled = false }: { label: string
 }
 
 function ReaderImage({ asset, fillScreen }: { asset: ImageAsset; fillScreen: boolean }) {
-  return <div className={`absolute flex items-center justify-center ${fillScreen ? 'p-0' : 'inset-0 p-2 sm:p-4 md:p-6'}`} style={fillScreen ? { inset: '3%' } : undefined}><Image src={asset.src} alt={asset.alt || ''} width={asset.width} height={asset.height} sizes="100vw" priority className={fillScreen ? 'h-full w-full object-cover' : 'max-h-full max-w-full object-contain'} style={fillScreen ? undefined : { width: 'auto', height: 'auto' }} /></div>;
+  if (fillScreen) {
+    return (
+      <div className="absolute inset-[2%] flex items-center justify-center overflow-hidden">
+        <Image
+          src={asset.src}
+          alt=""
+          fill
+          sizes="100vw"
+          aria-hidden="true"
+          className="scale-110 object-cover opacity-30 blur-2xl"
+        />
+        <Image
+          src={asset.src}
+          alt={asset.alt || ''}
+          width={asset.width}
+          height={asset.height}
+          sizes="100vw"
+          priority
+          className="relative z-[1] h-full w-full object-contain"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="absolute inset-0 flex items-center justify-center p-2 sm:p-4 md:p-6">
+      <Image
+        src={asset.src}
+        alt={asset.alt || ''}
+        width={asset.width}
+        height={asset.height}
+        sizes="100vw"
+        priority
+        className="max-h-full max-w-full object-contain"
+        style={{ width: 'auto', height: 'auto' }}
+      />
+    </div>
+  );
 }
 
 export function Reader({ slug }: { slug: string }) {
