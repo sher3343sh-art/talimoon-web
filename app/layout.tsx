@@ -58,7 +58,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full">
+    <html lang="uz" className="h-full">
       <body
   className={`${fraunces.variable} ${plusJakartaSans.variable} ${geistMono.variable} ${cormorantGaramond.variable} ${manrope.variable} antialiased min-h-full flex flex-col`}
 >

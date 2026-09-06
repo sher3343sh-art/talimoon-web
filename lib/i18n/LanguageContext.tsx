@@ -17,10 +17,11 @@
  * `window.localStorage` isn't available during SSR. `useSyncExternalStore`
  * is React's purpose-built API for exactly this "read a value the
  * server can't see, without a hydration mismatch" case: it renders
- * `getServerSnapshot`'s value ("EN") for the first (SSR-matching)
- * client pass, then immediately re-renders with the real stored
- * value — no manual effect, no extra intermediate render caused by
- * an effect body calling setState.
+ * `getServerSnapshot`'s value ("UZ" — the default for every visitor
+ * who has not explicitly chosen another language) for the first
+ * (SSR-matching) client pass, then immediately re-renders with the
+ * real stored value — no manual effect, no extra intermediate render
+ * caused by an effect body calling setState.
  *
  * English, Uzbek and Russian have real translated content. Arabic
  * stays selectable in the menu (unchanged) but falls back to English
@@ -44,9 +45,9 @@ let listeners: Listener[] = [];
 let currentLanguage: Language = readStoredLanguage();
 
 function readStoredLanguage(): Language {
-  if (typeof window === "undefined") return "EN";
+  if (typeof window === "undefined") return "UZ";
   const stored = window.localStorage.getItem(STORAGE_KEY);
-  return stored && (VALID_LANGUAGES as string[]).includes(stored) ? (stored as Language) : "EN";
+  return stored && (VALID_LANGUAGES as string[]).includes(stored) ? (stored as Language) : "UZ";
 }
 
 function subscribe(listener: Listener): () => void {
@@ -61,7 +62,7 @@ function getSnapshot(): Language {
 }
 
 function getServerSnapshot(): Language {
-  return "EN";
+  return "UZ";
 }
 
 function setStoredLanguage(next: Language): void {
