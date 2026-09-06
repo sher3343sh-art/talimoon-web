@@ -58,7 +58,7 @@ export function PwaInstallPrompt() {
     <aside className="fixed inset-x-3 bottom-[max(12px,env(safe-area-inset-bottom))] z-[1000] mx-auto max-w-md overflow-hidden rounded-[24px] border border-[#D6B770]/45 bg-[#101A29]/95 p-4 text-[#F7F3EC] shadow-[0_24px_80px_rgba(5,13,25,.42)] backdrop-blur-xl" aria-label="TALIMOON ilovasini o‘rnatish">
       <button type="button" onClick={dismiss} aria-label="Yopish" className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full text-xl text-white/55 hover:bg-white/10 hover:text-white">×</button>
       <div className="flex gap-3 pr-8">
-        <Image src="/pwa/icon-192.png" alt="TALIMOON" width={56} height={56} className="h-14 w-14 rounded-2xl shadow-lg" />
+        <Image src="/pwa/icon-transparent-192.png?v=2" alt="TALIMOON" width={56} height={56} className="h-14 w-14 object-contain drop-shadow-[0_8px_12px_rgba(0,0,0,.55)]" />
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#D6B770]">TALIMOON ILOVASI</p>
           <h2 className="mt-1 text-lg font-semibold">Hikoyalarni to‘liq ekranda o‘qing</h2>
