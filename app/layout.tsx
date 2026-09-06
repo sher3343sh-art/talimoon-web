@@ -60,10 +60,12 @@ export const metadata: Metadata = {
   },
   formatDetection: { telephone: false },
   icons: {
-    apple: "/pwa/icon-transparent-192.png?v=2",
+    apple: [{ url: "/pwa/apple-touch-icon.png?v=3", sizes: "180x180", type: "image/png" }],
+    shortcut: "/pwa/favicon-32.png?v=3",
     icon: [
-      { url: "/pwa/icon-transparent-192.png?v=2", sizes: "192x192", type: "image/png" },
-      { url: "/pwa/icon-transparent-512.png?v=2", sizes: "512x512", type: "image/png" },
+      { url: "/pwa/favicon-32.png?v=3", sizes: "32x32", type: "image/png" },
+      { url: "/pwa/favicon-48.png?v=3", sizes: "48x48", type: "image/png" },
+      { url: "/pwa/icon-transparent-192.png?v=3", sizes: "192x192", type: "image/png" },
     ],
   },
 };

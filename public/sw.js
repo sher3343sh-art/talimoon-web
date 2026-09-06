@@ -1,5 +1,5 @@
-const CACHE = 'talimoon-app-v2';
-const SHELL = ['/', '/story-library', '/pwa/icon-transparent-192.png', '/pwa/icon-transparent-512.png'];
+const CACHE = 'talimoon-app-v3';
+const SHELL = ['/', '/story-library', '/pwa/icon-192.png', '/pwa/icon-512.png', '/pwa/icon-maskable-512.png', '/pwa/apple-touch-icon.png', '/pwa/favicon-32.png'];
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)));

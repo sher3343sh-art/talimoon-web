@@ -13,8 +13,9 @@ export default function manifest(): MetadataRoute.Manifest {
     orientation: 'any',
     categories: ['books', 'education', 'entertainment'],
     icons: [
-      { src: '/pwa/icon-transparent-192.png?v=2', sizes: '192x192', type: 'image/png', purpose: 'any' },
-      { src: '/pwa/icon-transparent-512.png?v=2', sizes: '512x512', type: 'image/png', purpose: 'any' },
+      { src: '/pwa/icon-192.png?v=3', sizes: '192x192', type: 'image/png', purpose: 'any' },
+      { src: '/pwa/icon-512.png?v=3', sizes: '512x512', type: 'image/png', purpose: 'any' },
+      { src: '/pwa/icon-maskable-512.png?v=3', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
     ],
   };
 }
