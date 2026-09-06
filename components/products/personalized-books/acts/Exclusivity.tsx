@@ -30,7 +30,7 @@ const COPY_EN = {
 
 const COPY_UZ: typeof COPY_EN = {
   eyebrow: "Bitta bola uchun yaratilgan",
-  heading: "Bunday kitobni do‘kondan topolmaysiz.",
+  heading: "Bunday kitobni do‘kondan topa olmaysiz.",
   follow: "Chunki u yerda sizning farzandingiz yo‘q.",
   items: ["Uning ismi.", "Uning qiyofasi.", "Uning dunyosi.", "Uning yaqinlari.", "Uning hikoyasi."],
   recognitionLabel: "U kitobni ochgan lahza",

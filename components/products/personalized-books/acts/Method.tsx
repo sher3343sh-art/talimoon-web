@@ -51,7 +51,6 @@ const COPY_EN = {
     "You tell us what you want to reach their heart.",
     "We turn it into a story they’ll come back to on their own.",
   ],
-  cta: "What do I want to pass on? →",
 };
 
 const COPY_UZ: typeof COPY_EN = {
@@ -82,7 +81,6 @@ const COPY_UZ: typeof COPY_EN = {
     "Siz qalbiga nimani singdirmoqchi ekaningizni aytasiz.",
     "Biz uni farzandingiz sevib qaytadigan hikoyaga aylantiramiz.",
   ],
-  cta: "Farzandimga nimani yetkazmoqchiman? →",
 };
 
 const COPY_RU: typeof COPY_EN = {
@@ -113,7 +111,6 @@ const COPY_RU: typeof COPY_EN = {
     "Вы говорите нам, что хотите донести до сердца Вашего ребёнка.",
     "Мы превращаем это в историю, к которой он будет возвращаться сам.",
   ],
-  cta: "Что я хочу передать своему ребёнку? →",
 };
 
 export default function Method() {
@@ -206,12 +203,6 @@ export default function Method() {
           <p className="mt-1.5 font-sans text-[0.9375rem] leading-[1.7] text-text-inverse/75 md:text-[1rem]">
             {t.close[1]}
           </p>
-          <a
-            href="#pricing"
-            className="mt-7 inline-flex min-h-[44px] items-center font-sans text-[0.9375rem] font-medium text-[#F0DDA6] underline decoration-[#C79A4B]/50 decoration-1 underline-offset-[6px] transition-colors hover:decoration-[#F0DDA6] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C79A4B]"
-          >
-            {t.cta}
-          </a>
         </Reveal>
       </div>
 

@@ -61,8 +61,6 @@ export interface TalimoonHeroProps {
   primaryCtaHref?: string;
   secondaryCtaLabel?: string;
   secondaryCtaHref?: string;
-  /** Compact practical/trust line beneath the CTAs (e.g. "499 000 so'mdan · 7–10 kun"). */
-  trailerLabel?: string;
 }
 
 const defaultNavLinksEn = [
@@ -100,7 +98,6 @@ const DEFAULT_COPY_EN = {
     "Your child's likeness, their character, their interests — and the meaning you want to reach their heart — held inside a story made for them alone.",
   primaryCtaLabel: "Create my child's story →",
   secondaryCtaLabel: "How it works ↓",
-  trailerLabel: "From 499 000 so‘m · 7–10 days",
 };
 
 const DEFAULT_COPY_UZ: typeof DEFAULT_COPY_EN = {
@@ -111,9 +108,8 @@ const DEFAULT_COPY_UZ: typeof DEFAULT_COPY_EN = {
   follow: "Bu — uning o‘zi yashaydigan hikoya.",
   subhead:
     "Farzandingizning qiyofasi, xarakteri, qiziqishlari va Siz uning qalbiga yetkazmoqchi bo‘lgan ma’no — faqat u uchun yaratilgan hikoyada.",
-  primaryCtaLabel: "Farzandimning hikoyasini yaratish →",
+  primaryCtaLabel: "Farzandimning hikoyasini yarating →",
   secondaryCtaLabel: "Qanday ishlaydi ↓",
-  trailerLabel: "499 000 so‘mdan · 7–10 kun",
 };
 
 const DEFAULT_COPY_RU: typeof DEFAULT_COPY_EN = {
@@ -126,7 +122,6 @@ const DEFAULT_COPY_RU: typeof DEFAULT_COPY_EN = {
     "Облик Вашего ребёнка, его характер, увлечения и тот смысл, который Вы хотите донести до его сердца: всё это заключено в истории, созданной только для него.",
   primaryCtaLabel: "Создать историю моего ребёнка →",
   secondaryCtaLabel: "Как это работает ↓",
-  trailerLabel: "От 499 000 сум · 7–10 дней",
 };
 
 export default function TalimoonHero({
@@ -143,7 +138,6 @@ export default function TalimoonHero({
   primaryCtaHref = "#pricing",
   secondaryCtaLabel,
   secondaryCtaHref = "#how-it-works",
-  trailerLabel,
 }: TalimoonHeroProps) {
   const [errored, setErrored] = useState(false);
   const t = useT(DEFAULT_COPY_EN, DEFAULT_COPY_UZ, DEFAULT_COPY_RU);
@@ -159,7 +153,6 @@ export default function TalimoonHero({
   subhead ??= t.subhead;
   primaryCtaLabel ??= t.primaryCtaLabel;
   secondaryCtaLabel ??= t.secondaryCtaLabel;
-  trailerLabel ??= t.trailerLabel;
 
   return (
     <section className="tm-hero" aria-label={sectionLabel}>
@@ -323,12 +316,6 @@ export default function TalimoonHero({
           margin: 0 0 30px 0;
         }
         .tm-hero__cta-group{ display: flex; align-items: center; gap: 24px; }
-        .tm-hero__trailer{
-          margin: 20px 0 0 0;
-          font-size: 13px;
-          letter-spacing: 0.02em;
-          color: var(--text-tertiary);
-        }
         .tm-hero__cta-primary{
           display: inline-flex;
           align-items: center;
@@ -491,7 +478,6 @@ export default function TalimoonHero({
             {secondaryCtaLabel}
           </a>
         </div>
-        {trailerLabel && <p className="tm-hero__trailer tm-reveal tm-reveal--d4">{trailerLabel}</p>}
       </div>
     </section>
   );

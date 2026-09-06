@@ -258,7 +258,7 @@ const CHROME_UZ: typeof CHROME_EN = {
   doneBody: [
     "Barcha ma’lumotlaringiz bizga yetib keldi. Endi TALIMOON jamoasi ularni diqqat bilan ko‘rib chiqadi.",
     "Agar biror ma’lumotga aniqlik kiritish kerak bo‘lsa, Siz bilan bog‘lanamiz. Hammasi joyida bo‘lsa, buyurtmangiz tasdiqlangani haqida xabar yuboramiz.",
-    "Tasdiqlangandan so‘ng kitobingiz odatda 5–7 kun ichida tayyorlanadi. Tayyor bo‘lgach, yetkazib berish bo‘yicha Sizga alohida xabar beramiz.",
+    "Tasdiqlangandan so‘ng kitobingiz odatda 7–10 kun ichida tayyorlanadi. Tayyor bo‘lgach, yetkazib berish bo‘yicha Sizga alohida xabar beramiz.",
   ],
   doneNote: "Buyurtma holati bo‘yicha xabarlar Siz ko‘rsatgan telefon raqamiga yuboriladi.",
 
