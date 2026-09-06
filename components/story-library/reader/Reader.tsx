@@ -40,8 +40,8 @@ function Control({ label, onClick, children, disabled = false }: { label: string
   return <button type="button" aria-label={label} onClick={onClick} disabled={disabled} className="grid h-11 w-11 place-items-center rounded-full transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 disabled:opacity-25">{children}</button>;
 }
 
-function ReaderImage({ asset }: { asset: ImageAsset }) {
-  return <div className="absolute inset-0 flex items-center justify-center p-2 sm:p-4 md:p-6"><Image src={asset.src} alt={asset.alt || ''} width={asset.width} height={asset.height} sizes="100vw" priority className="max-h-full max-w-full object-contain" style={{ width: 'auto', height: 'auto' }} /></div>;
+function ReaderImage({ asset, fillScreen }: { asset: ImageAsset; fillScreen: boolean }) {
+  return <div className={`absolute inset-0 flex items-center justify-center ${fillScreen ? 'p-0' : 'p-2 sm:p-4 md:p-6'}`}><Image src={asset.src} alt={asset.alt || ''} width={asset.width} height={asset.height} sizes="100vw" priority className={fillScreen ? 'h-full w-full object-cover' : 'max-h-full max-w-full object-contain'} style={fillScreen ? undefined : { width: 'auto', height: 'auto' }} /></div>;
 }
 
 export function Reader({ slug }: { slug: string }) {
@@ -65,6 +65,7 @@ export function Reader({ slug }: { slug: string }) {
   const [chrome, setChrome] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [needsRotate, setNeedsRotate] = useState(false);
+  const [isLandscape, setIsLandscape] = useState(false);
   const hasPageAudio = pages.some(item => !!item.audioSrc);
   const activeAsset = phase === 'front' ? data?.edition.frontCover ?? data?.edition.cover : phase === 'back' ? data?.edition.backCover ?? data?.edition.cover : pages[page]?.image;
 
@@ -195,6 +196,13 @@ export function Reader({ slug }: { slug: string }) {
     return () => window.clearTimeout(timer);
   }, [chrome, playing]);
   useEffect(() => {
+    const media = window.matchMedia('(orientation: landscape)');
+    const update = () => setIsLandscape(media.matches);
+    update();
+    media.addEventListener?.('change', update);
+    return () => media.removeEventListener?.('change', update);
+  }, []);
+  useEffect(() => {
     const mobileDocument = document as Document & { webkitFullscreenElement?: Element | null };
     const update = () => { const full = !!(document.fullscreenElement ?? mobileDocument.webkitFullscreenElement); setIsFullscreen(full); setNeedsRotate(full && window.matchMedia('(orientation: portrait)').matches); };
     document.addEventListener('fullscreenchange', update); document.addEventListener('webkitfullscreenchange', update); window.addEventListener('orientationchange', update);
@@ -212,7 +220,7 @@ export function Reader({ slug }: { slug: string }) {
     <div ref={rootRef} className="fixed inset-0 z-[999] select-none overflow-hidden text-[#F7F3EC]" style={{ width: '100vw', height: '100dvh', background: 'radial-gradient(circle at 50% 45%, #26354A 0%, #101A29 72%)', fontFamily: BODY }} onPointerDown={event => { touchStart.current = { x: event.clientX, y: event.clientY }; setChrome(true); }} onPointerUp={event => { const start = touchStart.current; touchStart.current = null; if (!start || phase !== 'pages') return; const dx = event.clientX - start.x, dy = event.clientY - start.y; if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy)) { if (dx < 0) next(); else prev(); } }} onMouseMove={() => setChrome(true)}>
       <audio ref={turnRef} src={data.edition.pageTurnAudioSrc} preload="auto" />
       {phase === 'pages' && pages[page]?.audioSrc ? <audio ref={narrationRef} src={pages[page].audioSrc} preload="metadata" onEnded={onNarrationEnded} /> : null}
-      <ReaderImage asset={activeAsset} />
+      <ReaderImage asset={activeAsset} fillScreen={isFullscreen && isLandscape} />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/60 to-transparent" />
       <button type="button" onClick={exit} aria-label="Chiqish" className="absolute left-4 top-4 z-20 grid h-11 w-11 place-items-center rounded-full bg-black/30 backdrop-blur-md hover:bg-black/50"><Icon name="close" /></button>
       <div className="absolute left-1/2 top-5 -translate-x-1/2 text-center"><p className="hidden text-[11px] font-semibold uppercase tracking-[0.2em] text-white/60 sm:block">{data.edition.title}</p>{phase === 'pages' ? <p className="mt-1 text-[12px] tabular-nums text-white/85">{page + 1} / {total}</p> : null}</div>
