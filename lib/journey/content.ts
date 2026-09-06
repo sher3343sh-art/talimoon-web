@@ -625,6 +625,92 @@ const PRODUCTION_ENTRIES: readonly JourneyEntry[] = [
       },
     },
   },
+  {
+    id: 'habits-daytime-nap-memory-03',
+    slug: 'kunduzi-uxlash-vaqtni-yoqotishmi-yoki-miyaga-yordammi',
+    world: 'wisdom-science',
+    format: 'research-explainer',
+    weight: 'feature',
+    status: 'published',
+    featured: false,
+    publishedAtISO: '2026-09-06T08:00:00.000Z',
+    tags: ['odatlar-va-ilm', 'uyqu', 'xotira', 'bolalar', 'miya', 'tadqiqot'],
+    defaultLocale: 'uz',
+    indexable: true,
+    media: { consent: 'not-applicable' },
+    cover: {
+      id: 'habits-daytime-nap-memory-cover-v1',
+      src: '/images/journey/habits-daytime-nap-memory-cover-v1.png',
+      width: 1672,
+      height: 941,
+      credit: 'TALIMOON vizualizatsiyasi',
+    },
+    references: [
+      {
+        kind: 'research',
+        author: 'Laura Kurdziel, Kasey Duclos va Rebecca M. C. Spencer',
+        title: 'Sleep spindles in midday naps enhance learning in preschool children',
+        publisher: 'Proceedings of the National Academy of Sciences (PNAS)',
+        year: 2013,
+        doi: '10.1073/pnas.1306418110',
+        url: 'https://pubmed.ncbi.nlm.nih.gov/24062429/',
+      },
+      {
+        kind: 'research',
+        author: 'Ruth L. F. Leong, June C. Lo va Michael W. L. Chee',
+        title: 'Systematic review and meta-analyses on the effects of afternoon napping on cognition',
+        publisher: 'Sleep Medicine Reviews',
+        year: 2022,
+        doi: '10.1016/j.smrv.2022.101666',
+        url: 'https://pubmed.ncbi.nlm.nih.gov/36041284/',
+      },
+    ],
+    relatedSlugs: [
+      'qolimni-yuvdim-rostdan-ham-yuvdimi',
+      'issiq-ovqatni-puflab-sovutish-oddiy-odatmi',
+    ],
+    translations: {
+      uz: {
+        kicker: { label: 'KUNDALIK ODAT · ILMIY IZOH', dateLabel: 'UYQU VA XOTIRA' },
+        title: 'Kunduzi uxlash vaqtni yo‘qotishmi yoki miyaga yordammi?',
+        standfirst:
+          'Bola uxlayotganda uning miyasi bekor turmaydi. Kunduzgi uyqu o‘rganilgan ma’lumotlarni xotirada mustahkamlaydi va miyani keyingi faoliyatga tayyorlaydi.',
+        coverAlt:
+          'Kunduzgi yorug‘lik tushgan xonada bola kitoblar va chizgan rasmi yonida tinch uxlamoqda.',
+        author: 'TALIMOON tahririyati',
+        keyIdea:
+          'Kunduzgi uyqu vaqtni yo‘qotish emas — miya aynan shu vaqtda o‘rganganlarini mustahkamlaydi.',
+        blocks: [
+          { t: 'paragraph', text: 'Kunning o‘rtasiga kelib bola charchaydi, diqqati pasayadi, ko‘zlari uyquga tortadi. Kattalarda ham shunday: bir necha soatlik ish va diqqatdan keyin miya dam olishni talab qiladi.' },
+          { t: 'paragraph', text: 'Lekin ko‘pincha bolaga: “Kunduzi uxlamagin, kechasi yaxshi uxlaysan”, deymiz.' },
+          { t: 'quote', text: 'Charchagan miyani ishlashga majburlash yaxshimi yoki unga biroz dam berishmi?' },
+          { t: 'heading', level: 2, text: 'Muammo nimada?' },
+          { t: 'paragraph', text: 'Kun davomida miya tinimsiz yangi ma’lumotlarni qabul qiladi. Charchoq ortgani sari hushyorlik va diqqat pasayadi.' },
+          { t: 'paragraph', text: 'Bolalar har kuni yangi so‘zlar, harakatlar, tasvirlar va ko‘nikmalarni o‘rganadi. Bu ma’lumotlarni qabul qilishning o‘zi yetmaydi — miya ularni xotirada mustahkamlashi ham kerak.' },
+          { t: 'heading', level: 2, text: 'Bolalarda natija aniq: uyqu xotirani mustahkamlaydi' },
+          { t: 'paragraph', text: 'AQShdagi University of Massachusetts Amherst tadqiqotchilari maktabgacha yoshdagi bolalarga ertalab xotira vazifasini o‘rgatdi. Keyin bolalar bir holatda kunduzi uxladi, boshqa holatda esa shu vaqtni uyg‘oq o‘tkazdi.' },
+          { t: 'paragraph', text: 'Kunduzgi uyqudan keyin bolalar ertalab o‘rgangan ma’lumotlarini yaxshiroq eslab qoldi. Uyqu vaqtida qayd etilgan miya faolligi xotirani mustahkamlash jarayoni bilan bog‘landi.' },
+          { t: 'quote', text: 'Bola uxlayotganda miyasi faoliyatini to‘xtatmaydi — o‘rgangan ma’lumotlarini mustahkamlaydi.' },
+          { t: 'heading', level: 2, text: 'Kattalarda ham foydasi tasdiqlangan' },
+          { t: 'paragraph', text: 'National University of Singapore olimlari kunduzgi uyqu bo‘yicha 54 ta tadqiqotdagi 60 ta namunani birlashtirib tahlil qildi. Natijalar kunduzgi uyqu xotira, hushyorlik va axborotni qayta ishlash tezligini yaxshilashini ko‘rsatdi.' },
+          { t: 'fact', value: '54', label: 'tadqiqot birlashtirildi: kunduzgi uyqu xotira, hushyorlik va fikrlash tezligiga foyda berdi.', note: 'Sleep Medicine Reviews · 2022 · 60 ta namuna' },
+          { t: 'heading', level: 2, text: 'Yechim: charchoqni inkor etmang' },
+          { t: 'paragraph', text: 'Kunduzgi uyqu tungi uyquning o‘rnini bosmaydi. Bolaning kunduzgi uyquga ehtiyoji uning yoshi va kunlik uyqu tartibiga bog‘liq. Ammo bola charchab, ko‘zlari uyquga tortayotganida uni majburan uyg‘oq ushlab turish to‘g‘ri yechim emas.' },
+          {
+            t: 'steps',
+            label: 'TALIMOONNING SODDA YECHIMI',
+            items: [
+              { title: 'Uyqu belgisini payqang', text: 'Diqqati pasayib, ko‘zlari uyquga tortsa, charchoqni injiqlik deb qabul qilmang.' },
+              { title: 'Tinch sharoit yarating', text: 'Xonani tinchlantiring, yorug‘likni yumshating va bolaga dam olish imkonini bering.' },
+              { title: 'Kun tartibini saqlang', text: 'Kunduzgi damni kechki uyquni siqib chiqarmaydigan barqaror vaqtda tashkil qiling.' },
+            ],
+          },
+          { t: 'quote', text: 'Kunduzgi uyqu vaqtni yo‘qotish emas. Bu — miyaning o‘rganganlarini mustahkamlab, keyingi faoliyatga tayyorlanadigan vaqti.' },
+          { t: 'paragraph', text: 'Bola uchun — o‘rganganlarini yaxshiroq eslab qolish. Katta uchun — hushyorlik va aqliy faoliyatni tiklash. Yechim — kun o‘rtasida miyaga kerakli damni berish.' },
+        ],
+      },
+    },
+  },
 ];
 
 /**
