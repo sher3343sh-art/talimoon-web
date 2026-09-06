@@ -68,6 +68,7 @@ export function Reader({ slug }: { slug: string }) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [needsRotate, setNeedsRotate] = useState(false);
   const [isLandscape, setIsLandscape] = useState(false);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
   const hasPageAudio = pages.some(item => !!item.audioSrc);
   const activeAsset = phase === 'front' ? data?.edition.frontCover ?? data?.edition.cover : phase === 'back' ? data?.edition.backCover ?? data?.edition.cover : pages[page]?.image;
 
@@ -204,11 +205,19 @@ export function Reader({ slug }: { slug: string }) {
   }, [chrome, playing]);
   useEffect(() => {
     const media = window.matchMedia('(orientation: landscape)');
-    const update = () => setIsLandscape(media.matches);
+    const pointer = window.matchMedia('(pointer: coarse)');
+    const update = () => { setIsLandscape(media.matches); setIsTouchDevice(pointer.matches); };
     update();
     media.addEventListener?.('change', update);
-    return () => media.removeEventListener?.('change', update);
+    pointer.addEventListener?.('change', update);
+    return () => { media.removeEventListener?.('change', update); pointer.removeEventListener?.('change', update); };
   }, []);
+  useEffect(() => {
+    if (!isTouchDevice) return;
+    if (sideTimerRef.current) clearTimeout(sideTimerRef.current);
+    sideTimerRef.current = setTimeout(() => setSideControls(false), 3000);
+    return () => { if (sideTimerRef.current) clearTimeout(sideTimerRef.current); };
+  }, [isTouchDevice]);
   useEffect(() => {
     const mobileDocument = document as Document & { webkitFullscreenElement?: Element | null };
     const update = () => { const full = !!(document.fullscreenElement ?? mobileDocument.webkitFullscreenElement); setIsFullscreen(full); setNeedsRotate(full && window.matchMedia('(orientation: portrait)').matches); };
@@ -222,6 +231,7 @@ export function Reader({ slug }: { slug: string }) {
 
   if (!data || !activeAsset || total === 0) return <div className="fixed inset-0 z-[999] grid place-items-center bg-[#101A29] text-[#F7F3EC]"><Link href="/story-library">Kutubxonaga qaytish</Link></div>;
   const progress = phase === 'front' ? 0 : phase === 'pages' ? ((page + 1) / total) * 100 : 100;
+  const floatingControlsVisible = !isTouchDevice || sideControls;
 
   return (
     <div ref={rootRef} className="fixed inset-0 z-[999] select-none overflow-hidden text-[#F7F3EC]" style={{ width: '100vw', height: '100dvh', background: 'radial-gradient(circle at 50% 45%, #26354A 0%, #101A29 72%)', fontFamily: BODY }} onPointerDown={event => { touchStart.current = { x: event.clientX, y: event.clientY }; setChrome(true); revealSideControls(); }} onPointerUp={event => { const start = touchStart.current; touchStart.current = null; if (!start || phase !== 'pages') return; const dx = event.clientX - start.x, dy = event.clientY - start.y; if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy)) { if (dx < 0) next(); else prev(); } }} onMouseMove={() => setChrome(true)}>
@@ -229,13 +239,13 @@ export function Reader({ slug }: { slug: string }) {
       {phase === 'pages' && pages[page]?.audioSrc ? <audio ref={narrationRef} src={pages[page].audioSrc} preload="metadata" onEnded={onNarrationEnded} /> : null}
       <ReaderImage asset={activeAsset} fillScreen={isFullscreen && isLandscape} />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/60 to-transparent" />
-      <button type="button" onClick={exit} aria-label="Chiqish" className="absolute left-4 top-4 z-20 grid h-11 w-11 place-items-center rounded-full bg-black/30 backdrop-blur-md hover:bg-black/50"><Icon name="close" /></button>
+      <button type="button" onClick={exit} aria-label="Chiqish" className={`absolute left-4 top-4 z-20 grid h-11 w-11 place-items-center rounded-full bg-black/30 backdrop-blur-md transition-opacity duration-300 hover:bg-black/50 ${floatingControlsVisible ? 'opacity-100' : 'pointer-events-none opacity-0'}`}><Icon name="close" /></button>
       {phase === 'pages' ? <div className="absolute left-1/2 top-3 z-20 -translate-x-1/2 rounded-full border border-[#D6B770]/20 bg-[#0B1320]/25 px-2.5 py-1 text-[9px] font-medium tracking-[0.16em] text-[#E2C982]/70 backdrop-blur-sm">{page + 1} / {total}</div> : null}
-      <button type="button" onClick={toggleFullscreen} aria-label="Butun ekran" className="absolute right-4 top-4 z-20 grid h-11 w-11 place-items-center rounded-full bg-black/30 backdrop-blur-md hover:bg-black/50"><Icon name="full" /></button>
+      <button type="button" onClick={toggleFullscreen} aria-label="Butun ekran" className={`absolute right-4 top-4 z-20 grid h-11 w-11 place-items-center rounded-full bg-black/30 backdrop-blur-md transition-opacity duration-300 hover:bg-black/50 ${floatingControlsVisible ? 'opacity-100' : 'pointer-events-none opacity-0'}`}><Icon name="full" /></button>
 
       {phase === 'front' ? <div className="absolute inset-0 z-10 flex items-end justify-center bg-gradient-to-t from-black/70 via-transparent to-transparent pb-9 sm:pb-12"><button type="button" onClick={begin} className="group inline-flex items-center gap-3 rounded-full border border-[#D6B770]/70 bg-[#F7F3EC] px-7 py-3.5 font-semibold text-[#101A29] shadow-2xl transition-transform hover:scale-[1.025]"><span className="grid h-7 w-7 place-items-center rounded-full bg-[#101A29] text-[#F7F3EC]"><Icon name="play" /></span><span suppressHydrationWarning>{saved?.page ? `${saved.page + 1}-sahifadan davom ettirish` : 'Kitobni boshlash'}</span></button></div> : null}
 
-      {phase === 'pages' ? <><button type="button" onClick={prev} disabled={page === 0} aria-label="Oldingi sahifa" className={`absolute left-2 top-1/2 z-10 grid h-[38px] w-[38px] -translate-y-1/2 place-items-center rounded-full bg-black/25 backdrop-blur-md transition-all duration-300 hover:bg-black/45 disabled:opacity-0 sm:left-5 md:h-[38px] md:w-[38px] md:opacity-100 ${sideControls ? 'opacity-100' : 'pointer-events-none opacity-0 md:pointer-events-auto'}`}><Icon name="prev" /></button><button type="button" onClick={next} aria-label="Keyingi sahifa" className={`absolute right-2 top-1/2 z-10 grid h-[38px] w-[38px] -translate-y-1/2 place-items-center rounded-full bg-black/25 backdrop-blur-md transition-all duration-300 hover:bg-black/45 sm:right-5 md:opacity-100 ${sideControls ? 'opacity-100' : 'pointer-events-none opacity-0 md:pointer-events-auto'}`}><Icon name="next" /></button><div className={`absolute inset-x-0 bottom-5 z-20 flex justify-center px-3 transition-opacity ${chrome || !playing ? 'opacity-100' : 'opacity-0'}`}><div className="flex items-center gap-0.5 rounded-full border border-white/10 bg-[#0B1320]/80 px-1.5 py-1 shadow-2xl backdrop-blur-xl sm:gap-1 sm:px-2"><Control label="Kitobni boshidan boshlash" onClick={restart}><Icon name="restart" /></Control><Control label={narration ? "Ovozni o‘chirish" : 'Ovozni yoqish'} onClick={toggleNarration}><Icon name={narration ? 'sound' : 'mute'} /></Control>{narration ? <Control label={playing ? 'To‘xtatish' : 'Davom ettirish'} onClick={togglePlay}><Icon name={playing ? 'pause' : 'play'} /></Control> : null}<Control label="Oldingi sahifa" onClick={prev} disabled={page === 0}><Icon name="prev" /></Control><span className="min-w-[46px] text-center text-[12px] tabular-nums text-white/80 sm:min-w-[66px]">{page + 1} / {total}</span><Control label="Keyingi sahifa" onClick={next}><Icon name="next" /></Control><Control label="Butun ekran" onClick={toggleFullscreen}><Icon name="full" /></Control></div></div></> : null}
+      {phase === 'pages' ? <><button type="button" onClick={prev} disabled={page === 0} aria-label="Oldingi sahifa" className={`absolute left-2 top-1/2 z-10 grid h-[38px] w-[38px] -translate-y-1/2 place-items-center rounded-full bg-black/25 backdrop-blur-md transition-all duration-300 hover:bg-black/45 disabled:opacity-0 sm:left-5 ${floatingControlsVisible ? 'opacity-100' : 'pointer-events-none opacity-0'}`}><Icon name="prev" /></button><button type="button" onClick={next} aria-label="Keyingi sahifa" className={`absolute right-2 top-1/2 z-10 grid h-[38px] w-[38px] -translate-y-1/2 place-items-center rounded-full bg-black/25 backdrop-blur-md transition-all duration-300 hover:bg-black/45 sm:right-5 ${floatingControlsVisible ? 'opacity-100' : 'pointer-events-none opacity-0'}`}><Icon name="next" /></button><div className={`absolute inset-x-0 bottom-5 z-20 flex justify-center px-3 transition-opacity ${chrome || !playing ? 'opacity-100' : 'opacity-0'}`}><div className="flex items-center gap-0.5 rounded-full border border-white/10 bg-[#0B1320]/80 px-1.5 py-1 shadow-2xl backdrop-blur-xl sm:gap-1 sm:px-2"><Control label="Kitobni boshidan boshlash" onClick={restart}><Icon name="restart" /></Control><Control label={narration ? "Ovozni o‘chirish" : 'Ovozni yoqish'} onClick={toggleNarration}><Icon name={narration ? 'sound' : 'mute'} /></Control>{narration ? <Control label={playing ? 'To‘xtatish' : 'Davom ettirish'} onClick={togglePlay}><Icon name={playing ? 'pause' : 'play'} /></Control> : null}<Control label="Oldingi sahifa" onClick={prev} disabled={page === 0}><Icon name="prev" /></Control><span className="min-w-[46px] text-center text-[12px] tabular-nums text-white/80 sm:min-w-[66px]">{page + 1} / {total}</span><Control label="Keyingi sahifa" onClick={next}><Icon name="next" /></Control><Control label="Butun ekran" onClick={toggleFullscreen}><Icon name="full" /></Control></div></div></> : null}
 
       {phase === 'end' ? <div className="absolute inset-0 z-30 grid place-items-center bg-[#0B1320]/75 px-6 backdrop-blur-md"><div className="max-w-md text-center"><span className="text-[11px] font-semibold uppercase tracking-[0.28em]" style={{ color: GOLD }}>TALIMOON</span><h2 className="mt-4 text-4xl sm:text-5xl" style={{ fontFamily: DISPLAY }}>Hikoya nihoyasiga yetdi</h2><p className="mt-3 text-sm leading-7 text-white/65">Birga tinglaganingiz uchun rahmat.</p><div className="mt-8 flex flex-wrap justify-center gap-3"><button type="button" onClick={restart} className="rounded-full border border-white/20 px-5 py-3 text-sm hover:bg-white/10">Boshidan o‘qish</button><button type="button" onClick={exit} className="rounded-full px-5 py-3 text-sm font-semibold text-[#101A29]" style={{ background: CREAM }}>Kutubxonaga qaytish</button></div></div></div> : null}
       {needsRotate && isFullscreen ? <div className="absolute inset-0 z-50 grid place-items-center bg-[#101A29]/95 px-8 text-center sm:hidden"><div><div className="mx-auto mb-5 h-14 w-9 rotate-90 rounded-md border-2 border-[#C5A15F]" /><p className="text-lg" style={{ fontFamily: DISPLAY }}>Telefonni gorizontal aylantiring</p><p className="mt-2 text-xs text-white/55">Kitob sahifalari shu holatda to‘liq va ravshan ko‘rinadi.</p></div></div> : null}
