@@ -19,6 +19,18 @@ const API_BASE = process.env.NEXT_PUBLIC_INTAKE_API_URL;
 
 export type ArtifactKind = "child_photo" | "special_photo" | "character_photo" | "receipt";
 
+/**
+ * The orderer's relationship to a child, sent exactly as collected in
+ * Phase 01 — a structured `type` plus, only for `"other"`, the orderer's
+ * own words. Never a rendered label: the Story Profile localises it, and
+ * the archive keeps the structured value. Mirrors
+ * `RecipientRelationship` in lib/order/relationship.ts.
+ */
+export interface RelationshipPayload {
+  type: "parent" | "grandparent" | "aunt-uncle" | "sibling" | "friend-child" | "other";
+  customLabel?: string;
+}
+
 /** Book languages accepted by the TALIMOON order intake. */
 export type BackendBookLanguage = "uz" | "ru" | "en" | "kk" | "ky" | "tg" | "ar";
 
@@ -48,7 +60,26 @@ export interface SubmitOrderPayload {
   profile: {
     orderer: { fullName: string; phone: string };
     addressText?: string;
-    children: Array<{ name: string; age?: number }>;
+    /** The orderer's relationship to the child(ren) — the single type
+     *  chosen in Phase 01 for the whole order. Per-child overrides live
+     *  on `children[i].relationship` for mixed families. */
+    recipientRelationship?: RelationshipPayload;
+    children: Array<{
+      name: string;
+      age?: number;
+      /** THIS child's relationship to the orderer. Equals
+       *  `recipientRelationship` for a single-type order; independent
+       *  per child when Phase 01 collected 2–3 types. */
+      relationship?: RelationshipPayload;
+      /** Per-child structured Story Profile text, serialised from the
+       *  Phase 02 / Phase 03 answers on `ChildProfile` (see
+       *  lib/order/profileText.ts). Omitted when the customer left that
+       *  section blank — the renderer then shows "taqdim etilmagan". */
+      interests?: string;
+      dreams?: string;
+      strengths?: string;
+      growthAreas?: string;
+    }>;
     interests?: string;
     dreams?: string;
     traits?: string[];
@@ -91,7 +122,16 @@ export interface BuildSubmitPayloadArgs {
   };
   orderer: { fullName: string; phone: string };
   addressText?: string;
-  children: Array<{ name: string; age: number | null }>;
+  recipientRelationship?: RelationshipPayload;
+  children: Array<{
+    name: string;
+    age: number | null;
+    relationship?: RelationshipPayload;
+    interests?: string;
+    dreams?: string;
+    strengths?: string;
+    growthAreas?: string;
+  }>;
   interests?: string;
   dreams?: string;
   traits?: string[];
@@ -102,6 +142,19 @@ export interface BuildSubmitPayloadArgs {
   extraCharacters?: string;
   bookLanguage: BackendBookLanguage;
   notes?: string;
+}
+
+/** Keep only the structured relationship shape the contract carries —
+ *  `type` plus a trimmed `customLabel` (dropped unless non-empty and the
+ *  type is "other"). Returns `undefined` for a missing/blank relationship
+ *  so the payload omits the key entirely. */
+function relationshipForPayload(
+  rel: RelationshipPayload | undefined,
+): RelationshipPayload | undefined {
+  if (!rel?.type) return undefined;
+  const customLabel =
+    rel.type === "other" ? (rel.customLabel ?? "").trim() || undefined : undefined;
+  return customLabel ? { type: rel.type, customLabel } : { type: rel.type };
 }
 
 /** Pure — no I/O. Builds the exact `POST /v1/orders` body from wizard state. */
@@ -136,9 +189,15 @@ export function buildSubmitPayload(args: BuildSubmitPayloadArgs): SubmitOrderPay
     profile: {
       orderer: args.orderer,
       addressText: args.addressText,
+      recipientRelationship: relationshipForPayload(args.recipientRelationship),
       children: args.children.map((c) => ({
         name: c.name,
         age: c.age ?? undefined,
+        relationship: relationshipForPayload(c.relationship),
+        interests: c.interests || undefined,
+        dreams: c.dreams || undefined,
+        strengths: c.strengths || undefined,
+        growthAreas: c.growthAreas || undefined,
       })),
       interests: args.interests,
       dreams: args.dreams,

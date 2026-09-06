@@ -12,7 +12,6 @@ import {
   DELIVERY_REGIONS,
   PAYMENT_ACCOUNTS,
   STEPS,
-  TRAITS,
   TraitId,
   type StepId,
   calculateOrderTotal,
@@ -31,6 +30,14 @@ import {
   uploadFile,
 } from "@/lib/order/api";
 import { buildAddressText } from "@/lib/order/addressText";
+import {
+  childDreamsText,
+  childGrowthText,
+  childInterestsText,
+  childStrengthsText,
+  orderDesiredValueLabels,
+  orderEmotionalText,
+} from "@/lib/order/profileText";
 import Turnstile, { type TurnstileHandle } from "./Turnstile";
 import { PaymentAccount } from "./PaymentAccount";
 import { setMarketPreference, useMarketPreference, marketFromLocation } from "@/lib/order/market";
@@ -1051,12 +1058,9 @@ export default function PersonalizedBookOrderForm({
           namedCharacters.length > 0
             ? namedCharacters.map((c) => additionalCharacterLabel(c)).join("; ")
             : undefined;
-        const traitLabels = data.traits.length
-          ? data.traits.map((id) => {
-              const tr = TRAITS.find((x) => x.id === id);
-              return tr ? (bookLoc === "uz" ? tr.uz : bookLoc === "ru" ? tr.ru : tr.en) : id;
-            })
-          : undefined;
+        // "Tarbiyaviy yo'nalish" — the values the story should strengthen,
+        // taken from every child's Phase 03 `desiredValues` (deduped).
+        const desiredValues = orderDesiredValueLabels(data.children, bookLoc);
 
         const payload = buildSubmitPayload({
           idempotencyKey: idempotencyKeyRef.current,
@@ -1076,12 +1080,28 @@ export default function PersonalizedBookOrderForm({
           },
           orderer: { fullName: data.orderer.name, phone: data.orderer.phone },
           addressText,
-          children: data.children.map((c) => ({ name: c.name, age: c.age })),
+          // Structured relationship of the orderer to the child(ren) —
+          // collected in Phase 01, sent as-is (type + optional custom
+          // words), never a rendered label.
+          recipientRelationship: data.recipientRelationship,
+          // Per-child Story Profile text, serialised from the Phase 02 /
+          // Phase 03 answers held on each ChildProfile. Left undefined when
+          // the customer skipped that section — the renderer then shows
+          // "taqdim etilmagan" rather than a fabricated value.
+          children: data.children.map((c) => ({
+            name: c.name,
+            age: c.age,
+            relationship: c.relationship,
+            interests: childInterestsText(c, bookLoc),
+            dreams: childDreamsText(c, bookLoc),
+            strengths: childStrengthsText(c, bookLoc),
+            growthAreas: childGrowthText(c, bookLoc),
+          })),
           interests: data.interests || undefined,
           dreams: data.dreams || undefined,
-          traits: traitLabels,
+          traits: desiredValues,
           weaknesses: data.weaknesses || undefined,
-          extraInfo: data.extraInfo || undefined,
+          extraInfo: orderEmotionalText(data.children, bookLoc),
           giftFrom: data.giftFrom || undefined,
           personalMessage: data.wantsPersonalMessage ? data.personalMessage || undefined : undefined,
           extraCharacters: extraCharactersText,

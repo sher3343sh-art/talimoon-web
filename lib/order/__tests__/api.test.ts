@@ -65,7 +65,79 @@ describe("buildSubmitPayload", () => {
       children: [{ name: "Ali", age: null }],
       declaredArtifacts: { childPhotoCount: 0, wantsSpecialPhoto: false, characterPhotoCount: 0, hasReceipt: false },
     });
-    expect(payload.profile.children[0]).toEqual({ name: "Ali", age: undefined });
+    expect(payload.profile.children[0]).toEqual({
+      name: "Ali",
+      age: undefined,
+      interests: undefined,
+      dreams: undefined,
+      strengths: undefined,
+      growthAreas: undefined,
+    });
+  });
+
+  it("forwards per-child structured Story Profile text, dropping blanks", () => {
+    const payload = buildSubmitPayload({
+      ...BASE,
+      children: [
+        {
+          name: "Ali",
+          age: 7,
+          interests: "Futbol — o'zi o'ynaydi",
+          dreams: "ORZU QILADI: uchuvchi",
+          strengths: "Mehribon",
+          growthAreas: "", // blank must not be sent
+        },
+      ],
+      declaredArtifacts: { childPhotoCount: 0, wantsSpecialPhoto: false, characterPhotoCount: 0, hasReceipt: false },
+    });
+    expect(payload.profile.children[0]).toEqual({
+      name: "Ali",
+      age: 7,
+      interests: "Futbol — o'zi o'ynaydi",
+      dreams: "ORZU QILADI: uchuvchi",
+      strengths: "Mehribon",
+      growthAreas: undefined,
+    });
+  });
+
+  it("forwards the structured recipient + per-child relationship, order-level and per child", () => {
+    const payload = buildSubmitPayload({
+      ...BASE,
+      recipientRelationship: { type: "grandparent" },
+      children: [
+        { name: "Ali", age: 7, relationship: { type: "grandparent" } },
+        { name: "Zara", age: 5, relationship: { type: "aunt-uncle" } },
+      ],
+      declaredArtifacts: { childPhotoCount: 0, wantsSpecialPhoto: false, characterPhotoCount: 0, hasReceipt: false },
+    });
+    expect(payload.profile.recipientRelationship).toEqual({ type: "grandparent" });
+    expect(payload.profile.children[0]!.relationship).toEqual({ type: "grandparent" });
+    expect(payload.profile.children[1]!.relationship).toEqual({ type: "aunt-uncle" });
+  });
+
+  it("keeps a custom ('other') relationship label, trimmed; drops it for non-other types", () => {
+    const payload = buildSubmitPayload({
+      ...BASE,
+      recipientRelationship: { type: "other", customLabel: "  amakivachchamning farzandi  " },
+      children: [{ name: "Ali", age: 7, relationship: { type: "parent", customLabel: "ignored" } }],
+      declaredArtifacts: { childPhotoCount: 0, wantsSpecialPhoto: false, characterPhotoCount: 0, hasReceipt: false },
+    });
+    expect(payload.profile.recipientRelationship).toEqual({
+      type: "other",
+      customLabel: "amakivachchamning farzandi",
+    });
+    // customLabel is meaningless for a non-"other" type -> not forwarded
+    expect(payload.profile.children[0]!.relationship).toEqual({ type: "parent" });
+  });
+
+  it("omits relationship entirely when none was set", () => {
+    const payload = buildSubmitPayload({
+      ...BASE,
+      children: [{ name: "Ali", age: 7 }],
+      declaredArtifacts: { childPhotoCount: 0, wantsSpecialPhoto: false, characterPhotoCount: 0, hasReceipt: false },
+    });
+    expect(payload.profile.recipientRelationship).toBeUndefined();
+    expect(payload.profile.children[0]!.relationship).toBeUndefined();
   });
 });
 
