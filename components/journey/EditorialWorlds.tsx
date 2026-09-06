@@ -380,14 +380,6 @@ function WorldPortal({
   const primaryPlayCue = fixedGatewayArtwork ? false : primaryView?.isVideo;
   const secondarySrc = secondaryView?.src ?? fallbackMedia.secondary ?? null;
 
-  const sourceRef =
-    world === 'wisdom-science' && preview.primary?.references?.length
-      ? preview.primary.references[0]
-      : null;
-  const sourceText = sourceRef
-    ? sourceRef.publisher ?? sourceRef.title ?? sourceRef.author ?? null
-    : null;
-
   const numEl = (
     <span
       aria-hidden="true"
@@ -455,90 +447,19 @@ function WorldPortal({
     </ul>
   );
 
-  const latestEl = (
-    <div
-      className="mt-6 border-t pt-4"
-      style={{ borderColor: GOLD_FAINT }}
-    >
-      {primaryView?.headline ? (
-        <>
-          <p
-            className="text-[10px] uppercase"
-            style={{
-              fontFamily: BODY,
-              fontWeight: 600,
-              letterSpacing: '0.22em',
-              color: GOLD,
-            }}
-          >
-            {wc.latestLabel}
-          </p>
-          <p
-            className="mt-2 text-[16px] lg:text-[18px]"
-            style={{
-              fontFamily: DISPLAY,
-              fontWeight: 600,
-              color: NAVY,
-              lineHeight: 1.28,
-              display: '-webkit-box',
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-            }}
-          >
-            {primaryView.headline}
-          </p>
-          {primaryView.meta ? (
-            <p
-              className="mt-1.5 text-[10px] uppercase"
-              style={{
-                fontFamily: BODY,
-                fontWeight: 600,
-                letterSpacing: '0.16em',
-                color: NAVY_48,
-              }}
-            >
-              {primaryView.meta}
-            </p>
-          ) : null}
-        </>
-      ) : (
-        <p
-          className="text-[13px]"
-          style={{ fontFamily: BODY, color: NAVY_48, lineHeight: 1.7 }}
-        >
-          {wc.emptyLine}
-        </p>
-      )}
-      {sourceText ? (
-        <p
-          className="mt-3 text-[10px] uppercase"
-          style={{
-            fontFamily: BODY,
-            fontWeight: 600,
-            letterSpacing: '0.16em',
-            color: NAVY_48,
-          }}
-        >
-          {c.source}: {sourceText}
-        </p>
-      ) : null}
-    </div>
-  );
-
   const affordanceEl = (
-    <div className="mt-6 flex items-center gap-3">
+    <div className="mt-7 flex items-center gap-3.5">
       <span
         aria-hidden="true"
-        className="block h-px w-8 motion-safe:transition-[width] motion-safe:duration-500 motion-safe:group-hover:w-14 motion-safe:group-focus-visible:w-14"
+        className="tm-portal-open-line block h-px w-10 origin-left motion-safe:group-hover:scale-x-125 motion-safe:group-focus-visible:scale-x-125"
         style={{ backgroundColor: GOLD }}
       />
       <span
-        className="text-[11px] uppercase"
+        className="text-[12px] uppercase"
         style={{
           fontFamily: BODY,
-          fontWeight: 600,
-          letterSpacing: '0.2em',
+          fontWeight: 800,
+          letterSpacing: '0.18em',
           color: NAVY,
         }}
       >
@@ -546,7 +467,7 @@ function WorldPortal({
       </span>
       <span
         aria-hidden="true"
-        className="text-[13px] rtl:-scale-x-100 motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:translate-x-1 motion-safe:group-focus-visible:translate-x-1"
+        className="tm-portal-open-arrow text-[14px] rtl:-scale-x-100 motion-safe:group-hover:translate-x-1.5 motion-safe:group-focus-visible:translate-x-1.5"
         style={{ color: GOLD }}
       >
         &rarr;
@@ -614,7 +535,6 @@ function WorldPortal({
             {nameEl}
             {blurbEl}
             {facetsEl}
-            {latestEl}
             {affordanceEl}
           </div>
         </div>
@@ -647,7 +567,6 @@ function WorldPortal({
           {nameEl}
           {blurbEl}
           {facetsEl}
-          {latestEl}
           {affordanceEl}
         </div>
       </div>
