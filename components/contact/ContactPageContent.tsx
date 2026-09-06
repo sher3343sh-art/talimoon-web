@@ -13,6 +13,7 @@ const EN = {
   uzbekistan: "Uzbekistan",
   call: "Call",
   whatsapp: "Write on WhatsApp",
+  telegramWrite: "Write on Telegram",
   online: "WRITE TO US",
   onlineTitle: "Prefer to write?",
   onlineIntro: "Send us a message. We will respond through the channel you choose.",
@@ -31,6 +32,7 @@ const UZ: typeof EN = {
   uzbekistan: "O‘zbekiston",
   call: "Qo‘ng‘iroq qilish",
   whatsapp: "WhatsApp orqali yozish",
+  telegramWrite: "Telegram orqali yozish",
   online: "BIZGA YOZING",
   onlineTitle: "Yozish qulayroqmi?",
   onlineIntro: "Xabaringizni yuboring. Siz tanlagan aloqa kanali orqali javob beramiz.",
@@ -49,6 +51,7 @@ const RU: typeof EN = {
   uzbekistan: "Узбекистан",
   call: "Позвонить",
   whatsapp: "Написать в WhatsApp",
+  telegramWrite: "Написать в Telegram",
   online: "НАПИШИТЕ НАМ",
   onlineTitle: "Удобнее написать?",
   onlineIntro: "Отправьте сообщение — мы ответим через выбранный вами канал.",
@@ -63,13 +66,13 @@ const whatsappMessage = encodeURIComponent("Assalomu alaykum, TALIMOON kitoblari
 export function ContactPageContent() {
   const t = useT(EN, UZ, RU);
   const regions = [
-    { name: t.qatar, number: CONTACT.qatarPhone.value, tel: CONTACT.qatarPhone.href, wa: `https://wa.me/97477472723?text=${whatsappMessage}` },
-    { name: t.uzbekistan, number: CONTACT.uzbekistanPhone.value, tel: CONTACT.uzbekistanPhone.href, wa: `https://wa.me/998972560020?text=${whatsappMessage}` },
+    { name: t.qatar, number: CONTACT.qatarPhone.value, tel: CONTACT.qatarPhone.href, messageHref: `https://wa.me/97477472723?text=${whatsappMessage}`, messageLabel: t.whatsapp, messageIcon: MessageCircle },
+    { name: t.uzbekistan, number: CONTACT.uzbekistanPhone.value, tel: CONTACT.uzbekistanPhone.href, messageHref: "https://t.me/+998972560020", messageLabel: t.telegramWrite, messageIcon: Send },
   ];
   const channels = [
-    { name: t.email, value: CONTACT.email.value, href: CONTACT.email.href, icon: Mail },
-    { name: t.telegram, value: CONTACT.telegram.value, href: CONTACT.telegram.href, icon: Send },
-    { name: t.instagram, value: CONTACT.instagramDM.value, href: CONTACT.instagramDM.href, icon: MessageCircle },
+    { name: t.email, value: "hello@talimoon.com", href: "mailto:hello@talimoon.com", icon: Mail },
+    { name: t.telegram, value: "@talimoon_ · DM", href: "https://t.me/talimoon_kids", icon: Send },
+    { name: t.instagram, value: "@talimoon_ · DM", href: "https://ig.me/m/talimoon_", icon: MessageCircle },
   ];
 
   return (
@@ -86,19 +89,35 @@ export function ContactPageContent() {
       <section className="px-5 py-16 md:px-10 md:py-24 lg:px-16">
         <div className="mx-auto max-w-[1180px]">
           <p className="font-sans text-xs font-semibold tracking-[0.22em] text-[#A77E38]">{t.regions}</p>
-          <div className="mt-7 grid gap-5 md:grid-cols-2">
-            {regions.map((region, index) => (
-              <article key={region.name} className="group relative overflow-hidden rounded-[28px] border border-[#B8935B]/25 bg-white p-7 shadow-[0_18px_60px_rgba(23,36,57,0.08)] md:p-9">
-                <span aria-hidden="true" className="absolute right-6 top-4 font-serif text-7xl text-[#B8935B]/10">0{index + 1}</span>
-                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#172439] text-[#D8B563]"><MapPin size={20} strokeWidth={1.7} /></div>
-                <h2 className="mt-8 font-serif text-4xl">{region.name}</h2>
-                <a href={region.tel} className="mt-3 inline-block font-sans text-xl text-[#3E4857] transition-colors hover:text-[#A77E38]">{region.number}</a>
-                <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                  <a href={region.tel} className="inline-flex items-center justify-center gap-2 rounded-full border border-[#172439]/15 px-5 py-3 font-sans text-sm font-semibold transition hover:border-[#B8935B] hover:text-[#A77E38]"><Phone size={16} />{t.call}</a>
-                  <a href={region.wa} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 rounded-full bg-[#172439] px-5 py-3 font-sans text-sm font-semibold text-white transition hover:bg-[#263A54]"><MessageCircle size={16} className="text-[#D8B563]" />{t.whatsapp}</a>
-                </div>
-              </article>
-            ))}
+          <div className="mt-7 grid gap-6 md:grid-cols-2">
+            {regions.map((region) => {
+              const MessageIcon = region.messageIcon;
+              return (
+                <article key={region.name} className="group relative min-h-[340px] overflow-hidden rounded-[30px] border border-[#D8B563]/45 bg-[#162338] p-[1px] shadow-[0_24px_70px_rgba(14,25,43,0.22)] transition duration-500 hover:-translate-y-1 hover:shadow-[0_30px_85px_rgba(14,25,43,0.3)]">
+                  <div aria-hidden="true" className="absolute -right-20 -top-28 h-72 w-72 rounded-full bg-[#E6C875]/15 blur-3xl transition duration-700 group-hover:bg-[#E6C875]/25" />
+                  <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(118deg,transparent_22%,rgba(255,236,177,0.08)_45%,transparent_64%)] opacity-60 transition-transform duration-1000 group-hover:translate-x-8" />
+                  <div className="relative flex min-h-[338px] flex-col rounded-[29px] border border-white/[0.06] px-7 py-7 text-[#F8F5EF] md:px-9 md:py-8">
+                    <div className="flex items-start justify-between gap-5">
+                      <img src="/logo/talimoon-logo-gold.svg" alt="TALIMOON" className="h-8 w-auto max-w-[155px] opacity-95" />
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#D8B563]/35 bg-[#D8B563]/[0.07] text-[#E2C36F]"><MapPin size={18} strokeWidth={1.6} /></span>
+                    </div>
+
+                    <div className="my-auto py-9">
+                      <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.28em] text-[#D8B563]/75">{t.regions}</p>
+                      <h2 className="mt-3 font-serif text-[2.6rem] leading-none tracking-[-0.025em] md:text-5xl">{region.name}</h2>
+                      <a href={region.tel} className="mt-4 inline-block font-sans text-lg tracking-[0.045em] text-white/72 transition-colors hover:text-[#E2C36F] md:text-xl">{region.number}</a>
+                    </div>
+
+                    <div className="border-t border-[#D8B563]/25 pt-5">
+                      <div className="flex flex-col gap-3 sm:flex-row">
+                        <a href={region.tel} className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-full border border-white/15 px-4 py-2.5 font-sans text-[13px] font-semibold text-white/85 transition hover:border-[#D8B563]/70 hover:bg-white/[0.04] hover:text-[#E2C36F]"><Phone size={15} strokeWidth={1.8} />{t.call}</a>
+                        <a href={region.messageHref} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 flex-[1.25] items-center justify-center gap-2 rounded-full bg-[linear-gradient(105deg,#A87F34,#F1D98A,#B48A3D)] px-4 py-2.5 font-sans text-[13px] font-bold text-[#172439] shadow-[0_8px_24px_rgba(216,181,99,0.18)] transition hover:brightness-110"><MessageIcon size={15} strokeWidth={1.9} />{region.messageLabel}</a>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
           </div>
         </div>
       </section>
