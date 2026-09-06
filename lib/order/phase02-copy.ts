@@ -502,7 +502,7 @@ export function composeSummary(child: ChildProfile, locale: Locale): string {
       parts.push(`с головой уходит в ${child.favoriteActivity.trim()}`);
     }
     if (child.dreamStatus === "has-dream" && child.childDream?.trim()) {
-      parts.push(`мечтает о ${child.childDream.trim()}`);
+      parts.push(`мечтает стать — ${child.childDream.trim()}`);
     }
   } else {
     if (interests.length) parts.push(`loves ${joinList(interests, "en")}`);
