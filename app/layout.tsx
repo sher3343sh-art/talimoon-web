@@ -60,17 +60,19 @@ export const metadata: Metadata = {
   },
   formatDetection: { telephone: false },
   icons: {
-    apple: [{ url: "/pwa/apple-touch-icon.png?v=3", sizes: "180x180", type: "image/png" }],
-    shortcut: "/pwa/favicon-32.png?v=3",
+    apple: [{ url: "/pwa/apple-touch-icon-v4.png", sizes: "180x180", type: "image/png" }],
+    shortcut: "/pwa/favicon-v4-32.png",
     icon: [
-      { url: "/pwa/favicon-32.png?v=3", sizes: "32x32", type: "image/png" },
-      { url: "/pwa/favicon-48.png?v=3", sizes: "48x48", type: "image/png" },
-      { url: "/pwa/icon-transparent-192.png?v=3", sizes: "192x192", type: "image/png" },
+      { url: "/pwa/favicon-v4-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/pwa/favicon-v4-48.png", sizes: "48x48", type: "image/png" },
+      { url: "/pwa/prompt-logo-v4.png", sizes: "192x192", type: "image/png" },
     ],
   },
 };
 
 export const viewport = {
+  width: "device-width" as const,
+  initialScale: 1,
   themeColor: "#101A29",
   viewportFit: "cover" as const,
 };

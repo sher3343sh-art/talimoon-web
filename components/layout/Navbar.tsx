@@ -666,7 +666,7 @@ export default function Navbar({ ctaHref = "/begin" }: NavbarProps) {
         } as React.CSSProperties
       }
       className={[
-        "fixed inset-x-0 top-0 z-50",
+        "tm-navbar-safe fixed inset-x-0 top-0 z-50",
         "transition-[background-color,backdrop-filter,border-color,box-shadow]",
         "duration-300",
         scrolled
@@ -916,7 +916,7 @@ export default function Navbar({ ctaHref = "/begin" }: NavbarProps) {
       {/* ============================================================
           MOBILE NAV (< lg only)
       ============================================================ */}
-      <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between px-5 lg:hidden">
+      <div className="tm-navbar-mobile mx-auto flex h-16 max-w-[1440px] items-center justify-between lg:hidden">
         <Link
           href="/"
           aria-label={t.talimoonHome}
@@ -1072,7 +1072,7 @@ export default function Navbar({ ctaHref = "/begin" }: NavbarProps) {
             aria-modal="true"
             aria-label={t.mobileNav}
             className={[
-              "fixed left-3 right-3 top-[72px] z-[60] lg:hidden",
+              "tm-navbar-drawer fixed top-[calc(72px+env(safe-area-inset-top))] z-[60] lg:hidden",
               "flex max-h-[60vh] flex-col overflow-hidden rounded-3xl",
               "bg-[var(--surface-warm-100,#F7F2EA)]",
               "shadow-[0_24px_60px_-12px_rgba(42,36,29,0.35)]",

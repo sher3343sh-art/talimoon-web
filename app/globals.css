@@ -8,6 +8,25 @@
 
 @import "tailwindcss";
 
+@media (max-width: 1023px) {
+  /* iOS does not report display-mode consistently across Safari versions.
+     Applying the inset to every mobile viewport is safe: it resolves to 0
+     in browsers without a display cutout and protects installed web apps. */
+  .tm-navbar-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .tm-navbar-mobile {
+    padding-left: max(20px, env(safe-area-inset-left, 0px));
+    padding-right: max(20px, env(safe-area-inset-right, 0px));
+  }
+
+  .tm-navbar-drawer {
+    left: max(12px, env(safe-area-inset-left, 0px));
+    right: max(12px, env(safe-area-inset-right, 0px));
+  }
+}
+
 /* ==========================================================================
    3. PRIMITIVE CSS VARIABLES  (Spec §15)
    Raw values. Named by position in a scale, never by role.
