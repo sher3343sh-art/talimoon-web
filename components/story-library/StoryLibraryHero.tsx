@@ -148,7 +148,7 @@ export function StoryLibraryHero() {
     <section
       aria-roledescription="carousel"
       aria-label={ui.label}
-      className="relative overflow-hidden bg-[#F7F3EC] pt-[64px] lg:pt-[80px]"
+      className="relative overflow-hidden bg-[#F7F3EC] pt-[64px] lg:pt-[74px]"
       onMouseEnter={() => setInteracting(true)}
       onMouseLeave={() => setInteracting(false)}
       onFocusCapture={() => setInteracting(true)}
