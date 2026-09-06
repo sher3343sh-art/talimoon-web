@@ -176,8 +176,96 @@ function sampleEpisode(): Story {
   };
 }
 
+// ── Published family book ─────────────────────────────────────────
+const UNUTILMAGAN_BASE =
+  '/images/story-library/talimoon-books/source/unutilmagan-nasihatlar-uz';
+
+function unutilmaganPages(): StoryPage[] {
+  return Array.from({ length: 17 }, (_, index) => {
+    const number = String(index + 1).padStart(2, '0');
+    return {
+      index,
+      image: {
+        id: `unutilmagan_p${number}`,
+        src: `${UNUTILMAGAN_BASE}/optimized/page-${number}.webp`,
+        width: 2560,
+        height: 1298,
+        alt: `Unutilmagan nasihatlar — ${index + 1}-sahifa`,
+      },
+      audioSrc: `${UNUTILMAGAN_BASE}/audio/page-${number}.mp3`,
+    };
+  });
+}
+
+function unutilmaganNasihatlar(): Story {
+  const id = 'story_family_unutilmagan_nasihatlar_uz';
+  return {
+    id,
+    slug: 'unutilmagan-nasihatlar',
+    kind: 'family',
+    dedication: 'Bir oila hikoyasi',
+    defaultLocale: 'uz',
+    publicationState: 'published',
+    publishedAtISO: '2026-09-06T00:00:00.000Z',
+    indexable: false,
+    access: 'free',
+    featured: false,
+    recognition: null,
+    commentsEnabled: false,
+    consent: {
+      storyId: id,
+      familyRef: 'family_unutilmagan_nasihatlar',
+      grantedAtISO: '2026-09-06T00:00:00.000Z',
+      scope: {
+        inLibrary: true,
+        indexable: false,
+        commentsEnabled: false,
+        showAgeBand: false,
+      },
+      status: 'active',
+    },
+    editions: [
+      {
+        id: `${id}_ed_uz`,
+        storyId: id,
+        locale: 'uz',
+        direction: 'ltr',
+        title: 'Unutilmagan nasihatlar',
+        subtitle: 'O‘rmonda adashib qoldik',
+        description:
+          'Fayzbek, Madinabonu va Muhammadsayyidning mehr, sog‘inch va otaning unutilmas nasihatlari bilan yo‘g‘rilgan oilaviy hikoyasi.',
+        cover: {
+          id: `${id}_library_cover`,
+          src: `${UNUTILMAGAN_BASE}/optimized/cover-library.webp`,
+          width: 1000,
+          height: 951,
+          alt: 'Unutilmagan nasihatlar kitobi muqovasi',
+        },
+        frontCover: {
+          id: `${id}_front_cover`,
+          src: `${UNUTILMAGAN_BASE}/optimized/cover-front.webp`,
+          width: 2560,
+          height: 1298,
+          alt: 'Unutilmagan nasihatlar — old muqova',
+        },
+        backCover: {
+          id: `${id}_back_cover`,
+          src: `${UNUTILMAGAN_BASE}/optimized/cover-back.webp`,
+          width: 2560,
+          height: 1298,
+          alt: 'Unutilmagan nasihatlar — orqa muqova',
+        },
+        pageTurnAudioSrc: `${UNUTILMAGAN_BASE}/audio/sound book page.wav`,
+        pages: unutilmaganPages(),
+        status: 'ready',
+      },
+    ],
+  };
+}
+
 // ── Stories ────────────────────────────────────────────────────────
 export const STORIES: readonly Story[] = [
+  unutilmaganNasihatlar(),
   sampleEpisode(),
   placeholderEpisode(2),
   placeholderEpisode(3),

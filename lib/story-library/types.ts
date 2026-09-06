@@ -87,6 +87,9 @@ export interface StoryPage {
    *  edition has no narration. */
   audioStartSec?: number;
   audioEndSec?: number;
+  /** Optional narration dedicated to this illustrated spread. When
+   * present, the Reader advances on this track's `ended` event. */
+  audioSrc?: string;
 }
 
 // ── Series (Yusuf & Yasmina) ───────────────────────────────────────
@@ -131,6 +134,12 @@ export interface StoryEdition {
   /** TALIMOON-authored, warm, 1–2 sentences. Not written by families. */
   description: string;
   cover: ImageAsset;
+  /** Flat front/back covers used by the immersive Reader. The regular
+   * `cover` remains the library-card artwork. */
+  frontCover?: ImageAsset;
+  backCover?: ImageAsset;
+  /** A restrained page-turn effect played between spreads. */
+  pageTurnAudioSrc?: string;
   pages: StoryPage[];
   audio?: AudioTrack;
   status: 'ready' | 'in-review' | 'missing-audio';

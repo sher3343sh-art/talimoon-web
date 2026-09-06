@@ -14,11 +14,13 @@
  * message.
  */
 
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useT } from '@/lib/i18n/LanguageContext';
-import type { Story } from '@/lib/story-library/types';
+import type { Locale, Story } from '@/lib/story-library/types';
+import { getEdition } from '@/lib/story-library/content';
 import {
   BODY,
   DISPLAY,
@@ -55,6 +57,13 @@ const RU: typeof EN = {
   viewAll: 'Смотреть коллекции',
 };
 
+const FILTERS: Array<{ value: 'all' | Locale; label: string }> = [
+  { value: 'all', label: 'Barchasi' },
+  { value: 'uz', label: 'O‘zbekcha' },
+  { value: 'ru', label: 'Русский' },
+  { value: 'en', label: 'English' },
+];
+
 // gentle, fixed "hand-placed" transforms for the frame cluster
 const FRAMES = [
   { w: 'w-[38%] sm:w-[26%]', rot: -3, up: 'mt-6 sm:mt-10' },
@@ -66,7 +75,15 @@ const FRAMES = [
 export function FamilyStoriesWorld({ stories }: { stories: Story[] }) {
   const t = useT(EN, UZ, RU);
   const reduced = useReducedMotion();
-  const isEmpty = stories.length === 0;
+  const [filter, setFilter] = useState<'all' | Locale>('all');
+  const visible = useMemo(
+    () =>
+      filter === 'all'
+        ? stories
+        : stories.filter((story) => story.editions.some((edition) => edition.locale === filter)),
+    [filter, stories],
+  );
+  const isEmpty = visible.length === 0;
 
   return (
     <div className="grid gap-10 lg:grid-cols-[minmax(0,420px)_1fr] lg:gap-16">
@@ -115,6 +132,28 @@ export function FamilyStoriesWorld({ stories }: { stories: Story[] }) {
           {t.viewAll}
           <span aria-hidden="true" style={{ color: GOLD }}>&rarr;</span>
         </Link>
+        <div className="mt-7 flex flex-wrap gap-2" aria-label="Kitob tili">
+          {FILTERS.map((item) => {
+            const active = filter === item.value;
+            return (
+              <button
+                key={item.value}
+                type="button"
+                onClick={() => setFilter(item.value)}
+                className="rounded-full px-3.5 py-2 text-[11px] font-semibold transition-colors"
+                style={{
+                  fontFamily: BODY,
+                  color: active ? '#F7F3EC' : NAVY_64,
+                  background: active ? NAVY : 'transparent',
+                  border: `1px solid ${active ? NAVY : GOLD_SOFT}`,
+                }}
+                aria-pressed={active}
+              >
+                {item.label}
+              </button>
+            );
+          })}
+        </div>
       </motion.div>
 
       {/* the mantel */}
@@ -125,7 +164,8 @@ export function FamilyStoriesWorld({ stories }: { stories: Story[] }) {
         transition={{ duration: 0.9, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
         className="relative"
       >
-        <div className="flex flex-wrap items-start justify-center gap-4 sm:gap-6">
+        {isEmpty && stories.length === 0 ? (
+          <div className="flex flex-wrap items-start justify-center gap-4 sm:gap-6">
           {FRAMES.map((f, i) => (
             <div
               key={i}
@@ -145,8 +185,66 @@ export function FamilyStoriesWorld({ stories }: { stories: Story[] }) {
               />
             </div>
           ))}
-        </div>
-        {isEmpty ? (
+          </div>
+        ) : isEmpty ? (
+          <div className="flex min-h-[280px] items-center justify-center rounded-[3px] border border-[rgba(184,147,91,0.22)] px-8 text-center">
+            <p className="text-[14px]" style={{ fontFamily: BODY, color: NAVY_48 }}>
+              Bu tilda kitoblar hali joylanmagan.
+            </p>
+          </div>
+        ) : (
+          <div className="flex flex-wrap items-end justify-center gap-8 lg:justify-start">
+            {visible.map((story) => {
+              const edition =
+                filter === 'all'
+                  ? getEdition(story, story.defaultLocale)
+                  : story.editions.find((item) => item.locale === filter);
+              if (!edition) return null;
+              return (
+                <Link
+                  key={edition.id}
+                  href={`/story-library/s/${story.slug}`}
+                  className="group block w-full max-w-[330px]"
+                >
+                  <div className="relative mx-auto aspect-[1.05] w-full">
+                    <div
+                      aria-hidden="true"
+                      className="absolute inset-x-[8%] bottom-[5%] h-[18%] rounded-[50%] blur-xl"
+                      style={{ background: 'rgba(28,42,58,0.22)' }}
+                    />
+                    <Image
+                      src={edition.cover.src}
+                      alt={edition.cover.alt || edition.title}
+                      fill
+                      sizes="(max-width: 768px) 84vw, 330px"
+                      className="object-contain object-bottom transition-transform duration-500 group-hover:-translate-y-2 group-hover:scale-[1.015]"
+                    />
+                  </div>
+                  <div className="mt-3 text-center lg:text-left">
+                    <span
+                      className="text-[11px] font-semibold uppercase tracking-[0.18em]"
+                      style={{ fontFamily: BODY, color: GOLD }}
+                    >
+                      {edition.locale.toUpperCase()} · Audio kitob
+                    </span>
+                    <h3
+                      className="mt-1 text-[22px]"
+                      style={{ fontFamily: DISPLAY, fontWeight: 600, color: NAVY }}
+                    >
+                      {edition.title}
+                    </h3>
+                    {edition.subtitle ? (
+                      <p className="mt-1 text-[13px]" style={{ fontFamily: BODY, color: NAVY_64 }}>
+                        {edition.subtitle}
+                      </p>
+                    ) : null}
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+        {isEmpty && stories.length === 0 ? (
           <p
             className="mt-8 text-center text-[13px]"
             style={{ fontFamily: BODY, color: NAVY_48, letterSpacing: '0.04em' }}

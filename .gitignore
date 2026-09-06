@@ -43,4 +43,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# Original book artwork stays local; optimized WebP editions are deployed.
+/public/images/story-library/talimoon-books/source/*/*.png
+
 .vercel

@@ -10,7 +10,7 @@
  * frames — calm and intentional, never a "no results" message.
  */
 
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, useReducedMotion } from 'framer-motion';
@@ -79,7 +79,15 @@ export function FamilyCollection({ stories }: { stories: Story[] }) {
   const { language } = useLanguage();
   const reduced = useReducedMotion();
   const locale = toLocale(language);
-  const isEmpty = stories.length === 0;
+  const [filter, setFilter] = useState<'all' | Locale>('all');
+  const visible = useMemo(
+    () =>
+      filter === 'all'
+        ? stories
+        : stories.filter((story) => story.editions.some((edition) => edition.locale === filter)),
+    [filter, stories],
+  );
+  const isEmpty = visible.length === 0;
 
   return (
     <section className="relative w-full bg-surface-base px-6 pt-20 md:px-10 md:pt-24 lg:px-16">
@@ -122,7 +130,35 @@ export function FamilyCollection({ stories }: { stories: Story[] }) {
           </div>
         </motion.div>
 
-        {isEmpty ? (
+        <div className="mt-9 flex flex-wrap gap-2" aria-label="Kitob tili">
+          {[
+            ['all', 'Barchasi'],
+            ['uz', 'O‘zbekcha'],
+            ['ru', 'Русский'],
+            ['en', 'English'],
+          ].map(([value, label]) => {
+            const active = filter === value;
+            return (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setFilter(value as 'all' | Locale)}
+                aria-pressed={active}
+                className="rounded-full px-4 py-2 text-[12px] font-semibold transition-colors"
+                style={{
+                  fontFamily: BODY,
+                  color: active ? '#F7F3EC' : NAVY_64,
+                  background: active ? NAVY : 'transparent',
+                  border: `1px solid ${active ? NAVY : GOLD_SOFT}`,
+                }}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+
+        {isEmpty && stories.length === 0 ? (
           <div className="py-14 md:py-20">
             <div className="flex flex-wrap items-start justify-center gap-4 sm:gap-6">
               {FRAMES.map((rot, i) => (
@@ -152,10 +188,19 @@ export function FamilyCollection({ stories }: { stories: Story[] }) {
               {t.empty}
             </p>
           </div>
+        ) : isEmpty ? (
+          <div className="my-14 flex min-h-[260px] items-center justify-center rounded-[3px] border px-8 text-center" style={{ borderColor: GOLD_SOFT }}>
+            <p className="text-[14px]" style={{ fontFamily: BODY, color: NAVY_48 }}>
+              Bu tilda kitoblar hali joylanmagan.
+            </p>
+          </div>
         ) : (
           <ul className="grid grid-cols-2 gap-6 py-14 sm:grid-cols-3 md:gap-8 md:py-20 lg:grid-cols-4">
-            {stories.map((story) => {
-              const ed = getEdition(story, locale);
+            {visible.map((story) => {
+              const ed =
+                filter === 'all'
+                  ? getEdition(story, locale)
+                  : story.editions.find((edition) => edition.locale === filter);
               return (
                 <li key={story.id}>
                   <Link href={`/story-library/s/${story.slug}`} className="group block">
